@@ -4,6 +4,7 @@ import { db } from "@/db"
 import * as schema from "@/db/schema"
 
 export const auth = betterAuth({
+  baseURL: "http://localhost:3000",
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,
@@ -13,6 +14,7 @@ export const auth = betterAuth({
     github: {
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      redirectURI: "http://localhost:3000/api/auth/callback/github",
     },
   },
 })
