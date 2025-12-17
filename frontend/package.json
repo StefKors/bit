@@ -1,7 +1,7 @@
 {
-  "name": "bit",
-  "private": true,
+  "name": "@bit/frontend",
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +11,8 @@
     "format": "oxfmt --write ."
   },
   "dependencies": {
+    "@base-ui/react": "^1.0.0",
+    "better-auth": "^1.4.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

@@ -1,5 +1,5 @@
 {
-  "name": "bit",
+  "name": "@bit/backend",
   "version": "1.0.50",
   "module": "src/index.js",
   "scripts": {
