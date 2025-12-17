@@ -2,7 +2,6 @@
   "oxc.fmt.experimental": true,
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.formatOnSave": true,
-  "editor.formatOnSaveMode": "modificationsIfAvailable",
   "[typescript]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
   }
