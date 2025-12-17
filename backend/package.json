@@ -19,6 +19,7 @@
     "@sinclair/typebox": "0.34.0"
   },
   "dependencies": {
+    "@elysiajs/cors": "^1.4.0",
     "better-auth": "^1.4.7",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",

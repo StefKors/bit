@@ -1,0 +1,324 @@
+.container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  width: 100vw;
+}
+
+.backgroundPattern {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      circle at 20% 20%,
+      rgba(88, 166, 255, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(163, 113, 247, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(46, 160, 67, 0.05) 0%,
+      transparent 70%
+    );
+  pointer-events: none;
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: linear-gradient(
+    145deg,
+    rgba(30, 30, 30, 0.9) 0%,
+    rgba(22, 22, 22, 0.95) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(20px);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logo {
+  width: 164px;
+  height: 164px;
+}
+
+.avatarContainer {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1rem;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(46, 160, 67, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.avatarPlaceholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #58a6ff 0%, #a371f7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+}
+
+.onlineIndicator {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  background: #2ea043;
+  border-radius: 50%;
+  border: 3px solid #161616;
+  box-shadow: 0 0 12px rgba(46, 160, 67, 0.6);
+}
+
+.title {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  font-weight: 400;
+}
+
+.userInfo {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+}
+
+.infoRow:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.infoLabel {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.infoValue {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: "JetBrains Mono", "SF Mono", monospace;
+}
+
+.statusBadge {
+  font-size: 0.75rem;
+  color: #2ea043;
+  background: rgba(46, 160, 67, 0.15);
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 600;
+  border: 1px solid rgba(46, 160, 67, 0.3);
+}
+
+.githubButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: #ffffff;
+  color: #0d1117;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.githubButton:hover {
+  background: #f0f0f0;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.githubButton:active {
+  transform: translateY(0);
+}
+
+.signOutButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.signOutButton:hover {
+  background: rgba(248, 81, 73, 0.1);
+  border-color: rgba(248, 81, 73, 0.4);
+  color: #f85149;
+}
+
+.buttonIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.footer {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.footerText {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #58a6ff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Light mode overrides */
+@media (prefers-color-scheme: light) {
+  .card {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(248, 248, 248, 0.98) 100%
+    );
+    border-color: rgba(0, 0, 0, 0.08);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15),
+      0 0 0 1px rgba(0, 0, 0, 0.05);
+  }
+
+  .title {
+    color: #0d1117;
+  }
+
+  .subtitle {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .userInfo {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.06);
+  }
+
+  .infoRow:not(:last-child) {
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+  }
+
+  .infoLabel {
+    color: rgba(0, 0, 0, 0.4);
+  }
+
+  .infoValue {
+    color: rgba(0, 0, 0, 0.9);
+  }
+
+  .githubButton {
+    background: #0d1117;
+    color: #ffffff;
+  }
+
+  .githubButton:hover {
+    background: #24292f;
+  }
+
+  .signOutButton {
+    color: rgba(0, 0, 0, 0.6);
+    border-color: rgba(0, 0, 0, 0.15);
+  }
+
+  .signOutButton:hover {
+    background: rgba(248, 81, 73, 0.08);
+  }
+
+  .loading {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .spinner {
+    border-color: rgba(0, 0, 0, 0.1);
+    border-top-color: #58a6ff;
+  }
+
+  .footerText {
+    color: rgba(0, 0, 0, 0.4);
+  }
+
+  .avatarPlaceholder,
+  .onlineIndicator {
+    border-color: #f8f8f8;
+  }
+}
