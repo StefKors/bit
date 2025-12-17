@@ -1,15 +1,36 @@
 {
   "name": "bit",
   "version": "1.0.50",
+  "module": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "drizzle-kit seed",
+    "db:drop": "drizzle-kit drop",
+    "db:reset": "drizzle-kit reset",
+    "db:reset:force": "drizzle-kit reset --force",
+    "db:reset:force:all": "drizzle-kit reset --force --all",
+    "format": "oxfmt --write ."
+  },
+  "overrides": {
+    "@sinclair/typebox": "0.34.0"
   },
   "dependencies": {
-    "elysia": "latest"
+    "better-auth": "^1.4.7",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.1",
+    "drizzle-typebox": "^0.3.3",
+    "elysia": "latest",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
-    "bun-types": "latest"
-  },
-  "module": "src/index.js"
+    "@types/pg": "^8.16.0",
+    "bun-types": "latest",
+    "drizzle-kit": "^0.31.8",
+    "oxfmt": "^0.18.0",
+    "tsx": "^4.21.0"
+  }
 }
