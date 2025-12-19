@@ -5,7 +5,7 @@ export interface BreadcrumbItem {
   /** The label to display */
   label: string
   /** Optional href - if provided, renders as a link */
-  href?: string
+  href: string
 }
 
 interface BreadcrumbProps {

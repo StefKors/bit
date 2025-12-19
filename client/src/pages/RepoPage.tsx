@@ -93,8 +93,8 @@ export function RepoPage() {
       <Breadcrumb
         items={[
           { label: "Repositories", href: "/" },
-          { label: owner },
-          { label: repoName },
+          { label: owner, href: `/${owner}` },
+          { label: repoName, href: `/${owner}/${repoName}` },
         ]}
       />
 

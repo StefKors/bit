@@ -7,6 +7,7 @@ import "@/db/types" // Import to register DefaultTypes
 import { Layout } from "@/layout"
 import LoginPage from "@/pages/LoginPage"
 import { OverviewPage } from "./pages/OverviewPage"
+import { OwnerPage } from "./pages/OwnerPage"
 import { RepoPage } from "./pages/RepoPage"
 import { PRListPage } from "./pages/PRListPage"
 import { PRDetailPage } from "./pages/PRDetailPage"
@@ -71,9 +72,10 @@ function App({ userID: initialUserID }: AppProps) {
             path="/"
             component={() => <OverviewPage onLogout={handleAuthChange} />}
           />
-          <Route path="/:owner/:repo" component={RepoPage} />
           <Route path="/:owner/:repo/pulls" component={PRListPage} />
           <Route path="/:owner/:repo/pull/:number" component={PRDetailPage} />
+          <Route path="/:owner/:repo" component={RepoPage} />
+          <Route path="/:owner" component={OwnerPage} />
           <Route>
             <div style={{ padding: "2rem", textAlign: "center" }}>
               <h1>404 - Page Not Found</h1>

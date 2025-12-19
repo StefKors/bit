@@ -211,7 +211,7 @@ export function PRDetailPage() {
           { label: owner, href: `/${fullName}` },
           { label: repoName, href: `/${fullName}` },
           { label: "pull requests", href: `/${fullName}/pulls` },
-          { label: `#${prNumber}` },
+          { label: `#${prNumber}`, href: `/${fullName}/pull/${prNumber}` },
         ]}
       />
 

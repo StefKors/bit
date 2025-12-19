@@ -106,9 +106,9 @@ export function PRListPage() {
       <Breadcrumb
         items={[
           { label: "Repositories", href: "/" },
-          { label: owner, href: `/${fullName}` },
-          { label: repoName, href: `/${fullName}` },
-          { label: "pull requests" },
+          { label: owner, href: `/${owner}` },
+          { label: repoName, href: `/${owner}/${repoName}` },
+          { label: "pull requests", href: `/${owner}/${repoName}/pulls` },
         ]}
       />
 
