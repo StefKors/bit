@@ -71,10 +71,12 @@ export function OwnerPage() {
             <img
               src={org.avatarUrl}
               alt={owner}
-              className={styles.ownerAvatar}
+              className={`${styles.ownerAvatar} ${isOrg ? styles.ownerAvatarOrg : styles.ownerAvatarUser}`}
             />
           ) : (
-            <div className={styles.ownerAvatarPlaceholder}>
+            <div
+              className={`${styles.ownerAvatarPlaceholder} ${isOrg ? styles.ownerAvatarPlaceholderOrg : styles.ownerAvatarPlaceholderUser}`}
+            >
               {isOrg ? (
                 <svg
                   viewBox="0 0 24 24"

@@ -87,10 +87,12 @@ export function RepoSection({
               <img
                 src={group.avatarUrl}
                 alt={group.owner}
-                className={styles.ownerAvatar}
+                className={`${styles.ownerAvatar} ${group.isOrg ? styles.ownerAvatarOrg : styles.ownerAvatarUser}`}
               />
             ) : (
-              <div className={styles.ownerAvatarPlaceholder}>
+              <div
+                className={`${styles.ownerAvatarPlaceholder} ${group.isOrg ? styles.ownerAvatarPlaceholderOrg : styles.ownerAvatarPlaceholderUser}`}
+              >
                 {group.isOrg ? (
                   <svg
                     viewBox="0 0 24 24"

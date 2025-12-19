@@ -28,18 +28,32 @@
 .ownerAvatar {
   width: 32px;
   height: 32px;
-  border-radius: 6px;
   object-fit: cover;
+}
+
+.ownerAvatarUser {
+  border-radius: 50%;
+}
+
+.ownerAvatarOrg {
+  border-radius: 6px;
 }
 
 .ownerAvatarPlaceholder {
   width: 32px;
   height: 32px;
-  border-radius: 6px;
   background: linear-gradient(135deg, #58a6ff 0%, #a371f7 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.ownerAvatarPlaceholderUser {
+  border-radius: 50%;
+}
+
+.ownerAvatarPlaceholderOrg {
+  border-radius: 6px;
 }
 
 .ownerAvatarPlaceholder svg {
