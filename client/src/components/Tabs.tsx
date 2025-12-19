@@ -68,6 +68,7 @@ function TabTrigger({ item }: { item: TabItem }) {
         value={item.value}
         className={styles.tab}
         render={<Link href={item.href} />}
+        nativeButton={false}
       >
         {content}
       </BaseTabs.Tab>

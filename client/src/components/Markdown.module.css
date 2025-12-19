@@ -214,6 +214,29 @@
   border-radius: var(--bit-radius-md);
 }
 
+/* Image link (for GitHub user-attachments that can't load cross-origin) */
+.imageLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.4em 0.75em;
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-md);
+  color: var(--bit-color-link);
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.imageLink:hover {
+  background: rgba(var(--bit-rgb-fg), 0.1);
+  border-color: rgba(var(--bit-rgb-fg), 0.15);
+  text-decoration: none;
+}
+
 /* Task lists */
 .markdown input[type="checkbox"] {
   margin-right: 0.5em;

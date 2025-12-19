@@ -11,6 +11,31 @@ const md = MarkdownItAsync({
   breaks: true,
 })
 
+// Custom image renderer that adds error handling and lazy loading
+const defaultImageRender =
+  md.renderer.rules.image ||
+  function (tokens, idx, options, _env, self) {
+    return self.renderToken(tokens, idx, options)
+  }
+
+md.renderer.rules.image = function (tokens, idx, options, env, self) {
+  const token = tokens[idx]
+  const src = token.attrGet("src") || ""
+
+  // Check if it's a GitHub user-attachments URL (these require auth)
+  if (src.includes("github.com/user-attachments/")) {
+    // These URLs can't be loaded cross-origin, show a placeholder link instead
+    const alt = token.content || "Image"
+    return `<a href="${src}" target="_blank" rel="noopener noreferrer" class="${styles.imageLink}">📎 ${alt}</a>`
+  }
+
+  // Add loading="lazy" and error handling for other images
+  token.attrSet("loading", "lazy")
+  token.attrSet("onerror", "this.style.display='none'")
+
+  return defaultImageRender(tokens, idx, options, env, self)
+}
+
 md.use(
   fromAsyncCodeToHtml(codeToHtml, {
     themes: {
