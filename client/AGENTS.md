@@ -1,0 +1,3 @@
+# React
+- Prefer arrow functions
+- 

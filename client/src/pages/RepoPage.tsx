@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react"
 import { Link, useParams } from "wouter"
 import { useQuery } from "@rocicorp/zero/react"
-import { zql } from "@/db/schema"
 import { Breadcrumb } from "@/components/Breadcrumb"
+import { queries } from "@/db/queries"
 import styles from "./RepoPage.module.css"
 
 // Language colors
@@ -17,6 +17,38 @@ const languageColors: Record<string, string> = {
   Swift: "#F05138",
 }
 
+function PullRequestsTab({
+  repoId,
+  fullName,
+}: {
+  repoId: string
+  fullName: string
+}) {
+  const [prs] = useQuery(queries.pullRequests(repoId))
+  const openPRs = prs.filter((pr) => pr.state === "open")
+
+  return (
+    <Link href={`/${fullName}/pulls`} className={styles.tab}>
+      <svg
+        className={styles.tabIcon}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <circle cx="18" cy="18" r="3" />
+        <circle cx="6" cy="6" r="3" />
+        <path d="M13 6h3a2 2 0 0 1 2 2v7" />
+        <line x1="6" y1="9" x2="6" y2="21" />
+      </svg>
+      Pull requests
+      {openPRs.length > 0 && (
+        <span className={styles.tabCount}>{openPRs.length}</span>
+      )}
+    </Link>
+  )
+}
+
 export function RepoPage() {
   const params = useParams<{ owner: string; repo: string }>()
   const [syncing, setSyncing] = useState(false)
@@ -27,19 +59,8 @@ export function RepoPage() {
   const fullName = `${owner}/${repoName}`
 
   // Query the repo from Zero
-  const [repos] = useQuery(
-    zql.githubRepo.where("fullName", "=", fullName).limit(1),
-  )
+  const [repos] = useQuery(queries.repo(fullName))
   const repo = repos[0]
-
-  // Query PRs for this repo
-  const [prs] = useQuery(
-    repo
-      ? zql.githubPullRequest.where("repoId", "=", repo.id)
-      : zql.githubPullRequest.where("id", "=", "__none__"),
-  )
-
-  const openPRs = prs.filter((pr) => pr.state === "open")
 
   const handleSync = useCallback(async () => {
     setSyncing(true)
@@ -238,24 +259,7 @@ export function RepoPage() {
           </svg>
           Code
         </Link>
-        <Link href={`/${fullName}/pulls`} className={styles.tab}>
-          <svg
-            className={styles.tabIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="18" cy="18" r="3" />
-            <circle cx="6" cy="6" r="3" />
-            <path d="M13 6h3a2 2 0 0 1 2 2v7" />
-            <line x1="6" y1="9" x2="6" y2="21" />
-          </svg>
-          Pull requests
-          {openPRs.length > 0 && (
-            <span className={styles.tabCount}>{openPRs.length}</span>
-          )}
-        </Link>
+        <PullRequestsTab repoId={repo.id} fullName={fullName} />
       </nav>
 
       {/* Content */}
