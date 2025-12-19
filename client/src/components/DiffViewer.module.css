@@ -1,0 +1,128 @@
+.container {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: none;
+  background: rgba(22, 22, 22, 0.8);
+  overflow-x: auto;
+}
+
+.diffTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.hunk {
+  background: rgba(88, 166, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+}
+
+.lineNumber {
+  width: 50px;
+  min-width: 50px;
+  padding: 0 0.75rem;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.3);
+  user-select: none;
+  vertical-align: top;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lineContent {
+  padding: 0 1rem;
+  white-space: pre;
+  vertical-align: top;
+}
+
+.lineAddition {
+  background: rgba(63, 185, 80, 0.15);
+}
+
+.lineAddition .lineNumber {
+  background: rgba(63, 185, 80, 0.2);
+  color: rgba(63, 185, 80, 0.8);
+}
+
+.lineAddition .lineContent {
+  color: #aff5b4;
+}
+
+.lineDeletion {
+  background: rgba(248, 81, 73, 0.15);
+}
+
+.lineDeletion .lineNumber {
+  background: rgba(248, 81, 73, 0.2);
+  color: rgba(248, 81, 73, 0.8);
+}
+
+.lineDeletion .lineContent {
+  color: #ffc0bc;
+}
+
+.lineContext {
+  background: transparent;
+}
+
+.lineContext .lineContent {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.prefix {
+  display: inline-block;
+  width: 1ch;
+  margin-right: 0.5ch;
+  color: inherit;
+  opacity: 0.7;
+}
+
+/* Light mode */
+@media (prefers-color-scheme: light) {
+  .container {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+
+  .hunk {
+    background: rgba(88, 166, 255, 0.08);
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .lineNumber {
+    color: rgba(0, 0, 0, 0.3);
+    border-color: rgba(0, 0, 0, 0.06);
+  }
+
+  .lineAddition {
+    background: rgba(63, 185, 80, 0.1);
+  }
+
+  .lineAddition .lineNumber {
+    background: rgba(63, 185, 80, 0.15);
+    color: rgba(63, 185, 80, 0.9);
+  }
+
+  .lineAddition .lineContent {
+    color: #1a7f37;
+  }
+
+  .lineDeletion {
+    background: rgba(248, 81, 73, 0.1);
+  }
+
+  .lineDeletion .lineNumber {
+    background: rgba(248, 81, 73, 0.15);
+    color: rgba(248, 81, 73, 0.9);
+  }
+
+  .lineDeletion .lineContent {
+    color: #cf222e;
+  }
+
+  .lineContext .lineContent {
+    color: rgba(0, 0, 0, 0.7);
+  }
+}

@@ -1,0 +1,268 @@
+.container {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.breadcrumbLink {
+  color: #58a6ff;
+  text-decoration: none;
+}
+
+.breadcrumbLink:hover {
+  text-decoration: underline;
+}
+
+.breadcrumbSeparator {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  flex: 1;
+}
+
+.title {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.repoIcon {
+  width: 24px;
+  height: 24px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.privateIcon {
+  width: 18px;
+  height: 18px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.description {
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 1rem;
+  font-size: 1rem;
+}
+
+.meta {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.metaIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.languageDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.syncButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.syncButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2ea043 0%, #3fb950 100%);
+  transform: translateY(-1px);
+}
+
+.syncButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.syncButton.syncing {
+  background: linear-gradient(135deg, #1f6feb 0%, #58a6ff 100%);
+}
+
+.buttonIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 2rem;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.tabActive {
+  color: #ffffff;
+  border-color: #f78166;
+}
+
+.tabIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.tabCount {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+}
+
+.content {
+  padding: 1rem 0;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.emptyIcon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Light mode */
+@media (prefers-color-scheme: light) {
+  .title {
+    color: #0d1117;
+  }
+
+  .repoIcon,
+  .privateIcon {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .description {
+    color: rgba(0, 0, 0, 0.7);
+  }
+
+  .meta {
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .tabs {
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .tab {
+    color: rgba(0, 0, 0, 0.7);
+  }
+
+  .tab:hover {
+    color: #0d1117;
+    border-color: rgba(0, 0, 0, 0.3);
+  }
+
+  .tabActive {
+    color: #0d1117;
+  }
+
+  .tabCount {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .emptyState {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .emptyTitle {
+    color: rgba(0, 0, 0, 0.7);
+  }
+}

@@ -28,6 +28,12 @@ export const auth = betterAuth({
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
       redirectURI: "http://localhost:5173/api/auth/callback/github",
+      // Required scopes for GitHub integration:
+      // - read:org: list user's organizations
+      // - repo: access repositories (including private) and pull requests
+      // - read:user: basic user profile info
+      // - user:email: access user's email addresses
+      scope: ["read:org", "repo", "read:user", "user:email"],
     },
   },
 });

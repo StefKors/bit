@@ -1,11 +1,15 @@
 import { ZeroProvider } from "@rocicorp/zero/react"
 import { useState } from "react"
+import { Route, Switch } from "wouter"
 import { mutators } from "@/db/mutators"
 import { schema } from "@/db/schema"
 import "@/db/types" // Import to register DefaultTypes
 import { Layout } from "@/layout"
 import LoginPage from "@/pages/LoginPage"
-import { HomePage } from "@/pages/HomePage"
+import { OverviewPage } from "./pages/OverviewPage"
+import { RepoPage } from "./pages/RepoPage"
+import { PRListPage } from "./pages/PRListPage"
+import { PRDetailPage } from "./pages/PRDetailPage"
 import { authClient } from "@/lib/auth"
 
 const cacheURL = import.meta.env.VITE_PUBLIC_ZERO_CACHE_URL
@@ -62,7 +66,21 @@ function App({ userID: initialUserID }: AppProps) {
       }}
     >
       <Layout>
-        <HomePage onLogout={handleAuthChange} />
+        <Switch>
+          <Route
+            path="/"
+            component={() => <OverviewPage onLogout={handleAuthChange} />}
+          />
+          <Route path="/:owner/:repo" component={RepoPage} />
+          <Route path="/:owner/:repo/pulls" component={PRListPage} />
+          <Route path="/:owner/:repo/pull/:number" component={PRDetailPage} />
+          <Route>
+            <div style={{ padding: "2rem", textAlign: "center" }}>
+              <h1>404 - Page Not Found</h1>
+              <p>The page you're looking for doesn't exist.</p>
+            </div>
+          </Route>
+        </Switch>
       </Layout>
     </ZeroProvider>
   )
