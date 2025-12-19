@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "concurrently -k -n db,zero,ui -c blue,green,yellow \"bun run dev:db-up\" \"bun run dev:zero-cache\" \"bun run dev:ui\"",
     "dev:ui": "vite",
     "dev:zero-cache": "zero-cache-dev",
     "dev:db-up": "docker compose --env-file .env -f ./docker/docker-compose.yml up",
@@ -15,6 +16,7 @@
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "generate-zero-schema": "drizzle-zero generate -f -o src/db/schema.ts",
     "format": "oxfmt --write ."
   },
   "dependencies": {
@@ -39,6 +41,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^9.2.1",
     "dotenv": "^16.4.5",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9.9.0",

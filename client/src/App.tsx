@@ -1,12 +1,11 @@
 import { ZeroProvider } from "@rocicorp/zero/react"
 import { useState } from "react"
 import { mutators } from "@/db/mutators"
-
+import { schema } from "@/schema"
 import { Layout } from "@/layout"
 import LoginPage from "@/pages/LoginPage"
 import { HomePage } from "@/pages/HomePage"
 import { authClient } from "@/lib/auth"
-import { schema } from "@/db/schema"
 
 const cacheURL = import.meta.env.VITE_PUBLIC_ZERO_CACHE_URL
 

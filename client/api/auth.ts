@@ -1,14 +1,14 @@
-import { betterAuth } from "better-auth"
-import { drizzleAdapter } from "better-auth/adapters/drizzle"
-import { drizzle } from "drizzle-orm/node-postgres"
-import { Pool } from "pg"
-import * as schema from "./db/schema"
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+import * as schema from "../schema";
 
 const pool = new Pool({
   connectionString: process.env.ZERO_UPSTREAM_DB,
-})
+});
 
-const db = drizzle(pool, { schema })
+const db = drizzle(pool, { schema });
 
 export const auth = betterAuth({
   baseURL: "http://localhost:5173",
@@ -30,4 +30,4 @@ export const auth = betterAuth({
       redirectURI: "http://localhost:5173/api/auth/callback/github",
     },
   },
-})
+});
