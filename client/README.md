@@ -140,10 +140,31 @@ export function UsersPage() {
 For more examples of queries, mutations, and relationships, explore the
 [App.tsx](src/App.tsx) file in this repository.
 
-### Optional: Authentication
+### Authentication with GitHub OAuth
 
-This example includes JWT-based authentication. See [api/index.ts](api/index.ts)
-for an example implementation using Hono.
+This example includes GitHub OAuth authentication using Better Auth. To enable:
+
+1. **Create a GitHub OAuth App:**
+   - Go to [GitHub Developer Settings](https://github.com/settings/developers)
+   - Click "New OAuth App"
+   - Set the callback URL to: `http://localhost:5173/api/auth/callback/github`
+   - Note your Client ID and Client Secret
+
+2. **Add to your `.env` file:**
+   ```ini
+   GITHUB_CLIENT_ID=your-client-id
+   GITHUB_CLIENT_SECRET=your-client-secret
+   ```
+
+3. **Push the auth tables to your database:**
+   ```bash
+   npm run db:push
+   ```
+
+The auth implementation uses Better Auth with Drizzle ORM. See:
+- [api/auth.ts](api/auth.ts) - Server-side auth configuration
+- [src/lib/auth.ts](src/lib/auth.ts) - Client-side auth hooks
+- [db/schema.ts](db/schema.ts) - Auth database schema
 
 ### Development
 
