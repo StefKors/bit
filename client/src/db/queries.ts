@@ -6,7 +6,7 @@ export const queries = defineQueries({
     all: defineQuery(() => zql.user.orderBy("name", "asc")),
   },
   orgs: defineQuery(() => zql.githubOrganization.orderBy("login", "asc")),
-  repos: defineQuery(() => zql.githubRepo.orderBy("name", "asc")),
+  repos: defineQuery(() => zql.githubRepo.orderBy("githubUpdatedAt", "desc")),
   pullRequests: defineQuery(() => zql.githubPullRequest.orderBy("title", "asc")),
   reviews: defineQuery(() => zql.githubPrReview.orderBy("state", "asc")),
   comments: defineQuery(() => zql.githubPrComment.orderBy("body", "asc")),

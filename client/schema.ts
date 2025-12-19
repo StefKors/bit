@@ -144,7 +144,11 @@ export const githubRepo = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => authUser.id, { onDelete: "cascade" }),
-    pushedAt: timestamp("pushed_at"),
+    // GitHub timestamps
+    githubCreatedAt: timestamp("github_created_at"),
+    githubUpdatedAt: timestamp("github_updated_at"),
+    githubPushedAt: timestamp("github_pushed_at"),
+    // Internal timestamps
     syncedAt: timestamp("synced_at").defaultNow().notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

@@ -179,10 +179,11 @@ export class GitHubClient {
       openIssuesCount: repo.open_issues_count,
       organizationId: null, // Will be linked if org exists
       userId: this.userId,
+      // GitHub timestamps
+      githubCreatedAt: repo.created_at ? new Date(repo.created_at) : null,
+      githubUpdatedAt: repo.updated_at ? new Date(repo.updated_at) : null,
+      githubPushedAt: repo.pushed_at ? new Date(repo.pushed_at) : null,
       syncedAt: new Date(),
-      updatedAt: repo.updated_at ? new Date(repo.updated_at) : new Date(),
-      createdAt: repo.created_at ? new Date(repo.created_at) : new Date(),
-      pushedAt: repo.pushed_at ? new Date(repo.pushed_at) : new Date(),
     }));
 
     // Upsert repositories
@@ -203,10 +204,10 @@ export class GitHubClient {
             stargazersCount: repo.stargazersCount,
             forksCount: repo.forksCount,
             openIssuesCount: repo.openIssuesCount,
+            githubCreatedAt: repo.githubCreatedAt,
+            githubUpdatedAt: repo.githubUpdatedAt,
+            githubPushedAt: repo.githubPushedAt,
             syncedAt: new Date(),
-            updatedAt: repo.updatedAt,
-            createdAt: repo.createdAt,
-            pushedAt: repo.pushedAt,
           },
         });
     }
@@ -276,8 +277,8 @@ export class GitHubClient {
       comments: pr.comments ?? 0,
       reviewComments: pr.review_comments ?? 0,
       labels: JSON.stringify(pr.labels.map((l) => ({ name: l.name, color: l.color }))),
-      githubCreatedAt: new Date(pr.created_at),
-      githubUpdatedAt: new Date(pr.updated_at),
+      githubCreatedAt: pr.created_at ? new Date(pr.created_at) : null,
+      githubUpdatedAt: pr.updated_at ? new Date(pr.updated_at) : null,
       closedAt: pr.closed_at ? new Date(pr.closed_at) : null,
       mergedAt: pr.merged_at ? new Date(pr.merged_at) : null,
       userId: this.userId,
@@ -386,8 +387,8 @@ export class GitHubClient {
       comments: prData.comments,
       reviewComments: prData.review_comments,
       labels: JSON.stringify(prData.labels.map((l) => ({ name: l.name, color: l.color }))),
-      githubCreatedAt: new Date(prData.created_at),
-      githubUpdatedAt: new Date(prData.updated_at),
+      githubCreatedAt: prData.created_at ? new Date(prData.created_at) : null,
+      githubUpdatedAt: prData.updated_at ? new Date(prData.updated_at) : null,
       closedAt: prData.closed_at ? new Date(prData.closed_at) : null,
       mergedAt: prData.merged_at ? new Date(prData.merged_at) : null,
       userId: this.userId,
@@ -521,8 +522,8 @@ export class GitHubClient {
       line: null,
       side: null,
       diffHunk: null,
-      githubCreatedAt: new Date(comment.created_at),
-      githubUpdatedAt: new Date(comment.updated_at),
+      githubCreatedAt: comment.created_at ? new Date(comment.created_at) : null,
+      githubUpdatedAt: comment.updated_at ? new Date(comment.updated_at) : null,
       userId: this.userId,
     }));
 
@@ -551,8 +552,8 @@ export class GitHubClient {
       line: comment.line ?? comment.original_line ?? null,
       side: comment.side || null,
       diffHunk: comment.diff_hunk || null,
-      githubCreatedAt: new Date(comment.created_at),
-      githubUpdatedAt: new Date(comment.updated_at),
+      githubCreatedAt: comment.created_at ? new Date(comment.created_at) : null,
+      githubUpdatedAt: comment.updated_at ? new Date(comment.updated_at) : null,
       userId: this.userId,
     }));
 

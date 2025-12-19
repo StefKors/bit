@@ -868,6 +868,24 @@ const githubRepoTable = {
       customType: null as unknown as string,
       serverName: "user_id",
     },
+    githubCreatedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "github_created_at",
+    },
+    githubUpdatedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "github_updated_at",
+    },
+    githubPushedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "github_pushed_at",
+    },
     syncedAt: {
       type: "number",
       optional: true,

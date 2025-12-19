@@ -3,6 +3,7 @@ import { Link, useParams } from "wouter"
 import { useQuery } from "@rocicorp/zero/react"
 import { zql } from "@/db/schema"
 import { DiffViewer } from "@/components/DiffViewer"
+import { Breadcrumb } from "@/components/Breadcrumb"
 import styles from "./PRDetailPage.module.css"
 
 type TabType = "conversation" | "files"
@@ -204,21 +205,15 @@ export function PRDetailPage() {
   return (
     <div className={styles.container}>
       {/* Breadcrumb */}
-      <nav className={styles.breadcrumb}>
-        <Link href="/" className={styles.breadcrumbLink}>
-          Repositories
-        </Link>
-        <span className={styles.breadcrumbSeparator}>/</span>
-        <Link href={`/${fullName}`} className={styles.breadcrumbLink}>
-          {owner}/{repoName}
-        </Link>
-        <span className={styles.breadcrumbSeparator}>/</span>
-        <Link href={`/${fullName}/pulls`} className={styles.breadcrumbLink}>
-          Pull requests
-        </Link>
-        <span className={styles.breadcrumbSeparator}>/</span>
-        <span>#{prNumber}</span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "Repositories", href: "/" },
+          { label: owner, href: `/${fullName}` },
+          { label: repoName, href: `/${fullName}` },
+          { label: "Pull requests", href: `/${fullName}/pulls` },
+          { label: `#${prNumber}` },
+        ]}
+      />
 
       {/* Header */}
       <header className={styles.header}>
