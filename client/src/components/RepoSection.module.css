@@ -1,0 +1,141 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
+  margin: -0.5rem -0.75rem;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.sectionHeader:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ownerAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.ownerAvatarPlaceholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #58a6ff 0%, #a371f7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ownerAvatarPlaceholder svg {
+  width: 18px;
+  height: 18px;
+  color: white;
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.15rem 0.5rem;
+  background: rgba(46, 160, 67, 0.2);
+  color: #3fb950;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.orgBadge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.15rem 0.5rem;
+  background: rgba(163, 113, 247, 0.2);
+  color: #a371f7;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.repoCount {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.emptyIcon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Light mode overrides */
+@media (prefers-color-scheme: light) {
+  .sectionHeader:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .sectionTitle {
+    color: rgba(0, 0, 0, 0.9);
+  }
+
+  .repoCount {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .emptyState {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .emptyTitle {
+    color: rgba(0, 0, 0, 0.7);
+  }
+}
