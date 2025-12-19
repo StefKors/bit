@@ -7,14 +7,16 @@ import {
   SyncIcon,
   CommentIcon,
   FileIcon,
-  PlusIcon,
-  DashIcon,
 } from "@primer/octicons-react"
 import { zql } from "@/db/schema"
-import { DiffViewer } from "@/components/DiffViewer"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Tabs } from "@/components/Tabs"
 import { Button } from "@/components/Button"
+import {
+  PRConversationTab,
+  type TimelineItem,
+} from "@/components/PRConversationTab"
+import { PRFilesTab, type PRFile } from "@/components/PRFilesTab"
 import styles from "./PRDetailPage.module.css"
 
 type TabType = "conversation" | "files"
@@ -59,7 +61,6 @@ export function PRDetailPage() {
   const [activeTab, setActiveTab] = useState<TabType>("conversation")
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [expandedFile, setExpandedFile] = useState<string | null>(null)
 
   const owner = params.owner || ""
   const repoName = params.repo || ""
@@ -111,16 +112,8 @@ export function PRDetailPage() {
   )
 
   // Combine and sort timeline items
-  const timelineItems = useMemo(() => {
-    const items: Array<{
-      type: "comment" | "review"
-      id: string
-      authorLogin: string | null
-      authorAvatarUrl: string | null
-      body: string | null
-      createdAt: Date | null
-      reviewState?: string
-    }> = []
+  const timelineItems = useMemo<TimelineItem[]>(() => {
+    const items: TimelineItem[] = []
 
     // Add comments (only issue_comment type for conversation)
     comments
@@ -145,7 +138,7 @@ export function PRDetailPage() {
         authorAvatarUrl: r.authorAvatarUrl,
         body: r.body,
         createdAt: r.submittedAt ? new Date(r.submittedAt) : null,
-        reviewState: r.state,
+        reviewState: r.state ?? undefined,
       })
     })
 
@@ -156,6 +149,19 @@ export function PRDetailPage() {
       return aTime - bTime
     })
   }, [comments, reviews])
+
+  // Transform files for PRFilesTab
+  const prFiles = useMemo<PRFile[]>(() => {
+    return files.map((f) => ({
+      id: f.id,
+      filename: f.filename,
+      previousFilename: f.previousFilename,
+      status: f.status,
+      additions: f.additions,
+      deletions: f.deletions,
+      patch: f.patch,
+    }))
+  }, [files])
 
   const handleSync = useCallback(async () => {
     setSyncing(true)
@@ -348,178 +354,27 @@ export function PRDetailPage() {
       {/* Content */}
       <div className={styles.content}>
         {activeTab === "conversation" && (
-          <div className={styles.timeline}>
-            {/* PR Body as first item */}
-            {pr.body && (
-              <div className={styles.timelineItem}>
-                {pr.authorAvatarUrl ? (
-                  <img
-                    src={pr.authorAvatarUrl}
-                    alt={pr.authorLogin || "Author"}
-                    className={styles.timelineAvatar}
-                  />
-                ) : (
-                  <div
-                    className={styles.timelineAvatar}
-                    style={{ background: "#30363d" }}
-                  />
-                )}
-                <div className={styles.timelineContent}>
-                  <div className={styles.timelineHeader}>
-                    <span className={styles.timelineAuthor}>
-                      {pr.authorLogin}
-                    </span>
-                    <span className={styles.timelineTime}>
-                      opened this pull request{" "}
-                      {formatTimeAgo(pr.githubCreatedAt)}
-                    </span>
-                  </div>
-                  <div className={styles.timelineBody}>{pr.body}</div>
-                </div>
-              </div>
-            )}
-
-            {/* Timeline items */}
-            {timelineItems.map((item) => (
-              <div key={item.id} className={styles.timelineItem}>
-                {item.authorAvatarUrl ? (
-                  <img
-                    src={item.authorAvatarUrl}
-                    alt={item.authorLogin || "Author"}
-                    className={styles.timelineAvatar}
-                  />
-                ) : (
-                  <div
-                    className={styles.timelineAvatar}
-                    style={{ background: "#30363d" }}
-                  />
-                )}
-                <div className={styles.timelineContent}>
-                  <div className={styles.timelineHeader}>
-                    <span className={styles.timelineAuthor}>
-                      {item.authorLogin}
-                    </span>
-                    {item.type === "review" && item.reviewState && (
-                      <span
-                        className={`${styles.reviewState} ${
-                          item.reviewState === "APPROVED"
-                            ? styles.reviewApproved
-                            : item.reviewState === "CHANGES_REQUESTED"
-                              ? styles.reviewChangesRequested
-                              : styles.reviewCommented
-                        }`}
-                      >
-                        {item.reviewState === "APPROVED" && "✓ Approved"}
-                        {item.reviewState === "CHANGES_REQUESTED" &&
-                          "✗ Changes requested"}
-                        {item.reviewState === "COMMENTED" && "Reviewed"}
-                      </span>
-                    )}
-                    <span className={styles.timelineTime}>
-                      {formatTimeAgo(item.createdAt)}
-                    </span>
-                  </div>
-                  {item.body && (
-                    <div className={styles.timelineBody}>{item.body}</div>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {!pr.body && timelineItems.length === 0 && (
-              <div className={styles.emptyState}>
-                <p className={styles.emptyText}>
-                  No comments yet. Click "Sync Details" to fetch the latest.
-                </p>
-              </div>
-            )}
-          </div>
+          <PRConversationTab
+            prBody={pr.body}
+            prAuthor={{
+              login: pr.authorLogin,
+              avatarUrl: pr.authorAvatarUrl,
+            }}
+            prCreatedAt={pr.githubCreatedAt}
+            timelineItems={timelineItems}
+            formatTimeAgo={formatTimeAgo}
+          />
         )}
 
         {activeTab === "files" && (
-          <>
-            <div className={styles.filesHeader}>
-              <div className={styles.filesStats}>
-                <span className={`${styles.filesStat} ${styles.additionsStat}`}>
-                  <PlusIcon className={styles.filesStatIcon} size={16} />
-                  {pr.additions} additions
-                </span>
-                <span className={`${styles.filesStat} ${styles.deletionsStat}`}>
-                  <DashIcon className={styles.filesStatIcon} size={16} />
-                  {pr.deletions} deletions
-                </span>
-                <span className={styles.filesStat}>
-                  {pr.changedFiles} files changed
-                </span>
-              </div>
-            </div>
-
-            {files.length === 0 ? (
-              <div className={styles.emptyState}>
-                <p className={styles.emptyText}>
-                  No files synced yet. Click "Sync Details" to fetch file
-                  changes.
-                </p>
-              </div>
-            ) : (
-              <div className={styles.filesList}>
-                {files.map((file) => (
-                  <div key={file.id}>
-                    <div
-                      className={styles.fileItem}
-                      onClick={() =>
-                        setExpandedFile(
-                          expandedFile === file.id ? null : file.id,
-                        )
-                      }
-                      style={{ cursor: "pointer" }}
-                    >
-                      <span
-                        className={`${styles.fileStatus} ${
-                          file.status === "added"
-                            ? styles.fileStatusAdded
-                            : file.status === "removed"
-                              ? styles.fileStatusRemoved
-                              : file.status === "renamed"
-                                ? styles.fileStatusRenamed
-                                : styles.fileStatusModified
-                        }`}
-                      >
-                        {file.status === "added"
-                          ? "A"
-                          : file.status === "removed"
-                            ? "D"
-                            : file.status === "renamed"
-                              ? "R"
-                              : "M"}
-                      </span>
-                      <span className={styles.fileName}>
-                        {file.previousFilename
-                          ? `${file.previousFilename} → ${file.filename}`
-                          : file.filename}
-                      </span>
-                      <div className={styles.fileDiff}>
-                        <span className={styles.fileAdditions}>
-                          +{file.additions}
-                        </span>
-                        <span className={styles.fileDeletions}>
-                          -{file.deletions}
-                        </span>
-                      </div>
-                    </div>
-                    {expandedFile === file.id && file.patch && (
-                      <DiffViewer
-                        filename={file.filename}
-                        patch={file.patch}
-                        additions={file.additions ?? 0}
-                        deletions={file.deletions ?? 0}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
+          <PRFilesTab
+            files={prFiles}
+            stats={{
+              additions: pr.additions,
+              deletions: pr.deletions,
+              changedFiles: pr.changedFiles,
+            }}
+          />
         )}
       </div>
     </div>

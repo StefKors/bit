@@ -1,0 +1,127 @@
+.filesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: var(--bit-color-panel-bg);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  border-radius: var(--bit-radius-lg) var(--bit-radius-lg) 0 0;
+}
+
+.filesStats {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.filesStat {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.filesStatIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.additionsStat {
+  color: var(--bit-color-accent-green-bright);
+}
+
+.deletionsStat {
+  color: var(--bit-color-accent-red);
+}
+
+.filesList {
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  border-top: none;
+  border-radius: 0 0 var(--bit-radius-lg) var(--bit-radius-lg);
+}
+
+.fileItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.fileItem:hover {
+  background: rgba(var(--bit-rgb-fg), 0.03);
+}
+
+.fileItem:last-child {
+  border-bottom: none;
+}
+
+.fileStatus {
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--bit-radius-sm);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.fileStatusAdded {
+  background: rgba(var(--bit-rgb-accent-green-bright), 0.2);
+  color: var(--bit-color-accent-green-bright);
+}
+
+.fileStatusModified {
+  background: rgba(var(--bit-rgb-accent-blue), 0.2);
+  color: var(--bit-color-link);
+}
+
+.fileStatusRemoved {
+  background: rgba(var(--bit-rgb-accent-red), 0.2);
+  color: var(--bit-color-accent-red);
+}
+
+.fileStatusRenamed {
+  background: rgba(var(--bit-rgb-accent-purple), 0.2);
+  color: var(--bit-color-accent-purple);
+}
+
+.fileName {
+  flex: 1;
+  font-family: var(--bit-font-mono);
+  font-size: 0.85rem;
+  color: rgba(var(--bit-rgb-fg), 0.9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileDiff {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-family: var(--bit-font-mono);
+  flex-shrink: 0;
+}
+
+.fileAdditions {
+  color: var(--bit-color-accent-green-bright);
+}
+
+.fileDeletions {
+  color: var(--bit-color-accent-red);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  border-top: none;
+  border-radius: 0 0 var(--bit-radius-lg) var(--bit-radius-lg);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.9rem;
+}

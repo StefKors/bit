@@ -2,7 +2,7 @@
   font-family: var(--bit-font);
   line-height: 1.5;
   font-weight: 400;
-  font-size: 0.9em;
+  font-size: 14px;
 
   color-scheme: light dark;
   color: var(--bit-color-text);

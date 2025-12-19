@@ -1,0 +1,220 @@
+.markdown {
+  color: rgba(var(--bit-rgb-fg), 0.85);
+  font-size: 1rem;
+}
+
+.loading {
+  min-height: 60px;
+}
+
+.skeleton {
+  height: 1rem;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--bit-rgb-fg), 0.06) 25%,
+    rgba(var(--bit-rgb-fg), 0.1) 50%,
+    rgba(var(--bit-rgb-fg), 0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--bit-radius-sm);
+  margin-bottom: 0.5rem;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Typography */
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  color: var(--bit-color-heading);
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.75em;
+  line-height: 1.25;
+}
+
+.markdown h1:first-child,
+.markdown h2:first-child,
+.markdown h3:first-child {
+  margin-top: 0;
+}
+
+.markdown h1 {
+  font-size: 1.5rem;
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  padding-bottom: 0.5em;
+}
+
+.markdown h2 {
+  font-size: 1.25rem;
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  padding-bottom: 0.4em;
+}
+
+.markdown h3 {
+  font-size: 1.1rem;
+}
+
+.markdown h4 {
+  font-size: 1rem;
+}
+
+.markdown p {
+  margin: 0 0 1em;
+}
+
+.markdown p:last-child {
+  margin-bottom: 0;
+}
+
+/* Links */
+.markdown a {
+  color: var(--bit-color-link);
+  text-decoration: none;
+}
+
+.markdown a:hover {
+  text-decoration: underline;
+}
+
+/* Lists */
+.markdown ul,
+.markdown ol {
+  margin: 0 0 1em;
+  padding-left: 2em;
+}
+
+.markdown li {
+  margin-bottom: 0.25em;
+}
+
+.markdown li > ul,
+.markdown li > ol {
+  margin-top: 0.25em;
+  margin-bottom: 0;
+}
+
+/* Code */
+.markdown code {
+  font-family: var(--bit-font-mono);
+  font-size: 0.9em;
+  background: rgba(var(--bit-rgb-fg), 0.08);
+  padding: 0.2em 0.4em;
+  border-radius: var(--bit-radius-sm);
+}
+
+.markdown pre {
+  margin: 0 0 1em;
+  padding: 1rem;
+  background: var(--bit-color-code-bg);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  border-radius: var(--bit-radius-lg);
+  overflow-x: auto;
+}
+
+.markdown pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* Shiki code blocks */
+.markdown :global(.shiki) {
+  margin: 0 0 1em;
+  padding: 1rem;
+  border-radius: var(--bit-radius-lg);
+  overflow-x: auto;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.markdown :global(.shiki code) {
+  background: none;
+  padding: 0;
+}
+
+/* Dark/Light mode for shiki */
+@media (prefers-color-scheme: light) {
+  .markdown :global(.shiki),
+  .markdown :global(.shiki span) {
+    color: var(--shiki-light) !important;
+    background-color: var(--shiki-light-bg) !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .markdown :global(.shiki),
+  .markdown :global(.shiki span) {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+  }
+}
+
+/* Blockquotes */
+.markdown blockquote {
+  margin: 0 0 1em;
+  padding: 0.5em 1em;
+  border-left: 4px solid rgba(var(--bit-rgb-fg), 0.2);
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  background: rgba(var(--bit-rgb-fg), 0.03);
+  border-radius: 0 var(--bit-radius-sm) var(--bit-radius-sm) 0;
+}
+
+.markdown blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Tables */
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1em;
+  font-size: 0.9rem;
+}
+
+.markdown th,
+.markdown td {
+  padding: 0.6em 1em;
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  text-align: left;
+}
+
+.markdown th {
+  background: rgba(var(--bit-rgb-fg), 0.05);
+  font-weight: 600;
+}
+
+.markdown tr:nth-child(even) {
+  background: rgba(var(--bit-rgb-fg), 0.02);
+}
+
+/* Horizontal Rule */
+.markdown hr {
+  border: none;
+  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  margin: 1.5em 0;
+}
+
+/* Images */
+.markdown img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--bit-radius-md);
+}
+
+/* Task lists */
+.markdown input[type="checkbox"] {
+  margin-right: 0.5em;
+}
