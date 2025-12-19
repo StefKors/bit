@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback } from "react"
 import { Link, useParams } from "wouter"
 import { useQuery } from "@rocicorp/zero/react"
 import {
@@ -8,16 +8,13 @@ import {
   CommentIcon,
   FileIcon,
 } from "@primer/octicons-react"
-import { zql } from "@/db/schema"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Tabs } from "@/components/Tabs"
 import { Button } from "@/components/Button"
-import {
-  PRConversationTab,
-  type TimelineItem,
-} from "@/components/PRConversationTab"
-import { PRFilesTab, type PRFile } from "@/components/PRFilesTab"
+import { PRConversationTab } from "@/components/PRConversationTab"
+import { PRFilesTab } from "@/components/PRFilesTab"
 import styles from "./PRDetailPage.module.css"
+import { queries } from "@/db/queries"
 
 type TabType = "conversation" | "files"
 
@@ -68,100 +65,9 @@ export function PRDetailPage() {
   const fullName = `${owner}/${repoName}`
 
   // Query the repo
-  const [repos] = useQuery(
-    zql.githubRepo.where("fullName", "=", fullName).limit(1),
-  )
-  const repo = repos[0]
-
+  const [repo] = useQuery(queries.repo(fullName))
   // Query the PR
-  const [prs] = useQuery(
-    repo
-      ? zql.githubPullRequest
-          .where("repoId", "=", repo.id)
-          .where("number", "=", prNumber)
-          .limit(1)
-      : zql.githubPullRequest.where("id", "=", "__none__"),
-  )
-  const pr = prs[0]
-
-  // Query files
-  const [files] = useQuery(
-    pr
-      ? zql.githubPrFile
-          .where("pullRequestId", "=", pr.id)
-          .orderBy("filename", "asc")
-      : zql.githubPrFile.where("id", "=", "__none__"),
-  )
-
-  // Query reviews
-  const [reviews] = useQuery(
-    pr
-      ? zql.githubPrReview
-          .where("pullRequestId", "=", pr.id)
-          .orderBy("submittedAt", "asc")
-      : zql.githubPrReview.where("id", "=", "__none__"),
-  )
-
-  // Query comments
-  const [comments] = useQuery(
-    pr
-      ? zql.githubPrComment
-          .where("pullRequestId", "=", pr.id)
-          .orderBy("githubCreatedAt", "asc")
-      : zql.githubPrComment.where("id", "=", "__none__"),
-  )
-
-  // Combine and sort timeline items
-  const timelineItems = useMemo<TimelineItem[]>(() => {
-    const items: TimelineItem[] = []
-
-    // Add comments (only issue_comment type for conversation)
-    comments
-      .filter((c) => c.commentType === "issue_comment")
-      .forEach((c) => {
-        items.push({
-          type: "comment",
-          id: c.id,
-          authorLogin: c.authorLogin,
-          authorAvatarUrl: c.authorAvatarUrl,
-          body: c.body,
-          createdAt: c.githubCreatedAt ? new Date(c.githubCreatedAt) : null,
-        })
-      })
-
-    // Add reviews
-    reviews.forEach((r) => {
-      items.push({
-        type: "review",
-        id: r.id,
-        authorLogin: r.authorLogin,
-        authorAvatarUrl: r.authorAvatarUrl,
-        body: r.body,
-        createdAt: r.submittedAt ? new Date(r.submittedAt) : null,
-        reviewState: r.state ?? undefined,
-      })
-    })
-
-    // Sort by date
-    return items.sort((a, b) => {
-      const aTime = a.createdAt?.getTime() || 0
-      const bTime = b.createdAt?.getTime() || 0
-      return aTime - bTime
-    })
-  }, [comments, reviews])
-
-  // Transform files for PRFilesTab
-  const prFiles = useMemo<PRFile[]>(() => {
-    return files.map((f) => ({
-      id: f.id,
-      filename: f.filename,
-      previousFilename: f.previousFilename,
-      status: f.status,
-      additions: f.additions,
-      deletions: f.deletions,
-      patch: f.patch,
-    }))
-  }, [files])
+  const [pr] = useQuery(queries.pr({ repoId: repo?.id, prNumber }))
 
   const handleSync = useCallback(async () => {
     setSyncing(true)
@@ -340,13 +246,11 @@ export function PRDetailPage() {
             value: "conversation",
             label: "Conversation",
             icon: <CommentIcon size={16} />,
-            count: timelineItems.length,
           },
           {
             value: "files",
             label: "Files changed",
             icon: <FileIcon size={16} />,
-            count: files.length,
           },
         ]}
       />
@@ -355,20 +259,20 @@ export function PRDetailPage() {
       <div className={styles.content}>
         {activeTab === "conversation" && (
           <PRConversationTab
+            prId={pr.id}
             prBody={pr.body}
             prAuthor={{
               login: pr.authorLogin,
               avatarUrl: pr.authorAvatarUrl,
             }}
             prCreatedAt={pr.githubCreatedAt}
-            timelineItems={timelineItems}
             formatTimeAgo={formatTimeAgo}
           />
         )}
 
         {activeTab === "files" && (
           <PRFilesTab
-            files={prFiles}
+            prId={pr.id}
             stats={{
               additions: pr.additions,
               deletions: pr.deletions,

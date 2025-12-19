@@ -11,8 +11,7 @@ export function RepoPullsPage() {
   const fullName = `${owner}/${repoName}`
 
   // Query the repo from Zero
-  const [repos] = useQuery(queries.repo(fullName))
-  const repo = repos[0]
+  const [repo] = useQuery(queries.repo(fullName))
 
   return (
     <RepoLayout activeTab="pulls">

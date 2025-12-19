@@ -1,7 +1,9 @@
+import { useQuery } from "@rocicorp/zero/react"
 import { Markdown } from "./Markdown"
+import { queries } from "@/db/queries"
 import styles from "./PRConversationTab.module.css"
 
-export interface TimelineItem {
+interface TimelineItem {
   type: "comment" | "review"
   id: string
   authorLogin: string | null
@@ -17,20 +19,59 @@ interface PRAuthor {
 }
 
 interface PRConversationTabProps {
+  prId: string
   prBody: string | null
   prAuthor: PRAuthor
   prCreatedAt: Date | number | null
-  timelineItems: TimelineItem[]
   formatTimeAgo: (date: Date | number | null | undefined) => string
 }
 
 export function PRConversationTab({
+  prId,
   prBody,
   prAuthor,
   prCreatedAt,
-  timelineItems,
   formatTimeAgo,
 }: PRConversationTabProps) {
+  const [reviews] = useQuery(queries.reviews(prId))
+  const [comments] = useQuery(queries.comments(prId))
+
+  // Combine and sort timeline items
+  const timelineItems: TimelineItem[] = []
+
+  // Add comments (only issue_comment type for conversation)
+  comments
+    .filter((c) => c.commentType === "issue_comment")
+    .forEach((c) => {
+      timelineItems.push({
+        type: "comment",
+        id: c.id,
+        authorLogin: c.authorLogin,
+        authorAvatarUrl: c.authorAvatarUrl,
+        body: c.body,
+        createdAt: c.githubCreatedAt ? new Date(c.githubCreatedAt) : null,
+      })
+    })
+
+  // Add reviews
+  reviews.forEach((r) => {
+    timelineItems.push({
+      type: "review",
+      id: r.id,
+      authorLogin: r.authorLogin,
+      authorAvatarUrl: r.authorAvatarUrl,
+      body: r.body,
+      createdAt: r.submittedAt ? new Date(r.submittedAt) : null,
+      reviewState: r.state ?? undefined,
+    })
+  })
+
+  // Sort by date
+  timelineItems.sort((a, b) => {
+    const aTime = a.createdAt?.getTime() || 0
+    const bTime = b.createdAt?.getTime() || 0
+    return aTime - bTime
+  })
   return (
     <div className={styles.timeline}>
       {/* PR Body as first item */}

@@ -482,6 +482,12 @@ export class GitHubClient {
       userId: this.userId,
     }));
 
+    // Create a map from GitHub numeric ID to node_id for linking comments to reviews
+    const reviewIdMap = new Map<number, string>();
+    for (const review of reviews) {
+      reviewIdMap.set(review.githubId, review.id);
+    }
+
     for (const review of reviews) {
       await this.db
         .insert(schema.githubPrReview)
@@ -542,7 +548,10 @@ export class GitHubClient {
       id: comment.node_id,
       githubId: comment.id,
       pullRequestId: pr.id,
-      reviewId: comment.pull_request_review_id ? `review_${comment.pull_request_review_id}` : null,
+      // Map the numeric GitHub review ID to the actual review node_id
+      reviewId: comment.pull_request_review_id
+        ? (reviewIdMap.get(comment.pull_request_review_id) ?? null)
+        : null,
       commentType: "review_comment",
       body: comment.body || null,
       authorLogin: comment.user?.login || null,

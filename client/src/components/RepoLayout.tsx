@@ -25,8 +25,7 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
   const fullName = `${owner}/${repoName}`
 
   // Query the repo from Zero
-  const [repos] = useQuery(queries.repo(fullName))
-  const repo = repos[0]
+  const [repo] = useQuery(queries.repo(fullName))
 
   const handleSync = useCallback(async () => {
     setSyncing(true)

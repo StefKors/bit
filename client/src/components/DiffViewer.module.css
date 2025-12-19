@@ -1,80 +1,48 @@
 .container {
-  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
-  border-top: none;
   background: var(--bit-color-code-bg);
   overflow-x: auto;
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  border-radius: var(--bit-radius-lg);
 }
 
-.diffTable {
-  width: 100%;
-  border-collapse: collapse;
+.loading {
+  padding: 1rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  font-size: 0.85rem;
+}
+
+.codeBlock {
   font-family: var(--bit-font-mono);
   font-size: 0.8rem;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
-.hunk {
-  background: var(--bit-color-diff-hunk-bg);
-  color: var(--bit-color-diff-hunk-text);
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
+.codeBlock pre {
+  margin: 0;
+  padding: 0.75rem 0;
+  background: transparent !important;
 }
 
-.lineNumber {
-  width: 50px;
-  min-width: 50px;
-  padding: 0 0.75rem;
-  text-align: right;
-  color: rgba(var(--bit-rgb-fg), 0.3);
-  user-select: none;
-  vertical-align: top;
-  border-right: 1px solid rgba(var(--bit-rgb-fg), 0.06);
+.codeBlock code {
+  display: block;
 }
 
-.lineContent {
+.codeBlock .line {
+  display: block;
   padding: 0 1rem;
-  white-space: pre;
-  vertical-align: top;
 }
 
-.lineAddition {
+/* Diff line highlighting */
+.codeBlock :global(.diff-add) {
   background: var(--bit-color-diff-add-bg);
 }
 
-.lineAddition .lineNumber {
-  background: var(--bit-color-diff-add-number-bg);
-  color: var(--bit-color-diff-add-number-text);
-}
-
-.lineAddition .lineContent {
-  color: var(--bit-color-diff-add-text);
-}
-
-.lineDeletion {
+.codeBlock :global(.diff-remove) {
   background: var(--bit-color-diff-del-bg);
 }
 
-.lineDeletion .lineNumber {
-  background: var(--bit-color-diff-del-number-bg);
-  color: var(--bit-color-diff-del-number-text);
-}
-
-.lineDeletion .lineContent {
-  color: var(--bit-color-diff-del-text);
-}
-
-.lineContext {
-  background: transparent;
-}
-
-.lineContext .lineContent {
-  color: rgba(var(--bit-rgb-fg), 0.7);
-}
-
-.prefix {
-  display: inline-block;
-  width: 1ch;
-  margin-right: 0.5ch;
-  color: inherit;
-  opacity: 0.7;
+.codeBlock :global(.diff-hunk) {
+  background: var(--bit-color-diff-hunk-bg);
+  color: var(--bit-color-diff-hunk-text);
+  font-size: 0.75rem;
 }

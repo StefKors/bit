@@ -15,38 +15,39 @@
 
   /* Base RGB primitives */
   --bit-rgb-fg: 255, 255, 255;
-  --bit-rgb-bg: 24, 24, 24;
+  --bit-rgb-bg: 10, 10, 10;
   --bit-rgb-shadow: 0, 0, 0;
 
   --bit-rgb-paper: 255, 255, 255;
   --bit-rgb-paper-2: 248, 248, 248;
 
-  --bit-rgb-surface-1: 22, 22, 22;
-  --bit-rgb-surface-2: 30, 30, 30;
+  --bit-rgb-surface-1: 18, 18, 18;
+  --bit-rgb-surface-2: 26, 26, 26;
+  --bit-rgb-surface-3: 34, 34, 34;
 
-  --bit-rgb-accent-blue: 88, 166, 255;
-  --bit-rgb-accent-blue-strong: 31, 111, 235;
-  --bit-rgb-accent-green: 46, 160, 67;
-  --bit-rgb-accent-green-dark: 35, 134, 54;
-  --bit-rgb-accent-green-bright: 63, 185, 80;
-  --bit-rgb-accent-red: 248, 81, 73;
-  --bit-rgb-accent-purple: 163, 113, 247;
-  --bit-rgb-muted: 139, 148, 158;
+  --bit-rgb-accent-blue: 96, 172, 255;
+  --bit-rgb-accent-blue-strong: 56, 126, 230;
+  --bit-rgb-accent-green: 52, 168, 75;
+  --bit-rgb-accent-green-dark: 40, 140, 58;
+  --bit-rgb-accent-green-bright: 72, 192, 92;
+  --bit-rgb-accent-red: 255, 92, 82;
+  --bit-rgb-accent-purple: 172, 128, 255;
+  --bit-rgb-muted: 128, 138, 148;
 
   /* Base hex palette */
   --bit-color-paper: #ffffff;
-  --bit-color-ink: #0d1117;
-  --bit-color-ink-muted: #24292f;
+  --bit-color-ink: #0a0a0a;
+  --bit-color-ink-muted: #1a1a1a;
 
-  --bit-color-accent-blue: #58a6ff;
-  --bit-color-accent-blue-strong: #1f6feb;
-  --bit-color-accent-green: #2ea043;
-  --bit-color-accent-green-dark: #238636;
-  --bit-color-accent-green-bright: #3fb950;
-  --bit-color-accent-red: #f85149;
-  --bit-color-accent-purple: #a371f7;
-  --bit-color-muted: #8b949e;
-  --bit-color-accent-orange: #f78166;
+  --bit-color-accent-blue: #60acff;
+  --bit-color-accent-blue-strong: #387ee6;
+  --bit-color-accent-green: #34a84b;
+  --bit-color-accent-green-dark: #288c3a;
+  --bit-color-accent-green-bright: #48c05c;
+  --bit-color-accent-red: #ff5c52;
+  --bit-color-accent-purple: #ac80ff;
+  --bit-color-muted: #808a94;
+  --bit-color-accent-orange: #ff8a70;
 
   --bit-color-paper-hover: #f0f0f0;
   --bit-color-paper-2: #f8f8f8;
@@ -64,12 +65,12 @@
   /* Cards / surfaces */
   --bit-gradient-surface: linear-gradient(
     145deg,
-    rgba(var(--bit-rgb-surface-2), 0.9) 0%,
-    rgba(var(--bit-rgb-surface-1), 0.95) 100%
+    rgba(var(--bit-rgb-surface-2), 0.95) 0%,
+    rgba(var(--bit-rgb-surface-1), 0.98) 100%
   );
 
-  --bit-color-panel-bg: rgba(var(--bit-rgb-surface-2), 0.6);
-  --bit-color-code-bg: rgba(var(--bit-rgb-surface-1), 0.8);
+  --bit-color-panel-bg: rgba(var(--bit-rgb-surface-2), 0.7);
+  --bit-color-code-bg: rgba(var(--bit-rgb-surface-1), 0.9);
 
   /* Accent gradients */
   --bit-gradient-accent: linear-gradient(
@@ -106,8 +107,8 @@
   --bit-color-danger-border: rgba(var(--bit-rgb-accent-red), 0.4);
   --bit-color-danger-hover-bg: rgba(var(--bit-rgb-accent-red), 0.1);
 
-  --bit-color-avatar-outline: #161616;
-  --bit-color-avatar-placeholder-border: rgba(var(--bit-rgb-fg), 0.1);
+  --bit-color-avatar-outline: #121212;
+  --bit-color-avatar-placeholder-border: rgba(var(--bit-rgb-fg), 0.08);
   --bit-alpha-accent-border-hover: 0.3;
 
   /* Shadows */
@@ -129,22 +130,25 @@
   --bit-radius-pill: 9999px;
 
   /* Diff viewer */
-  --bit-color-diff-add-text: #aff5b4;
-  --bit-color-diff-del-text: #ffc0bc;
+  --bit-color-diff-add-text: #b8f7c0;
+  --bit-color-diff-del-text: #ffc8c4;
 
-  --bit-color-diff-hunk-bg: rgba(var(--bit-rgb-accent-blue), 0.1);
-  --bit-color-diff-hunk-text: rgba(var(--bit-rgb-fg), 0.7);
+  --bit-color-diff-hunk-bg: rgba(var(--bit-rgb-accent-blue), 0.08);
+  --bit-color-diff-hunk-text: rgba(var(--bit-rgb-fg), 0.6);
 
-  --bit-color-diff-add-bg: rgba(var(--bit-rgb-accent-green-bright), 0.15);
-  --bit-color-diff-add-number-bg: rgba(var(--bit-rgb-accent-green-bright), 0.2);
+  --bit-color-diff-add-bg: rgba(var(--bit-rgb-accent-green-bright), 0.12);
+  --bit-color-diff-add-number-bg: rgba(
+    var(--bit-rgb-accent-green-bright),
+    0.18
+  );
   --bit-color-diff-add-number-text: rgba(
     var(--bit-rgb-accent-green-bright),
-    0.8
+    0.85
   );
 
-  --bit-color-diff-del-bg: rgba(var(--bit-rgb-accent-red), 0.15);
-  --bit-color-diff-del-number-bg: rgba(var(--bit-rgb-accent-red), 0.2);
-  --bit-color-diff-del-number-text: rgba(var(--bit-rgb-accent-red), 0.8);
+  --bit-color-diff-del-bg: rgba(var(--bit-rgb-accent-red), 0.12);
+  --bit-color-diff-del-number-bg: rgba(var(--bit-rgb-accent-red), 0.18);
+  --bit-color-diff-del-number-text: rgba(var(--bit-rgb-accent-red), 0.85);
 }
 
 @media (prefers-color-scheme: light) {
