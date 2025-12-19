@@ -1,4 +1,9 @@
 :root {
+  --bit-font:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica,
+    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --bit-font-mono: "JetBrains Mono", "SF Mono", monospace;
+
   /*
     Theme tokens (dark by default).
 

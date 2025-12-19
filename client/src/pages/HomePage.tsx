@@ -1,5 +1,6 @@
 import { SignOutIcon } from "@primer/octicons-react"
 import { authClient } from "@/lib/auth"
+import { Button } from "@/components/Button"
 import styles from "./HomePage.module.css"
 
 interface HomePageProps {
@@ -44,10 +45,15 @@ export function HomePage({ onLogout }: HomePageProps) {
           <p className={styles.message}>You're signed in with GitHub.</p>
         </div>
 
-        <button onClick={handleSignOut} className={styles.signOutButton}>
-          <SignOutIcon className={styles.buttonIcon} size={16} />
+        <Button
+          variant="danger"
+          size="large"
+          block
+          leadingIcon={<SignOutIcon size={16} />}
+          onClick={handleSignOut}
+        >
           Sign out
-        </button>
+        </Button>
       </div>
     </div>
   )

@@ -96,7 +96,6 @@
 }
 
 .title {
-  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--bit-color-heading);
@@ -141,7 +140,7 @@
 .infoValue {
   font-size: 0.9rem;
   color: rgba(var(--bit-rgb-fg), 0.9);
-  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-family: var(--bit-font-mono);
 }
 
 .statusBadge {
@@ -152,61 +151,6 @@
   border-radius: var(--bit-radius-2xl);
   font-weight: 600;
   border: 1px solid rgba(var(--bit-rgb-accent-green), 0.3);
-}
-
-.githubButton {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  background: var(--bit-color-inverse-bg);
-  color: var(--bit-color-inverse-text);
-  border: none;
-  border-radius: var(--bit-radius-xl);
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.githubButton:hover {
-  background: var(--bit-color-inverse-bg-hover);
-  box-shadow: var(--bit-shadow-lg);
-}
-
-.githubButton:active {
-  transform: translateY(0);
-}
-
-.signOutButton {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  background: transparent;
-  color: rgba(var(--bit-rgb-fg), 0.7);
-  border: 1px solid rgba(var(--bit-rgb-fg), 0.15);
-  border-radius: var(--bit-radius-xl);
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.signOutButton:hover {
-  background: var(--bit-color-danger-hover-bg);
-  border-color: var(--bit-color-danger-border);
-  color: var(--bit-color-accent-red);
-}
-
-.buttonIcon {
-  width: 20px;
-  height: 20px;
 }
 
 .footer {

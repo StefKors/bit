@@ -1,4 +1,3 @@
-import { Link } from "wouter"
 import { useQuery } from "@rocicorp/zero/react"
 import {
   CodeIcon,
@@ -6,7 +5,7 @@ import {
   IssueOpenedIcon,
 } from "@primer/octicons-react"
 import { queries } from "@/db/queries"
-import styles from "./RepoTabs.module.css"
+import { Tabs } from "./Tabs"
 
 type TabType = "code" | "pulls" | "issues"
 
@@ -21,36 +20,29 @@ export function RepoTabs({ repoId, fullName, activeTab }: RepoTabsProps) {
   const openPRs = prs.filter((pr) => pr.state === "open")
 
   return (
-    <nav className={styles.tabs}>
-      {/* Code Tab */}
-      <Link
-        href={`/${fullName}`}
-        className={`${styles.tab} ${activeTab === "code" ? styles.tabActive : ""}`}
-      >
-        <CodeIcon className={styles.tabIcon} size={16} />
-        Code
-      </Link>
-
-      {/* Pull Requests Tab */}
-      <Link
-        href={`/${fullName}/pulls`}
-        className={`${styles.tab} ${activeTab === "pulls" ? styles.tabActive : ""}`}
-      >
-        <GitPullRequestIcon className={styles.tabIcon} size={16} />
-        Pull Requests
-        {openPRs.length > 0 && (
-          <span className={styles.tabCount}>{openPRs.length}</span>
-        )}
-      </Link>
-
-      {/* Issues Tab */}
-      <Link
-        href={`/${fullName}/issues`}
-        className={`${styles.tab} ${activeTab === "issues" ? styles.tabActive : ""}`}
-      >
-        <IssueOpenedIcon className={styles.tabIcon} size={16} />
-        Issues
-      </Link>
-    </nav>
+    <Tabs
+      value={activeTab}
+      items={[
+        {
+          value: "code",
+          label: "Code",
+          icon: <CodeIcon size={16} />,
+          href: `/${fullName}`,
+        },
+        {
+          value: "pulls",
+          label: "Pull Requests",
+          icon: <GitPullRequestIcon size={16} />,
+          count: openPRs.length,
+          href: `/${fullName}/pulls`,
+        },
+        {
+          value: "issues",
+          label: "Issues",
+          icon: <IssueOpenedIcon size={16} />,
+          href: `/${fullName}/issues`,
+        },
+      ]}
+    />
   )
 }

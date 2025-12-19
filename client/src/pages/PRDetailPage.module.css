@@ -59,7 +59,6 @@
 }
 
 .title {
-  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--bit-color-heading);
@@ -125,7 +124,7 @@
 }
 
 .branchInfo {
-  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-family: var(--bit-font-mono);
   font-size: 0.85rem;
   padding: 0.15rem 0.5rem;
   background: rgba(var(--bit-rgb-fg), 0.08);
@@ -152,96 +151,6 @@
   gap: 0.75rem;
   margin-top: 1rem;
   margin-left: 2.25rem;
-}
-
-.syncButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1rem;
-  background: var(--bit-gradient-success);
-  color: var(--bit-color-paper);
-  border: none;
-  border-radius: var(--bit-radius-md);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.syncButton:hover:not(:disabled) {
-  background: var(--bit-gradient-success-hover);
-}
-
-.syncButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.syncButton.syncing {
-  background: var(--bit-gradient-info);
-}
-
-.buttonIcon {
-  width: 14px;
-  height: 14px;
-}
-
-.spinning {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.tabs {
-  display: flex;
-  gap: 0.25rem;
-  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.1);
-  margin-bottom: 1.5rem;
-}
-
-.tab {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  color: rgba(var(--bit-rgb-fg), 0.7);
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.tab:hover {
-  color: var(--bit-color-heading);
-  border-color: rgba(var(--bit-rgb-fg), 0.3);
-}
-
-.tabActive {
-  color: var(--bit-color-heading);
-  border-color: var(--bit-color-accent-orange);
-}
-
-.tabIcon {
-  width: 16px;
-  height: 16px;
-}
-
-.tabCount {
-  background: rgba(var(--bit-rgb-fg), 0.1);
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--bit-radius-lg2);
-  font-size: 0.8rem;
 }
 
 .content {
@@ -411,7 +320,7 @@
 
 .fileName {
   flex: 1;
-  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-family: var(--bit-font-mono);
   font-size: 0.85rem;
   color: rgba(var(--bit-rgb-fg), 0.9);
   overflow: hidden;
@@ -423,7 +332,7 @@
   display: flex;
   gap: 0.5rem;
   font-size: 0.8rem;
-  font-family: "JetBrains Mono", "SF Mono", monospace;
+  font-family: var(--bit-font-mono);
 }
 
 .fileAdditions {

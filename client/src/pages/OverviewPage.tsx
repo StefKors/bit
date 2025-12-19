@@ -2,6 +2,7 @@ import { useState, useCallback } from "react"
 import { useQuery } from "@rocicorp/zero/react"
 import { ClockIcon, SyncIcon, SignOutIcon } from "@primer/octicons-react"
 import { authClient } from "@/lib/auth"
+import { Button } from "@/components/Button"
 import styles from "./OverviewPage.module.css"
 import { queries } from "@/db/queries"
 import { RepoSection } from "@/components/RepoSection"
@@ -99,22 +100,22 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
             </div>
           )}
 
-          <button
+          <Button
+            variant="success"
+            leadingIcon={<SyncIcon size={16} />}
+            loading={syncing}
             onClick={handleSync}
-            disabled={syncing}
-            className={`${styles.syncButton} ${syncing ? styles.syncing : ""}`}
           >
-            <SyncIcon
-              className={`${styles.buttonIcon} ${syncing ? styles.spinning : ""}`}
-              size={16}
-            />
             {syncing ? "Syncing..." : "Sync GitHub"}
-          </button>
+          </Button>
 
-          <button onClick={handleSignOut} className={styles.signOutButton}>
-            <SignOutIcon className={styles.buttonIcon} size={16} />
+          <Button
+            variant="danger"
+            leadingIcon={<SignOutIcon size={16} />}
+            onClick={handleSignOut}
+          >
             Sign out
-          </button>
+          </Button>
         </div>
       </header>
 

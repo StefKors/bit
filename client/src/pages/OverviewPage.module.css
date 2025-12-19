@@ -49,7 +49,6 @@
 }
 
 .title {
-  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--bit-color-heading);
@@ -60,74 +59,6 @@
   display: flex;
   gap: 0.75rem;
   align-items: center;
-}
-
-.syncButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: var(--bit-gradient-success);
-  color: var(--bit-color-paper);
-  border: none;
-  border-radius: var(--bit-radius-lg);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.syncButton:hover:not(:disabled) {
-  background: var(--bit-gradient-success-hover);
-  transform: translateY(-1px);
-}
-
-.syncButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.syncButton.syncing {
-  background: var(--bit-gradient-info);
-}
-
-.buttonIcon {
-  width: 16px;
-  height: 16px;
-}
-
-.spinning {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.signOutButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: transparent;
-  color: rgba(var(--bit-rgb-fg), 0.7);
-  border: 1px solid rgba(var(--bit-rgb-fg), 0.15);
-  border-radius: var(--bit-radius-lg);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.signOutButton:hover {
-  background: var(--bit-color-danger-hover-bg);
-  border-color: var(--bit-color-danger-border);
-  color: var(--bit-color-accent-red);
 }
 
 .rateLimit {

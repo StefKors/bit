@@ -13,6 +13,8 @@ import {
 import { zql } from "@/db/schema"
 import { DiffViewer } from "@/components/DiffViewer"
 import { Breadcrumb } from "@/components/Breadcrumb"
+import { Tabs } from "@/components/Tabs"
+import { Button } from "@/components/Button"
 import styles from "./PRDetailPage.module.css"
 
 type TabType = "conversation" | "files"
@@ -298,17 +300,14 @@ export function PRDetailPage() {
         )}
 
         <div className={styles.actions}>
-          <button
+          <Button
+            variant="success"
+            leadingIcon={<SyncIcon size={16} />}
+            loading={syncing}
             onClick={handleSync}
-            disabled={syncing}
-            className={`${styles.syncButton} ${syncing ? styles.syncing : ""}`}
           >
-            <SyncIcon
-              className={`${styles.buttonIcon} ${syncing ? styles.spinning : ""}`}
-              size={16}
-            />
             {syncing ? "Syncing..." : "Sync Details"}
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -327,26 +326,24 @@ export function PRDetailPage() {
       )}
 
       {/* Tabs */}
-      <nav className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${activeTab === "conversation" ? styles.tabActive : ""}`}
-          onClick={() => setActiveTab("conversation")}
-        >
-          <CommentIcon className={styles.tabIcon} size={16} />
-          Conversation
-          {timelineItems.length > 0 && (
-            <span className={styles.tabCount}>{timelineItems.length}</span>
-          )}
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === "files" ? styles.tabActive : ""}`}
-          onClick={() => setActiveTab("files")}
-        >
-          <FileIcon className={styles.tabIcon} size={16} />
-          Files changed
-          <span className={styles.tabCount}>{files.length}</span>
-        </button>
-      </nav>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as TabType)}
+        items={[
+          {
+            value: "conversation",
+            label: "Conversation",
+            icon: <CommentIcon size={16} />,
+            count: timelineItems.length,
+          },
+          {
+            value: "files",
+            label: "Files changed",
+            icon: <FileIcon size={16} />,
+            count: files.length,
+          },
+        ]}
+      />
 
       {/* Content */}
       <div className={styles.content}>

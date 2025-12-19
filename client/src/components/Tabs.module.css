@@ -1,8 +1,13 @@
-.tabs {
+.root {
+  width: 100%;
+}
+
+.list {
   display: flex;
   gap: 0.25rem;
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.1);
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  position: relative;
 }
 
 .tab {
@@ -12,10 +17,15 @@
   padding: 0.75rem 1rem;
   color: rgba(var(--bit-rgb-fg), 0.7);
   text-decoration: none;
+  background: transparent;
+  border: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   font-size: 0.9rem;
+  cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .tab:hover {
@@ -23,19 +33,37 @@
   border-color: rgba(var(--bit-rgb-fg), 0.3);
 }
 
-.tabActive {
+.tab[data-selected] {
   color: var(--bit-color-heading);
   border-color: var(--bit-color-accent-orange);
 }
 
-.tabIcon {
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 16px;
   height: 16px;
 }
 
-.tabCount {
+.icon > svg {
+  width: 16px;
+  height: 16px;
+}
+
+.count {
   background: rgba(var(--bit-rgb-fg), 0.1);
   padding: 0.15rem 0.5rem;
   border-radius: var(--bit-radius-lg2);
   font-size: 0.8rem;
+}
+
+.indicator {
+  position: absolute;
+  bottom: -1px;
+  height: 2px;
+  background: var(--bit-color-accent-orange);
+  transition:
+    left 0.2s ease,
+    width 0.2s ease;
 }

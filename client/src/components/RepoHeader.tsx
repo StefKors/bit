@@ -7,6 +7,7 @@ import {
   IssueOpenedIcon,
   SyncIcon,
 } from "@primer/octicons-react"
+import { Button } from "./Button"
 import styles from "./RepoHeader.module.css"
 
 type Repo = Row["githubRepo"]
@@ -71,17 +72,14 @@ export function RepoHeader({ repo, syncing, onSync }: RepoHeaderProps) {
       </div>
 
       <div className={styles.headerActions}>
-        <button
+        <Button
+          variant="success"
+          leadingIcon={<SyncIcon size={16} />}
+          loading={syncing}
           onClick={onSync}
-          disabled={syncing}
-          className={`${styles.syncButton} ${syncing ? styles.syncing : ""}`}
         >
-          <SyncIcon
-            className={`${styles.buttonIcon} ${syncing ? styles.spinning : ""}`}
-            size={16}
-          />
           {syncing ? "Syncing..." : "Sync"}
-        </button>
+        </Button>
       </div>
     </header>
   )

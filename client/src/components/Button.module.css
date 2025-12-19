@@ -1,0 +1,203 @@
+/* Base button styles */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--bit-radius-lg);
+  border: 1px solid transparent;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--bit-color-accent-blue);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Block (full-width) */
+.block {
+  width: 100%;
+}
+
+/* Sizes */
+.small {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.medium {
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+}
+
+.large {
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+}
+
+/* Icons */
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.small .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.medium .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.large .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.icon > svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Label */
+.label {
+  flex: 1;
+  text-align: center;
+}
+
+/* Loading spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  opacity: 0.7;
+}
+
+.small .spinner {
+  width: 12px;
+  height: 12px;
+}
+
+.large .spinner {
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading {
+  pointer-events: none;
+}
+
+/* ============================================
+   VARIANTS
+   ============================================ */
+
+/* Primary: Highest-priority action. Use sparingly.
+   Inverse colors (light bg on dark theme, dark bg on light theme). */
+.primary {
+  background: var(--bit-color-inverse-bg);
+  color: var(--bit-color-inverse-text);
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--bit-color-inverse-bg-hover);
+  box-shadow: var(--bit-shadow-md);
+}
+
+.primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Default: Standard button for general actions.
+   Subtle background with border on hover. */
+.default {
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  color: rgba(var(--bit-rgb-fg), 0.9);
+  border-color: rgba(var(--bit-rgb-fg), 0.1);
+}
+
+.default:hover:not(:disabled) {
+  background: rgba(var(--bit-rgb-fg), 0.1);
+  border-color: rgba(var(--bit-rgb-fg), 0.2);
+}
+
+.default:active:not(:disabled) {
+  background: rgba(var(--bit-rgb-fg), 0.12);
+}
+
+/* Invisible: Transparent for minimal UI or compound components.
+   No background, subtle text. */
+.invisible {
+  background: transparent;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  border-color: transparent;
+}
+
+.invisible:hover:not(:disabled) {
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  color: rgba(var(--bit-rgb-fg), 0.9);
+}
+
+.invisible:active:not(:disabled) {
+  background: rgba(var(--bit-rgb-fg), 0.1);
+}
+
+/* Danger: Destructive actions. Use sparingly.
+   Starts subtle, becomes red on hover. */
+.danger {
+  background: transparent;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  border-color: rgba(var(--bit-rgb-fg), 0.15);
+}
+
+.danger:hover:not(:disabled) {
+  background: var(--bit-color-danger-hover-bg);
+  border-color: var(--bit-color-danger-border);
+  color: var(--bit-color-accent-red);
+}
+
+.danger:active:not(:disabled) {
+  background: rgba(var(--bit-rgb-accent-red), 0.15);
+}
+
+/* Success: Positive actions like sync, save, confirm.
+   Green gradient background. */
+.success {
+  background: var(--bit-gradient-success);
+  color: var(--bit-color-paper);
+  border-color: transparent;
+  font-weight: 500;
+}
+
+.success:hover:not(:disabled) {
+  background: var(--bit-gradient-success-hover);
+  box-shadow: var(--bit-shadow-glow-success);
+}
+
+.success:active:not(:disabled) {
+  transform: scale(0.98);
+}

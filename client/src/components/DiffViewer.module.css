@@ -8,7 +8,7 @@
 .diffTable {
   width: 100%;
   border-collapse: collapse;
-  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-family: var(--bit-font-mono);
   font-size: 0.8rem;
   line-height: 1.5;
 }

@@ -1,5 +1,6 @@
 import { SignOutIcon, MarkGithubIcon } from "@primer/octicons-react"
 import { authClient } from "@/lib/auth"
+import { Button } from "@/components/Button"
 import styles from "./LoginPage.module.css"
 
 interface LoginPageProps {
@@ -68,10 +69,15 @@ function LoginPage({ onLogin }: LoginPageProps) {
             </div>
           </div>
 
-          <button onClick={handleSignOut} className={styles.signOutButton}>
-            <SignOutIcon className={styles.buttonIcon} size={16} />
+          <Button
+            variant="danger"
+            size="large"
+            block
+            leadingIcon={<SignOutIcon size={16} />}
+            onClick={handleSignOut}
+          >
             Sign out
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -87,10 +93,15 @@ function LoginPage({ onLogin }: LoginPageProps) {
           <p className={styles.subtitle}>Continue with your GitHub account</p>
         </div>
 
-        <button onClick={handleGitHubSignIn} className={styles.githubButton}>
-          <MarkGithubIcon className={styles.buttonIcon} size={20} />
+        <Button
+          variant="primary"
+          size="large"
+          block
+          leadingIcon={<MarkGithubIcon size={20} />}
+          onClick={handleGitHubSignIn}
+        >
           Continue with GitHub
-        </button>
+        </Button>
 
         <div className={styles.footer}>
           <p className={styles.footerText}>
