@@ -33,9 +33,6 @@
       ],
       "@/db/*": [
         "./src/db/*"
-      ],
-      "@/schema": [
-        "./schema.ts"
       ]
     },
     /* Linting */

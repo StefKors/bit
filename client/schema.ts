@@ -1,15 +1,9 @@
 import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
-import {
-  createBuilder,
-  createSchema,
-  Row,
-  table,
-  string,
-  boolean as zeroBoolean,
-} from "@rocicorp/zero";
 
 // =============================================================================
-// Drizzle Schema (Better Auth tables)
+// Drizzle Schema
+// Used by: Better Auth, drizzle-kit, drizzle-zero
+// Generate Zero schema: bun run generate-zero-schema
 // =============================================================================
 
 export const authUser = pgTable("auth_user", {
@@ -85,36 +79,11 @@ export const authVerification = pgTable(
 );
 
 // =============================================================================
-// Zero Schema (Client-side sync)
+// App Tables (synced via Zero)
 // =============================================================================
 
-const user = table("user")
-  .columns({
-    id: string(),
-    name: string(),
-    partner: zeroBoolean(),
-  })
-  .primaryKey("id");
-
-export const schema = createSchema({
-  tables: [user],
-  relationships: [],
-  enableLegacyQueries: false,
-  enableLegacyMutators: false,
+export const user = pgTable("user", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  partner: boolean("partner").notNull(),
 });
-
-export const zql = createBuilder(schema);
-
-export type Schema = typeof schema;
-export type User = Row<typeof schema.tables.user>;
-
-export type AuthData = {
-  userID: string | null;
-};
-
-declare module "@rocicorp/zero" {
-  interface DefaultTypes {
-    schema: Schema;
-    context: AuthData;
-  }
-}

@@ -24,7 +24,6 @@ export default defineConfig({
       "@/pages": path.resolve(__dirname, "./src/pages"),
       "@/lib": path.resolve(__dirname, "./src/lib"),
       "@/db": path.resolve(__dirname, "./src/db"),
-      "@/schema": path.resolve(__dirname, "./schema.ts"),
     },
   },
   plugins: [

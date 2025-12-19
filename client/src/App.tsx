@@ -1,7 +1,8 @@
 import { ZeroProvider } from "@rocicorp/zero/react"
 import { useState } from "react"
 import { mutators } from "@/db/mutators"
-import { schema } from "@/schema"
+import { schema } from "@/db/schema"
+import "@/db/types" // Import to register DefaultTypes
 import { Layout } from "@/layout"
 import LoginPage from "@/pages/LoginPage"
 import { HomePage } from "@/pages/HomePage"
