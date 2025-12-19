@@ -1,0 +1,55 @@
+.container {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.content {
+  /* Tab content area */
+}
+
+.error {
+  color: #f85149;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(248, 81, 73, 0.1);
+  border-radius: 8px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.emptyIcon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Light mode */
+@media (prefers-color-scheme: light) {
+  .emptyState {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .emptyTitle {
+    color: rgba(0, 0, 0, 0.7);
+  }
+}

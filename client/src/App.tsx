@@ -9,7 +9,8 @@ import LoginPage from "@/pages/LoginPage"
 import { OverviewPage } from "./pages/OverviewPage"
 import { OwnerPage } from "./pages/OwnerPage"
 import { RepoPage } from "./pages/RepoPage"
-import { PRListPage } from "./pages/PRListPage"
+import { RepoPullsPage } from "./pages/RepoPullsPage"
+import { RepoIssuesPage } from "./pages/RepoIssuesPage"
 import { PRDetailPage } from "./pages/PRDetailPage"
 import { authClient } from "@/lib/auth"
 
@@ -72,7 +73,8 @@ function App({ userID: initialUserID }: AppProps) {
             path="/"
             component={() => <OverviewPage onLogout={handleAuthChange} />}
           />
-          <Route path="/:owner/:repo/pulls" component={PRListPage} />
+          <Route path="/:owner/:repo/pulls" component={RepoPullsPage} />
+          <Route path="/:owner/:repo/issues" component={RepoIssuesPage} />
           <Route path="/:owner/:repo/pull/:number" component={PRDetailPage} />
           <Route path="/:owner/:repo" component={RepoPage} />
           <Route path="/:owner" component={OwnerPage} />

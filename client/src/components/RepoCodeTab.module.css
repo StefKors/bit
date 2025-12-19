@@ -1,0 +1,48 @@
+.content {
+  padding: 1rem 0;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.emptyIcon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.link {
+  color: #58a6ff;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/* Light mode */
+@media (prefers-color-scheme: light) {
+  .emptyState {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .emptyTitle {
+    color: rgba(0, 0, 0, 0.7);
+  }
+}
