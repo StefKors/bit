@@ -1,4 +1,4 @@
-import { authClient } from "../lib/auth"
+import { authClient } from "@/lib/auth"
 import styles from "./LoginPage.module.css"
 
 interface LoginPageProps {

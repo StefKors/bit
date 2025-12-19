@@ -1,8 +1,8 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
-import App from "./App.tsx"
-import "./index.css"
-import { authClient } from "./lib/auth.ts"
+import App from "@/App"
+import "@/index.css"
+import { authClient } from "@/lib/auth"
 
 async function init() {
   // Try to get the session from Better Auth

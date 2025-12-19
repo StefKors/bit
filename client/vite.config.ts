@@ -1,10 +1,11 @@
-import { getRequestListener } from "@hono/node-server";
-import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
-import dotenv from "dotenv";
+import { getRequestListener } from "@hono/node-server"
+import react from "@vitejs/plugin-react"
+import { defineConfig } from "vite"
+import path from "path"
+import dotenv from "dotenv"
 
 if (process.env.NODE_ENV === "development") {
-  dotenv.config();
+  dotenv.config()
 }
 
 export default defineConfig({
@@ -16,6 +17,16 @@ export default defineConfig({
       target: "es2022",
     },
   },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "@/components": path.resolve(__dirname, "./src/components"),
+      "@/pages": path.resolve(__dirname, "./src/pages"),
+      "@/lib": path.resolve(__dirname, "./src/lib"),
+      "@/db": path.resolve(__dirname, "./db"),
+      "@/api": path.resolve(__dirname, "./api"),
+    },
+  },
   plugins: [
     react(),
     {
@@ -23,14 +34,14 @@ export default defineConfig({
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
           if (!req.url?.startsWith("/api")) {
-            return next();
+            return next()
           }
           getRequestListener(async (request) => {
-            const { app } = await import("./api/index.js");
-            return await app.fetch(request, {});
-          })(req, res);
-        });
+            const { app } = await import("./api/index.js")
+            return await app.fetch(request, {})
+          })(req, res)
+        })
       },
     },
   ],
-});
+})
