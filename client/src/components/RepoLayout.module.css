@@ -11,17 +11,17 @@
 }
 
 .error {
-  color: #f85149;
+  color: var(--bit-color-accent-red);
   margin-bottom: 1rem;
   padding: 1rem;
-  background: rgba(248, 81, 73, 0.1);
-  border-radius: 8px;
+  background: rgba(var(--bit-rgb-accent-red), 0.1);
+  border-radius: var(--bit-radius-lg);
 }
 
 .emptyState {
   text-align: center;
   padding: 3rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--bit-rgb-fg), 0.5);
 }
 
 .emptyIcon {
@@ -35,21 +35,10 @@
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0 0 0.5rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(var(--bit-rgb-fg), 0.7);
 }
 
 .emptyText {
   margin: 0;
   font-size: 0.9rem;
-}
-
-/* Light mode */
-@media (prefers-color-scheme: light) {
-  .emptyState {
-    color: rgba(0, 0, 0, 0.5);
-  }
-
-  .emptyTitle {
-    color: rgba(0, 0, 0, 0.7);
-  }
 }

@@ -12,22 +12,32 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 20% 20%, rgba(88, 166, 255, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(163, 113, 247, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(46, 160, 67, 0.05) 0%, transparent 70%);
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(var(--bit-rgb-accent-blue), 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(var(--bit-rgb-accent-purple), 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(var(--bit-rgb-accent-green), 0.05) 0%,
+      transparent 70%
+    );
   pointer-events: none;
 }
 
 .card {
   width: 100%;
   max-width: 400px;
-  background: linear-gradient(145deg, rgba(30, 30, 30, 0.9) 0%, rgba(22, 22, 22, 0.95) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
+  background: var(--bit-gradient-surface);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  border-radius: var(--bit-radius-2xl);
   padding: 2.5rem;
-  box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  box-shadow: var(--bit-shadow-elevated);
   position: relative;
   z-index: 1;
   backdrop-filter: blur(20px);
@@ -55,22 +65,22 @@
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid rgba(46, 160, 67, 0.5);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border: 3px solid rgba(var(--bit-rgb-accent-green), 0.5);
+  box-shadow: var(--bit-shadow-md);
 }
 
 .avatarPlaceholder {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #58a6ff 0%, #a371f7 100%);
+  background: var(--bit-gradient-accent);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
   font-weight: 700;
-  color: white;
-  border: 3px solid rgba(255, 255, 255, 0.1);
+  color: var(--bit-color-paper);
+  border: 3px solid var(--bit-color-avatar-placeholder-border);
 }
 
 .onlineIndicator {
@@ -79,32 +89,32 @@
   right: 4px;
   width: 16px;
   height: 16px;
-  background: #2ea043;
+  background: var(--bit-color-accent-green);
   border-radius: 50%;
-  border: 3px solid #161616;
-  box-shadow: 0 0 12px rgba(46, 160, 67, 0.6);
+  border: 3px solid var(--bit-color-avatar-outline);
+  box-shadow: var(--bit-shadow-glow-success);
 }
 
 .title {
   font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
   font-size: 1.75rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--bit-color-heading);
   margin: 0 0 0.5rem;
   letter-spacing: -0.02em;
 }
 
 .subtitle {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--bit-rgb-fg), 0.5);
   margin: 0;
   font-weight: 400;
 }
 
 .userInfo {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
+  background: rgba(var(--bit-rgb-fg), 0.03);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.06);
+  border-radius: var(--bit-radius-xl);
   padding: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -117,12 +127,12 @@
 }
 
 .infoRow:not(:last-child) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.06);
 }
 
 .infoLabel {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(var(--bit-rgb-fg), 0.4);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 500;
@@ -130,18 +140,18 @@
 
 .infoValue {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(var(--bit-rgb-fg), 0.9);
   font-family: "JetBrains Mono", "SF Mono", monospace;
 }
 
 .statusBadge {
   font-size: 0.75rem;
-  color: #2ea043;
-  background: rgba(46, 160, 67, 0.15);
+  color: var(--bit-color-accent-green);
+  background: rgba(var(--bit-rgb-accent-green), 0.15);
   padding: 0.35rem 0.75rem;
-  border-radius: 20px;
+  border-radius: var(--bit-radius-2xl);
   font-weight: 600;
-  border: 1px solid rgba(46, 160, 67, 0.3);
+  border: 1px solid rgba(var(--bit-rgb-accent-green), 0.3);
 }
 
 .githubButton {
@@ -151,10 +161,10 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  background: #ffffff;
-  color: #0d1117;
+  background: var(--bit-color-inverse-bg);
+  color: var(--bit-color-inverse-text);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--bit-radius-xl);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -162,8 +172,8 @@
 }
 
 .githubButton:hover {
-  background: #f0f0f0;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+  background: var(--bit-color-inverse-bg-hover);
+  box-shadow: var(--bit-shadow-lg);
 }
 
 .githubButton:active {
@@ -178,9 +188,9 @@
   gap: 0.75rem;
   padding: 1rem 1.5rem;
   background: transparent;
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.15);
+  border-radius: var(--bit-radius-xl);
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
@@ -189,9 +199,9 @@
 }
 
 .signOutButton:hover {
-  background: rgba(248, 81, 73, 0.1);
-  border-color: rgba(248, 81, 73, 0.4);
-  color: #f85149;
+  background: var(--bit-color-danger-hover-bg);
+  border-color: var(--bit-color-danger-border);
+  color: var(--bit-color-accent-red);
 }
 
 .buttonIcon {
@@ -206,7 +216,7 @@
 
 .footerText {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(var(--bit-rgb-fg), 0.3);
   margin: 0;
 }
 
@@ -216,14 +226,14 @@
   align-items: center;
   gap: 1rem;
   padding: 2rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--bit-rgb-fg), 0.5);
 }
 
 .spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #58a6ff;
+  border: 3px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-top-color: var(--bit-color-accent-blue);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -231,81 +241,5 @@
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-/* Light mode overrides */
-@media (prefers-color-scheme: light) {
-  .card {
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.95) 0%,
-      rgba(248, 248, 248, 0.98) 100%
-    );
-    border-color: rgba(0, 0, 0, 0.08);
-    box-shadow:
-      0 25px 50px -12px rgba(0, 0, 0, 0.15),
-      0 0 0 1px rgba(0, 0, 0, 0.05);
-  }
-
-  .title {
-    color: #0d1117;
-  }
-
-  .subtitle {
-    color: rgba(0, 0, 0, 0.5);
-  }
-
-  .userInfo {
-    background: rgba(0, 0, 0, 0.02);
-    border-color: rgba(0, 0, 0, 0.06);
-  }
-
-  .infoRow:not(:last-child) {
-    border-bottom-color: rgba(0, 0, 0, 0.06);
-  }
-
-  .infoLabel {
-    color: rgba(0, 0, 0, 0.4);
-  }
-
-  .infoValue {
-    color: rgba(0, 0, 0, 0.9);
-  }
-
-  .githubButton {
-    background: #0d1117;
-    color: #ffffff;
-  }
-
-  .githubButton:hover {
-    background: #24292f;
-  }
-
-  .signOutButton {
-    color: rgba(0, 0, 0, 0.6);
-    border-color: rgba(0, 0, 0, 0.15);
-  }
-
-  .signOutButton:hover {
-    background: rgba(248, 81, 73, 0.08);
-  }
-
-  .loading {
-    color: rgba(0, 0, 0, 0.5);
-  }
-
-  .spinner {
-    border-color: rgba(0, 0, 0, 0.1);
-    border-top-color: #58a6ff;
-  }
-
-  .footerText {
-    color: rgba(0, 0, 0, 0.4);
-  }
-
-  .avatarPlaceholder,
-  .onlineIndicator {
-    border-color: #f8f8f8;
   }
 }

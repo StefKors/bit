@@ -15,7 +15,7 @@
   font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
   font-size: 1.75rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--bit-color-heading);
   margin: 0 0 0.5rem;
   display: flex;
   align-items: center;
@@ -25,17 +25,17 @@
 .repoIcon {
   width: 24px;
   height: 24px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--bit-rgb-fg), 0.5);
 }
 
 .privateIcon {
   width: 18px;
   height: 18px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(var(--bit-rgb-fg), 0.4);
 }
 
 .description {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(var(--bit-rgb-fg), 0.7);
   margin: 0 0 1rem;
   font-size: 1rem;
 }
@@ -45,7 +45,7 @@
   gap: 1.5rem;
   flex-wrap: wrap;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--bit-rgb-fg), 0.6);
 }
 
 .metaItem {
@@ -76,10 +76,10 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
-  color: white;
+  background: var(--bit-gradient-success);
+  color: var(--bit-color-paper);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--bit-radius-lg);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -87,7 +87,7 @@
 }
 
 .syncButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2ea043 0%, #3fb950 100%);
+  background: var(--bit-gradient-success-hover);
   transform: translateY(-1px);
 }
 
@@ -97,7 +97,7 @@
 }
 
 .syncButton.syncing {
-  background: linear-gradient(135deg, #1f6feb 0%, #58a6ff 100%);
+  background: var(--bit-gradient-info);
 }
 
 .buttonIcon {
@@ -115,25 +115,5 @@
   }
   to {
     transform: rotate(360deg);
-  }
-}
-
-/* Light mode */
-@media (prefers-color-scheme: light) {
-  .title {
-    color: #0d1117;
-  }
-
-  .repoIcon,
-  .privateIcon {
-    color: rgba(0, 0, 0, 0.5);
-  }
-
-  .description {
-    color: rgba(0, 0, 0, 0.7);
-  }
-
-  .meta {
-    color: rgba(0, 0, 0, 0.6);
   }
 }

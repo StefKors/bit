@@ -17,12 +17,12 @@
   text-decoration: none;
   padding: 0.5rem 0.75rem;
   margin: -0.5rem -0.75rem;
-  border-radius: 8px;
+  border-radius: var(--bit-radius-lg);
   transition: background-color 0.15s ease;
 }
 
 .sectionHeader:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--bit-rgb-fg), 0.05);
 }
 
 .ownerAvatar {
@@ -36,13 +36,13 @@
 }
 
 .ownerAvatarOrg {
-  border-radius: 6px;
+  border-radius: var(--bit-radius-md);
 }
 
 .ownerAvatarPlaceholder {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #58a6ff 0%, #a371f7 100%);
+  background: var(--bit-gradient-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -53,19 +53,19 @@
 }
 
 .ownerAvatarPlaceholderOrg {
-  border-radius: 6px;
+  border-radius: var(--bit-radius-md);
 }
 
 .ownerAvatarPlaceholder svg {
   width: 18px;
   height: 18px;
-  color: white;
+  color: var(--bit-color-paper);
 }
 
 .sectionTitle {
   font-size: 1.1rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(var(--bit-rgb-fg), 0.9);
   margin: 0;
   display: flex;
   align-items: center;
@@ -76,9 +76,9 @@
   font-size: 0.7rem;
   font-weight: 500;
   padding: 0.15rem 0.5rem;
-  background: rgba(46, 160, 67, 0.2);
-  color: #3fb950;
-  border-radius: 12px;
+  background: rgba(var(--bit-rgb-accent-green), 0.2);
+  color: var(--bit-color-accent-green-bright);
+  border-radius: var(--bit-radius-xl);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -87,16 +87,16 @@
   font-size: 0.7rem;
   font-weight: 500;
   padding: 0.15rem 0.5rem;
-  background: rgba(163, 113, 247, 0.2);
-  color: #a371f7;
-  border-radius: 12px;
+  background: rgba(var(--bit-rgb-accent-purple), 0.2);
+  color: var(--bit-color-accent-purple);
+  border-radius: var(--bit-radius-xl);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .repoCount {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--bit-rgb-fg), 0.5);
   margin-left: auto;
 }
 
@@ -109,7 +109,7 @@
 .emptyState {
   text-align: center;
   padding: 3rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--bit-rgb-fg), 0.5);
 }
 
 .emptyIcon {
@@ -123,33 +123,10 @@
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0 0 0.5rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(var(--bit-rgb-fg), 0.7);
 }
 
 .emptyText {
   margin: 0;
   font-size: 0.9rem;
-}
-
-/* Light mode overrides */
-@media (prefers-color-scheme: light) {
-  .sectionHeader:hover {
-    background: rgba(0, 0, 0, 0.05);
-  }
-
-  .sectionTitle {
-    color: rgba(0, 0, 0, 0.9);
-  }
-
-  .repoCount {
-    color: rgba(0, 0, 0, 0.5);
-  }
-
-  .emptyState {
-    color: rgba(0, 0, 0, 0.5);
-  }
-
-  .emptyTitle {
-    color: rgba(0, 0, 0, 0.7);
-  }
 }

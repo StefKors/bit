@@ -4,7 +4,7 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 0.875rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   text-decoration: none;
   transition: background 0.15s ease;
   cursor: pointer;
@@ -20,7 +20,7 @@
 }
 
 .prItem:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(var(--bit-rgb-fg), 0.02);
 }
 
 .prContent {
@@ -34,7 +34,7 @@
 .prTitle {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--bit-color-heading);
   margin: 0;
   display: flex;
   align-items: center;
@@ -52,7 +52,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(var(--bit-rgb-fg), 0.45);
 }
 
 .authorAvatar {
@@ -64,7 +64,7 @@
 
 .authorName {
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--bit-rgb-fg), 0.6);
 }
 
 .prPath {
@@ -76,7 +76,7 @@
 .prPath::before {
   content: "·";
   margin-right: 0.5rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(var(--bit-rgb-fg), 0.3);
 }
 
 .prActions {
@@ -91,7 +91,7 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--bit-rgb-fg), 0.5);
 }
 
 .commentIcon {
@@ -105,9 +105,9 @@
   justify-content: center;
   width: 20px;
   height: 20px;
-  background: rgba(63, 185, 80, 0.15);
+  background: rgba(var(--bit-rgb-accent-green-bright), 0.15);
   border-radius: 50%;
-  color: #3fb950;
+  color: var(--bit-color-accent-green-bright);
 }
 
 .statusIndicators {
@@ -125,53 +125,18 @@
 
 .draftBadge {
   padding: 0.2rem 0.5rem;
-  background: rgba(139, 148, 158, 0.2);
-  border: 1px solid rgba(139, 148, 158, 0.4);
-  border-radius: 6px;
+  background: rgba(var(--bit-rgb-muted), 0.2);
+  border: 1px solid rgba(var(--bit-rgb-muted), 0.4);
+  border-radius: var(--bit-radius-md);
   font-size: 0.65rem;
   font-weight: 600;
-  color: #8b949e;
+  color: var(--bit-color-muted);
   text-transform: capitalize;
   flex-shrink: 0;
 }
 
 .prDate {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(var(--bit-rgb-fg), 0.45);
   white-space: nowrap;
-}
-
-/* Light mode */
-@media (prefers-color-scheme: light) {
-  .prItem {
-    border-color: rgba(0, 0, 0, 0.08);
-  }
-
-  .prItem:hover {
-    background: rgba(0, 0, 0, 0.02);
-  }
-
-  .prTitle {
-    color: #0d1117;
-  }
-
-  .prMeta {
-    color: rgba(0, 0, 0, 0.45);
-  }
-
-  .authorName {
-    color: rgba(0, 0, 0, 0.6);
-  }
-
-  .prPath::before {
-    color: rgba(0, 0, 0, 0.3);
-  }
-
-  .commentCount {
-    color: rgba(0, 0, 0, 0.5);
-  }
-
-  .prDate {
-    color: rgba(0, 0, 0, 0.45);
-  }
 }

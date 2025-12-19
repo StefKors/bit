@@ -14,7 +14,7 @@
 }
 
 .breadcrumbLink {
-  color: #58a6ff;
+  color: var(--bit-color-link);
   text-decoration: none;
 }
 
@@ -23,12 +23,5 @@
 }
 
 .breadcrumbSeparator {
-  color: rgba(255, 255, 255, 0.4);
-}
-
-/* Light mode */
-@media (prefers-color-scheme: light) {
-  .breadcrumbSeparator {
-    color: rgba(0, 0, 0, 0.4);
-  }
+  color: rgba(var(--bit-rgb-fg), 0.4);
 }

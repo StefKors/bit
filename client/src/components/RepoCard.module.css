@@ -1,11 +1,7 @@
 .card {
-  background: linear-gradient(
-    145deg,
-    rgba(30, 30, 30, 0.9) 0%,
-    rgba(22, 22, 22, 0.95) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  background: var(--bit-gradient-surface);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  border-radius: var(--bit-radius-xl);
   padding: 1.25rem;
   cursor: pointer;
   transition: all 0s ease;
@@ -18,8 +14,11 @@
 }
 
 .card:hover {
-  border-color: rgba(88, 166, 255, 0.3);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-color: rgba(
+    var(--bit-rgb-accent-blue),
+    var(--bit-alpha-accent-border-hover)
+  );
+  box-shadow: var(--bit-shadow-md);
 }
 
 .cardHeader {
@@ -37,7 +36,7 @@
 .cardTitle {
   font-size: 1rem;
   font-weight: 600;
-  color: #58a6ff;
+  color: var(--bit-color-link);
   margin: 0 0 0.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -49,7 +48,7 @@
 
 .cardDescription {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--bit-rgb-fg), 0.6);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -61,7 +60,7 @@
   gap: 1rem;
   margin-top: 0.75rem;
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--bit-rgb-fg), 0.5);
 }
 
 .cardStat {
@@ -85,29 +84,5 @@
 .privateIcon {
   width: 14px;
   height: 14px;
-  color: rgba(255, 255, 255, 0.4);
-}
-
-/* Light mode overrides */
-@media (prefers-color-scheme: light) {
-  .card {
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.95) 0%,
-      rgba(248, 248, 248, 0.98) 100%
-    );
-    border-color: rgba(0, 0, 0, 0.08);
-  }
-
-  .card:hover {
-    border-color: rgba(88, 166, 255, 0.5);
-  }
-
-  .cardDescription {
-    color: rgba(0, 0, 0, 0.6);
-  }
-
-  .cardMeta {
-    color: rgba(0, 0, 0, 0.5);
-  }
+  color: rgba(var(--bit-rgb-fg), 0.4);
 }

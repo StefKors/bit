@@ -25,7 +25,7 @@
   width: 64px;
   height: 64px;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(var(--bit-rgb-fg), 0.1);
 }
 
 .ownerAvatarUser {
@@ -33,17 +33,17 @@
 }
 
 .ownerAvatarOrg {
-  border-radius: 12px;
+  border-radius: var(--bit-radius-xl);
 }
 
 .ownerAvatarPlaceholder {
   width: 64px;
   height: 64px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--bit-rgb-fg), 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--bit-rgb-fg), 0.5);
 }
 
 .ownerAvatarPlaceholderUser {
@@ -51,7 +51,7 @@
 }
 
 .ownerAvatarPlaceholderOrg {
-  border-radius: 12px;
+  border-radius: var(--bit-radius-xl);
 }
 
 .ownerAvatarPlaceholder svg {
@@ -69,7 +69,7 @@
   font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--bit-color-heading);
   margin: 0;
   display: flex;
   align-items: center;
@@ -80,9 +80,9 @@
   font-size: 0.7rem;
   font-weight: 500;
   padding: 0.2rem 0.5rem;
-  background: rgba(163, 113, 247, 0.2);
-  color: #a371f7;
-  border-radius: 4px;
+  background: rgba(var(--bit-rgb-accent-purple), 0.2);
+  color: var(--bit-color-accent-purple);
+  border-radius: var(--bit-radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -91,7 +91,7 @@
   display: flex;
   gap: 1.25rem;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(var(--bit-rgb-fg), 0.6);
 }
 
 .stat {
@@ -112,7 +112,7 @@
 .sectionTitle {
   font-size: 1rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(var(--bit-rgb-fg), 0.9);
   margin: 0 0 1rem;
   display: flex;
   align-items: center;
@@ -122,7 +122,7 @@
 .sectionIcon {
   width: 18px;
   height: 18px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--bit-rgb-fg), 0.5);
 }
 
 .grid {
@@ -134,7 +134,7 @@
 .emptyState {
   text-align: center;
   padding: 3rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(var(--bit-rgb-fg), 0.5);
 }
 
 .emptyIcon {
@@ -148,42 +148,10 @@
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0 0 0.5rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(var(--bit-rgb-fg), 0.7);
 }
 
 .emptyText {
   margin: 0;
   font-size: 0.9rem;
-}
-
-/* Light mode overrides */
-@media (prefers-color-scheme: light) {
-  .title {
-    color: #0d1117;
-  }
-
-  .ownerAvatarPlaceholder {
-    background: rgba(0, 0, 0, 0.1);
-    color: rgba(0, 0, 0, 0.5);
-  }
-
-  .stats {
-    color: rgba(0, 0, 0, 0.6);
-  }
-
-  .sectionTitle {
-    color: rgba(0, 0, 0, 0.9);
-  }
-
-  .sectionIcon {
-    color: rgba(0, 0, 0, 0.5);
-  }
-
-  .emptyState {
-    color: rgba(0, 0, 0, 0.5);
-  }
-
-  .emptyTitle {
-    color: rgba(0, 0, 0, 0.7);
-  }
 }
