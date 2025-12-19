@@ -1,5 +1,5 @@
 import { defineQueries, defineQuery } from "@rocicorp/zero"
-import { zql } from "@/schema"
+import { zql } from "./schema"
 
 export const queries = defineQueries({
   users: {

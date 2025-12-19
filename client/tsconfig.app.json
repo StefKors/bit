@@ -32,10 +32,13 @@
         "./src/lib/*"
       ],
       "@/db/*": [
-        "./db/*"
+        "./src/db/*"
       ],
       "@/api/*": [
         "./api/*"
+      ],
+      "@/api/db/*": [
+        "./api/db/*"
       ]
     },
     /* Linting */
@@ -46,7 +49,7 @@
   },
   "include": [
     "src",
-    "db",
+    "api/db",
     "api"
   ]
 }

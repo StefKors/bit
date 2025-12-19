@@ -23,8 +23,9 @@ export default defineConfig({
       "@/components": path.resolve(__dirname, "./src/components"),
       "@/pages": path.resolve(__dirname, "./src/pages"),
       "@/lib": path.resolve(__dirname, "./src/lib"),
-      "@/db": path.resolve(__dirname, "./db"),
+      "@/db": path.resolve(__dirname, "./src/db"),
       "@/api": path.resolve(__dirname, "./api"),
+      "@/api/db": path.resolve(__dirname, "./api/db"),
     },
   },
   plugins: [

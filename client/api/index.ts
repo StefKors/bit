@@ -5,9 +5,9 @@ import { Pool } from "pg"
 import { mustGetMutator, mustGetQuery } from "@rocicorp/zero"
 import { handleMutateRequest, handleQueryRequest } from "@rocicorp/zero/server"
 import { zeroNodePg } from "@rocicorp/zero/server/adapters/pg"
-import { mutators } from "../db/mutators"
-import { queries } from "../db/queries"
-import { schema, type AuthData } from "../src/schema"
+import { mutators } from "../src/db/mutators"
+import { queries } from "../src/db/queries"
+import { schema, type AuthData } from "../src/db/schema"
 import { auth } from "./auth"
 
 export const config = {
