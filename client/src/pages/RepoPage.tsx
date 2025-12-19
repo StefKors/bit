@@ -2,6 +2,7 @@ import { useState, useCallback } from "react"
 import { Link, useParams } from "wouter"
 import { useQuery } from "@rocicorp/zero/react"
 import { zql } from "@/db/schema"
+import { Breadcrumb } from "@/components/Breadcrumb"
 import styles from "./RepoPage.module.css"
 
 // Language colors
@@ -89,15 +90,13 @@ export function RepoPage() {
   return (
     <div className={styles.container}>
       {/* Breadcrumb */}
-      <nav className={styles.breadcrumb}>
-        <Link href="/" className={styles.breadcrumbLink}>
-          Repositories
-        </Link>
-        <span className={styles.breadcrumbSeparator}>/</span>
-        <span>{owner}</span>
-        <span className={styles.breadcrumbSeparator}>/</span>
-        <span>{repoName}</span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "Repositories", href: "/" },
+          { label: owner },
+          { label: repoName },
+        ]}
+      />
 
       {/* Header */}
       <header className={styles.header}>

@@ -210,7 +210,7 @@ export function PRDetailPage() {
           { label: "Repositories", href: "/" },
           { label: owner, href: `/${fullName}` },
           { label: repoName, href: `/${fullName}` },
-          { label: "Pull requests", href: `/${fullName}/pulls` },
+          { label: "pull requests", href: `/${fullName}/pulls` },
           { label: `#${prNumber}` },
         ]}
       />

@@ -2,6 +2,7 @@ import { useState, useMemo } from "react"
 import { Link, useParams } from "wouter"
 import { useQuery } from "@rocicorp/zero/react"
 import { zql } from "@/db/schema"
+import { Breadcrumb } from "@/components/Breadcrumb"
 import styles from "./PRListPage.module.css"
 
 type FilterState = "open" | "closed" | "all"
@@ -102,17 +103,14 @@ export function PRListPage() {
   return (
     <div className={styles.container}>
       {/* Breadcrumb */}
-      <nav className={styles.breadcrumb}>
-        <Link href="/" className={styles.breadcrumbLink}>
-          Repositories
-        </Link>
-        <span className={styles.breadcrumbSeparator}>/</span>
-        <Link href={`/${fullName}`} className={styles.breadcrumbLink}>
-          {owner}/{repoName}
-        </Link>
-        <span className={styles.breadcrumbSeparator}>/</span>
-        <span>Pull requests</span>
-      </nav>
+      <Breadcrumb
+        items={[
+          { label: "Repositories", href: "/" },
+          { label: owner, href: `/${fullName}` },
+          { label: repoName, href: `/${fullName}` },
+          { label: "pull requests" },
+        ]}
+      />
 
       {/* Header */}
       <header className={styles.header}>
