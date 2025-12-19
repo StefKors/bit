@@ -1,6 +1,15 @@
 import { useState, useCallback, useMemo } from "react"
 import { Link, useParams } from "wouter"
 import { useQuery } from "@rocicorp/zero/react"
+import {
+  GitPullRequestIcon,
+  GitMergeIcon,
+  SyncIcon,
+  CommentIcon,
+  FileIcon,
+  PlusIcon,
+  DashIcon,
+} from "@primer/octicons-react"
 import { zql } from "@/db/schema"
 import { DiffViewer } from "@/components/DiffViewer"
 import { Breadcrumb } from "@/components/Breadcrumb"
@@ -175,18 +184,7 @@ export function PRDetailPage() {
     return (
       <div className={styles.container}>
         <div className={styles.emptyState}>
-          <svg
-            className={styles.emptyIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="18" cy="18" r="3" />
-            <circle cx="6" cy="6" r="3" />
-            <path d="M13 6h3a2 2 0 0 1 2 2v7" />
-            <line x1="6" y1="9" x2="6" y2="21" />
-          </svg>
+          <GitPullRequestIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>Pull request not found</h3>
           <p className={styles.emptyText}>
             <Link href={`/${fullName}/pulls`}>Go back to pull requests</Link>
@@ -218,34 +216,19 @@ export function PRDetailPage() {
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.titleRow}>
-          <svg
-            className={`${styles.prIcon} ${
-              isMerged
-                ? styles.prIconMerged
-                : isClosed
-                  ? styles.prIconClosed
-                  : styles.prIconOpen
-            }`}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            {isMerged ? (
-              <>
-                <circle cx="18" cy="18" r="3" />
-                <circle cx="6" cy="6" r="3" />
-                <path d="M6 21V9a9 9 0 0 0 9 9" />
-              </>
-            ) : (
-              <>
-                <circle cx="18" cy="18" r="3" />
-                <circle cx="6" cy="6" r="3" />
-                <path d="M13 6h3a2 2 0 0 1 2 2v7" />
-                <line x1="6" y1="9" x2="6" y2="21" />
-              </>
-            )}
-          </svg>
+          {isMerged ? (
+            <GitMergeIcon
+              className={`${styles.prIcon} ${styles.prIconMerged}`}
+              size={24}
+            />
+          ) : (
+            <GitPullRequestIcon
+              className={`${styles.prIcon} ${
+                isClosed ? styles.prIconClosed : styles.prIconOpen
+              }`}
+              size={24}
+            />
+          )}
           <h1 className={styles.title}>
             {pr.title}
             <span className={styles.prNumber}> #{pr.number}</span>
@@ -320,16 +303,10 @@ export function PRDetailPage() {
             disabled={syncing}
             className={`${styles.syncButton} ${syncing ? styles.syncing : ""}`}
           >
-            <svg
+            <SyncIcon
               className={`${styles.buttonIcon} ${syncing ? styles.spinning : ""}`}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-              <path d="M21 3v5h-5" />
-            </svg>
+              size={16}
+            />
             {syncing ? "Syncing..." : "Sync Details"}
           </button>
         </div>
@@ -355,15 +332,7 @@ export function PRDetailPage() {
           className={`${styles.tab} ${activeTab === "conversation" ? styles.tabActive : ""}`}
           onClick={() => setActiveTab("conversation")}
         >
-          <svg
-            className={styles.tabIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
+          <CommentIcon className={styles.tabIcon} size={16} />
           Conversation
           {timelineItems.length > 0 && (
             <span className={styles.tabCount}>{timelineItems.length}</span>
@@ -373,16 +342,7 @@ export function PRDetailPage() {
           className={`${styles.tab} ${activeTab === "files" ? styles.tabActive : ""}`}
           onClick={() => setActiveTab("files")}
         >
-          <svg
-            className={styles.tabIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-          </svg>
+          <FileIcon className={styles.tabIcon} size={16} />
           Files changed
           <span className={styles.tabCount}>{files.length}</span>
         </button>
@@ -484,28 +444,11 @@ export function PRDetailPage() {
             <div className={styles.filesHeader}>
               <div className={styles.filesStats}>
                 <span className={`${styles.filesStat} ${styles.additionsStat}`}>
-                  <svg
-                    className={styles.filesStatIcon}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
+                  <PlusIcon className={styles.filesStatIcon} size={16} />
                   {pr.additions} additions
                 </span>
                 <span className={`${styles.filesStat} ${styles.deletionsStat}`}>
-                  <svg
-                    className={styles.filesStatIcon}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
+                  <DashIcon className={styles.filesStatIcon} size={16} />
                   {pr.deletions} deletions
                 </span>
                 <span className={styles.filesStat}>

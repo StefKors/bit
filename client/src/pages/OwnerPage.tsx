@@ -1,5 +1,13 @@
 import { useParams } from "wouter"
 import { useQuery } from "@rocicorp/zero/react"
+import {
+  FileDirectoryIcon,
+  OrganizationIcon,
+  PersonIcon,
+  RepoIcon,
+  StarIcon,
+  RepoForkedIcon,
+} from "@primer/octicons-react"
 import { zql } from "@/db/schema"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoCard } from "@/components/RepoCard"
@@ -40,15 +48,7 @@ export function OwnerPage() {
           items={[{ label: "Repositories", href: "/" }, { label: owner }]}
         />
         <div className={styles.emptyState}>
-          <svg
-            className={styles.emptyIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-          </svg>
+          <FileDirectoryIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>No repositories found</h3>
           <p className={styles.emptyText}>
             No repositories have been synced for {owner}.
@@ -78,27 +78,9 @@ export function OwnerPage() {
               className={`${styles.ownerAvatarPlaceholder} ${isOrg ? styles.ownerAvatarPlaceholderOrg : styles.ownerAvatarPlaceholderUser}`}
             >
               {isOrg ? (
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
+                <OrganizationIcon size={24} />
               ) : (
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
+                <PersonIcon size={24} />
               )}
             </div>
           )}
@@ -109,43 +91,15 @@ export function OwnerPage() {
             </h1>
             <div className={styles.stats}>
               <span className={styles.stat}>
-                <svg
-                  className={styles.statIcon}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                </svg>
+                <RepoIcon className={styles.statIcon} size={16} />
                 {repos.length} repositories
               </span>
               <span className={styles.stat}>
-                <svg
-                  className={styles.statIcon}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg>
+                <StarIcon className={styles.statIcon} size={16} />
                 {totalStars} stars
               </span>
               <span className={styles.stat}>
-                <svg
-                  className={styles.statIcon}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <circle cx="12" cy="18" r="3" />
-                  <circle cx="6" cy="6" r="3" />
-                  <circle cx="18" cy="6" r="3" />
-                  <path d="M18 9a9 9 0 0 1-9 9" />
-                  <path d="M6 9a9 9 0 0 0 9 9" />
-                </svg>
+                <RepoForkedIcon className={styles.statIcon} size={16} />
                 {totalForks} forks
               </span>
             </div>
@@ -156,15 +110,7 @@ export function OwnerPage() {
       {/* Repositories Grid */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>
-          <svg
-            className={styles.sectionIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-          </svg>
+          <RepoIcon className={styles.sectionIcon} size={20} />
           Repositories
         </h2>
         <div className={styles.grid}>

@@ -1,6 +1,7 @@
 import { useState, useCallback, type ReactNode } from "react"
 import { Link, useParams } from "wouter"
 import { useQuery } from "@rocicorp/zero/react"
+import { FileDirectoryIcon } from "@primer/octicons-react"
 import { queries } from "@/db/queries"
 import { Breadcrumb } from "./Breadcrumb"
 import { RepoHeader } from "./RepoHeader"
@@ -53,15 +54,7 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
     return (
       <div className={styles.container}>
         <div className={styles.emptyState}>
-          <svg
-            className={styles.emptyIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-          </svg>
+          <FileDirectoryIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>Repository not found</h3>
           <p className={styles.emptyText}>
             This repository hasn't been synced yet.{" "}

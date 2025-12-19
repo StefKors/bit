@@ -1,4 +1,5 @@
 import { Link } from "wouter"
+import { LockIcon, StarIcon, RepoForkedIcon } from "@primer/octicons-react"
 import type { Repo } from "./types"
 import styles from "./RepoCard.module.css"
 
@@ -38,16 +39,7 @@ export function RepoCard({ repo }: RepoCardProps) {
           <h3 className={styles.cardTitle}>
             {repo.name}
             {repo.private && (
-              <svg
-                className={styles.privateIcon}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
+              <LockIcon className={styles.privateIcon} size={12} />
             )}
           </h3>
           <p className={styles.cardDescription}>
@@ -68,31 +60,11 @@ export function RepoCard({ repo }: RepoCardProps) {
           </span>
         )}
         <span className={styles.cardStat}>
-          <svg
-            className={styles.cardStatIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-          </svg>
+          <StarIcon className={styles.cardStatIcon} size={16} />
           {repo.stargazersCount}
         </span>
         <span className={styles.cardStat}>
-          <svg
-            className={styles.cardStatIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="12" cy="18" r="3" />
-            <circle cx="6" cy="6" r="3" />
-            <circle cx="18" cy="6" r="3" />
-            <path d="M18 9a9 9 0 0 1-9 9" />
-            <path d="M6 9a9 9 0 0 0 9 9" />
-          </svg>
+          <RepoForkedIcon className={styles.cardStatIcon} size={16} />
           {repo.forksCount}
         </span>
       </div>

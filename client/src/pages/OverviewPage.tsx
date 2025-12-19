@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react"
 import { useQuery } from "@rocicorp/zero/react"
+import { ClockIcon, SyncIcon, SignOutIcon } from "@primer/octicons-react"
 import { authClient } from "@/lib/auth"
 import styles from "./OverviewPage.module.css"
 import { queries } from "@/db/queries"
@@ -93,16 +94,7 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
             <div
               className={`${styles.rateLimit} ${rateLimitLow ? styles.rateLimitLow : ""}`}
             >
-              <svg
-                className={styles.buttonIcon}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
+              <ClockIcon className={styles.buttonIcon} size={16} />
               {rateLimit.remaining}/{rateLimit.limit} requests
             </div>
           )}
@@ -112,31 +104,15 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
             disabled={syncing}
             className={`${styles.syncButton} ${syncing ? styles.syncing : ""}`}
           >
-            <svg
+            <SyncIcon
               className={`${styles.buttonIcon} ${syncing ? styles.spinning : ""}`}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-              <path d="M21 3v5h-5" />
-            </svg>
+              size={16}
+            />
             {syncing ? "Syncing..." : "Sync GitHub"}
           </button>
 
           <button onClick={handleSignOut} className={styles.signOutButton}>
-            <svg
-              className={styles.buttonIcon}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
+            <SignOutIcon className={styles.buttonIcon} size={16} />
             Sign out
           </button>
         </div>
