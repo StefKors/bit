@@ -1,7 +1,7 @@
 {
   "name": "@bit/client",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev:ui": "vite",
@@ -51,16 +51,16 @@
     "vercel": "^41.3.2",
     "vite": "^5.4.1"
   },
-  "trustedDependencies": [
-    "@rocicorp/zero-sqlite3"
-  ],
+  "overrides": {
+    "esbuild": "0.25.0"
+  },
   "pnpm": {
     "onlyBuiltDependencies": [
       "@rocicorp/zero-sqlite3"
     ]
   },
-  "_": "For some reason, sst requires esbuild 0.25.0 when deploying the permission deployer",
-  "overrides": {
-    "esbuild": "0.25.0"
-  }
+  "trustedDependencies": [
+    "@rocicorp/zero-sqlite3"
+  ],
+  "_": "For some reason, sst requires esbuild 0.25.0 when deploying the permission deployer"
 }

@@ -1,6 +1,6 @@
 /* eslint-disable */
 /// <reference path="./.sst/platform/config.d.ts" />
-import { execSync } from "child_process";
+import { execSync } from "child_process"
 
 export default $config({
   app(input) {
@@ -12,28 +12,26 @@ export default $config({
       providers: {
         command: true,
       },
-    };
+    }
   },
   async run() {
-    const zeroVersion = execSync("npm show @rocicorp/zero version")
-      .toString()
-      .trim();
+    const zeroVersion = execSync("npm show @rocicorp/zero version").toString().trim()
 
     // S3 Bucket
-    const replicationBucket = new sst.aws.Bucket(`replication-bucket`);
+    const replicationBucket = new sst.aws.Bucket(`replication-bucket`)
 
     // VPC Configuration
     const vpc = new sst.aws.Vpc(`vpc`, {
       az: 2,
-    });
+    })
 
     // ECS Cluster
     const cluster = new sst.aws.Cluster(`cluster`, {
       vpc,
-    });
+    })
 
-    const conn = new sst.Secret("PostgresConnectionString");
-    const zeroAuthSecret = new sst.Secret("ZeroAuthSecret");
+    const conn = new sst.Secret("PostgresConnectionString")
+    const zeroAuthSecret = new sst.Secret("ZeroAuthSecret")
 
     // Common environment variables
     const commonEnv = {
@@ -44,7 +42,7 @@ export default $config({
       ZERO_CHANGE_MAX_CONNS: "3",
       ZERO_CVR_MAX_CONNS: "10",
       ZERO_UPSTREAM_MAX_CONNS: "10",
-    };
+    }
 
     // Replication Manager Service
     const replicationManager = cluster.addService(`replication-manager`, {
@@ -77,7 +75,7 @@ export default $config({
           },
         },
       },
-    });
+    })
 
     // View Syncer Service
     const viewSyncer = cluster.addService(
@@ -154,8 +152,8 @@ export default $config({
         // Wait for replication-manager to come up first, for breaking changes
         // to replication-manager interface.
         dependsOn: [replicationManager],
-      }
-    );
+      },
+    )
 
     // Update permissions
     new command.local.Command(
@@ -169,7 +167,7 @@ export default $config({
         },
       },
       // after the view-syncer is deployed.
-      { dependsOn: viewSyncer }
-    );
+      { dependsOn: viewSyncer },
+    )
   },
-});
+})
