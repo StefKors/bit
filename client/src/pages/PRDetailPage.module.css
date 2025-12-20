@@ -6,6 +6,12 @@
   width: 100%;
 }
 
+.headerContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
 .header {
   margin-bottom: 1.5rem;
 }
@@ -86,7 +92,6 @@
   gap: 1rem;
   font-size: 0.9rem;
   color: rgba(var(--bit-rgb-fg), 0.6);
-  margin-left: 2.25rem;
 }
 
 .metaItem {

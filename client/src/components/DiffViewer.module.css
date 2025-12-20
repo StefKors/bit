@@ -1,9 +1,295 @@
 .container {
   background: var(--bit-color-code-bg);
-  overflow-x: auto;
   border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   border-radius: var(--bit-radius-lg);
+  overflow: hidden;
+  transition: border-color 0.15s ease;
 }
+
+.container:hover {
+  border-color: rgba(var(--bit-rgb-fg), 0.15);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   HEADER
+   ───────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(var(--bit-rgb-fg), 0.03);
+  border: none;
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.container[data-expanded="true"] .header {
+  border-bottom-color: rgba(var(--bit-rgb-fg), 0.08);
+}
+
+.header:hover {
+  background: rgba(var(--bit-rgb-fg), 0.06);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.header:hover .chevron {
+  color: rgba(var(--bit-rgb-fg), 0.8);
+}
+
+.filename {
+  font-family: var(--bit-font-mono);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(var(--bit-rgb-fg), 0.9);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.oldFilename {
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  text-decoration: line-through;
+}
+
+.renameArrow {
+  color: rgba(var(--bit-rgb-fg), 0.4);
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   STATUS BADGES
+   ───────────────────────────────────────────────────────────── */
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-radius: var(--bit-radius-pill);
+  flex-shrink: 0;
+}
+
+.statusAdded {
+  background: rgba(var(--bit-rgb-accent-green-bright), 0.15);
+  color: var(--bit-color-accent-green-bright);
+}
+
+.statusRemoved {
+  background: rgba(var(--bit-rgb-accent-red), 0.12);
+  color: var(--bit-color-accent-red);
+}
+
+.statusModified {
+  background: rgba(var(--bit-rgb-accent-blue), 0.12);
+  color: var(--bit-color-accent-blue);
+}
+
+.statusRenamed {
+  background: rgba(var(--bit-rgb-accent-purple), 0.12);
+  color: var(--bit-color-accent-purple);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   STATS
+   ───────────────────────────────────────────────────────────── */
+
+.statAdditions {
+  font-family: var(--bit-font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--bit-color-accent-green-bright);
+}
+
+.statDeletions {
+  font-family: var(--bit-font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--bit-color-accent-red);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   COMMENT BADGE
+   ───────────────────────────────────────────────────────────── */
+
+.commentBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: rgba(var(--bit-rgb-accent-blue), 0.1);
+  color: var(--bit-color-accent-blue);
+  border-radius: var(--bit-radius-pill);
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   DIFF CONTENT
+   ───────────────────────────────────────────────────────────── */
+
+.diffContent {
+  overflow-x: auto;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   COLLAPSED STATE
+   ───────────────────────────────────────────────────────────── */
+
+.collapsedInfo {
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.collapsedStats {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.collapsedComments {
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   HOVER UTILITY (Add Comment Button)
+   ───────────────────────────────────────────────────────────── */
+
+.addCommentButton {
+  padding: 0.15rem 0.25rem !important;
+  min-width: unset !important;
+  min-height: unset !important;
+  border-radius: var(--bit-radius-sm) !important;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.15s ease !important;
+}
+
+.addCommentButton:hover {
+  background: rgba(var(--bit-rgb-accent-blue-strong)) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   COMMENT THREAD (Annotations)
+   ───────────────────────────────────────────────────────────── */
+
+.commentThread {
+  background: var(--bit-color-panel-bg);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-lg);
+  margin: 0.5rem 0;
+  overflow: hidden;
+}
+
+.comment {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.06);
+}
+
+.comment:last-child {
+  border-bottom: none;
+}
+
+.commentHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.commentAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.commentAuthor {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(var(--bit-rgb-fg), 0.9);
+}
+
+.commentTime {
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.45);
+}
+
+.commentBody {
+  font-size: 0.875rem;
+  color: rgba(var(--bit-rgb-fg), 0.8);
+  line-height: 1.5;
+}
+
+.commentBody :global(.markdown) {
+  font-size: inherit;
+}
+
+.commentBody :global(p) {
+  margin: 0 0 0.5rem;
+}
+
+.commentBody :global(p:last-child) {
+  margin-bottom: 0;
+}
+
+.commentBody :global(code) {
+  font-size: 0.8rem;
+}
+
+.commentBody :global(pre) {
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   LEGACY (kept for compatibility)
+   ───────────────────────────────────────────────────────────── */
 
 .loading {
   padding: 1rem;

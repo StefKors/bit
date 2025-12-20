@@ -16,6 +16,7 @@
 
 .filesStats {
   display: flex;
+  flex-wrap: wrap;
   gap: 1.5rem;
   font-size: 0.9rem;
 }
@@ -37,6 +38,16 @@
 
 .deletionsStat {
   color: var(--bit-color-accent-red);
+}
+
+.commentsStat {
+  color: var(--bit-color-accent-blue);
+}
+
+.filesActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .filesList {

@@ -128,73 +128,78 @@ export function PRDetailPage() {
       />
 
       {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.titleRow}>
-          {isMerged ? (
-            <GitMergeIcon
-              className={`${styles.prIcon} ${styles.prIconMerged}`}
-              size={24}
-            />
-          ) : (
-            <GitPullRequestIcon
-              className={`${styles.prIcon} ${
-                isClosed ? styles.prIconClosed : styles.prIconOpen
-              }`}
-              size={24}
-            />
-          )}
-          <h1 className={styles.title}>
-            {pr.title}
-            <span className={styles.prNumber}> #{pr.number}</span>
-            {isDraft ? (
-              <span className={`${styles.statusBadge} ${styles.statusDraft}`}>
-                Draft
-              </span>
-            ) : isMerged ? (
-              <span className={`${styles.statusBadge} ${styles.statusMerged}`}>
-                Merged
-              </span>
-            ) : isClosed ? (
-              <span className={`${styles.statusBadge} ${styles.statusClosed}`}>
-                Closed
-              </span>
+      <div className={styles.headerContainer}>
+        <header className={styles.header}>
+          <div className={styles.titleRow}>
+            {isMerged ? (
+              <GitMergeIcon
+                className={`${styles.prIcon} ${styles.prIconMerged}`}
+                size={24}
+              />
             ) : (
-              <span className={`${styles.statusBadge} ${styles.statusOpen}`}>
-                Open
+              <GitPullRequestIcon
+                className={`${styles.prIcon} ${
+                  isClosed ? styles.prIconClosed : styles.prIconOpen
+                }`}
+                size={24}
+              />
+            )}
+            <h1 className={styles.title}>
+              {pr.title}
+              <span className={styles.prNumber}> #{pr.number}</span>
+              {isDraft ? (
+                <span className={`${styles.statusBadge} ${styles.statusDraft}`}>
+                  Draft
+                </span>
+              ) : isMerged ? (
+                <span
+                  className={`${styles.statusBadge} ${styles.statusMerged}`}
+                >
+                  Merged
+                </span>
+              ) : isClosed ? (
+                <span
+                  className={`${styles.statusBadge} ${styles.statusClosed}`}
+                >
+                  Closed
+                </span>
+              ) : (
+                <span className={`${styles.statusBadge} ${styles.statusOpen}`}>
+                  Open
+                </span>
+              )}
+            </h1>
+          </div>
+
+          <div className={styles.meta}>
+            {pr.authorLogin && (
+              <span className={styles.metaItem}>
+                {pr.authorAvatarUrl && (
+                  <img
+                    src={pr.authorAvatarUrl}
+                    alt={pr.authorLogin}
+                    className={styles.authorAvatar}
+                  />
+                )}
+                <strong>{pr.authorLogin}</strong>
               </span>
             )}
-          </h1>
-        </div>
-
-        <div className={styles.meta}>
-          {pr.authorLogin && (
             <span className={styles.metaItem}>
-              {pr.authorAvatarUrl && (
-                <img
-                  src={pr.authorAvatarUrl}
-                  alt={pr.authorLogin}
-                  className={styles.authorAvatar}
-                />
-              )}
-              <strong>{pr.authorLogin}</strong>
+              wants to merge into
+              <span className={styles.branchInfo}>{pr.baseRef}</span>
+              from
+              <span className={styles.branchInfo}>{pr.headRef}</span>
             </span>
-          )}
-          <span className={styles.metaItem}>
-            wants to merge into
-            <span className={styles.branchInfo}>{pr.baseRef}</span>
-            from
-            <span className={styles.branchInfo}>{pr.headRef}</span>
-          </span>
-          <span className={styles.metaItem}>
-            {isOpen
-              ? `opened ${formatTimeAgo(pr.githubCreatedAt)}`
-              : isMerged
-                ? `merged ${formatTimeAgo(pr.mergedAt)}`
-                : `closed ${formatTimeAgo(pr.closedAt)}`}
-          </span>
-        </div>
+            <span className={styles.metaItem}>
+              {isOpen
+                ? `opened ${formatTimeAgo(pr.githubCreatedAt)}`
+                : isMerged
+                  ? `merged ${formatTimeAgo(pr.mergedAt)}`
+                  : `closed ${formatTimeAgo(pr.closedAt)}`}
+            </span>
+          </div>
 
-        {labels.length > 0 && (
+          {/* {labels.length > 0 && (
           <div className={styles.labels}>
             {labels.map((label) => (
               <span
@@ -209,8 +214,8 @@ export function PRDetailPage() {
               </span>
             ))}
           </div>
-        )}
-
+        )} */}
+        </header>
         <div className={styles.actions}>
           <Button
             variant="success"
@@ -221,7 +226,7 @@ export function PRDetailPage() {
             {syncing ? "Syncing..." : "Sync Details"}
           </Button>
         </div>
-      </header>
+      </div>
 
       {error && (
         <div

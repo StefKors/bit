@@ -28,4 +28,10 @@ export const queries = defineQueries({
   comments: defineQuery(z.string(), ({ args }) =>
     zql.githubPrComment.where("pullRequestId", "=", args).orderBy("body", "asc"),
   ),
+  reviewComments: defineQuery(z.string(), ({ args }) =>
+    zql.githubPrComment
+      .where("pullRequestId", "=", args)
+      .where("commentType", "=", "review_comment")
+      .orderBy("githubCreatedAt", "asc"),
+  ),
 });
