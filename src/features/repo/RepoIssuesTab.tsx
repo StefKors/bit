@@ -6,7 +6,8 @@ interface RepoIssuesTabProps {
   fullName: string
 }
 
-export function RepoIssuesTab({ repoId: _repoId, fullName: _fullName }: RepoIssuesTabProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- props will be used when issues syncing is implemented
+export function RepoIssuesTab(_props: RepoIssuesTabProps) {
   return (
     <div className={styles.content}>
       <div className={styles.emptyState}>

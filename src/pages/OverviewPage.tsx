@@ -39,7 +39,10 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
         credentials: "include",
       })
 
-      const data = await response.json()
+      const data = (await response.json()) as {
+        error?: string
+        rateLimit?: { remaining: number; limit: number; reset: string }
+      }
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to sync")
@@ -104,7 +107,7 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
             variant="success"
             leadingIcon={<SyncIcon size={16} />}
             loading={syncing}
-            onClick={handleSync}
+            onClick={() => void handleSync()}
           >
             {syncing ? "Syncing..." : "Sync GitHub"}
           </Button>
@@ -112,7 +115,7 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
           <Button
             variant="danger"
             leadingIcon={<SignOutIcon size={16} />}
-            onClick={handleSignOut}
+            onClick={() => void handleSignOut()}
           >
             Sign out
           </Button>

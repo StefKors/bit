@@ -14,7 +14,7 @@ import { RepoIssuesPage } from "./pages/RepoIssuesPage"
 import { PRDetailPage } from "./pages/PRDetailPage"
 import { authClient } from "@/lib/auth"
 
-const cacheURL = import.meta.env.VITE_PUBLIC_ZERO_CACHE_URL
+const cacheURL = import.meta.env.VITE_PUBLIC_ZERO_CACHE_URL as string
 
 interface AppProps {
   userID: string | null
@@ -69,7 +69,10 @@ function App({ userID: initialUserID }: AppProps) {
     >
       <Layout>
         <Switch>
-          <Route path="/" component={() => <OverviewPage onLogout={handleAuthChange} />} />
+          <Route
+            path="/"
+            component={() => <OverviewPage onLogout={handleAuthChange} />}
+          />
           <Route path="/:owner/:repo/pulls" component={RepoPullsPage} />
           <Route path="/:owner/:repo/issues" component={RepoIssuesPage} />
           <Route path="/:owner/:repo/pull/:number" component={PRDetailPage} />

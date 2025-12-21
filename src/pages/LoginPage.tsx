@@ -42,7 +42,11 @@ function LoginPage({ onLogin }: LoginPageProps) {
           <div className={styles.header}>
             <div className={styles.avatarContainer}>
               {session.user.image ? (
-                <img src={session.user.image} alt={session.user.name} className={styles.avatar} />
+                <img
+                  src={session.user.image}
+                  alt={session.user.name}
+                  className={styles.avatar}
+                />
               ) : (
                 <div className={styles.avatarPlaceholder}>
                   {session.user.name?.charAt(0).toUpperCase() || "?"}
@@ -70,7 +74,7 @@ function LoginPage({ onLogin }: LoginPageProps) {
             size="large"
             block
             leadingIcon={<SignOutIcon size={16} />}
-            onClick={handleSignOut}
+            onClick={() => void handleSignOut()}
           >
             Sign out
           </Button>
@@ -94,13 +98,15 @@ function LoginPage({ onLogin }: LoginPageProps) {
           size="large"
           block
           leadingIcon={<MarkGithubIcon size={20} />}
-          onClick={handleGitHubSignIn}
+          onClick={() => void handleGitHubSignIn()}
         >
           Continue with GitHub
         </Button>
 
         <div className={styles.footer}>
-          <p className={styles.footerText}>By continuing, you agree to our terms of service</p>
+          <p className={styles.footerText}>
+            By continuing, you agree to our terms of service
+          </p>
         </div>
       </div>
     </div>

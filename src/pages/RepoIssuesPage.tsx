@@ -10,9 +10,8 @@ export function RepoIssuesPage() {
   const repoName = params.repo || ""
   const fullName = `${owner}/${repoName}`
 
-  // Query the repo from Zero
-  const [repos] = useQuery(queries.repo(fullName))
-  const repo = repos[0]
+  // Query the repo from Zero (repo query returns single result via .one())
+  const [repo] = useQuery(queries.repo(fullName))
 
   return (
     <RepoLayout activeTab="issues">

@@ -55,6 +55,7 @@ app.post("/zero/mutate", async (c) => {
   const result = await handleMutateRequest(
     dbProvider,
     (transact) =>
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
       transact((tx, name, args) => mustGetMutator(mutators, name).fn({ tx, args, ctx })),
     c.req.raw,
   )
@@ -250,7 +251,7 @@ app.post("/github/webhook", async (c) => {
 
   let payload: Record<string, unknown>
   try {
-    payload = JSON.parse(rawBody)
+    payload = JSON.parse(rawBody) as Record<string, unknown>
   } catch {
     return c.json({ error: "Invalid JSON payload" }, 400)
   }

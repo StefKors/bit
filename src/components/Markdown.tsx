@@ -36,6 +36,7 @@ md.renderer.rules.image = function (tokens, idx, options, env, self) {
   return defaultImageRender(tokens, idx, options, env, self)
 }
 
+/* eslint-disable @typescript-eslint/no-misused-promises -- markdown-it-async handles promises internally */
 md.use(
   fromAsyncCodeToHtml(codeToHtml, {
     themes: {
@@ -44,6 +45,7 @@ md.use(
     },
   }),
 )
+/* eslint-enable @typescript-eslint/no-misused-promises */
 
 interface MarkdownProps {
   content: string

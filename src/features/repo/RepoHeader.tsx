@@ -27,7 +27,7 @@ const languageColors: Record<string, string> = {
 interface RepoHeaderProps {
   repo: Repo
   syncing: boolean
-  onSync: () => void
+  onSync: () => void | Promise<void>
 }
 
 export function RepoHeader({ repo, syncing, onSync }: RepoHeaderProps) {
@@ -76,7 +76,7 @@ export function RepoHeader({ repo, syncing, onSync }: RepoHeaderProps) {
           variant="success"
           leadingIcon={<SyncIcon size={16} />}
           loading={syncing}
-          onClick={onSync}
+          onClick={() => void onSync()}
         >
           {syncing ? "Syncing..." : "Sync"}
         </Button>

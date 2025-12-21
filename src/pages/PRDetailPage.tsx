@@ -13,15 +13,20 @@ import { Tabs } from "@/components/Tabs"
 import { Button } from "@/components/Button"
 import { PRConversationTab } from "@/features/pr/PRConversationTab"
 import { PRFilesTab } from "@/features/pr/PRFilesTab"
-import {
-  DiffOptionsBar,
-  defaultDiffOptions,
-  type DiffOptions,
-} from "@/features/pr/DiffOptionsBar"
+import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
 import { queries } from "@/db/queries"
 import styles from "./PRDetailPage.module.css"
 
 type TabType = "conversation" | "files"
+
+const defaultDiffOptions: DiffOptions = {
+  diffStyle: "split",
+  diffIndicators: "bars",
+  lineDiffType: "word",
+  disableLineNumbers: false,
+  disableBackground: false,
+  overflow: "scroll",
+}
 
 function formatTimeAgo(date: Date | number | null | undefined): string {
   if (!date) return ""
@@ -70,7 +75,7 @@ export function PRDetailPage() {
         },
       )
 
-      const data = await response.json()
+      const data = (await response.json()) as { error?: string }
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to sync")
@@ -207,7 +212,7 @@ export function PRDetailPage() {
             variant="success"
             leadingIcon={<SyncIcon size={16} />}
             loading={syncing}
-            onClick={handleSync}
+            onClick={() => void handleSync()}
           >
             {syncing ? "Syncing..." : "Sync Details"}
           </Button>
