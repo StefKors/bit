@@ -1,6 +1,6 @@
 import { useParams } from "wouter"
-import { RepoLayout } from "@/components/RepoLayout"
-import { RepoCodeTab } from "@/components/RepoCodeTab"
+import { RepoLayout } from "@/features/repo/RepoLayout"
+import { RepoCodeTab } from "@/features/repo/RepoCodeTab"
 
 export function RepoPage() {
   const params = useParams<{ owner: string; repo: string }>()

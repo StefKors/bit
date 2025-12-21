@@ -11,15 +11,15 @@ import {
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Tabs } from "@/components/Tabs"
 import { Button } from "@/components/Button"
-import { PRConversationTab } from "@/components/PRConversationTab"
-import { PRFilesTab } from "@/components/PRFilesTab"
+import { PRConversationTab } from "@/features/pr/PRConversationTab"
+import { PRFilesTab } from "@/features/pr/PRFilesTab"
 import {
   DiffOptionsBar,
   defaultDiffOptions,
   type DiffOptions,
-} from "@/components/DiffOptionsBar"
-import styles from "./PRDetailPage.module.css"
+} from "@/features/pr/DiffOptionsBar"
 import { queries } from "@/db/queries"
+import styles from "./PRDetailPage.module.css"
 
 type TabType = "conversation" | "files"
 

@@ -1,10 +1,10 @@
 import { useMemo } from "react"
 import { useQuery } from "@rocicorp/zero/react"
-import { DiffViewer } from "./DiffViewer"
-import { queries } from "@/db/queries"
-import styles from "./PRFilesTab.module.css"
 import { Row } from "@rocicorp/zero"
+import { queries } from "@/db/queries"
+import { DiffViewer } from "./DiffViewer"
 import type { DiffOptions } from "./DiffOptionsBar"
+import styles from "./PRFilesTab.module.css"
 
 interface PRFilesTabProps {
   prId: string

@@ -1,8 +1,8 @@
 import { useParams } from "wouter"
 import { useQuery } from "@rocicorp/zero/react"
 import { queries } from "@/db/queries"
-import { RepoLayout } from "@/components/RepoLayout"
-import { RepoPullsTab } from "@/components/RepoPullsTab"
+import { RepoLayout } from "@/features/repo/RepoLayout"
+import { RepoPullsTab } from "@/features/repo/RepoPullsTab"
 
 export function RepoPullsPage() {
   const params = useParams<{ owner: string; repo: string }>()

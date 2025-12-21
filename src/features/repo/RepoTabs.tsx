@@ -1,7 +1,11 @@
 import { useQuery } from "@rocicorp/zero/react"
-import { CodeIcon, GitPullRequestIcon, IssueOpenedIcon } from "@primer/octicons-react"
+import {
+  CodeIcon,
+  GitPullRequestIcon,
+  IssueOpenedIcon,
+} from "@primer/octicons-react"
 import { queries } from "@/db/queries"
-import { Tabs } from "./Tabs"
+import { Tabs } from "@/components/Tabs"
 
 type TabType = "code" | "pulls" | "issues"
 

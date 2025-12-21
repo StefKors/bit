@@ -1,5 +1,5 @@
 import { useQuery } from "@rocicorp/zero/react"
-import { Markdown } from "./Markdown"
+import { Markdown } from "@/components/Markdown"
 import { queries } from "@/db/queries"
 import styles from "./PRConversationTab.module.css"
 
@@ -99,7 +99,9 @@ export function PRConversationTab({
               {item.type === "review" && item.reviewState && (
                 <ReviewStateBadge state={item.reviewState} />
               )}
-              <span className={styles.timelineTime}>{formatTimeAgo(item.createdAt)}</span>
+              <span className={styles.timelineTime}>
+                {formatTimeAgo(item.createdAt)}
+              </span>
             </>
           }
           body={item.body}
@@ -133,7 +135,11 @@ function TimelineItemComponent({
   return (
     <div className={styles.timelineItem}>
       {avatarUrl ? (
-        <img src={avatarUrl} alt={authorLogin || "Author"} className={styles.timelineAvatar} />
+        <img
+          src={avatarUrl}
+          alt={authorLogin || "Author"}
+          className={styles.timelineAvatar}
+        />
       ) : (
         <div className={styles.timelineAvatarPlaceholder} />
       )}
@@ -177,5 +183,9 @@ function ReviewStateBadge({ state }: { state: string }) {
     }
   }
 
-  return <span className={`${styles.reviewState} ${getClassName()}`}>{getLabel()}</span>
+  return (
+    <span className={`${styles.reviewState} ${getClassName()}`}>
+      {getLabel()}
+    </span>
+  )
 }

@@ -3,9 +3,9 @@ import { useQuery } from "@rocicorp/zero/react"
 import { ClockIcon, SyncIcon, SignOutIcon } from "@primer/octicons-react"
 import { authClient } from "@/lib/auth"
 import { Button } from "@/components/Button"
-import styles from "./OverviewPage.module.css"
 import { queries } from "@/db/queries"
-import { RepoSection } from "@/components/RepoSection"
+import { RepoSection } from "@/features/repo/RepoSection"
+import styles from "./OverviewPage.module.css"
 
 interface OverviewPageProps {
   onLogout: () => void
@@ -76,7 +76,11 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
         <div className={styles.headerLeft}>
           <div className={styles.avatarContainer}>
             {session.user.image ? (
-              <img src={session.user.image} alt={session.user.name} className={styles.avatar} />
+              <img
+                src={session.user.image}
+                alt={session.user.name}
+                className={styles.avatar}
+              />
             ) : (
               <div className={styles.avatarPlaceholder}>
                 {session.user.name?.charAt(0).toUpperCase() || "?"}
@@ -88,7 +92,9 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
 
         <div className={styles.headerActions}>
           {rateLimit && (
-            <div className={`${styles.rateLimit} ${rateLimitLow ? styles.rateLimitLow : ""}`}>
+            <div
+              className={`${styles.rateLimit} ${rateLimitLow ? styles.rateLimitLow : ""}`}
+            >
               <ClockIcon className={styles.buttonIcon} size={16} />
               {rateLimit.remaining}/{rateLimit.limit} requests
             </div>
@@ -103,7 +109,11 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
             {syncing ? "Syncing..." : "Sync GitHub"}
           </Button>
 
-          <Button variant="danger" leadingIcon={<SignOutIcon size={16} />} onClick={handleSignOut}>
+          <Button
+            variant="danger"
+            leadingIcon={<SignOutIcon size={16} />}
+            onClick={handleSignOut}
+          >
             Sign out
           </Button>
         </div>
@@ -124,7 +134,11 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
       )}
 
       {/* Repositories grouped by owner */}
-      <RepoSection repos={repos} orgs={orgs} currentUserLogin={currentUserLogin} />
+      <RepoSection
+        repos={repos}
+        orgs={orgs}
+        currentUserLogin={currentUserLogin}
+      />
     </div>
   )
 }
