@@ -4,6 +4,7 @@
 - Find reusable code and make components from them.
 - Reuse existing components
 - Use css modules
+- Use queries with related over doing multiple fetches
 
 # CSS
 - Use CSS variables from `theme.css`

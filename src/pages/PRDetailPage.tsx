@@ -58,9 +58,9 @@ export function PRDetailPage() {
   const fullName = `${owner}/${repoName}`
 
   // Query the repo
-  const [repo] = useQuery(queries.repo(fullName))
-  // Query the PR
-  const [pr] = useQuery(queries.pr({ repoId: repo?.id, prNumber }))
+  const [repo] = useQuery(queries.repoWithPRFull({ fullName, prNumber }))
+
+  const pr = repo?.githubPullRequest
 
   const handleSync = useCallback(async () => {
     setSyncing(true)
@@ -86,6 +86,17 @@ export function PRDetailPage() {
       setSyncing(false)
     }
   }, [owner, repoName, prNumber])
+
+  if (pr === undefined) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.emptyState}>
+          <GitPullRequestIcon className={styles.emptyIcon} size={48} />
+          <h3 className={styles.emptyTitle}>Pull request not found</h3>
+        </div>
+      </div>
+    )
+  }
 
   if (!repo || !pr) {
     return (

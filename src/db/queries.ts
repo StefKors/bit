@@ -31,6 +31,23 @@ export const queries = defineQueries({
       .related("githubPullRequest", (pr) => pr.orderBy("githubUpdatedAt", "desc")),
   ),
 
+  // Get repo with PR with all related data - for PR detail page
+  repoWithPRFull: defineQuery(
+    z.object({ fullName: z.string(), prNumber: z.number() }),
+    ({ args }) =>
+      zql.githubRepo
+        .where("fullName", "=", args.fullName)
+        .one()
+        .related("githubPullRequest", (pr) =>
+          pr
+            .where("number", "=", args.prNumber)
+            .one()
+            .related("githubPrFile")
+            .related("githubPrReview")
+            .related("githubPrComment"),
+        ),
+  ),
+
   // Get all repos for an owner
   reposByOwner: defineQuery(z.string(), ({ args }) =>
     zql.githubRepo.where("owner", "=", args).orderBy("githubUpdatedAt", "desc"),
