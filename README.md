@@ -1,6 +1,9 @@
-# Bit Client
+<p align="center">
+  <img src="public/bit-cube-small.png" height="128">
+  <h1 align="center">Bit</h1>
+</p>
 
-A GitHub-like PR viewer with real-time sync via Rocicorp Zero.
+[Bit](https://github.com/StefKors/Bit) the faster GitHub frontend.
 
 ## Features
 
