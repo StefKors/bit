@@ -13,6 +13,11 @@ import { Tabs } from "@/components/Tabs"
 import { Button } from "@/components/Button"
 import { PRConversationTab } from "@/components/PRConversationTab"
 import { PRFilesTab } from "@/components/PRFilesTab"
+import {
+  DiffOptionsBar,
+  defaultDiffOptions,
+  type DiffOptions,
+} from "@/components/DiffOptionsBar"
 import styles from "./PRDetailPage.module.css"
 import { queries } from "@/db/queries"
 
@@ -34,30 +39,13 @@ function formatTimeAgo(date: Date | number | null | undefined): string {
   return d.toLocaleDateString()
 }
 
-function parseLabels(
-  labelsJson: string | null,
-): Array<{ name: string; color: string }> {
-  if (!labelsJson) return []
-  try {
-    return JSON.parse(labelsJson)
-  } catch {
-    return []
-  }
-}
-
-function getContrastColor(hexColor: string): string {
-  const r = parseInt(hexColor.slice(0, 2), 16)
-  const g = parseInt(hexColor.slice(2, 4), 16)
-  const b = parseInt(hexColor.slice(4, 6), 16)
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  return luminance > 0.5 ? "#000000" : "#ffffff"
-}
-
 export function PRDetailPage() {
   const params = useParams<{ owner: string; repo: string; number: string }>()
   const [activeTab, setActiveTab] = useState<TabType>("conversation")
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [diffOptions, setDiffOptions] =
+    useState<DiffOptions>(defaultDiffOptions)
 
   const owner = params.owner || ""
   const repoName = params.repo || ""
@@ -108,7 +96,7 @@ export function PRDetailPage() {
     )
   }
 
-  const labels = parseLabels(pr.labels)
+  // const labels = parseLabels(pr.labels)
   const isMerged = pr.merged
   const isClosed = pr.state === "closed"
   const isOpen = pr.state === "open"
@@ -258,6 +246,11 @@ export function PRDetailPage() {
             icon: <FileIcon size={16} />,
           },
         ]}
+        trailing={
+          activeTab === "files" ? (
+            <DiffOptionsBar options={diffOptions} onChange={setDiffOptions} />
+          ) : undefined
+        }
       />
 
       {/* Content */}
@@ -276,14 +269,7 @@ export function PRDetailPage() {
         )}
 
         {activeTab === "files" && (
-          <PRFilesTab
-            prId={pr.id}
-            stats={{
-              additions: pr.additions,
-              deletions: pr.deletions,
-              changedFiles: pr.changedFiles,
-            }}
-          />
+          <PRFilesTab prId={pr.id} diffOptions={diffOptions} />
         )}
       </div>
     </div>

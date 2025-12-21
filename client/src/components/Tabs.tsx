@@ -17,6 +17,7 @@ interface TabsProps {
   defaultValue?: string
   onValueChange?: (value: string) => void
   className?: string
+  trailing?: React.ReactNode
 }
 
 export function Tabs({
@@ -25,6 +26,7 @@ export function Tabs({
   defaultValue,
   onValueChange,
   className,
+  trailing,
 }: TabsProps) {
   const [location] = useLocation()
 
@@ -42,9 +44,12 @@ export function Tabs({
       className={`${styles.root} ${className ?? ""}`}
     >
       <BaseTabs.List className={styles.list}>
-        {items.map((item) => (
-          <TabTrigger key={item.value} item={item} />
-        ))}
+        <div className={styles.tabsGroup}>
+          {items.map((item) => (
+            <TabTrigger key={item.value} item={item} />
+          ))}
+        </div>
+        {trailing && <div className={styles.trailing}>{trailing}</div>}
         <BaseTabs.Indicator className={styles.indicator} />
       </BaseTabs.List>
     </BaseTabs.Root>

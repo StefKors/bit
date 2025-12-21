@@ -1,35 +1,19 @@
-import { useState, useMemo } from "react"
+import { useMemo } from "react"
 import { useQuery } from "@rocicorp/zero/react"
-import {
-  PlusIcon,
-  DashIcon,
-  FoldIcon,
-  UnfoldIcon,
-  CommentIcon,
-} from "@primer/octicons-react"
 import { DiffViewer } from "./DiffViewer"
-import { Button } from "./Button"
 import { queries } from "@/db/queries"
 import styles from "./PRFilesTab.module.css"
 import { Row } from "@rocicorp/zero"
-
-interface PRStats {
-  additions: number | null
-  deletions: number | null
-  changedFiles: number | null
-}
+import type { DiffOptions } from "./DiffOptionsBar"
 
 interface PRFilesTabProps {
   prId: string
-  stats: PRStats
+  diffOptions: DiffOptions
 }
 
-export function PRFilesTab({ prId, stats }: PRFilesTabProps) {
+export const PRFilesTab = ({ prId, diffOptions }: PRFilesTabProps) => {
   const [files] = useQuery(queries.prFiles(prId))
   const [comments] = useQuery(queries.reviewComments(prId))
-  const [allExpanded, setAllExpanded] = useState(true)
-  // Used as key to reset expanded state when bulk toggle happens
-  const [expandKey, setExpandKey] = useState(0)
 
   // Group comments by path for easy access
   const commentsByPath = useMemo(() => {
@@ -44,49 +28,8 @@ export function PRFilesTab({ prId, stats }: PRFilesTabProps) {
     return map
   }, [comments])
 
-  const totalComments = comments.length
-  const filesWithComments = commentsByPath.size
-
   return (
     <div className={styles.container}>
-      <div className={styles.filesHeader}>
-        <div className={styles.filesStats}>
-          <span className={`${styles.filesStat} ${styles.additionsStat}`}>
-            <PlusIcon className={styles.filesStatIcon} size={16} />
-            {stats.additions ?? 0} additions
-          </span>
-          <span className={`${styles.filesStat} ${styles.deletionsStat}`}>
-            <DashIcon className={styles.filesStatIcon} size={16} />
-            {stats.deletions ?? 0} deletions
-          </span>
-          <span className={styles.filesStat}>
-            {stats.changedFiles ?? 0} files changed
-          </span>
-          {totalComments > 0 && (
-            <span className={`${styles.filesStat} ${styles.commentsStat}`}>
-              <CommentIcon className={styles.filesStatIcon} size={14} />
-              {totalComments} comment{totalComments !== 1 ? "s" : ""} on{" "}
-              {filesWithComments} file{filesWithComments !== 1 ? "s" : ""}
-            </span>
-          )}
-        </div>
-        <div className={styles.filesActions}>
-          <Button
-            variant="invisible"
-            size="small"
-            leadingIcon={
-              allExpanded ? <FoldIcon size={14} /> : <UnfoldIcon size={14} />
-            }
-            onClick={() => {
-              setAllExpanded(!allExpanded)
-              setExpandKey((k) => k + 1)
-            }}
-          >
-            {allExpanded ? "Collapse all" : "Expand all"}
-          </Button>
-        </div>
-      </div>
-
       {files.length === 0 ? (
         <div className={styles.emptyState}>
           <p className={styles.emptyText}>
@@ -97,10 +40,10 @@ export function PRFilesTab({ prId, stats }: PRFilesTabProps) {
         <div className={styles.filesList}>
           {files.map((file) => (
             <FileItem
-              key={`${file.id}-${expandKey}`}
+              key={file.id}
               file={file}
               comments={commentsByPath.get(file.filename) || []}
-              defaultExpanded={allExpanded}
+              diffOptions={diffOptions}
             />
           ))}
         </div>
@@ -112,22 +55,18 @@ export function PRFilesTab({ prId, stats }: PRFilesTabProps) {
 interface FileItemProps {
   file: Row["githubPrFile"]
   comments: Row["githubPrComment"][]
-  defaultExpanded: boolean
+  diffOptions: DiffOptions
 }
 
-const FileItem = ({ file, comments, defaultExpanded }: FileItemProps) => {
-  const { filename, previousFilename, patch, additions, deletions, status } =
-    file
+const FileItem = ({ file, comments, diffOptions }: FileItemProps) => {
+  const { filename, previousFilename, patch } = file
   return (
     <DiffViewer
       filename={filename}
       previousFilename={previousFilename}
       patch={patch ?? ""}
-      additions={additions ?? 0}
-      deletions={deletions ?? 0}
-      status={status}
       comments={comments}
-      defaultExpanded={defaultExpanded}
+      diffOptions={diffOptions}
     />
   )
 }

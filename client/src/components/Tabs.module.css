@@ -4,10 +4,24 @@
 
 .list {
   display: flex;
-  gap: 0.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.1);
   margin-bottom: 1.5rem;
   position: relative;
+}
+
+.tabsGroup {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.trailing {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.25rem;
 }
 
 .tab {

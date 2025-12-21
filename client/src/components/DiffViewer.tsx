@@ -5,6 +5,7 @@ import { Row } from "@rocicorp/zero"
 import { Button } from "./Button"
 import { Markdown } from "./Markdown"
 import styles from "./DiffViewer.module.css"
+import type { DiffOptions } from "./DiffOptionsBar"
 
 type Comment = Row["githubPrComment"]
 
@@ -12,11 +13,8 @@ interface DiffViewerProps {
   filename: string
   previousFilename: string | null
   patch: string | null
-  additions: number
-  deletions: number
-  status: string
   comments?: Comment[]
-  defaultExpanded?: boolean
+  diffOptions: DiffOptions
 }
 
 // Group comments by line and side for annotation rendering
@@ -79,12 +77,13 @@ const CommentThread = ({ comments }: { comments: Comment[] }) => {
   )
 }
 
-export function DiffViewer({
+export const DiffViewer = ({
   filename,
   previousFilename,
   patch,
   comments = [],
-}: DiffViewerProps) {
+  diffOptions,
+}: DiffViewerProps) => {
   // Only include review comments that have a path matching this file
   const fileComments = useMemo(
     () => comments.filter((c) => c.path === filename),
@@ -126,32 +125,21 @@ ${patch}`
 
   return (
     <div className={styles.container}>
-      {/* Diff Content */}
       {formattedPatch && (
         <div className={styles.diffContent}>
           <PatchDiff
             patch={formattedPatch}
             options={{
               theme: { dark: "pierre-dark", light: "pierre-light" },
-              diffStyle: "split",
+              diffStyle: diffOptions.diffStyle,
+              diffIndicators: diffOptions.diffIndicators,
+              lineDiffType: diffOptions.lineDiffType,
+              disableLineNumbers: diffOptions.disableLineNumbers,
+              disableBackground: diffOptions.disableBackground,
+              overflow: diffOptions.overflow,
               enableHoverUtility: true,
             }}
             lineAnnotations={lineAnnotations}
-            // renderHeaderMetadata={() => (
-            //   <Button
-            //     className={styles.chevron}
-            //     onClick={() => setExpanded(!expanded)}
-            //     variant="invisible"
-            //     size="small"
-            //     type="button"
-            //   >
-            //     {expanded ? (
-            //       <ChevronDownIcon size={16} />
-            //     ) : (
-            //       <ChevronRightIcon size={16} />
-            //     )}
-            //   </Button>
-            // )}
             renderAnnotation={(annotation) => {
               const meta = annotation.metadata as { comments: Comment[] }
               return <CommentThread comments={meta.comments} />
