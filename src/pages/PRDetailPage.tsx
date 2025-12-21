@@ -271,19 +271,24 @@ export function PRDetailPage() {
       <div className={styles.content}>
         {activeTab === "conversation" && (
           <PRConversationTab
-            prId={pr.id}
             prBody={pr.body}
             prAuthor={{
               login: pr.authorLogin,
               avatarUrl: pr.authorAvatarUrl,
             }}
             prCreatedAt={pr.githubCreatedAt}
+            reviews={pr.githubPrReview}
+            comments={pr.githubPrComment}
             formatTimeAgo={formatTimeAgo}
           />
         )}
 
         {activeTab === "files" && (
-          <PRFilesTab prId={pr.id} diffOptions={diffOptions} />
+          <PRFilesTab
+            files={pr.githubPrFile}
+            comments={pr.githubPrComment}
+            diffOptions={diffOptions}
+          />
         )}
       </div>
     </div>

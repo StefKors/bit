@@ -10,7 +10,7 @@ export function RepoPage() {
 
   return (
     <RepoLayout activeTab="code">
-      <RepoCodeTab fullName={fullName} />
+      {() => <RepoCodeTab fullName={fullName} />}
     </RepoLayout>
   )
 }

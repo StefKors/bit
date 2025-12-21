@@ -7,12 +7,17 @@ import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoHeader } from "./RepoHeader"
 import { RepoTabs } from "./RepoTabs"
 import styles from "./RepoLayout.module.css"
+import type { GithubRepo, GithubPullRequest } from "@/db/schema"
 
 type TabType = "code" | "pulls" | "issues"
 
+export interface RepoData extends GithubRepo {
+  githubPullRequest: readonly GithubPullRequest[]
+}
+
 interface RepoLayoutProps {
   activeTab: TabType
-  children: ReactNode
+  children: ReactNode | ((repo: RepoData) => ReactNode)
 }
 
 export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
@@ -24,8 +29,8 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
   const repoName = params.repo || ""
   const fullName = `${owner}/${repoName}`
 
-  // Query the repo from Zero
-  const [repo] = useQuery(queries.repo(fullName))
+  // Query the repo with PRs in one go
+  const [repo] = useQuery(queries.repoWithPRs(fullName))
 
   const handleSync = useCallback(async () => {
     setSyncing(true)
@@ -79,9 +84,11 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
 
       {error && <div className={styles.error}>{error}</div>}
 
-      <RepoTabs repoId={repo.id} fullName={fullName} activeTab={activeTab} />
+      <RepoTabs prs={repo.githubPullRequest} fullName={fullName} activeTab={activeTab} />
 
-      <div className={styles.content}>{children}</div>
+      <div className={styles.content}>
+        {typeof children === "function" ? children(repo as RepoData) : children}
+      </div>
     </div>
   )
 }

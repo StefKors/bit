@@ -8,7 +8,7 @@ import {
   StarIcon,
   RepoForkedIcon,
 } from "@primer/octicons-react"
-import { zql } from "@/db/schema"
+import { queries } from "@/db/queries"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoCard } from "@/features/repo/RepoCard"
 import styles from "./OwnerPage.module.css"
@@ -17,19 +17,15 @@ export function OwnerPage() {
   const params = useParams<{ owner: string }>()
   const owner = params.owner || ""
 
-  // Query repos for this owner
-  const [repos] = useQuery(
-    zql.githubRepo
-      .where("owner", "=", owner)
-      .orderBy("githubUpdatedAt", "desc"),
-  )
+  // Query org with repos in one go (will be undefined if owner is a user, not an org)
+  const [org] = useQuery(queries.ownerWithRepos(owner))
 
-  // Query orgs to check if this owner is an organization
-  const [orgs] = useQuery(
-    zql.githubOrganization.where("login", "=", owner).limit(1),
-  )
-  const org = orgs[0]
-  const isOrg = !!org
+  // Fallback: query repos by owner if not an org
+  const [userRepos] = useQuery(queries.reposByOwner(owner))
+
+  // Use org repos if available, otherwise user repos
+  const repos = org?.githubRepo ?? userRepos
+  const isOrg = Boolean(org)
 
   // Count stats
   const totalStars = repos.reduce(

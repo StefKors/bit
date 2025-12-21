@@ -1,16 +1,14 @@
-import { useQuery } from "@rocicorp/zero/react"
 import { GitPullRequestIcon } from "@primer/octicons-react"
-import { queries } from "@/db/queries"
 import { PRListItem } from "@/features/pr/PRListItem"
+import type { GithubPullRequest } from "@/db/schema"
 import styles from "./RepoPullsTab.module.css"
 
 interface RepoPullsTabProps {
-  repoId: string
+  prs: readonly GithubPullRequest[]
   fullName: string
 }
 
-export function RepoPullsTab({ repoId, fullName }: RepoPullsTabProps) {
-  const [prs] = useQuery(queries.pullRequests(repoId))
+export function RepoPullsTab({ prs, fullName }: RepoPullsTabProps) {
 
   if (prs.length === 0) {
     return (

@@ -1,22 +1,20 @@
-import { useQuery } from "@rocicorp/zero/react"
 import {
   CodeIcon,
   GitPullRequestIcon,
   IssueOpenedIcon,
 } from "@primer/octicons-react"
-import { queries } from "@/db/queries"
 import { Tabs } from "@/components/Tabs"
+import type { GithubPullRequest } from "@/db/schema"
 
 type TabType = "code" | "pulls" | "issues"
 
 interface RepoTabsProps {
-  repoId: string
+  prs: readonly GithubPullRequest[]
   fullName: string
   activeTab: TabType
 }
 
-export function RepoTabs({ repoId, fullName, activeTab }: RepoTabsProps) {
-  const [prs] = useQuery(queries.pullRequests(repoId))
+export function RepoTabs({ prs, fullName, activeTab }: RepoTabsProps) {
   const openPRs = prs.filter((pr) => pr.state === "open")
 
   return (

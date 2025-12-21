@@ -1,6 +1,4 @@
 import { useParams } from "wouter"
-import { useQuery } from "@rocicorp/zero/react"
-import { queries } from "@/db/queries"
 import { RepoLayout } from "@/features/repo/RepoLayout"
 import { RepoPullsTab } from "@/features/repo/RepoPullsTab"
 
@@ -10,12 +8,11 @@ export function RepoPullsPage() {
   const repoName = params.repo || ""
   const fullName = `${owner}/${repoName}`
 
-  // Query the repo from Zero
-  const [repo] = useQuery(queries.repo(fullName))
-
   return (
     <RepoLayout activeTab="pulls">
-      {repo && <RepoPullsTab repoId={repo.id} fullName={fullName} />}
+      {(repo) => (
+        <RepoPullsTab prs={repo.githubPullRequest} fullName={fullName} />
+      )}
     </RepoLayout>
   )
 }

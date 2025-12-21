@@ -23,9 +23,14 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Query repos and orgs from Zero
-  const [repos] = useQuery(queries.repos())
-  const [orgs] = useQuery(queries.orgs())
+  // Query repos with their orgs in one go
+  const [repos] = useQuery(queries.overview())
+
+  // Extract unique orgs from repos
+  const orgs = repos
+    .map((repo) => repo.githubOrganization)
+    .filter((org): org is NonNullable<typeof org> => org !== null && org !== undefined)
+    .filter((org, index, self) => self.findIndex((o) => o.id === org.id) === index)
 
   // Get GitHub username from session (name is typically the GitHub login)
   const currentUserLogin = session?.user?.name
