@@ -13,11 +13,7 @@ import { Tabs } from "@/components/Tabs"
 import { Button } from "@/components/Button"
 import { PRConversationTab } from "@/components/PRConversationTab"
 import { PRFilesTab } from "@/components/PRFilesTab"
-import {
-  DiffOptionsBar,
-  defaultDiffOptions,
-  type DiffOptions,
-} from "@/components/DiffOptionsBar"
+import { DiffOptionsBar, defaultDiffOptions, type DiffOptions } from "@/components/DiffOptionsBar"
 import styles from "./PRDetailPage.module.css"
 import { queries } from "@/db/queries"
 
@@ -44,8 +40,7 @@ export function PRDetailPage() {
   const [activeTab, setActiveTab] = useState<TabType>("conversation")
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [diffOptions, setDiffOptions] =
-    useState<DiffOptions>(defaultDiffOptions)
+  const [diffOptions, setDiffOptions] = useState<DiffOptions>(defaultDiffOptions)
 
   const owner = params.owner || ""
   const repoName = params.repo || ""
@@ -62,13 +57,10 @@ export function PRDetailPage() {
     setError(null)
 
     try {
-      const response = await fetch(
-        `/api/github/sync/${owner}/${repoName}/pull/${prNumber}`,
-        {
-          method: "POST",
-          credentials: "include",
-        },
-      )
+      const response = await fetch(`/api/github/sync/${owner}/${repoName}/pull/${prNumber}`, {
+        method: "POST",
+        credentials: "include",
+      })
 
       const data = await response.json()
 
@@ -120,15 +112,10 @@ export function PRDetailPage() {
         <header className={styles.header}>
           <div className={styles.titleRow}>
             {isMerged ? (
-              <GitMergeIcon
-                className={`${styles.prIcon} ${styles.prIconMerged}`}
-                size={24}
-              />
+              <GitMergeIcon className={`${styles.prIcon} ${styles.prIconMerged}`} size={24} />
             ) : (
               <GitPullRequestIcon
-                className={`${styles.prIcon} ${
-                  isClosed ? styles.prIconClosed : styles.prIconOpen
-                }`}
+                className={`${styles.prIcon} ${isClosed ? styles.prIconClosed : styles.prIconOpen}`}
                 size={24}
               />
             )}
@@ -136,25 +123,13 @@ export function PRDetailPage() {
               {pr.title}
               <span className={styles.prNumber}> #{pr.number}</span>
               {isDraft ? (
-                <span className={`${styles.statusBadge} ${styles.statusDraft}`}>
-                  Draft
-                </span>
+                <span className={`${styles.statusBadge} ${styles.statusDraft}`}>Draft</span>
               ) : isMerged ? (
-                <span
-                  className={`${styles.statusBadge} ${styles.statusMerged}`}
-                >
-                  Merged
-                </span>
+                <span className={`${styles.statusBadge} ${styles.statusMerged}`}>Merged</span>
               ) : isClosed ? (
-                <span
-                  className={`${styles.statusBadge} ${styles.statusClosed}`}
-                >
-                  Closed
-                </span>
+                <span className={`${styles.statusBadge} ${styles.statusClosed}`}>Closed</span>
               ) : (
-                <span className={`${styles.statusBadge} ${styles.statusOpen}`}>
-                  Open
-                </span>
+                <span className={`${styles.statusBadge} ${styles.statusOpen}`}>Open</span>
               )}
             </h1>
           </div>
@@ -268,9 +243,7 @@ export function PRDetailPage() {
           />
         )}
 
-        {activeTab === "files" && (
-          <PRFilesTab prId={pr.id} diffOptions={diffOptions} />
-        )}
+        {activeTab === "files" && <PRFilesTab prId={pr.id} diffOptions={diffOptions} />}
       </div>
     </div>
   )

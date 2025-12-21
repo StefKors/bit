@@ -1,7 +1,7 @@
-import { defineConfig } from "drizzle-kit";
-import * as dotenv from "dotenv";
+import { defineConfig } from "drizzle-kit"
+import * as dotenv from "dotenv"
 
-dotenv.config();
+dotenv.config()
 
 export default defineConfig({
   schema: "./schema.ts",
@@ -10,4 +10,4 @@ export default defineConfig({
   dbCredentials: {
     url: process.env.ZERO_UPSTREAM_DB!,
   },
-});
+})

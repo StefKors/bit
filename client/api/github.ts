@@ -1,34 +1,34 @@
-import { Octokit } from "octokit";
-import { Pool } from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { eq, and } from "drizzle-orm";
-import * as schema from "../schema";
+import { Octokit } from "octokit"
+import { Pool } from "pg"
+import { drizzle } from "drizzle-orm/node-postgres"
+import { eq, and } from "drizzle-orm"
+import * as schema from "../schema"
 
 // Types for rate limit info
 export interface RateLimitInfo {
-  remaining: number;
-  limit: number;
-  reset: Date;
-  used: number;
+  remaining: number
+  limit: number
+  reset: Date
+  used: number
 }
 
 export interface SyncResult<T> {
-  data: T;
-  rateLimit: RateLimitInfo;
-  fromCache: boolean;
+  data: T
+  rateLimit: RateLimitInfo
+  fromCache: boolean
 }
 
 // GitHub API client with rate limit tracking
 export class GitHubClient {
-  private octokit: Octokit;
-  private db: ReturnType<typeof drizzle>;
-  private userId: string;
-  private lastRateLimit: RateLimitInfo | null = null;
+  private octokit: Octokit
+  private db: ReturnType<typeof drizzle>
+  private userId: string
+  private lastRateLimit: RateLimitInfo | null = null
 
   constructor(accessToken: string, userId: string, pool: Pool) {
-    this.octokit = new Octokit({ auth: accessToken });
-    this.db = drizzle(pool, { schema });
-    this.userId = userId;
+    this.octokit = new Octokit({ auth: accessToken })
+    this.db = drizzle(pool, { schema })
+    this.userId = userId
   }
 
   // Extract rate limit info from response headers
@@ -38,20 +38,20 @@ export class GitHubClient {
       limit: parseInt(headers["x-ratelimit-limit"] || "5000", 10),
       reset: new Date(parseInt(headers["x-ratelimit-reset"] || "0", 10) * 1000),
       used: parseInt(headers["x-ratelimit-used"] || "0", 10),
-    };
-    this.lastRateLimit = rateLimit;
-    return rateLimit;
+    }
+    this.lastRateLimit = rateLimit
+    return rateLimit
   }
 
   // Get current rate limit status
   async getRateLimit(): Promise<RateLimitInfo> {
-    const response = await this.octokit.rest.rateLimit.get();
+    const response = await this.octokit.rest.rateLimit.get()
     return {
       remaining: response.data.rate.remaining,
       limit: response.data.rate.limit,
       reset: new Date(response.data.rate.reset * 1000),
       used: response.data.rate.used,
-    };
+    }
   }
 
   // Update sync state in database
@@ -63,7 +63,7 @@ export class GitHubClient {
     error?: string,
     etag?: string,
   ) {
-    const id = `${this.userId}:${resourceType}${resourceId ? `:${resourceId}` : ""}`;
+    const id = `${this.userId}:${resourceType}${resourceId ? `:${resourceId}` : ""}`
 
     await this.db
       .insert(schema.githubSyncState)
@@ -90,20 +90,20 @@ export class GitHubClient {
           syncError: error,
           updatedAt: new Date(),
         },
-      });
+      })
   }
 
   // Get sync state from database
   async getSyncState(resourceType: string, resourceId: string | null) {
-    const id = `${this.userId}:${resourceType}${resourceId ? `:${resourceId}` : ""}`;
+    const id = `${this.userId}:${resourceType}${resourceId ? `:${resourceId}` : ""}`
 
     const result = await this.db
       .select()
       .from(schema.githubSyncState)
       .where(eq(schema.githubSyncState.id, id))
-      .limit(1);
+      .limit(1)
 
-    return result[0] || null;
+    return result[0] || null
   }
 
   // Fetch user's organizations
@@ -112,9 +112,9 @@ export class GitHubClient {
   > {
     const response = await this.octokit.rest.orgs.listForAuthenticatedUser({
       per_page: 100,
-    });
+    })
 
-    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>);
+    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
 
     const orgs = response.data.map((org) => ({
       id: org.node_id,
@@ -126,7 +126,7 @@ export class GitHubClient {
       url: org.url,
       userId: this.userId,
       syncedAt: new Date(),
-    }));
+    }))
 
     // Upsert organizations
     for (const org of orgs) {
@@ -143,12 +143,12 @@ export class GitHubClient {
             syncedAt: new Date(),
             updatedAt: new Date(),
           },
-        });
+        })
     }
 
-    await this.updateSyncState("orgs", null, rateLimit);
+    await this.updateSyncState("orgs", null, rateLimit)
 
-    return { data: orgs, rateLimit, fromCache: false };
+    return { data: orgs, rateLimit, fromCache: false }
   }
 
   // Fetch user's repositories (personal and org repos)
@@ -157,9 +157,9 @@ export class GitHubClient {
       per_page: 100,
       sort: "updated",
       affiliation: "owner,collaborator,organization_member",
-    });
+    })
 
-    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>);
+    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
 
     const repos = response.data.map((repo) => ({
       id: repo.node_id,
@@ -184,7 +184,7 @@ export class GitHubClient {
       githubUpdatedAt: repo.updated_at ? new Date(repo.updated_at) : null,
       githubPushedAt: repo.pushed_at ? new Date(repo.pushed_at) : null,
       syncedAt: new Date(),
-    }));
+    }))
 
     // Upsert repositories
     for (const repo of repos) {
@@ -209,12 +209,12 @@ export class GitHubClient {
             githubPushedAt: repo.githubPushedAt,
             syncedAt: new Date(),
           },
-        });
+        })
     }
 
-    await this.updateSyncState("repos", null, rateLimit);
+    await this.updateSyncState("repos", null, rateLimit)
 
-    return { data: repos, rateLimit, fromCache: false };
+    return { data: repos, rateLimit, fromCache: false }
   }
 
   // Fetch pull requests for a repository
@@ -233,10 +233,10 @@ export class GitHubClient {
           eq(schema.githubRepo.userId, this.userId),
         ),
       )
-      .limit(1);
+      .limit(1)
 
     if (!repoRecord[0]) {
-      throw new Error(`Repository ${owner}/${repo} not found. Please sync repositories first.`);
+      throw new Error(`Repository ${owner}/${repo} not found. Please sync repositories first.`)
     }
 
     const response = await this.octokit.rest.pulls.list({
@@ -246,9 +246,9 @@ export class GitHubClient {
       per_page: 100,
       sort: "updated",
       direction: "desc",
-    });
+    })
 
-    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>);
+    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
 
     const prs = response.data.map((pr) => ({
       id: pr.node_id,
@@ -283,7 +283,7 @@ export class GitHubClient {
       mergedAt: pr.merged_at ? new Date(pr.merged_at) : null,
       userId: this.userId,
       syncedAt: new Date(),
-    }));
+    }))
 
     // Upsert pull requests
     for (const pr of prs) {
@@ -314,12 +314,12 @@ export class GitHubClient {
             syncedAt: new Date(),
             updatedAt: new Date(),
           },
-        });
+        })
     }
 
-    await this.updateSyncState("pulls", `${owner}/${repo}`, rateLimit);
+    await this.updateSyncState("pulls", `${owner}/${repo}`, rateLimit)
 
-    return { data: prs, rateLimit, fromCache: false };
+    return { data: prs, rateLimit, fromCache: false }
   }
 
   // Fetch detailed PR info including files, comments, and reviews
@@ -328,11 +328,11 @@ export class GitHubClient {
     repo: string,
     pullNumber: number,
   ): Promise<{
-    pr: typeof schema.githubPullRequest.$inferInsert;
-    files: (typeof schema.githubPrFile.$inferInsert)[];
-    reviews: (typeof schema.githubPrReview.$inferInsert)[];
-    comments: (typeof schema.githubPrComment.$inferInsert)[];
-    rateLimit: RateLimitInfo;
+    pr: typeof schema.githubPullRequest.$inferInsert
+    files: (typeof schema.githubPrFile.$inferInsert)[]
+    reviews: (typeof schema.githubPrReview.$inferInsert)[]
+    comments: (typeof schema.githubPrComment.$inferInsert)[]
+    rateLimit: RateLimitInfo
   }> {
     // Get the PR from our database
     const repoRecord = await this.db
@@ -344,10 +344,10 @@ export class GitHubClient {
           eq(schema.githubRepo.userId, this.userId),
         ),
       )
-      .limit(1);
+      .limit(1)
 
     if (!repoRecord[0]) {
-      throw new Error(`Repository ${owner}/${repo} not found. Please sync repositories first.`);
+      throw new Error(`Repository ${owner}/${repo} not found. Please sync repositories first.`)
     }
 
     // Fetch PR details
@@ -355,10 +355,10 @@ export class GitHubClient {
       owner,
       repo,
       pull_number: pullNumber,
-    });
+    })
 
-    let rateLimit = this.extractRateLimit(prResponse.headers as Record<string, string | undefined>);
-    const prData = prResponse.data;
+    let rateLimit = this.extractRateLimit(prResponse.headers as Record<string, string | undefined>)
+    const prData = prResponse.data
 
     const pr = {
       id: prData.node_id,
@@ -393,7 +393,7 @@ export class GitHubClient {
       mergedAt: prData.merged_at ? new Date(prData.merged_at) : null,
       userId: this.userId,
       syncedAt: new Date(),
-    };
+    }
 
     // Upsert PR
     await this.db
@@ -423,7 +423,7 @@ export class GitHubClient {
           syncedAt: new Date(),
           updatedAt: new Date(),
         },
-      });
+      })
 
     // Fetch files
     const filesResponse = await this.octokit.rest.pulls.listFiles({
@@ -431,8 +431,8 @@ export class GitHubClient {
       repo,
       pull_number: pullNumber,
       per_page: 100,
-    });
-    rateLimit = this.extractRateLimit(filesResponse.headers as Record<string, string | undefined>);
+    })
+    rateLimit = this.extractRateLimit(filesResponse.headers as Record<string, string | undefined>)
 
     const files = filesResponse.data.map((file) => ({
       id: `${pr.id}:${file.sha}:${file.filename}`,
@@ -449,13 +449,13 @@ export class GitHubClient {
       rawUrl: file.raw_url,
       contentsUrl: file.contents_url,
       userId: this.userId,
-    }));
+    }))
 
     // Delete old files and insert new ones
-    await this.db.delete(schema.githubPrFile).where(eq(schema.githubPrFile.pullRequestId, pr.id));
+    await this.db.delete(schema.githubPrFile).where(eq(schema.githubPrFile.pullRequestId, pr.id))
 
     for (const file of files) {
-      await this.db.insert(schema.githubPrFile).values(file);
+      await this.db.insert(schema.githubPrFile).values(file)
     }
 
     // Fetch reviews
@@ -464,10 +464,8 @@ export class GitHubClient {
       repo,
       pull_number: pullNumber,
       per_page: 100,
-    });
-    rateLimit = this.extractRateLimit(
-      reviewsResponse.headers as Record<string, string | undefined>,
-    );
+    })
+    rateLimit = this.extractRateLimit(reviewsResponse.headers as Record<string, string | undefined>)
 
     const reviews = reviewsResponse.data.map((review) => ({
       id: review.node_id,
@@ -480,12 +478,12 @@ export class GitHubClient {
       htmlUrl: review.html_url,
       submittedAt: review.submitted_at ? new Date(review.submitted_at) : null,
       userId: this.userId,
-    }));
+    }))
 
     // Create a map from GitHub numeric ID to node_id for linking comments to reviews
-    const reviewIdMap = new Map<number, string>();
+    const reviewIdMap = new Map<number, string>()
     for (const review of reviews) {
-      reviewIdMap.set(review.githubId, review.id);
+      reviewIdMap.set(review.githubId, review.id)
     }
 
     for (const review of reviews) {
@@ -500,7 +498,7 @@ export class GitHubClient {
             submittedAt: review.submittedAt,
             updatedAt: new Date(),
           },
-        });
+        })
     }
 
     // Fetch issue comments (general PR comments)
@@ -509,10 +507,10 @@ export class GitHubClient {
       repo,
       issue_number: pullNumber,
       per_page: 100,
-    });
+    })
     rateLimit = this.extractRateLimit(
       issueCommentsResponse.headers as Record<string, string | undefined>,
-    );
+    )
 
     const issueComments = issueCommentsResponse.data.map((comment) => ({
       id: comment.node_id,
@@ -531,7 +529,7 @@ export class GitHubClient {
       githubCreatedAt: comment.created_at ? new Date(comment.created_at) : null,
       githubUpdatedAt: comment.updated_at ? new Date(comment.updated_at) : null,
       userId: this.userId,
-    }));
+    }))
 
     // Fetch review comments (inline diff comments)
     const reviewCommentsResponse = await this.octokit.rest.pulls.listReviewComments({
@@ -539,10 +537,10 @@ export class GitHubClient {
       repo,
       pull_number: pullNumber,
       per_page: 100,
-    });
+    })
     rateLimit = this.extractRateLimit(
       reviewCommentsResponse.headers as Record<string, string | undefined>,
-    );
+    )
 
     const reviewComments = reviewCommentsResponse.data.map((comment) => ({
       id: comment.node_id,
@@ -564,9 +562,9 @@ export class GitHubClient {
       githubCreatedAt: comment.created_at ? new Date(comment.created_at) : null,
       githubUpdatedAt: comment.updated_at ? new Date(comment.updated_at) : null,
       userId: this.userId,
-    }));
+    }))
 
-    const allComments = [...issueComments, ...reviewComments];
+    const allComments = [...issueComments, ...reviewComments]
 
     for (const comment of allComments) {
       await this.db
@@ -579,34 +577,34 @@ export class GitHubClient {
             githubUpdatedAt: comment.githubUpdatedAt,
             updatedAt: new Date(),
           },
-        });
+        })
     }
 
-    await this.updateSyncState("pr-detail", `${owner}/${repo}/${pullNumber}`, rateLimit);
+    await this.updateSyncState("pr-detail", `${owner}/${repo}/${pullNumber}`, rateLimit)
 
-    return { pr, files, reviews, comments: allComments, rateLimit };
+    return { pr, files, reviews, comments: allComments, rateLimit }
   }
 
   // Get last rate limit info
   getLastRateLimit(): RateLimitInfo | null {
-    return this.lastRateLimit;
+    return this.lastRateLimit
   }
 }
 
 // Factory function to create a GitHub client from session
 export async function createGitHubClient(userId: string, pool: Pool): Promise<GitHubClient | null> {
-  const db = drizzle(pool, { schema });
+  const db = drizzle(pool, { schema })
 
   // Get the GitHub access token from auth_account
   const accounts = await db
     .select()
     .from(schema.authAccount)
     .where(and(eq(schema.authAccount.userId, userId), eq(schema.authAccount.providerId, "github")))
-    .limit(1);
+    .limit(1)
 
   if (!accounts[0]?.accessToken) {
-    return null;
+    return null
   }
 
-  return new GitHubClient(accounts[0].accessToken, userId, pool);
+  return new GitHubClient(accounts[0].accessToken, userId, pool)
 }

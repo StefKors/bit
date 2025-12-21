@@ -12,11 +12,7 @@ interface PRListItemProps {
 }
 
 // Status indicator component for CI/check status
-function StatusDot({
-  status,
-}: {
-  status: "success" | "failure" | "pending" | "warning"
-}) {
+function StatusDot({ status }: { status: "success" | "failure" | "pending" | "warning" }) {
   const colors = {
     success: "#3fb950",
     failure: "#f85149",
@@ -25,11 +21,7 @@ function StatusDot({
   }
 
   return (
-    <span
-      className={styles.statusDot}
-      style={{ backgroundColor: colors[status] }}
-      title={status}
-    />
+    <span className={styles.statusDot} style={{ backgroundColor: colors[status] }} title={status} />
   )
 }
 
@@ -86,9 +78,7 @@ export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
               className={styles.authorAvatar}
             />
           )}
-          {pr.authorLogin && (
-            <span className={styles.authorName}>{pr.authorLogin}</span>
-          )}
+          {pr.authorLogin && <span className={styles.authorName}>{pr.authorLogin}</span>}
           <span className={styles.prPath}>
             {repoFullName}/{pr.number}
           </span>

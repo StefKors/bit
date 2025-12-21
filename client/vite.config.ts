@@ -1,11 +1,11 @@
-import { getRequestListener } from "@hono/node-server";
-import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
-import path from "path";
-import dotenv from "dotenv";
+import { getRequestListener } from "@hono/node-server"
+import react from "@vitejs/plugin-react"
+import { defineConfig } from "vite"
+import path from "path"
+import dotenv from "dotenv"
 
 if (process.env.NODE_ENV === "development") {
-  dotenv.config();
+  dotenv.config()
 }
 
 export default defineConfig({
@@ -33,14 +33,14 @@ export default defineConfig({
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
           if (!req.url?.startsWith("/api")) {
-            return next();
+            return next()
           }
           getRequestListener(async (request) => {
-            const { app } = await import("./api/index.js");
-            return await app.fetch(request, {});
-          })(req, res);
-        });
+            const { app } = await import("./api/index.js")
+            return await app.fetch(request, {})
+          })(req, res)
+        })
       },
     },
   ],
-});
+})

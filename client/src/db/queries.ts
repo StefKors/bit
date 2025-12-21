@@ -1,6 +1,6 @@
-import { defineQueries, defineQuery } from "@rocicorp/zero";
-import { zql } from "./schema";
-import z from "zod";
+import { defineQueries, defineQuery } from "@rocicorp/zero"
+import { zql } from "./schema"
+import z from "zod"
 
 export const queries = defineQueries({
   users: {
@@ -34,4 +34,4 @@ export const queries = defineQueries({
       .where("commentType", "=", "review_comment")
       .orderBy("githubCreatedAt", "asc"),
   ),
-});
+})

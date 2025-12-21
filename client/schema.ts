@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, index, integer, bigint } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, index, integer, bigint } from "drizzle-orm/pg-core"
 
 // =============================================================================
 // Drizzle Schema
@@ -17,7 +17,7 @@ export const authUser = pgTable("auth_user", {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
-});
+})
 
 export const authSession = pgTable(
   "auth_session",
@@ -36,7 +36,7 @@ export const authSession = pgTable(
       .references(() => authUser.id, { onDelete: "cascade" }),
   },
   (table) => [index("auth_session_userId_idx").on(table.userId)],
-);
+)
 
 export const authAccount = pgTable(
   "auth_account",
@@ -60,7 +60,7 @@ export const authAccount = pgTable(
       .notNull(),
   },
   (table) => [index("auth_account_userId_idx").on(table.userId)],
-);
+)
 
 export const authVerification = pgTable(
   "auth_verification",
@@ -76,7 +76,7 @@ export const authVerification = pgTable(
       .notNull(),
   },
   (table) => [index("auth_verification_identifier_idx").on(table.identifier)],
-);
+)
 
 // =============================================================================
 // App Tables (synced via Zero)
@@ -86,7 +86,7 @@ export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   partner: boolean("partner").notNull(),
-});
+})
 
 // =============================================================================
 // GitHub Tables (synced via Zero)
@@ -117,7 +117,7 @@ export const githubOrganization = pgTable(
     index("github_org_userId_idx").on(table.userId),
     index("github_org_login_idx").on(table.login),
   ],
-);
+)
 
 // GitHub Repositories
 export const githubRepo = pgTable(
@@ -161,7 +161,7 @@ export const githubRepo = pgTable(
     index("github_repo_fullName_idx").on(table.fullName),
     index("github_repo_owner_idx").on(table.owner),
   ],
-);
+)
 
 // GitHub Pull Requests
 export const githubPullRequest = pgTable(
@@ -221,7 +221,7 @@ export const githubPullRequest = pgTable(
     index("github_pr_state_idx").on(table.state),
     index("github_pr_number_idx").on(table.repoId, table.number),
   ],
-);
+)
 
 // GitHub PR Reviews
 export const githubPrReview = pgTable(
@@ -251,7 +251,7 @@ export const githubPrReview = pgTable(
     index("github_review_prId_idx").on(table.pullRequestId),
     index("github_review_userId_idx").on(table.userId),
   ],
-);
+)
 
 // GitHub PR Comments (both issue comments and review comments)
 export const githubPrComment = pgTable(
@@ -290,7 +290,7 @@ export const githubPrComment = pgTable(
     index("github_comment_reviewId_idx").on(table.reviewId),
     index("github_comment_userId_idx").on(table.userId),
   ],
-);
+)
 
 // GitHub PR Files (changed files in a PR)
 export const githubPrFile = pgTable(
@@ -324,7 +324,7 @@ export const githubPrFile = pgTable(
     index("github_file_prId_idx").on(table.pullRequestId),
     index("github_file_userId_idx").on(table.userId),
   ],
-);
+)
 
 // GitHub Sync State (track sync status and rate limits per user)
 export const githubSyncState = pgTable(
@@ -354,4 +354,4 @@ export const githubSyncState = pgTable(
     index("github_sync_userId_idx").on(table.userId),
     index("github_sync_resource_idx").on(table.userId, table.resourceType),
   ],
-);
+)

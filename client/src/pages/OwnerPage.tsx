@@ -19,40 +19,26 @@ export function OwnerPage() {
 
   // Query repos for this owner
   const [repos] = useQuery(
-    zql.githubRepo
-      .where("owner", "=", owner)
-      .orderBy("githubUpdatedAt", "desc"),
+    zql.githubRepo.where("owner", "=", owner).orderBy("githubUpdatedAt", "desc"),
   )
 
   // Query orgs to check if this owner is an organization
-  const [orgs] = useQuery(
-    zql.githubOrganization.where("login", "=", owner).limit(1),
-  )
+  const [orgs] = useQuery(zql.githubOrganization.where("login", "=", owner).limit(1))
   const org = orgs[0]
   const isOrg = !!org
 
   // Count stats
-  const totalStars = repos.reduce(
-    (acc, repo) => acc + (repo.stargazersCount ?? 0),
-    0,
-  )
-  const totalForks = repos.reduce(
-    (acc, repo) => acc + (repo.forksCount ?? 0),
-    0,
-  )
+  const totalStars = repos.reduce((acc, repo) => acc + (repo.stargazersCount ?? 0), 0)
+  const totalForks = repos.reduce((acc, repo) => acc + (repo.forksCount ?? 0), 0)
 
   if (repos.length === 0) {
     return (
       <div className={styles.container}>
-        <Breadcrumb
-          items={[{ label: "Repositories", href: "/" }, { label: owner }]}
-        />
+        <Breadcrumb items={[{ label: "Repositories", href: "/" }, { label: owner }]} />
         <div className={styles.emptyState}>
           <FileDirectoryIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>No repositories found</h3>
-          <p className={styles.emptyText}>
-            No repositories have been synced for {owner}.
-          </p>
+          <p className={styles.emptyText}>No repositories have been synced for {owner}.</p>
         </div>
       </div>
     )
@@ -60,9 +46,7 @@ export function OwnerPage() {
 
   return (
     <div className={styles.container}>
-      <Breadcrumb
-        items={[{ label: "Repositories", href: "/" }, { label: owner }]}
-      />
+      <Breadcrumb items={[{ label: "Repositories", href: "/" }, { label: owner }]} />
 
       {/* Header */}
       <header className={styles.header}>
@@ -77,11 +61,7 @@ export function OwnerPage() {
             <div
               className={`${styles.ownerAvatarPlaceholder} ${isOrg ? styles.ownerAvatarPlaceholderOrg : styles.ownerAvatarPlaceholderUser}`}
             >
-              {isOrg ? (
-                <OrganizationIcon size={24} />
-              ) : (
-                <PersonIcon size={24} />
-              )}
+              {isOrg ? <OrganizationIcon size={24} /> : <PersonIcon size={24} />}
             </div>
           )}
           <div className={styles.ownerInfo}>

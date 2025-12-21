@@ -85,10 +85,7 @@ const SegmentedControl = <T extends string>({
 )
 
 export const DiffOptionsBar = ({ options, onChange }: DiffOptionsBarProps) => {
-  const update = <K extends keyof DiffOptions>(
-    key: K,
-    value: DiffOptions[K],
-  ) => {
+  const update = <K extends keyof DiffOptions>(key: K, value: DiffOptions[K]) => {
     onChange({ ...options, [key]: value })
   }
 
@@ -110,9 +107,7 @@ export const DiffOptionsBar = ({ options, onChange }: DiffOptionsBarProps) => {
       {/* Line Numbers */}
       <ToggleButton
         active={!options.disableLineNumbers}
-        onClick={() =>
-          update("disableLineNumbers", !options.disableLineNumbers)
-        }
+        onClick={() => update("disableLineNumbers", !options.disableLineNumbers)}
         title="Line numbers"
       >
         <ListOrderedIcon size={14} />
@@ -121,9 +116,7 @@ export const DiffOptionsBar = ({ options, onChange }: DiffOptionsBarProps) => {
       {/* Word Wrap */}
       <ToggleButton
         active={options.overflow === "wrap"}
-        onClick={() =>
-          update("overflow", options.overflow === "wrap" ? "scroll" : "wrap")
-        }
+        onClick={() => update("overflow", options.overflow === "wrap" ? "scroll" : "wrap")}
         title="Word wrap"
       >
         <WrapIcon size={14} />

@@ -6,10 +6,7 @@ interface RepoIssuesTabProps {
   fullName: string
 }
 
-export function RepoIssuesTab({
-  repoId: _repoId,
-  fullName: _fullName,
-}: RepoIssuesTabProps) {
+export function RepoIssuesTab({ repoId: _repoId, fullName: _fullName }: RepoIssuesTabProps) {
   return (
     <div className={styles.content}>
       <div className={styles.emptyState}>

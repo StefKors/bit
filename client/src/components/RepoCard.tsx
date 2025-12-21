@@ -38,13 +38,9 @@ export function RepoCard({ repo }: RepoCardProps) {
         <div className={styles.cardContent}>
           <h3 className={styles.cardTitle}>
             {repo.name}
-            {repo.private && (
-              <LockIcon className={styles.privateIcon} size={12} />
-            )}
+            {repo.private && <LockIcon className={styles.privateIcon} size={12} />}
           </h3>
-          <p className={styles.cardDescription}>
-            {repo.description || "No description"}
-          </p>
+          <p className={styles.cardDescription}>{repo.description || "No description"}</p>
         </div>
       </div>
       <div className={styles.cardMeta}>

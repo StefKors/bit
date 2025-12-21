@@ -1,7 +1,7 @@
 :root {
   --bit-font:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica,
-    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji";
   --bit-font-mono: "JetBrains Mono", "SF Mono", monospace;
 
   /*
@@ -137,14 +137,8 @@
   --bit-color-diff-hunk-text: rgba(var(--bit-rgb-fg), 0.6);
 
   --bit-color-diff-add-bg: rgba(var(--bit-rgb-accent-green-bright), 0.12);
-  --bit-color-diff-add-number-bg: rgba(
-    var(--bit-rgb-accent-green-bright),
-    0.18
-  );
-  --bit-color-diff-add-number-text: rgba(
-    var(--bit-rgb-accent-green-bright),
-    0.85
-  );
+  --bit-color-diff-add-number-bg: rgba(var(--bit-rgb-accent-green-bright), 0.18);
+  --bit-color-diff-add-number-text: rgba(var(--bit-rgb-accent-green-bright), 0.85);
 
   --bit-color-diff-del-bg: rgba(var(--bit-rgb-accent-red), 0.12);
   --bit-color-diff-del-number-bg: rgba(var(--bit-rgb-accent-red), 0.18);
@@ -178,8 +172,7 @@
     --bit-color-avatar-placeholder-border: var(--bit-color-paper-2);
 
     --bit-shadow-elevated:
-      0 25px 50px -12px rgba(var(--bit-rgb-shadow), 0.15),
-      0 0 0 1px rgba(var(--bit-rgb-fg), 0.05);
+      0 25px 50px -12px rgba(var(--bit-rgb-shadow), 0.15), 0 0 0 1px rgba(var(--bit-rgb-fg), 0.05);
 
     --bit-color-diff-add-text: #1a7f37;
     --bit-color-diff-del-text: #cf222e;
@@ -188,14 +181,8 @@
     --bit-color-diff-hunk-text: rgba(var(--bit-rgb-fg), 0.6);
 
     --bit-color-diff-add-bg: rgba(var(--bit-rgb-accent-green-bright), 0.1);
-    --bit-color-diff-add-number-bg: rgba(
-      var(--bit-rgb-accent-green-bright),
-      0.15
-    );
-    --bit-color-diff-add-number-text: rgba(
-      var(--bit-rgb-accent-green-bright),
-      0.9
-    );
+    --bit-color-diff-add-number-bg: rgba(var(--bit-rgb-accent-green-bright), 0.15);
+    --bit-color-diff-add-number-text: rgba(var(--bit-rgb-accent-green-bright), 0.9);
 
     --bit-color-diff-del-bg: rgba(var(--bit-rgb-accent-red), 0.1);
     --bit-color-diff-del-number-bg: rgba(var(--bit-rgb-accent-red), 0.15);

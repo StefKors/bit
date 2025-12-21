@@ -25,11 +25,7 @@ export function HomePage({ onLogout }: HomePageProps) {
         <div className={styles.header}>
           <div className={styles.avatarContainer}>
             {session.user.image ? (
-              <img
-                src={session.user.image}
-                alt={session.user.name}
-                className={styles.avatar}
-              />
+              <img src={session.user.image} alt={session.user.name} className={styles.avatar} />
             ) : (
               <div className={styles.avatarPlaceholder}>
                 {session.user.name?.charAt(0).toUpperCase() || "?"}

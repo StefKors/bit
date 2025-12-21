@@ -39,6 +39,7 @@ VITE_PUBLIC_ZERO_CACHE_URL=http://localhost:4848
 5. Copy the Client ID and Client Secret to your `.env` file
 
 **Required OAuth Scopes** (configured automatically):
+
 - `read:org` - List user's organizations
 - `repo` - Access repositories (including private) and pull requests
 - `read:user` - Basic user profile info
@@ -79,12 +80,12 @@ bun run dev
 
 ## Routes
 
-| Route | Description |
-|-------|-------------|
-| `/` | Overview page - list of organizations and repositories |
-| `/:owner/:repo` | Repository home page |
-| `/:owner/:repo/pulls` | Pull request list |
-| `/:owner/:repo/pull/:number` | Pull request detail view |
+| Route                        | Description                                            |
+| ---------------------------- | ------------------------------------------------------ |
+| `/`                          | Overview page - list of organizations and repositories |
+| `/:owner/:repo`              | Repository home page                                   |
+| `/:owner/:repo/pulls`        | Pull request list                                      |
+| `/:owner/:repo/pull/:number` | Pull request detail view                               |
 
 ## API Endpoints
 
