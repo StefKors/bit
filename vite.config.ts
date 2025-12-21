@@ -11,6 +11,7 @@ if (process.env.NODE_ENV === "development") {
 export default defineConfig({
   build: {
     target: "es2022",
+    cssCodeSplit: true,
   },
   optimizeDeps: {
     esbuildOptions: {
