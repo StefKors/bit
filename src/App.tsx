@@ -5,6 +5,7 @@ import { mutators } from "@/db/mutators"
 import { schema } from "@/db/schema"
 import "@/db/types" // Import to register DefaultTypes
 import { Layout } from "@/layout"
+import { LoadingCube } from "@/components/LoadingCube"
 import LoginPage from "@/pages/LoginPage"
 import { authClient } from "@/lib/auth"
 
@@ -50,16 +51,7 @@ function App({ userID: initialUserID }: AppProps) {
   if (isPending) {
     return (
       <Layout>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flex: 1,
-          }}
-        >
-          Loading...
-        </div>
+        <LoadingCube />
       </Layout>
     )
   }
@@ -81,7 +73,7 @@ function App({ userID: initialUserID }: AppProps) {
       }}
     >
       <Layout>
-        <Suspense fallback={<div></div>}>
+        <Suspense fallback={<LoadingCube />}>
           <Switch>
             <Route
               path="/"

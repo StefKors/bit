@@ -66,9 +66,6 @@
     "vercel": "^41.3.2",
     "vite": "^5.4.1"
   },
-  "overrides": {
-    "esbuild": "0.25.0"
-  },
   "pnpm": {
     "onlyBuiltDependencies": [
       "@rocicorp/zero-sqlite3"
@@ -76,6 +73,5 @@
   },
   "trustedDependencies": [
     "@rocicorp/zero-sqlite3"
-  ],
-  "_": "For some reason, sst requires esbuild 0.25.0 when deploying the permission deployer"
+  ]
 }
