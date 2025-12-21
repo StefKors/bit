@@ -5,7 +5,7 @@ export interface BreadcrumbItem {
   /** The label to display */
   label: string
   /** Optional href - if provided, renders as a link */
-  href: string
+  href?: string
 }
 
 interface BreadcrumbProps {
@@ -25,7 +25,9 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
           ) : (
             <span>{item.label}</span>
           )}
-          {index < items.length - 1 && <span className={styles.breadcrumbSeparator}>/</span>}
+          {index < items.length - 1 && (
+            <span className={styles.breadcrumbSeparator}>/</span>
+          )}
         </span>
       ))}
     </nav>

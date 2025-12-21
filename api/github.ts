@@ -439,7 +439,7 @@ export class GitHubClient {
     const files = filesResponse.data.map((file) => ({
       id: `${pr.id}:${file.sha}:${file.filename}`,
       pullRequestId: pr.id,
-      sha: file.sha,
+      sha: file.sha ?? "",
       filename: file.filename,
       status: file.status,
       additions: file.additions,
