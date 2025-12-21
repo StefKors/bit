@@ -389,7 +389,7 @@ async function handlePullRequestWebhook(
       })
   }
 
-  console.log(`Processed pull_request.${action} for ${repoFullName}#${pr.number}`)
+  console.log(`Processed pull_request.${action} for ${repoFullName}#${pr.number as number}`)
 }
 
 // Handle pull_request_review webhook events
@@ -440,7 +440,7 @@ async function handlePullRequestReviewWebhook(
       })
   }
 
-  console.log(`Processed pull_request_review for PR #${pr.number}`)
+  console.log(`Processed pull_request_review for PR #${pr.number as number}`)
 }
 
 // Handle comment webhook events

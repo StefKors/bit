@@ -35,7 +35,7 @@ export default defineConfig({
           if (!req.url?.startsWith("/api")) {
             return next()
           }
-          getRequestListener(async (request) => {
+          void getRequestListener(async (request) => {
             const { app } = await import("./api/index.js")
             return await app.fetch(request, {})
           })(req, res)

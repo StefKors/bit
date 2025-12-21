@@ -83,7 +83,7 @@ export function Markdown({ content, className }: MarkdownProps) {
       }
     }
 
-    render()
+    void render()
 
     return () => {
       cancelled = true
@@ -92,7 +92,9 @@ export function Markdown({ content, className }: MarkdownProps) {
 
   if (loading) {
     return (
-      <div className={`${styles.markdown} ${styles.loading} ${className ?? ""}`}>
+      <div
+        className={`${styles.markdown} ${styles.loading} ${className ?? ""}`}
+      >
         <div className={styles.skeleton} />
         <div className={styles.skeleton} style={{ width: "80%" }} />
         <div className={styles.skeleton} style={{ width: "60%" }} />
