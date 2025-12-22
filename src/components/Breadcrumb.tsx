@@ -1,4 +1,4 @@
-import { Link } from "wouter"
+import { Link } from "@tanstack/react-router"
 import styles from "./Breadcrumb.module.css"
 
 export interface BreadcrumbItem {
@@ -19,7 +19,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
       {items.map((item, index) => (
         <span key={index} className={styles.breadcrumbItem}>
           {item.href ? (
-            <Link href={item.href} className={styles.breadcrumbLink}>
+            <Link to={item.href} className={styles.breadcrumbLink}>
               {item.label}
             </Link>
           ) : (

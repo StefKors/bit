@@ -1,4 +1,4 @@
-import { useParams } from "wouter"
+import { createFileRoute } from "@tanstack/react-router"
 import { useQuery } from "@rocicorp/zero/react"
 import {
   FileDirectoryIcon,
@@ -11,23 +11,17 @@ import {
 import { queries } from "@/db/queries"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoCard } from "@/features/repo/RepoCard"
-import styles from "./OwnerPage.module.css"
+import styles from "@/pages/OwnerPage.module.css"
 
-export function OwnerPage() {
-  const params = useParams<{ owner: string }>()
-  const owner = params.owner || ""
+function OwnerPage() {
+  const { owner } = Route.useParams()
 
-  // Query org with repos in one go (will be undefined if owner is a user, not an org)
   const [org] = useQuery(queries.ownerWithRepos(owner))
-
-  // Fallback: query repos by owner if not an org
   const [userRepos] = useQuery(queries.reposByOwner(owner))
 
-  // Use org repos if available, otherwise user repos
   const repos = org?.githubRepo ?? userRepos
   const isOrg = Boolean(org)
 
-  // Count stats
   const totalStars = repos.reduce(
     (acc, repo) => acc + (repo.stargazersCount ?? 0),
     0,
@@ -60,7 +54,6 @@ export function OwnerPage() {
         items={[{ label: "Repositories", href: "/" }, { label: owner }]}
       />
 
-      {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           {org?.avatarUrl ? (
@@ -103,7 +96,6 @@ export function OwnerPage() {
         </div>
       </header>
 
-      {/* Repositories Grid */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>
           <RepoIcon className={styles.sectionIcon} size={20} />
@@ -118,3 +110,8 @@ export function OwnerPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute("/$owner/")({
+  component: OwnerPage,
+})
+

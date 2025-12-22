@@ -1,5 +1,5 @@
 import { useState, useCallback, type ReactNode } from "react"
-import { Link, useParams } from "wouter"
+import { Link, useParams } from "@tanstack/react-router"
 import { useQuery } from "@rocicorp/zero/react"
 import { FileDirectoryIcon } from "@primer/octicons-react"
 import { queries } from "@/db/queries"
@@ -21,7 +21,7 @@ interface RepoLayoutProps {
 }
 
 export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
-  const params = useParams<{ owner: string; repo: string }>()
+  const params = useParams({ strict: false }) as { owner?: string; repo?: string }
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -62,7 +62,7 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
           <h3 className={styles.emptyTitle}>Repository not found</h3>
           <p className={styles.emptyText}>
             This repository hasn't been synced yet.{" "}
-            <Link href="/">Go back to overview</Link> and sync your
+            <Link to="/">Go back to overview</Link> and sync your
             repositories.
           </p>
         </div>

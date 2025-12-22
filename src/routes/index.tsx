@@ -1,3 +1,4 @@
+import { createFileRoute } from "@tanstack/react-router"
 import { useState, useCallback } from "react"
 import { useQuery } from "@rocicorp/zero/react"
 import { ClockIcon, SyncIcon, SignOutIcon } from "@primer/octicons-react"
@@ -5,11 +6,7 @@ import { authClient } from "@/lib/auth"
 import { Button } from "@/components/Button"
 import { queries } from "@/db/queries"
 import { RepoSection } from "@/features/repo/RepoSection"
-import styles from "./OverviewPage.module.css"
-
-interface OverviewPageProps {
-  onLogout: () => void
-}
+import styles from "@/pages/OverviewPage.module.css"
 
 interface RateLimitInfo {
   remaining: number
@@ -17,23 +14,21 @@ interface RateLimitInfo {
   reset: Date
 }
 
-export function OverviewPage({ onLogout }: OverviewPageProps) {
+function OverviewPage() {
   const { data: session } = authClient.useSession()
   const [syncing, setSyncing] = useState(false)
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Query repos with their orgs in one go
   const [repos] = useQuery(queries.overview())
 
-  // Extract unique orgs from repos
   const orgs = repos
     .map((repo) => repo.githubOrganization)
     .filter((org): org is NonNullable<typeof org> => org !== null && org !== undefined)
     .filter((org, index, self) => self.findIndex((o) => o.id === org.id) === index)
 
-  // Get GitHub username from session (name is typically the GitHub login)
   const currentUserLogin = session?.user?.name
+
   const handleSync = useCallback(async () => {
     setSyncing(true)
     setError(null)
@@ -69,7 +64,7 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
 
   const handleSignOut = async () => {
     await authClient.signOut()
-    onLogout()
+    window.location.reload()
   }
 
   if (!session) {
@@ -141,7 +136,6 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
         </div>
       )}
 
-      {/* Repositories grouped by owner */}
       <RepoSection
         repos={repos}
         orgs={orgs}
@@ -150,3 +144,8 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
     </div>
   )
 }
+
+export const Route = createFileRoute("/")({
+  component: OverviewPage,
+})
+

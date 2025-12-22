@@ -1,4 +1,4 @@
-import { Link } from "wouter"
+import { Link } from "@tanstack/react-router"
 import type { Row } from "@rocicorp/zero"
 import { CommentIcon, CheckIcon } from "@primer/octicons-react"
 import styles from "./PRListItem.module.css"
@@ -62,7 +62,7 @@ export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
   const statusIndicators = getStatusIndicators(pr)
 
   return (
-    <Link href={`/${repoFullName}/pull/${pr.number}`} className={styles.prItem}>
+    <Link to={`/${repoFullName}/pull/${pr.number}`} className={styles.prItem}>
       {/* Left side content */}
       <div className={styles.prContent}>
         <h3 className={styles.prTitle}>

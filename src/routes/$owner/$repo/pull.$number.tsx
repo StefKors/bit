@@ -1,5 +1,5 @@
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { useState, useCallback } from "react"
-import { Link, useParams } from "wouter"
 import { useQuery } from "@rocicorp/zero/react"
 import {
   GitPullRequestIcon,
@@ -15,7 +15,7 @@ import { PRConversationTab } from "@/features/pr/PRConversationTab"
 import { PRFilesTab } from "@/features/pr/PRFilesTab"
 import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
 import { queries } from "@/db/queries"
-import styles from "./PRDetailPage.module.css"
+import styles from "@/pages/PRDetailPage.module.css"
 
 type TabType = "conversation" | "files"
 
@@ -44,23 +44,20 @@ function formatTimeAgo(date: Date | number | null | undefined): string {
   return d.toLocaleDateString()
 }
 
-export function PRDetailPage() {
-  const params = useParams<{ owner: string; repo: string; number: string }>()
+function PRDetailPage() {
+  const { owner, repo, number } = Route.useParams()
   const [activeTab, setActiveTab] = useState<TabType>("conversation")
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [diffOptions, setDiffOptions] =
-    useState<DiffOptions>(defaultDiffOptions)
+  const [diffOptions, setDiffOptions] = useState<DiffOptions>(defaultDiffOptions)
 
-  const owner = params.owner || ""
-  const repoName = params.repo || ""
-  const prNumber = parseInt(params.number || "0", 10)
+  const repoName = repo
+  const prNumber = parseInt(number, 10)
   const fullName = `${owner}/${repoName}`
 
-  // Query the repo
-  const [repo] = useQuery(queries.repoWithPRFull({ fullName, prNumber }))
+  const [repoData] = useQuery(queries.repoWithPRFull({ fullName, prNumber }))
 
-  const pr = repo?.githubPullRequest
+  const pr = repoData?.githubPullRequest
 
   const handleSync = useCallback(async () => {
     setSyncing(true)
@@ -98,21 +95,22 @@ export function PRDetailPage() {
     )
   }
 
-  if (!repo || !pr) {
+  if (!repoData || !pr) {
     return (
       <div className={styles.container}>
         <div className={styles.emptyState}>
           <GitPullRequestIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>Pull request not found</h3>
           <p className={styles.emptyText}>
-            <Link href={`/${fullName}/pulls`}>Go back to pull requests</Link>
+            <Link to="/$owner/$repo/pulls" params={{ owner, repo }}>
+              Go back to pull requests
+            </Link>
           </p>
         </div>
       </div>
     )
   }
 
-  // const labels = parseLabels(pr.labels)
   const isMerged = pr.merged
   const isClosed = pr.state === "closed"
   const isOpen = pr.state === "open"
@@ -120,7 +118,6 @@ export function PRDetailPage() {
 
   return (
     <div className={styles.container}>
-      {/* Breadcrumb */}
       <Breadcrumb
         items={[
           { label: "Repositories", href: "/" },
@@ -131,7 +128,6 @@ export function PRDetailPage() {
         ]}
       />
 
-      {/* Header */}
       <div className={styles.headerContainer}>
         <header className={styles.header}>
           <div className={styles.titleRow}>
@@ -154,15 +150,11 @@ export function PRDetailPage() {
                   Draft
                 </span>
               ) : isMerged ? (
-                <span
-                  className={`${styles.statusBadge} ${styles.statusMerged}`}
-                >
+                <span className={`${styles.statusBadge} ${styles.statusMerged}`}>
                   Merged
                 </span>
               ) : isClosed ? (
-                <span
-                  className={`${styles.statusBadge} ${styles.statusClosed}`}
-                >
+                <span className={`${styles.statusBadge} ${styles.statusClosed}`}>
                   Closed
                 </span>
               ) : (
@@ -200,23 +192,6 @@ export function PRDetailPage() {
                   : `closed ${formatTimeAgo(pr.closedAt)}`}
             </span>
           </div>
-
-          {/* {labels.length > 0 && (
-          <div className={styles.labels}>
-            {labels.map((label) => (
-              <span
-                key={label.name}
-                className={styles.label}
-                style={{
-                  backgroundColor: `#${label.color}`,
-                  color: getContrastColor(label.color),
-                }}
-              >
-                {label.name}
-              </span>
-            ))}
-          </div>
-        )} */}
         </header>
         <div className={styles.actions}>
           <Button
@@ -244,7 +219,6 @@ export function PRDetailPage() {
         </div>
       )}
 
-      {/* Tabs */}
       <Tabs
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as TabType)}
@@ -267,7 +241,6 @@ export function PRDetailPage() {
         }
       />
 
-      {/* Content */}
       <div className={styles.content}>
         {activeTab === "conversation" && (
           <PRConversationTab
@@ -294,3 +267,8 @@ export function PRDetailPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute("/$owner/$repo/pull/$number")({
+  component: PRDetailPage,
+})
+
