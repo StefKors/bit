@@ -9,6 +9,16 @@
 - each file should contain 1 main component. avoid creating multiple large components in the same file.
 - Prefer **1 `useQuery(...)` per page**. Expand all page data from a single root query via `.related(...)` instead of adding more `useQuery` calls in subcomponents/tabs.
 
+# TanStack Router
+
+- Links with dynamic parameters use the `params` prop:
+  ```tsx
+  <Link
+    to="/somewhere/$somewhereId"
+    params={{ somewhereId: 'baz' }}
+  />
+  ```
+
 # Zero (queries + mutations)
 
 - Queries live in `src/db/queries.ts` and should be composed using ZQL (`zql` from `src/db/schema.ts`) + `.related(...)`.

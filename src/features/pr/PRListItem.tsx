@@ -149,7 +149,15 @@ export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
   const prStatus = getPRStatus(pr)
 
   return (
-    <Link to={`/${repoFullName}/pull/${pr.number}`} className={styles.prItem}>
+    <Link
+      to="/$owner/$repo/pull/$number"
+      params={{
+        owner: repoFullName.split("/")[0],
+        repo: repoFullName.split("/")[1],
+        number: String(pr.number),
+      }}
+      className={styles.prItem}
+    >
       {/* Status icon */}
       <StatusIcon status={prStatus} />
 

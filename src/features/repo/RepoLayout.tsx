@@ -73,9 +73,9 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
     <div className={styles.container}>
       <Breadcrumb
         items={[
-          { label: "Repositories", href: "/" },
-          { label: owner, href: `/${owner}` },
-          { label: repoName, href: `/${owner}/${repoName}` },
+          { label: "Repositories", to: "/" },
+          { label: owner, to: "/$owner", params: { owner } },
+          { label: repoName, to: "/$owner/$repo", params: { owner, repo: repoName } },
         ]}
       />
 

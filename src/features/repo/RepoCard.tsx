@@ -33,7 +33,11 @@ interface RepoCardProps {
 
 export function RepoCard({ repo }: RepoCardProps) {
   return (
-    <Link to={`/${repo.fullName}`} className={styles.card}>
+    <Link
+      to="/$owner/$repo"
+      params={{ owner: repo.owner, repo: repo.name }}
+      className={styles.card}
+    >
       <div className={styles.cardHeader}>
         <div className={styles.cardContent}>
           <h3 className={styles.cardTitle}>

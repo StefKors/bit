@@ -117,11 +117,11 @@ function PRDetailPage() {
     <div className={styles.container}>
       <Breadcrumb
         items={[
-          { label: "Repositories", href: "/" },
-          { label: owner, href: `/${fullName}` },
-          { label: repoName, href: `/${fullName}` },
-          { label: "pull requests", href: `/${fullName}/pulls` },
-          { label: `#${prNumber}`, href: `/${fullName}/pull/${prNumber}` },
+          { label: "Repositories", to: "/" },
+          { label: owner, to: "/$owner", params: { owner } },
+          { label: repoName, to: "/$owner/$repo", params: { owner, repo: repoName } },
+          { label: "pull requests", to: "/$owner/$repo/pulls", params: { owner, repo: repoName } },
+          { label: `#${prNumber}` },
         ]}
       />
 
