@@ -23,10 +23,7 @@ export const RepoPullsTab = ({ prs, fullName }: RepoPullsTabProps) => {
   // Compute derived data
   const authors = useMemo(() => extractAuthors(prs), [prs])
   const labels = useMemo(() => extractLabels(prs), [prs])
-  const filteredPrs = useMemo(
-    () => applyFiltersAndSort(prs, filters),
-    [prs, filters],
-  )
+  const filteredPrs = useMemo(() => applyFiltersAndSort(prs, filters), [prs, filters])
 
   const hasActiveFilters =
     filters.status !== "all" ||
@@ -40,9 +37,7 @@ export const RepoPullsTab = ({ prs, fullName }: RepoPullsTabProps) => {
         <div className={styles.emptyState}>
           <GitPullRequestIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>No pull requests</h3>
-          <p className={styles.emptyText}>
-            No pull requests have been synced yet.
-          </p>
+          <p className={styles.emptyText}>No pull requests have been synced yet.</p>
         </div>
       </div>
     )

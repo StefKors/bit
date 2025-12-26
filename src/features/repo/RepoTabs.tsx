@@ -1,8 +1,4 @@
-import {
-  CodeIcon,
-  GitPullRequestIcon,
-  IssueOpenedIcon,
-} from "@primer/octicons-react"
+import { CodeIcon, GitPullRequestIcon, IssueOpenedIcon } from "@primer/octicons-react"
 import { Tabs } from "@/components/Tabs"
 import type { GithubPullRequest } from "@/db/schema"
 

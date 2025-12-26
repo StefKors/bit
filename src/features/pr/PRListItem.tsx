@@ -20,11 +20,7 @@ interface PRListItemProps {
 }
 
 // Status indicator component for CI/check status
-function StatusDot({
-  status,
-}: {
-  status: "success" | "failure" | "pending" | "warning"
-}) {
+function StatusDot({ status }: { status: "success" | "failure" | "pending" | "warning" }) {
   const colors = {
     success: "#3fb950",
     failure: "#f85149",
@@ -33,11 +29,7 @@ function StatusDot({
   }
 
   return (
-    <span
-      className={styles.statusDot}
-      style={{ backgroundColor: colors[status] }}
-      title={status}
-    />
+    <span className={styles.statusDot} style={{ backgroundColor: colors[status] }} title={status} />
   )
 }
 
@@ -67,8 +59,48 @@ function getStatusIndicators(pr: {
 function formatDate(date: Date | number | null | undefined): string {
   if (!date) return ""
   const d = typeof date === "number" ? new Date(date) : date
+  const now = new Date()
+  const diffMs = now.getTime() - d.getTime()
+  const diffMinutes = Math.floor(diffMs / (1000 * 60))
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+
+  // Check if same day
+  const isToday =
+    d.getDate() === now.getDate() &&
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear()
+
+  if (isToday) {
+    if (diffMinutes < 1) return "just now"
+    if (diffMinutes < 60) return `${diffMinutes}m ago`
+    return `${diffHours}h ago`
+  }
+
+  // Check if yesterday
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  const isYesterday =
+    d.getDate() === yesterday.getDate() &&
+    d.getMonth() === yesterday.getMonth() &&
+    d.getFullYear() === yesterday.getFullYear()
+
+  if (isYesterday) {
+    return "yesterday"
+  }
+
+  // Check if same year
+  const isSameYear = d.getFullYear() === now.getFullYear()
+
+  if (isSameYear) {
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    })
+  }
+
   return d.toLocaleDateString("en-US", {
     month: "short",
+    day: "numeric",
     year: "numeric",
   })
 }
@@ -89,16 +121,20 @@ const getPRStatus = (pr: {
 const StatusIcon = ({ status }: { status: PRStatus }) => {
   switch (status) {
     case "merged":
-      return (
-        <GitMergeIcon size={16} className={`${styles.statusIcon} ${styles.statusMerged}`} />
-      )
+      return <GitMergeIcon size={16} className={`${styles.statusIcon} ${styles.statusMerged}`} />
     case "closed":
       return (
-        <GitPullRequestClosedIcon size={16} className={`${styles.statusIcon} ${styles.statusClosed}`} />
+        <GitPullRequestClosedIcon
+          size={16}
+          className={`${styles.statusIcon} ${styles.statusClosed}`}
+        />
       )
     case "draft":
       return (
-        <GitPullRequestDraftIcon size={16} className={`${styles.statusIcon} ${styles.statusDraft}`} />
+        <GitPullRequestDraftIcon
+          size={16}
+          className={`${styles.statusIcon} ${styles.statusDraft}`}
+        />
       )
     default:
       return (
@@ -126,9 +162,7 @@ export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
 
         <div className={styles.prMeta}>
           <Avatar src={pr.authorAvatarUrl} name={pr.authorLogin} size={16} />
-          {pr.authorLogin && (
-            <span className={styles.authorName}>{pr.authorLogin}</span>
-          )}
+          {pr.authorLogin && <span className={styles.authorName}>{pr.authorLogin}</span>}
           <span className={styles.prPath}>
             {repoFullName}/{pr.number}
           </span>

@@ -64,13 +64,10 @@ function PRDetailPage() {
     setError(null)
 
     try {
-      const response = await fetch(
-        `/api/github/sync/${owner}/${repoName}/pull/${prNumber}`,
-        {
-          method: "POST",
-          credentials: "include",
-        },
-      )
+      const response = await fetch(`/api/github/sync/${owner}/${repoName}/pull/${prNumber}`, {
+        method: "POST",
+        credentials: "include",
+      })
 
       const data = (await response.json()) as { error?: string }
 
@@ -132,10 +129,7 @@ function PRDetailPage() {
         <header className={styles.header}>
           <div className={styles.titleRow}>
             {isMerged ? (
-              <GitMergeIcon
-                className={`${styles.prIcon} ${styles.prIconMerged}`}
-                size={24}
-              />
+              <GitMergeIcon className={`${styles.prIcon} ${styles.prIconMerged}`} size={24} />
             ) : (
               <GitPullRequestIcon
                 className={`${styles.prIcon} ${isClosed ? styles.prIconClosed : styles.prIconOpen}`}
@@ -146,21 +140,13 @@ function PRDetailPage() {
               {pr.title}
               <span className={styles.prNumber}> #{pr.number}</span>
               {isDraft ? (
-                <span className={`${styles.statusBadge} ${styles.statusDraft}`}>
-                  Draft
-                </span>
+                <span className={`${styles.statusBadge} ${styles.statusDraft}`}>Draft</span>
               ) : isMerged ? (
-                <span className={`${styles.statusBadge} ${styles.statusMerged}`}>
-                  Merged
-                </span>
+                <span className={`${styles.statusBadge} ${styles.statusMerged}`}>Merged</span>
               ) : isClosed ? (
-                <span className={`${styles.statusBadge} ${styles.statusClosed}`}>
-                  Closed
-                </span>
+                <span className={`${styles.statusBadge} ${styles.statusClosed}`}>Closed</span>
               ) : (
-                <span className={`${styles.statusBadge} ${styles.statusOpen}`}>
-                  Open
-                </span>
+                <span className={`${styles.statusBadge} ${styles.statusOpen}`}>Open</span>
               )}
             </h1>
           </div>
@@ -271,4 +257,3 @@ function PRDetailPage() {
 export const Route = createFileRoute("/$owner/$repo/pull/$number")({
   component: PRDetailPage,
 })
-

@@ -32,10 +32,7 @@ export const PRFiltersBar = ({
   labels,
   hasActiveFilters,
 }: PRFiltersBarProps) => {
-  const updateFilter = <K extends keyof PRFilters>(
-    key: K,
-    value: PRFilters[K],
-  ) => {
+  const updateFilter = <K extends keyof PRFilters>(key: K, value: PRFilters[K]) => {
     onFiltersChange({ ...filters, [key]: value })
   }
 
@@ -51,10 +48,7 @@ export const PRFiltersBar = ({
   }
 
   const toggleSortDirection = () => {
-    updateFilter(
-      "sortDirection",
-      filters.sortDirection === "desc" ? "asc" : "desc",
-    )
+    updateFilter("sortDirection", filters.sortDirection === "desc" ? "asc" : "desc")
   }
 
   return (
@@ -64,10 +58,7 @@ export const PRFiltersBar = ({
 
         <FilterDropdown
           label="Status"
-          value={
-            STATUS_OPTIONS.find((o) => o.value === filters.status)?.label ??
-            "All"
-          }
+          value={STATUS_OPTIONS.find((o) => o.value === filters.status)?.label ?? "All"}
           isActive={filters.status !== "all"}
         >
           {STATUS_OPTIONS.map((option) => (
@@ -110,11 +101,7 @@ export const PRFiltersBar = ({
         {labels.length > 0 && (
           <FilterDropdown
             label="Labels"
-            value={
-              filters.labels.length > 0
-                ? `${filters.labels.length} selected`
-                : "Any"
-            }
+            value={filters.labels.length > 0 ? `${filters.labels.length} selected` : "Any"}
             isActive={filters.labels.length > 0}
           >
             {labels.map((label) => (
@@ -135,9 +122,7 @@ export const PRFiltersBar = ({
 
         <FilterDropdown
           label="Type"
-          value={
-            DRAFT_OPTIONS.find((o) => o.value === filters.draft)?.label ?? "All"
-          }
+          value={DRAFT_OPTIONS.find((o) => o.value === filters.draft)?.label ?? "All"}
           isActive={filters.draft !== "all"}
         >
           {DRAFT_OPTIONS.map((option) => (
@@ -152,11 +137,7 @@ export const PRFiltersBar = ({
         </FilterDropdown>
 
         {hasActiveFilters && (
-          <button
-            className={styles.clearButton}
-            onClick={clearFilters}
-            title="Clear all filters"
-          >
+          <button className={styles.clearButton} onClick={clearFilters} title="Clear all filters">
             <XIcon size={14} />
             Clear
           </button>
@@ -166,10 +147,7 @@ export const PRFiltersBar = ({
       <div className={styles.sortGroup}>
         <FilterDropdown
           label="Sort"
-          value={
-            SORT_OPTIONS.find((o) => o.value === filters.sortBy)?.label ??
-            "Recently updated"
-          }
+          value={SORT_OPTIONS.find((o) => o.value === filters.sortBy)?.label ?? "Recently updated"}
           isActive={false}
         >
           {SORT_OPTIONS.map((option) => (
@@ -186,11 +164,7 @@ export const PRFiltersBar = ({
         <button
           className={styles.sortDirectionButton}
           onClick={toggleSortDirection}
-          title={
-            filters.sortDirection === "desc"
-              ? "Sort descending"
-              : "Sort ascending"
-          }
+          title={filters.sortDirection === "desc" ? "Sort descending" : "Sort ascending"}
         >
           {filters.sortDirection === "desc" ? (
             <SortDescIcon size={16} />
@@ -210,16 +184,9 @@ interface FilterDropdownProps {
   children: React.ReactNode
 }
 
-const FilterDropdown = ({
-  label,
-  value,
-  isActive,
-  children,
-}: FilterDropdownProps) => (
+const FilterDropdown = ({ label, value, isActive, children }: FilterDropdownProps) => (
   <Menu.Root>
-    <Menu.Trigger
-      className={`${styles.filterTrigger} ${isActive ? styles.filterActive : ""}`}
-    >
+    <Menu.Trigger className={`${styles.filterTrigger} ${isActive ? styles.filterActive : ""}`}>
       <span className={styles.filterLabel}>{label}:</span>
       <span className={styles.filterValue}>{value}</span>
       <ChevronDownIcon size={12} className={styles.chevron} />
@@ -238,17 +205,8 @@ interface FilterMenuItemProps {
   children: React.ReactNode
 }
 
-const FilterMenuItem = ({
-  selected,
-  onClick,
-  children,
-}: FilterMenuItemProps) => (
-  <Menu.Item
-    className={styles.menuItem}
-    data-selected={selected || undefined}
-    onClick={onClick}
-  >
+const FilterMenuItem = ({ selected, onClick, children }: FilterMenuItemProps) => (
+  <Menu.Item className={styles.menuItem} data-selected={selected || undefined} onClick={onClick}>
     {children}
   </Menu.Item>
 )
-

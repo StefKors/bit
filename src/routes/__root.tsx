@@ -56,4 +56,3 @@ function RootComponent() {
 export const Route = createRootRoute({
   component: RootComponent,
 })
-

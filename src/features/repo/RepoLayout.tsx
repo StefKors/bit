@@ -61,9 +61,8 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
           <FileDirectoryIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>Repository not found</h3>
           <p className={styles.emptyText}>
-            This repository hasn't been synced yet.{" "}
-            <Link to="/">Go back to overview</Link> and sync your
-            repositories.
+            This repository hasn't been synced yet. <Link to="/">Go back to overview</Link> and sync
+            your repositories.
           </p>
         </div>
       </div>
