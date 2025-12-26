@@ -21,7 +21,7 @@ interface RepoLayoutProps {
 }
 
 export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
-  const params = useParams({ strict: false }) as { owner?: string; repo?: string }
+  const params = useParams({ strict: false })
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

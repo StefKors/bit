@@ -14,6 +14,7 @@
     "lint": "bun run lint:tsc && bun run lint:eslint",
     "lint:tsc": "tsc -b --noEmit",
     "lint:eslint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",

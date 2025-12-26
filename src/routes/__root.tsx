@@ -1,4 +1,4 @@
-import { createRootRoute, Outlet, redirect } from "@tanstack/react-router"
+import { createRootRoute, Outlet } from "@tanstack/react-router"
 import { ZeroProvider } from "@rocicorp/zero/react"
 import { useState } from "react"
 import { mutators } from "@/db/mutators"
