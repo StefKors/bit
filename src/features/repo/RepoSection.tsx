@@ -1,10 +1,6 @@
 import { useMemo } from "react"
 import { Link } from "@tanstack/react-router"
-import {
-  FileDirectoryIcon,
-  OrganizationIcon,
-  PersonIcon,
-} from "@primer/octicons-react"
+import { FileDirectoryIcon, OrganizationIcon, PersonIcon } from "@primer/octicons-react"
 import type { Repo, Organization } from "./types"
 import { RepoCard } from "./RepoCard"
 import styles from "./RepoSection.module.css"
@@ -23,11 +19,7 @@ interface OwnerGroup {
   repos: Repo[]
 }
 
-export function RepoSection({
-  repos,
-  orgs,
-  currentUserLogin,
-}: RepoSectionProps) {
+export function RepoSection({ repos, orgs, currentUserLogin }: RepoSectionProps) {
   // Group repos by owner
   const groupedRepos = useMemo(() => {
     const groups = new Map<string, OwnerGroup>()
@@ -39,8 +31,7 @@ export function RepoSection({
       const owner = repo.owner
       if (!groups.has(owner)) {
         const isOrg = orgMap.has(owner)
-        const isCurrentUser =
-          currentUserLogin?.toLowerCase() === owner.toLowerCase()
+        const isCurrentUser = currentUserLogin?.toLowerCase() === owner.toLowerCase()
 
         groups.set(owner, {
           owner,
@@ -79,11 +70,7 @@ export function RepoSection({
     <div className={styles.container}>
       {groupedRepos.map((group) => (
         <section key={group.owner} className={styles.section}>
-          <Link
-            to="/$owner"
-            params={{ owner: group.owner }}
-            className={styles.sectionHeader}
-          >
+          <Link to="/$owner" params={{ owner: group.owner }} className={styles.sectionHeader}>
             {group.avatarUrl ? (
               <img
                 src={group.avatarUrl}
@@ -94,19 +81,13 @@ export function RepoSection({
               <div
                 className={`${styles.ownerAvatarPlaceholder} ${group.isOrg ? styles.ownerAvatarPlaceholderOrg : styles.ownerAvatarPlaceholderUser}`}
               >
-                {group.isOrg ? (
-                  <OrganizationIcon size={16} />
-                ) : (
-                  <PersonIcon size={16} />
-                )}
+                {group.isOrg ? <OrganizationIcon size={16} /> : <PersonIcon size={16} />}
               </div>
             )}
             <h2 className={styles.sectionTitle}>
               {group.owner}
               {group.isCurrentUser && <span className={styles.badge}>you</span>}
-              {group.isOrg && !group.isCurrentUser && (
-                <span className={styles.orgBadge}>org</span>
-              )}
+              {group.isOrg && !group.isCurrentUser && <span className={styles.orgBadge}>org</span>}
             </h2>
             <span className={styles.repoCount}>{group.repos.length}</span>
           </Link>
