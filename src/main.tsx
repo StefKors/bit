@@ -1,20 +1,20 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
-import App from "@/App"
+import { RouterProvider, createRouter } from "@tanstack/react-router"
+import { routeTree } from "./routeTree.gen"
 import "@/theme.css"
 import "@/index.css"
-import { authClient } from "@/lib/auth"
 
-async function init() {
-  // Try to get the session from Better Auth
-  const session = await authClient.getSession()
-  const userID = session?.data?.user?.id ?? null
+const router = createRouter({ routeTree })
 
-  createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-      <App userID={userID} />
-    </StrictMode>,
-  )
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router
+  }
 }
 
-void init()
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <RouterProvider router={router} />
+  </StrictMode>,
+)

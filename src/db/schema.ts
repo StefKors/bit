@@ -1007,6 +1007,114 @@ const userTable = {
   },
   primaryKey: ["id"],
 } as const
+const githubOrganizationRelationships = {
+  githubRepo: [
+    {
+      sourceField: ["id"],
+      destField: ["organizationId"],
+      destSchema: "githubRepo",
+      cardinality: "many",
+    },
+  ],
+} as const
+const githubPrCommentRelationships = {
+  githubPullRequest: [
+    {
+      sourceField: ["pullRequestId"],
+      destField: ["id"],
+      destSchema: "githubPullRequest",
+      cardinality: "one",
+    },
+  ],
+  githubPrReview: [
+    {
+      sourceField: ["reviewId"],
+      destField: ["id"],
+      destSchema: "githubPrReview",
+      cardinality: "one",
+    },
+  ],
+} as const
+const githubPrFileRelationships = {
+  githubPullRequest: [
+    {
+      sourceField: ["pullRequestId"],
+      destField: ["id"],
+      destSchema: "githubPullRequest",
+      cardinality: "one",
+    },
+  ],
+} as const
+const githubPrReviewRelationships = {
+  githubPullRequest: [
+    {
+      sourceField: ["pullRequestId"],
+      destField: ["id"],
+      destSchema: "githubPullRequest",
+      cardinality: "one",
+    },
+  ],
+  githubPrComment: [
+    {
+      sourceField: ["id"],
+      destField: ["reviewId"],
+      destSchema: "githubPrComment",
+      cardinality: "many",
+    },
+  ],
+} as const
+const githubPullRequestRelationships = {
+  githubRepo: [
+    {
+      sourceField: ["repoId"],
+      destField: ["id"],
+      destSchema: "githubRepo",
+      cardinality: "one",
+    },
+  ],
+  githubPrFile: [
+    {
+      sourceField: ["id"],
+      destField: ["pullRequestId"],
+      destSchema: "githubPrFile",
+      cardinality: "many",
+    },
+  ],
+  githubPrReview: [
+    {
+      sourceField: ["id"],
+      destField: ["pullRequestId"],
+      destSchema: "githubPrReview",
+      cardinality: "many",
+    },
+  ],
+  githubPrComment: [
+    {
+      sourceField: ["id"],
+      destField: ["pullRequestId"],
+      destSchema: "githubPrComment",
+      cardinality: "many",
+    },
+  ],
+} as const
+const githubRepoRelationships = {
+  githubOrganization: [
+    {
+      sourceField: ["organizationId"],
+      destField: ["id"],
+      destSchema: "githubOrganization",
+      cardinality: "one",
+    },
+  ],
+  githubPullRequest: [
+    {
+      sourceField: ["id"],
+      destField: ["repoId"],
+      destSchema: "githubPullRequest",
+      cardinality: "many",
+    },
+  ],
+} as const
 /**
  * The Zero schema object.
  * This type is auto-generated from your Drizzle schema definition.
@@ -1026,7 +1134,14 @@ export const schema = {
     githubSyncState: githubSyncStateTable,
     user: userTable,
   },
-  relationships: {},
+  relationships: {
+    githubOrganization: githubOrganizationRelationships,
+    githubPrComment: githubPrCommentRelationships,
+    githubPrFile: githubPrFileRelationships,
+    githubPrReview: githubPrReviewRelationships,
+    githubPullRequest: githubPullRequestRelationships,
+    githubRepo: githubRepoRelationships,
+  },
   enableLegacyQueries: false,
   enableLegacyMutators: false,
 } as const

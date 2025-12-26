@@ -52,41 +52,6 @@
   margin: 0 auto 1rem;
 }
 
-.avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid rgba(var(--bit-rgb-accent-green), 0.5);
-  box-shadow: var(--bit-shadow-md);
-}
-
-.avatarPlaceholder {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: var(--bit-gradient-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--bit-color-paper);
-  border: 3px solid var(--bit-color-avatar-placeholder-border);
-}
-
-.onlineIndicator {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  width: 16px;
-  height: 16px;
-  background: var(--bit-color-accent-green);
-  border-radius: 50%;
-  border: 3px solid var(--bit-color-avatar-outline);
-  box-shadow: var(--bit-shadow-glow-success);
-}
-
 .title {
   font-size: 1.75rem;
   font-weight: 700;

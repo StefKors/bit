@@ -6,6 +6,7 @@ import { Button } from "@/components/Button"
 import { Markdown } from "@/components/Markdown"
 import styles from "./DiffViewer.module.css"
 import type { DiffOptions } from "./DiffOptionsBar"
+import { Avatar } from "@/components/Avatar"
 
 type Comment = Row["githubPrComment"]
 
@@ -56,17 +57,9 @@ const CommentThread = ({ comments }: { comments: Comment[] }) => {
       {comments.map((comment) => (
         <div key={comment.id} className={styles.comment}>
           <div className={styles.commentHeader}>
-            {comment.authorAvatarUrl && (
-              <img
-                src={comment.authorAvatarUrl}
-                alt={comment.authorLogin ?? ""}
-                className={styles.commentAvatar}
-              />
-            )}
+            <Avatar src={comment.authorAvatarUrl} name={comment.authorLogin} size={20} />
             <span className={styles.commentAuthor}>{comment.authorLogin}</span>
-            <span className={styles.commentTime}>
-              {formatTimeAgo(comment.githubCreatedAt)}
-            </span>
+            <span className={styles.commentTime}>{formatTimeAgo(comment.githubCreatedAt)}</span>
           </div>
           <div className={styles.commentBody}>
             <Markdown content={comment.body ?? ""} />
@@ -90,10 +83,7 @@ export const DiffViewer = ({
     [comments, filename],
   )
 
-  const commentsByLine = useMemo(
-    () => groupCommentsByLine(fileComments),
-    [fileComments],
-  )
+  const commentsByLine = useMemo(() => groupCommentsByLine(fileComments), [fileComments])
 
   // Build annotations from comments
   const lineAnnotations = useMemo(() => {
@@ -154,9 +144,7 @@ ${patch}`
                   const result = getHoveredLine()
                   if (!result) return
                   const { lineNumber, side } = result
-                  console.log(
-                    `Add comment on line ${lineNumber} (${side}) of ${filename}`,
-                  )
+                  console.log(`Add comment on line ${lineNumber} (${side}) of ${filename}`)
                   // TODO: Open comment form
                 }}
               >

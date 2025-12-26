@@ -1,7 +1,7 @@
-import { useQuery } from "@rocicorp/zero/react"
 import { Markdown } from "@/components/Markdown"
-import { queries } from "@/db/queries"
+import type { GithubPrReview, GithubPrComment } from "@/db/schema"
 import styles from "./PRConversationTab.module.css"
+import { Avatar } from "@/components/Avatar"
 
 interface TimelineItem {
   type: "comment" | "review"
@@ -19,23 +19,22 @@ interface PRAuthor {
 }
 
 interface PRConversationTabProps {
-  prId: string
   prBody: string | null
   prAuthor: PRAuthor
   prCreatedAt: Date | number | null
+  reviews: readonly GithubPrReview[]
+  comments: readonly GithubPrComment[]
   formatTimeAgo: (date: Date | number | null | undefined) => string
 }
 
 export function PRConversationTab({
-  prId,
   prBody,
   prAuthor,
   prCreatedAt,
+  reviews,
+  comments,
   formatTimeAgo,
 }: PRConversationTabProps) {
-  const [reviews] = useQuery(queries.reviews(prId))
-  const [comments] = useQuery(queries.comments(prId))
-
   // Combine and sort timeline items
   const timelineItems: TimelineItem[] = []
 
@@ -99,9 +98,7 @@ export function PRConversationTab({
               {item.type === "review" && item.reviewState && (
                 <ReviewStateBadge state={item.reviewState} />
               )}
-              <span className={styles.timelineTime}>
-                {formatTimeAgo(item.createdAt)}
-              </span>
+              <span className={styles.timelineTime}>{formatTimeAgo(item.createdAt)}</span>
             </>
           }
           body={item.body}
@@ -134,15 +131,7 @@ function TimelineItemComponent({
 }: TimelineItemComponentProps) {
   return (
     <div className={styles.timelineItem}>
-      {avatarUrl ? (
-        <img
-          src={avatarUrl}
-          alt={authorLogin || "Author"}
-          className={styles.timelineAvatar}
-        />
-      ) : (
-        <div className={styles.timelineAvatarPlaceholder} />
-      )}
+      <Avatar src={avatarUrl} name={authorLogin} size={40} />
       <div className={styles.timelineContent}>
         <div className={styles.timelineHeader}>
           <span className={styles.timelineAuthor}>{authorLogin}</span>
@@ -183,9 +172,5 @@ function ReviewStateBadge({ state }: { state: string }) {
     }
   }
 
-  return (
-    <span className={`${styles.reviewState} ${getClassName()}`}>
-      {getLabel()}
-    </span>
-  )
+  return <span className={`${styles.reviewState} ${getClassName()}`}>{getLabel()}</span>
 }

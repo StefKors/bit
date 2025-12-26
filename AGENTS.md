@@ -1,11 +1,40 @@
 # React
+
 - Prefer arrow functions.
 - Make separate components when mapping data.
 - Find reusable code and make components from them.
 - Reuse existing components
 - Use css modules
+- Use queries with related over doing multiple fetches
+- each file should contain 1 main component. avoid creating multiple large components in the same file.
+- Prefer **1 `useQuery(...)` per page**. Expand all page data from a single root query via `.related(...)` instead of adding more `useQuery` calls in subcomponents/tabs.
+
+# TanStack Router
+
+- Links with dynamic parameters use the `params` prop:
+  ```tsx
+  <Link
+    to="/somewhere/$somewhereId"
+    params={{ somewhereId: 'baz' }}
+  />
+  ```
+
+# Zero (queries + mutations)
+
+- Queries live in `src/db/queries.ts` and should be composed using ZQL (`zql` from `src/db/schema.ts`) + `.related(...)`.
+- `.related(...)` only works once the generated Zero schema has relationships.
+  - Right now `src/db/schema.ts` has `relationships: {}`.
+  - Add Drizzle `relations(...)` in the root `schema.ts`, then regenerate: `npm run generate-zero-schema`.
+- Prefer `.one()` for detail pages (repo detail, PR detail) and do ordering/filtering inside the query.
+
+- Mutators live in `src/db/mutators.ts`.
+  - Define with `defineMutators(...)` + `defineMutator(...)` and validate args with Zod.
+  - Write using `tx.mutate.<table>.<insert|upsert|update|delete>(...)` and use `ctx.userID` for authz.
+  - This repo has `schema.enableLegacyMutators = false`, so call custom mutators like:
+    - `const zero = useZero(); await zero.mutate(mutators.foo.bar(args))`
 
 # CSS
+
 - Use CSS variables from `theme.css`
 
 # react
@@ -56,7 +85,8 @@ these usually have a initialValue or defaultValue to programmatically set the in
 
 when using these components you SHOULD not track their state via React: instead you should programmatically set their value and read their value via refs in event handlers
 
-tracking uncontrolled inputs via React state means that you will need to add useEffect to programmatically change their value when our state changes. this is an anti pattern. instead you MUST keep in mind the uncontrolled input manages its own state and we interface with it via refs and initialValue prop. 
+tracking uncontrolled inputs via React state means that you will need to add useEffect to programmatically change their value when our state changes. this is an anti pattern. instead you MUST keep in mind the uncontrolled input manages its own state and we interface with it via refs and initialValue prop.
 
 using React state in these cases is only necessary if you have to show the input value during render. if that is not the case you can just use `inputRef.current.value` instead and set the value via `inputRef.current.value = something`
-****
+
+---

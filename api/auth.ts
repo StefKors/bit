@@ -11,7 +11,6 @@ const pool = new Pool({
 const db = drizzle(pool, { schema })
 
 export const auth = betterAuth({
-  baseURL: "http://localhost:5173",
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
@@ -22,12 +21,12 @@ export const auth = betterAuth({
       verification: schema.authVerification,
     },
   }),
-  trustedOrigins: ["http://localhost:5173"],
+  trustedOrigins: [process.env.BASE_URL!, "https://bitbitbit.netlify.app"],
   socialProviders: {
     github: {
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-      redirectURI: "http://localhost:5173/api/auth/callback/github",
+      redirectURI: `${process.env.BASE_URL}/api/auth/callback/github`,
       // Required scopes for GitHub integration:
       // - read:org: list user's organizations
       // - repo: access repositories (including private) and pull requests

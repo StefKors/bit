@@ -1,5 +1,5 @@
 import { useState, useCallback, type ReactNode } from "react"
-import { Link, useParams } from "wouter"
+import { Link, useParams } from "@tanstack/react-router"
 import { useQuery } from "@rocicorp/zero/react"
 import { FileDirectoryIcon } from "@primer/octicons-react"
 import { queries } from "@/db/queries"
@@ -7,16 +7,21 @@ import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoHeader } from "./RepoHeader"
 import { RepoTabs } from "./RepoTabs"
 import styles from "./RepoLayout.module.css"
+import type { GithubRepo, GithubPullRequest } from "@/db/schema"
 
 type TabType = "code" | "pulls" | "issues"
 
+export interface RepoData extends GithubRepo {
+  githubPullRequest: readonly GithubPullRequest[]
+}
+
 interface RepoLayoutProps {
   activeTab: TabType
-  children: ReactNode
+  children: ReactNode | ((repo: RepoData) => ReactNode)
 }
 
 export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
-  const params = useParams<{ owner: string; repo: string }>()
+  const params = useParams({ strict: false })
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -24,8 +29,8 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
   const repoName = params.repo || ""
   const fullName = `${owner}/${repoName}`
 
-  // Query the repo from Zero
-  const [repo] = useQuery(queries.repo(fullName))
+  // Query the repo with PRs in one go
+  const [repo] = useQuery(queries.repoWithPRs(fullName))
 
   const handleSync = useCallback(async () => {
     setSyncing(true)
@@ -56,9 +61,8 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
           <FileDirectoryIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>Repository not found</h3>
           <p className={styles.emptyText}>
-            This repository hasn't been synced yet.{" "}
-            <Link href="/">Go back to overview</Link> and sync your
-            repositories.
+            This repository hasn't been synced yet. <Link to="/">Go back to overview</Link> and sync
+            your repositories.
           </p>
         </div>
       </div>
@@ -69,9 +73,9 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
     <div className={styles.container}>
       <Breadcrumb
         items={[
-          { label: "Repositories", href: "/" },
-          { label: owner, href: `/${owner}` },
-          { label: repoName, href: `/${owner}/${repoName}` },
+          { label: "Repositories", to: "/" },
+          { label: owner, to: "/$owner", params: { owner } },
+          { label: repoName, to: "/$owner/$repo", params: { owner, repo: repoName } },
         ]}
       />
 
@@ -79,9 +83,11 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
 
       {error && <div className={styles.error}>{error}</div>}
 
-      <RepoTabs repoId={repo.id} fullName={fullName} activeTab={activeTab} />
+      <RepoTabs prs={repo.githubPullRequest} fullName={fullName} activeTab={activeTab} />
 
-      <div className={styles.content}>{children}</div>
+      <div className={styles.content}>
+        {typeof children === "function" ? children(repo as RepoData) : children}
+      </div>
     </div>
   )
 }

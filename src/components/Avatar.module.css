@@ -1,0 +1,40 @@
+.avatarContainer {
+  position: relative;
+}
+
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: var(--bit-shadow-md);
+  color: transparent;
+}
+
+.avatarPlaceholder {
+  border-radius: 50%;
+  background: var(--bit-color-panel-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--bit-color-paper);
+  border: 3 px solid var(--bit-color-avatar-placeholder-border);
+}
+
+.onlineIndicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 30%;
+  height: 30%;
+  background: var(--bit-color-accent-green);
+  border-radius: 50%;
+  box-shadow: var(--bit-shadow-glow-success);
+}
+
+.personIcon {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1/1;
+  padding: 20%;
+}

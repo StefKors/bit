@@ -1,17 +1,20 @@
+import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
 import { useQuery } from "@rocicorp/zero/react"
-import { ClockIcon, SyncIcon, SignOutIcon, GitPullRequestIcon } from "@primer/octicons-react"
+import {
+  ClockIcon,
+  SyncIcon,
+  SignOutIcon,
+  GitPullRequestIcon,
+} from "@primer/octicons-react"
 import { authClient } from "@/lib/auth"
 import { Button } from "@/components/Button"
 import { queries } from "@/db/queries"
 import { RepoSection } from "@/features/repo/RepoSection"
 import type { PullRequestLike } from "@/features/pr/PRListItem"
 import { PRListItem } from "@/features/pr/PRListItem"
-import styles from "./OverviewPage.module.css"
-
-interface OverviewPageProps {
-  onLogout: () => void
-}
+import styles from "@/pages/OverviewPage.module.css"
+import { Avatar } from "@/components/Avatar"
 
 interface RateLimitInfo {
   remaining: number
@@ -19,7 +22,7 @@ interface RateLimitInfo {
   reset: Date
 }
 
-export function OverviewPage({ onLogout }: OverviewPageProps) {
+function OverviewPage() {
   const { data: session } = authClient.useSession()
   const [syncing, setSyncing] = useState(false)
   const [loadingPRs, setLoadingPRs] = useState(false)
@@ -30,11 +33,18 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
   } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Query repos and orgs from Zero
-  const [repos] = useQuery(queries.repos())
-  const [orgs] = useQuery(queries.orgs())
+  const [repos] = useQuery(queries.overview())
 
-  // Get GitHub username from session (name is typically the GitHub login)
+  const orgs = repos
+    .map((repo) => repo.githubOrganization)
+    .filter(
+      (org): org is NonNullable<typeof org> =>
+        org !== null && org !== undefined,
+    )
+    .filter(
+      (org, index, self) => self.findIndex((o) => o.id === org.id) === index,
+    )
+
   const currentUserLogin = session?.user?.name
 
   const handleSync = async () => {
@@ -120,11 +130,11 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
           }
         | { error?: string }
 
-      if (!response.ok) {
+      if (!response.ok || !("authored" in data)) {
         throw new Error(("error" in data && data.error) || "Failed to load PRs")
       }
 
-      if ("rateLimit" in data && data.rateLimit) {
+      if (data.rateLimit) {
         setRateLimit({
           remaining: data.rateLimit.remaining,
           limit: data.rateLimit.limit,
@@ -145,8 +155,12 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
           authorAvatarUrl: pr.authorAvatarUrl,
           comments: pr.comments,
           reviewComments: pr.reviewComments,
-          githubCreatedAt: pr.githubCreatedAt ? new Date(pr.githubCreatedAt).getTime() : null,
-          githubUpdatedAt: pr.githubUpdatedAt ? new Date(pr.githubUpdatedAt).getTime() : null,
+          githubCreatedAt: pr.githubCreatedAt
+            ? new Date(pr.githubCreatedAt).getTime()
+            : null,
+          githubUpdatedAt: pr.githubUpdatedAt
+            ? new Date(pr.githubUpdatedAt).getTime()
+            : null,
         })),
         reviewRequested: data.reviewRequested.map((pr) => ({
           id: pr.id,
@@ -160,8 +174,12 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
           authorAvatarUrl: pr.authorAvatarUrl,
           comments: pr.comments,
           reviewComments: pr.reviewComments,
-          githubCreatedAt: pr.githubCreatedAt ? new Date(pr.githubCreatedAt).getTime() : null,
-          githubUpdatedAt: pr.githubUpdatedAt ? new Date(pr.githubUpdatedAt).getTime() : null,
+          githubCreatedAt: pr.githubCreatedAt
+            ? new Date(pr.githubCreatedAt).getTime()
+            : null,
+          githubUpdatedAt: pr.githubUpdatedAt
+            ? new Date(pr.githubUpdatedAt).getTime()
+            : null,
         })),
       })
     } catch (err) {
@@ -173,7 +191,7 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
 
   const handleSignOut = async () => {
     await authClient.signOut()
-    onLogout()
+    window.location.reload()
   }
 
   if (!session) {
@@ -186,19 +204,7 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <div className={styles.avatarContainer}>
-            {session.user.image ? (
-              <img
-                src={session.user.image}
-                alt={session.user.name}
-                className={styles.avatar}
-              />
-            ) : (
-              <div className={styles.avatarPlaceholder}>
-                {session.user.name?.charAt(0).toUpperCase() || "?"}
-              </div>
-            )}
-          </div>
+          <Avatar src={session.user.image} name={session.user.name} size={48} />
           <h1 className={styles.title}>{session.user.name}'s Pull Requests</h1>
         </div>
 
@@ -261,11 +267,15 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
             <div className={styles.prList}>
               {!prOverview ? (
                 <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>Click “Refresh PRs” to load your PRs.</p>
+                  <p className={styles.prEmptyText}>
+                    Click "Refresh PRs" to load your PRs.
+                  </p>
                 </div>
               ) : prOverview.authored.length === 0 ? (
                 <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>No open PRs authored by you.</p>
+                  <p className={styles.prEmptyText}>
+                    No open PRs authored by you.
+                  </p>
                 </div>
               ) : (
                 prOverview.authored.map((pr) => (
@@ -285,11 +295,15 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
             <div className={styles.prList}>
               {!prOverview ? (
                 <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>Click “Refresh PRs” to load your PRs.</p>
+                  <p className={styles.prEmptyText}>
+                    Click "Refresh PRs" to load your PRs.
+                  </p>
                 </div>
               ) : prOverview.reviewRequested.length === 0 ? (
                 <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>No PRs currently requesting your review.</p>
+                  <p className={styles.prEmptyText}>
+                    No PRs currently requesting your review.
+                  </p>
                 </div>
               ) : (
                 prOverview.reviewRequested.map((pr) => (
@@ -306,7 +320,6 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
         </div>
       </section>
 
-      {/* Repositories grouped by owner */}
       <RepoSection
         repos={repos}
         orgs={orgs}
@@ -315,3 +328,7 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
     </div>
   )
 }
+
+export const Route = createFileRoute("/")({
+  component: OverviewPage,
+})

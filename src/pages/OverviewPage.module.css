@@ -21,33 +21,6 @@
   gap: 1rem;
 }
 
-.avatarContainer {
-  position: relative;
-  width: 48px;
-  height: 48px;
-}
-
-.avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba(var(--bit-rgb-accent-green), 0.5);
-}
-
-.avatarPlaceholder {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--bit-gradient-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--bit-color-paper);
-}
-
 .title {
   font-size: 1.5rem;
   font-weight: 700;
