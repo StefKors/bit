@@ -1,0 +1,209 @@
+.filtersBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  margin-bottom: 0.5rem;
+}
+
+.filtersGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filterIcon {
+  color: rgba(var(--bit-rgb-fg), 0.4);
+  margin-right: 0.25rem;
+}
+
+.sortGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Filter Trigger Button */
+.filterTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(var(--bit-rgb-fg), 0.04);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-md);
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.8);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filterTrigger:hover {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+  border-color: rgba(var(--bit-rgb-fg), 0.2);
+}
+
+.filterTrigger[data-popup-open] {
+  background: rgba(var(--bit-rgb-fg), 0.1);
+  border-color: rgba(var(--bit-rgb-fg), 0.25);
+}
+
+.filterActive {
+  background: rgba(var(--bit-rgb-accent-blue), 0.1);
+  border-color: rgba(var(--bit-rgb-accent-blue), 0.3);
+  color: rgb(var(--bit-rgb-accent-blue));
+}
+
+.filterActive:hover {
+  background: rgba(var(--bit-rgb-accent-blue), 0.15);
+  border-color: rgba(var(--bit-rgb-accent-blue), 0.4);
+}
+
+.filterLabel {
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  font-weight: 500;
+}
+
+.filterActive .filterLabel {
+  color: rgba(var(--bit-rgb-accent-blue), 0.7);
+}
+
+.filterValue {
+  font-weight: 600;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  opacity: 0.5;
+  transition: transform 0.15s ease;
+}
+
+.filterTrigger[data-popup-open] .chevron {
+  transform: rotate(180deg);
+}
+
+/* Clear Button */
+.clearButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.6rem;
+  background: transparent;
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-md);
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.clearButton:hover {
+  background: rgba(var(--bit-rgb-accent-red), 0.08);
+  border-color: rgba(var(--bit-rgb-accent-red), 0.3);
+  color: rgb(var(--bit-rgb-accent-red));
+}
+
+/* Sort Direction Button */
+.sortDirectionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem;
+  background: rgba(var(--bit-rgb-fg), 0.04);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-md);
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sortDirectionButton:hover {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+  border-color: rgba(var(--bit-rgb-fg), 0.2);
+  color: rgba(var(--bit-rgb-fg), 0.9);
+}
+
+/* Menu Styles */
+.menuPositioner {
+  z-index: 100;
+}
+
+.menuPopup {
+  min-width: 160px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.35rem;
+  background: rgba(var(--bit-rgb-surface-2), 0.98);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.12);
+  border-radius: var(--bit-radius-lg);
+  box-shadow: var(--bit-shadow-lg);
+  backdrop-filter: blur(8px);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: rgba(var(--bit-rgb-fg), 0.85);
+  border-radius: var(--bit-radius-sm);
+  cursor: pointer;
+  transition: background 0.1s ease;
+  outline: none;
+}
+
+.menuItem:hover,
+.menuItem:focus {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+}
+
+.menuItem[data-selected] {
+  background: rgba(var(--bit-rgb-accent-blue), 0.12);
+  color: rgb(var(--bit-rgb-accent-blue));
+}
+
+.menuItem[data-selected]:hover,
+.menuItem[data-selected]:focus {
+  background: rgba(var(--bit-rgb-accent-blue), 0.18);
+}
+
+.menuSeparator {
+  height: 1px;
+  margin: 0.35rem 0;
+  background: rgba(var(--bit-rgb-fg), 0.1);
+}
+
+.checkIndicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: rgb(var(--bit-rgb-accent-blue));
+  font-size: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .filtersBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .filtersGroup {
+    width: 100%;
+  }
+
+  .sortGroup {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
