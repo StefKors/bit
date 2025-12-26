@@ -9,22 +9,6 @@
   gap: 1rem;
 }
 
-.timelineAvatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  object-fit: cover;
-}
-
-.timelineAvatarPlaceholder {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: rgba(var(--bit-rgb-fg), 0.15);
-}
-
 .timelineContent {
   flex: 1;
   background: var(--bit-color-panel-bg);

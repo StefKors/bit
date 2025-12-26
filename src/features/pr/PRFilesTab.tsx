@@ -1,24 +1,27 @@
 import { useMemo } from "react"
-import { useQuery } from "@rocicorp/zero/react"
 import { Row } from "@rocicorp/zero"
-import { queries } from "@/db/queries"
 import { DiffViewer } from "./DiffViewer"
 import type { DiffOptions } from "./DiffOptionsBar"
+import type { GithubPrFile, GithubPrComment } from "@/db/schema"
 import styles from "./PRFilesTab.module.css"
 
 interface PRFilesTabProps {
-  prId: string
+  files: readonly GithubPrFile[]
+  comments: readonly GithubPrComment[]
   diffOptions: DiffOptions
 }
 
-export const PRFilesTab = ({ prId, diffOptions }: PRFilesTabProps) => {
-  const [files] = useQuery(queries.prFiles(prId))
-  const [comments] = useQuery(queries.reviewComments(prId))
+export const PRFilesTab = ({ files, comments, diffOptions }: PRFilesTabProps) => {
+  // Filter to only review comments (inline diff comments)
+  const reviewComments = useMemo(
+    () => comments.filter((c) => c.commentType === "review_comment"),
+    [comments],
+  )
 
   // Group comments by path for easy access
   const commentsByPath = useMemo(() => {
     const map = new Map<string, Row["githubPrComment"][]>()
-    for (const comment of comments) {
+    for (const comment of reviewComments) {
       if (comment.path) {
         const existing = map.get(comment.path) || []
         existing.push(comment)
@@ -26,7 +29,7 @@ export const PRFilesTab = ({ prId, diffOptions }: PRFilesTabProps) => {
       }
     }
     return map
-  }, [comments])
+  }, [reviewComments])
 
   return (
     <div className={styles.container}>

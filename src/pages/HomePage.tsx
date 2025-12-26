@@ -2,6 +2,7 @@ import { SignOutIcon } from "@primer/octicons-react"
 import { authClient } from "@/lib/auth"
 import { Button } from "@/components/Button"
 import styles from "./HomePage.module.css"
+import { Avatar } from "@/components/Avatar"
 
 interface HomePageProps {
   onLogout: () => void
@@ -23,20 +24,12 @@ export function HomePage({ onLogout }: HomePageProps) {
     <div className={styles.container}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <div className={styles.avatarContainer}>
-            {session.user.image ? (
-              <img
-                src={session.user.image}
-                alt={session.user.name}
-                className={styles.avatar}
-              />
-            ) : (
-              <div className={styles.avatarPlaceholder}>
-                {session.user.name?.charAt(0).toUpperCase() || "?"}
-              </div>
-            )}
-            <div className={styles.onlineIndicator} />
-          </div>
+          <Avatar
+            src={session.user.image}
+            name={session.user.name}
+            size={80}
+            isOnline
+          />
           <h1 className={styles.title}>Welcome, {session.user.name}</h1>
           <p className={styles.subtitle}>{session.user.email}</p>
         </div>

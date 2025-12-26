@@ -1,93 +1,45 @@
 import { useState, useMemo } from "react"
-import type { Row } from "@rocicorp/zero"
-import { useQuery } from "@rocicorp/zero/react"
-import { GitPullRequestIcon } from "@primer/octicons-react"
-import { queries } from "@/db/queries"
+import { Menu } from "@base-ui/react/menu"
+import {
+  GitPullRequestIcon,
+  ChevronDownIcon,
+  SortAscIcon,
+  SortDescIcon,
+  FilterIcon,
+  XIcon,
+} from "@primer/octicons-react"
+import type { GithubPullRequest } from "@/db/schema"
 import { PRListItem } from "@/features/pr/PRListItem"
 import {
-  PRFiltersBar,
   type PRFilters,
-  type PRStatus,
-  type PRDraftFilter,
-  type PRSortField,
-  type PRSortDirection,
-} from "@/features/pr/PRFiltersBar"
+  DEFAULT_PR_FILTERS,
+  STATUS_OPTIONS,
+  DRAFT_OPTIONS,
+  SORT_OPTIONS,
+  extractAuthors,
+  extractLabels,
+  applyFiltersAndSort,
+} from "@/lib/pr-filters"
 import styles from "./RepoPullsTab.module.css"
 
-type PullRequest = Row["githubPullRequest"]
-
 interface RepoPullsTabProps {
-  repoId: string
+  prs: readonly GithubPullRequest[]
   fullName: string
 }
 
-const DEFAULT_FILTERS: PRFilters = {
-  status: "all",
-  author: null,
-  labels: [],
-  draft: "all",
-  sortBy: "updated",
-  sortDirection: "desc",
-}
+export const RepoPullsTab = ({ prs, fullName }: RepoPullsTabProps) => {
+  const [filters, setFilters] = useState<PRFilters>(DEFAULT_PR_FILTERS)
 
-export function RepoPullsTab({ repoId, fullName }: RepoPullsTabProps) {
-  const [prs] = useQuery(queries.pullRequests(repoId))
-  const [filters, setFilters] = useState<PRFilters>(DEFAULT_FILTERS)
+  // Compute derived data
+  const authors = useMemo(() => extractAuthors(prs), [prs])
+  const labels = useMemo(() => extractLabels(prs), [prs])
+  const filteredPrs = useMemo(() => applyFiltersAndSort(prs, filters), [prs, filters])
 
-  // Extract unique authors from PRs
-  const authors = useMemo(() => {
-    const authorSet = new Set<string>()
-    for (const pr of prs) {
-      if (pr.authorLogin) {
-        authorSet.add(pr.authorLogin)
-      }
-    }
-    return Array.from(authorSet).sort()
-  }, [prs])
-
-  // Extract unique labels from PRs
-  const labels = useMemo(() => {
-    const labelSet = new Set<string>()
-    for (const pr of prs) {
-      if (pr.labels) {
-        const extractedLabels = parseLabels(pr.labels)
-        for (const label of extractedLabels) {
-          labelSet.add(label)
-        }
-      }
-    }
-    return Array.from(labelSet).sort()
-  }, [prs])
-
-  // Apply filters and sorting
-  const filteredPrs = useMemo(() => {
-    let result = [...prs]
-
-    // Filter by status
-    result = filterByStatus(result, filters.status)
-
-    // Filter by author
-    if (filters.author) {
-      result = result.filter((pr) => pr.authorLogin === filters.author)
-    }
-
-    // Filter by labels
-    if (filters.labels.length > 0) {
-      result = result.filter((pr) => {
-        if (!pr.labels) return false
-        const prLabels = parseLabels(pr.labels)
-        return filters.labels.some((label) => prLabels.includes(label))
-      })
-    }
-
-    // Filter by draft status
-    result = filterByDraft(result, filters.draft)
-
-    // Sort
-    result = sortPRs(result, filters.sortBy, filters.sortDirection)
-
-    return result
-  }, [prs, filters])
+  const hasActiveFilters =
+    filters.status !== "all" ||
+    filters.author !== null ||
+    filters.labels.length > 0 ||
+    filters.draft !== "all"
 
   if (prs.length === 0) {
     return (
@@ -95,9 +47,7 @@ export function RepoPullsTab({ repoId, fullName }: RepoPullsTabProps) {
         <div className={styles.emptyState}>
           <GitPullRequestIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>No pull requests</h3>
-          <p className={styles.emptyText}>
-            No pull requests have been synced yet.
-          </p>
+          <p className={styles.emptyText}>No pull requests have been synced yet.</p>
         </div>
       </div>
     )
@@ -105,11 +55,12 @@ export function RepoPullsTab({ repoId, fullName }: RepoPullsTabProps) {
 
   return (
     <div className={styles.content}>
-      <PRFiltersBar
+      <FiltersBar
         filters={filters}
         onFiltersChange={setFilters}
         authors={authors}
         labels={labels}
+        hasActiveFilters={hasActiveFilters}
       />
       {filteredPrs.length === 0 ? (
         <div className={styles.emptyState}>
@@ -122,12 +73,7 @@ export function RepoPullsTab({ repoId, fullName }: RepoPullsTabProps) {
       ) : (
         <div className={styles.prList}>
           {filteredPrs.map((pr) => (
-            <PRListItem
-              key={pr.id}
-              pr={pr}
-              repoFullName={fullName}
-              isApproved={pr.merged === true}
-            />
+            <PRListItem key={pr.id} pr={pr} repoFullName={fullName} isApproved={pr.merged === true} />
           ))}
         </div>
       )}
@@ -140,79 +86,186 @@ export function RepoPullsTab({ repoId, fullName }: RepoPullsTabProps) {
   )
 }
 
-// Helper functions for filtering and sorting
+// Colocated filter components (only used in RepoPullsTab)
 
-const filterByStatus = <T extends PullRequest>(prs: T[], status: PRStatus): T[] => {
-  if (status === "all") return prs
-  if (status === "merged") return prs.filter((pr) => pr.merged === true)
-  if (status === "closed") return prs.filter((pr) => pr.state === "closed" && pr.merged !== true)
-  if (status === "open") return prs.filter((pr) => pr.state === "open")
-  return prs
+interface FiltersBarProps {
+  filters: PRFilters
+  onFiltersChange: (filters: PRFilters) => void
+  authors: string[]
+  labels: string[]
+  hasActiveFilters: boolean
 }
 
-const filterByDraft = <T extends PullRequest>(prs: T[], draft: PRDraftFilter): T[] => {
-  if (draft === "all") return prs
-  if (draft === "draft") return prs.filter((pr) => pr.draft === true)
-  if (draft === "ready") return prs.filter((pr) => pr.draft !== true)
-  return prs
-}
-
-interface LabelObject {
-  name?: string
-}
-
-const parseLabels = (labels: string): string[] => {
-  try {
-    const parsed: unknown = JSON.parse(labels)
-    if (Array.isArray(parsed)) {
-      const result: string[] = []
-      for (const item of parsed) {
-        if (typeof item === "string") {
-          result.push(item)
-        } else if (item !== null && typeof item === "object") {
-          const labelObj = item as LabelObject
-          if (typeof labelObj.name === "string") {
-            result.push(labelObj.name)
-          }
-        }
-      }
-      return result.filter(Boolean)
-    }
-  } catch {
-    return labels.split(",").map((s) => s.trim()).filter(Boolean)
+const FiltersBar = ({ filters, onFiltersChange, authors, labels, hasActiveFilters }: FiltersBarProps) => {
+  const updateFilter = <K extends keyof PRFilters>(key: K, value: PRFilters[K]) => {
+    onFiltersChange({ ...filters, [key]: value })
   }
-  return []
+
+  const clearFilters = () => {
+    onFiltersChange(DEFAULT_PR_FILTERS)
+  }
+
+  const toggleLabel = (label: string) => {
+    const newLabels = filters.labels.includes(label)
+      ? filters.labels.filter((l) => l !== label)
+      : [...filters.labels, label]
+    updateFilter("labels", newLabels)
+  }
+
+  const toggleSortDirection = () => {
+    updateFilter("sortDirection", filters.sortDirection === "desc" ? "asc" : "desc")
+  }
+
+  return (
+    <div className={styles.filtersBar}>
+      <div className={styles.filtersGroup}>
+        <FilterIcon size={16} className={styles.filterIcon} />
+
+        <FilterDropdown
+          label="Status"
+          value={STATUS_OPTIONS.find((o) => o.value === filters.status)?.label ?? "All"}
+          isActive={filters.status !== "all"}
+        >
+          {STATUS_OPTIONS.map((option) => (
+            <FilterMenuItem
+              key={option.value}
+              selected={filters.status === option.value}
+              onSelect={() => updateFilter("status", option.value)}
+            >
+              {option.label}
+            </FilterMenuItem>
+          ))}
+        </FilterDropdown>
+
+        {authors.length > 0 && (
+          <FilterDropdown
+            label="Author"
+            value={filters.author ?? "Any"}
+            isActive={filters.author !== null}
+          >
+            <FilterMenuItem selected={filters.author === null} onSelect={() => updateFilter("author", null)}>
+              Any
+            </FilterMenuItem>
+            <Menu.Separator className={styles.menuSeparator} />
+            {authors.map((author) => (
+              <FilterMenuItem
+                key={author}
+                selected={filters.author === author}
+                onSelect={() => updateFilter("author", author)}
+              >
+                {author}
+              </FilterMenuItem>
+            ))}
+          </FilterDropdown>
+        )}
+
+        {labels.length > 0 && (
+          <FilterDropdown
+            label="Labels"
+            value={filters.labels.length > 0 ? `${filters.labels.length} selected` : "Any"}
+            isActive={filters.labels.length > 0}
+          >
+            {labels.map((label) => (
+              <Menu.CheckboxItem
+                key={label}
+                className={styles.menuItem}
+                checked={filters.labels.includes(label)}
+                onCheckedChange={() => toggleLabel(label)}
+              >
+                <Menu.CheckboxItemIndicator className={styles.checkIndicator}>✓</Menu.CheckboxItemIndicator>
+                {label}
+              </Menu.CheckboxItem>
+            ))}
+          </FilterDropdown>
+        )}
+
+        <FilterDropdown
+          label="Type"
+          value={DRAFT_OPTIONS.find((o) => o.value === filters.draft)?.label ?? "All"}
+          isActive={filters.draft !== "all"}
+        >
+          {DRAFT_OPTIONS.map((option) => (
+            <FilterMenuItem
+              key={option.value}
+              selected={filters.draft === option.value}
+              onSelect={() => updateFilter("draft", option.value)}
+            >
+              {option.label}
+            </FilterMenuItem>
+          ))}
+        </FilterDropdown>
+
+        {hasActiveFilters && (
+          <button className={styles.clearButton} onClick={clearFilters} title="Clear all filters">
+            <XIcon size={14} />
+            Clear
+          </button>
+        )}
+      </div>
+
+      <div className={styles.sortGroup}>
+        <FilterDropdown
+          label="Sort"
+          value={SORT_OPTIONS.find((o) => o.value === filters.sortBy)?.label ?? "Recently updated"}
+          isActive={false}
+        >
+          {SORT_OPTIONS.map((option) => (
+            <FilterMenuItem
+              key={option.value}
+              selected={filters.sortBy === option.value}
+              onSelect={() => updateFilter("sortBy", option.value)}
+            >
+              {option.label}
+            </FilterMenuItem>
+          ))}
+        </FilterDropdown>
+
+        <button
+          className={styles.sortDirectionButton}
+          onClick={toggleSortDirection}
+          title={filters.sortDirection === "desc" ? "Sort descending" : "Sort ascending"}
+        >
+          {filters.sortDirection === "desc" ? <SortDescIcon size={16} /> : <SortAscIcon size={16} />}
+        </button>
+      </div>
+    </div>
+  )
 }
 
-const sortPRs = <T extends PullRequest>(prs: T[], sortBy: PRSortField, direction: PRSortDirection): T[] => {
-  const multiplier = direction === "desc" ? -1 : 1
-
-  return prs.sort((a, b) => {
-    let comparison = 0
-
-    switch (sortBy) {
-      case "updated":
-        comparison = (a.githubUpdatedAt ?? 0) - (b.githubUpdatedAt ?? 0)
-        break
-      case "created":
-        comparison = (a.githubCreatedAt ?? 0) - (b.githubCreatedAt ?? 0)
-        break
-      case "comments": {
-        const aComments = (a.comments ?? 0) + (a.reviewComments ?? 0)
-        const bComments = (b.comments ?? 0) + (b.reviewComments ?? 0)
-        comparison = aComments - bComments
-        break
-      }
-      case "title":
-        comparison = a.title.localeCompare(b.title)
-        break
-      case "author":
-        comparison = (a.authorLogin ?? "").localeCompare(b.authorLogin ?? "")
-        break
-      default:
-        comparison = 0
-    }
-
-    return comparison * multiplier
-  })
+interface FilterDropdownProps {
+  label: string
+  value: string
+  isActive: boolean
+  children: React.ReactNode
 }
+
+const FilterDropdown = ({ label, value, isActive, children }: FilterDropdownProps) => (
+  <Menu.Root>
+    <Menu.Trigger className={`${styles.filterTrigger} ${isActive ? styles.filterActive : ""}`}>
+      <span className={styles.filterLabel}>{label}:</span>
+      <span className={styles.filterValue}>{value}</span>
+      <ChevronDownIcon size={12} className={styles.chevron} />
+    </Menu.Trigger>
+    <Menu.Portal>
+      <Menu.Positioner className={styles.menuPositioner} sideOffset={4}>
+        <Menu.Popup className={styles.menuPopup}>{children}</Menu.Popup>
+      </Menu.Positioner>
+    </Menu.Portal>
+  </Menu.Root>
+)
+
+interface FilterMenuItemProps {
+  selected: boolean
+  onSelect: () => void
+  children: React.ReactNode
+}
+
+const FilterMenuItem = ({ selected, onSelect, children }: FilterMenuItemProps) => (
+  <Menu.Item
+    className={styles.menuItem}
+    data-selected={selected || undefined}
+    onSelect={onSelect}
+  >
+    {children}
+  </Menu.Item>
+)

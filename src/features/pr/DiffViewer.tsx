@@ -6,6 +6,7 @@ import { Button } from "@/components/Button"
 import { Markdown } from "@/components/Markdown"
 import styles from "./DiffViewer.module.css"
 import type { DiffOptions } from "./DiffOptionsBar"
+import { Avatar } from "@/components/Avatar"
 
 type Comment = Row["githubPrComment"]
 
@@ -56,13 +57,11 @@ const CommentThread = ({ comments }: { comments: Comment[] }) => {
       {comments.map((comment) => (
         <div key={comment.id} className={styles.comment}>
           <div className={styles.commentHeader}>
-            {comment.authorAvatarUrl && (
-              <img
-                src={comment.authorAvatarUrl}
-                alt={comment.authorLogin ?? ""}
-                className={styles.commentAvatar}
-              />
-            )}
+            <Avatar
+              src={comment.authorAvatarUrl}
+              name={comment.authorLogin}
+              size={20}
+            />
             <span className={styles.commentAuthor}>{comment.authorLogin}</span>
             <span className={styles.commentTime}>
               {formatTimeAgo(comment.githubCreatedAt)}

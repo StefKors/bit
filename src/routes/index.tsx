@@ -1,3 +1,4 @@
+import { createFileRoute } from "@tanstack/react-router"
 import { useState, useCallback } from "react"
 import { useQuery } from "@rocicorp/zero/react"
 import { ClockIcon, SyncIcon, SignOutIcon } from "@primer/octicons-react"
@@ -5,11 +6,8 @@ import { authClient } from "@/lib/auth"
 import { Button } from "@/components/Button"
 import { queries } from "@/db/queries"
 import { RepoSection } from "@/features/repo/RepoSection"
-import styles from "./OverviewPage.module.css"
-
-interface OverviewPageProps {
-  onLogout: () => void
-}
+import styles from "@/pages/OverviewPage.module.css"
+import { Avatar } from "@/components/Avatar"
 
 interface RateLimitInfo {
   remaining: number
@@ -17,18 +15,26 @@ interface RateLimitInfo {
   reset: Date
 }
 
-export function OverviewPage({ onLogout }: OverviewPageProps) {
+function OverviewPage() {
   const { data: session } = authClient.useSession()
   const [syncing, setSyncing] = useState(false)
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Query repos and orgs from Zero
-  const [repos] = useQuery(queries.repos())
-  const [orgs] = useQuery(queries.orgs())
+  const [repos] = useQuery(queries.overview())
 
-  // Get GitHub username from session (name is typically the GitHub login)
+  const orgs = repos
+    .map((repo) => repo.githubOrganization)
+    .filter(
+      (org): org is NonNullable<typeof org> =>
+        org !== null && org !== undefined,
+    )
+    .filter(
+      (org, index, self) => self.findIndex((o) => o.id === org.id) === index,
+    )
+
   const currentUserLogin = session?.user?.name
+
   const handleSync = useCallback(async () => {
     setSyncing(true)
     setError(null)
@@ -64,7 +70,7 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
 
   const handleSignOut = async () => {
     await authClient.signOut()
-    onLogout()
+    window.location.reload()
   }
 
   if (!session) {
@@ -77,19 +83,7 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <div className={styles.avatarContainer}>
-            {session.user.image ? (
-              <img
-                src={session.user.image}
-                alt={session.user.name}
-                className={styles.avatar}
-              />
-            ) : (
-              <div className={styles.avatarPlaceholder}>
-                {session.user.name?.charAt(0).toUpperCase() || "?"}
-              </div>
-            )}
-          </div>
+          <Avatar src={session.user.image} name={session.user.name} size={48} />
           <h1 className={styles.title}>{session.user.name}'s Repositories</h1>
         </div>
 
@@ -136,7 +130,6 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
         </div>
       )}
 
-      {/* Repositories grouped by owner */}
       <RepoSection
         repos={repos}
         orgs={orgs}
@@ -145,3 +138,7 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
     </div>
   )
 }
+
+export const Route = createFileRoute("/")({
+  component: OverviewPage,
+})

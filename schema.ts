@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp, boolean, index, integer, bigint } from "drizzle-orm/pg-core"
+import { relations } from "drizzle-orm"
 
 // =============================================================================
 // Drizzle Schema
@@ -355,3 +356,61 @@ export const githubSyncState = pgTable(
     index("github_sync_resource_idx").on(table.userId, table.resourceType),
   ],
 )
+
+// =============================================================================
+// Relationships (used by Zero for relational queries)
+// =============================================================================
+
+// Organization relationships
+export const githubOrganizationRelations = relations(githubOrganization, ({ many }) => ({
+  githubRepo: many(githubRepo),
+}))
+
+// Repo relationships
+export const githubRepoRelations = relations(githubRepo, ({ one, many }) => ({
+  githubOrganization: one(githubOrganization, {
+    fields: [githubRepo.organizationId],
+    references: [githubOrganization.id],
+  }),
+  githubPullRequest: many(githubPullRequest),
+}))
+
+// Pull Request relationships - key for PR detail page
+export const githubPullRequestRelations = relations(githubPullRequest, ({ one, many }) => ({
+  githubRepo: one(githubRepo, {
+    fields: [githubPullRequest.repoId],
+    references: [githubRepo.id],
+  }),
+  githubPrFile: many(githubPrFile),
+  githubPrReview: many(githubPrReview),
+  githubPrComment: many(githubPrComment),
+}))
+
+// PR Review relationships
+export const githubPrReviewRelations = relations(githubPrReview, ({ one, many }) => ({
+  githubPullRequest: one(githubPullRequest, {
+    fields: [githubPrReview.pullRequestId],
+    references: [githubPullRequest.id],
+  }),
+  githubPrComment: many(githubPrComment),
+}))
+
+// PR Comment relationships
+export const githubPrCommentRelations = relations(githubPrComment, ({ one }) => ({
+  githubPullRequest: one(githubPullRequest, {
+    fields: [githubPrComment.pullRequestId],
+    references: [githubPullRequest.id],
+  }),
+  githubPrReview: one(githubPrReview, {
+    fields: [githubPrComment.reviewId],
+    references: [githubPrReview.id],
+  }),
+}))
+
+// PR File relationships
+export const githubPrFileRelations = relations(githubPrFile, ({ one }) => ({
+  githubPullRequest: one(githubPullRequest, {
+    fields: [githubPrFile.pullRequestId],
+    references: [githubPullRequest.id],
+  }),
+}))

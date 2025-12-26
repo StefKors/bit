@@ -4,6 +4,21 @@
 - Find reusable code and make components from them.
 - Reuse existing components
 - Use css modules
+- Use queries with related over doing multiple fetches
+  - Prefer **1 `useQuery(...)` per page**. Expand all page data from a single root query via `.related(...)` instead of adding more `useQuery` calls in subcomponents/tabs.
+
+# Zero (queries + mutations)
+- Queries live in `src/db/queries.ts` and should be composed using ZQL (`zql` from `src/db/schema.ts`) + `.related(...)`.
+- `.related(...)` only works once the generated Zero schema has relationships.
+  - Right now `src/db/schema.ts` has `relationships: {}`.
+  - Add Drizzle `relations(...)` in the root `schema.ts`, then regenerate: `npm run generate-zero-schema`.
+- Prefer `.one()` for detail pages (repo detail, PR detail) and do ordering/filtering inside the query.
+
+- Mutators live in `src/db/mutators.ts`.
+  - Define with `defineMutators(...)` + `defineMutator(...)` and validate args with Zod.
+  - Write using `tx.mutate.<table>.<insert|upsert|update|delete>(...)` and use `ctx.userID` for authz.
+  - This repo has `schema.enableLegacyMutators = false`, so call custom mutators like:
+    - `const zero = useZero(); await zero.mutate(mutators.foo.bar(args))`
 
 # CSS
 - Use CSS variables from `theme.css`
