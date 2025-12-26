@@ -1,11 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useQuery } from "@rocicorp/zero/react"
-import {
-  FileDirectoryIcon,
-  RepoIcon,
-  StarIcon,
-  RepoForkedIcon,
-} from "@primer/octicons-react"
+import { FileDirectoryIcon, RepoIcon, StarIcon, RepoForkedIcon } from "@primer/octicons-react"
 import { queries } from "@/db/queries"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoCard } from "@/features/repo/RepoCard"
@@ -22,27 +17,17 @@ function OwnerPage() {
   const repos = org?.githubRepo ?? userRepos
   const isOrg = Boolean(org)
 
-  const totalStars = repos.reduce(
-    (acc, repo) => acc + (repo.stargazersCount ?? 0),
-    0,
-  )
-  const totalForks = repos.reduce(
-    (acc, repo) => acc + (repo.forksCount ?? 0),
-    0,
-  )
+  const totalStars = repos.reduce((acc, repo) => acc + (repo.stargazersCount ?? 0), 0)
+  const totalForks = repos.reduce((acc, repo) => acc + (repo.forksCount ?? 0), 0)
 
   if (repos.length === 0) {
     return (
       <div className={styles.container}>
-        <Breadcrumb
-          items={[{ label: "Repositories", href: "/" }, { label: owner }]}
-        />
+        <Breadcrumb items={[{ label: "Repositories", href: "/" }, { label: owner }]} />
         <div className={styles.emptyState}>
           <FileDirectoryIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>No repositories found</h3>
-          <p className={styles.emptyText}>
-            No repositories have been synced for {owner}.
-          </p>
+          <p className={styles.emptyText}>No repositories have been synced for {owner}.</p>
         </div>
       </div>
     )
@@ -50,18 +35,11 @@ function OwnerPage() {
 
   return (
     <div className={styles.container}>
-      <Breadcrumb
-        items={[{ label: "Repositories", href: "/" }, { label: owner }]}
-      />
+      <Breadcrumb items={[{ label: "Repositories", href: "/" }, { label: owner }]} />
 
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <Avatar
-            src={org?.avatarUrl}
-            name={owner}
-            size={64}
-            isOrganization={isOrg}
-          />
+          <Avatar src={org?.avatarUrl} name={owner} size={64} isOrganization={isOrg} />
 
           <div className={styles.ownerInfo}>
             <h1 className={styles.title}>
