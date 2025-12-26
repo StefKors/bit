@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import { Link, useParams } from "wouter"
 import { useQuery } from "@rocicorp/zero/react"
 import {
@@ -62,7 +62,7 @@ export function PRDetailPage() {
   // Query the PR
   const [pr] = useQuery(queries.pr({ repoId: repo?.id, prNumber }))
 
-  const handleSync = useCallback(async () => {
+  const handleSync = async () => {
     setSyncing(true)
     setError(null)
 
@@ -85,7 +85,7 @@ export function PRDetailPage() {
     } finally {
       setSyncing(false)
     }
-  }, [owner, repoName, prNumber])
+  }
 
   if (!repo || !pr) {
     return (
@@ -96,6 +96,29 @@ export function PRDetailPage() {
           <p className={styles.emptyText}>
             <Link href={`/${fullName}/pulls`}>Go back to pull requests</Link>
           </p>
+          <div style={{ marginTop: "1rem" }}>
+            <Button
+              variant="success"
+              leadingIcon={<SyncIcon size={16} />}
+              loading={syncing}
+              onClick={() => void handleSync()}
+            >
+              {syncing ? "Syncing..." : "Sync this PR"}
+            </Button>
+          </div>
+          {error && (
+            <div
+              style={{
+                color: "#f85149",
+                marginTop: "1rem",
+                padding: "1rem",
+                background: "rgba(248, 81, 73, 0.1)",
+                borderRadius: "8px",
+              }}
+            >
+              {error}
+            </div>
+          )}
         </div>
       </div>
     )

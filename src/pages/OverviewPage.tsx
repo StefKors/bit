@@ -1,10 +1,12 @@
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import { useQuery } from "@rocicorp/zero/react"
-import { ClockIcon, SyncIcon, SignOutIcon } from "@primer/octicons-react"
+import { ClockIcon, SyncIcon, SignOutIcon, GitPullRequestIcon } from "@primer/octicons-react"
 import { authClient } from "@/lib/auth"
 import { Button } from "@/components/Button"
 import { queries } from "@/db/queries"
 import { RepoSection } from "@/features/repo/RepoSection"
+import type { PullRequestLike } from "@/features/pr/PRListItem"
+import { PRListItem } from "@/features/pr/PRListItem"
 import styles from "./OverviewPage.module.css"
 
 interface OverviewPageProps {
@@ -20,7 +22,12 @@ interface RateLimitInfo {
 export function OverviewPage({ onLogout }: OverviewPageProps) {
   const { data: session } = authClient.useSession()
   const [syncing, setSyncing] = useState(false)
+  const [loadingPRs, setLoadingPRs] = useState(false)
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null)
+  const [prOverview, setPrOverview] = useState<{
+    authored: (PullRequestLike & { id: string; repoFullName: string })[]
+    reviewRequested: (PullRequestLike & { id: string; repoFullName: string })[]
+  } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   // Query repos and orgs from Zero
@@ -29,7 +36,8 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
 
   // Get GitHub username from session (name is typically the GitHub login)
   const currentUserLogin = session?.user?.name
-  const handleSync = useCallback(async () => {
+
+  const handleSync = async () => {
     setSyncing(true)
     setError(null)
 
@@ -55,12 +63,113 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
           reset: new Date(data.rateLimit.reset),
         })
       }
+
+      await handleLoadPRs()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sync")
     } finally {
       setSyncing(false)
     }
-  }, [])
+  }
+
+  const handleLoadPRs = async () => {
+    setLoadingPRs(true)
+    setError(null)
+
+    try {
+      const response = await fetch("/api/github/pulls/overview?limit=50", {
+        method: "GET",
+        credentials: "include",
+      })
+
+      const data = (await response.json()) as
+        | {
+            authored: Array<{
+              id: string
+              repoFullName: string
+              number: number
+              title: string
+              state: "open" | "closed"
+              draft: boolean
+              merged: boolean
+              authorLogin: string | null
+              authorAvatarUrl: string | null
+              comments: number
+              reviewComments: number
+              githubCreatedAt: string | null
+              githubUpdatedAt: string | null
+              htmlUrl: string | null
+            }>
+            reviewRequested: Array<{
+              id: string
+              repoFullName: string
+              number: number
+              title: string
+              state: "open" | "closed"
+              draft: boolean
+              merged: boolean
+              authorLogin: string | null
+              authorAvatarUrl: string | null
+              comments: number
+              reviewComments: number
+              githubCreatedAt: string | null
+              githubUpdatedAt: string | null
+              htmlUrl: string | null
+            }>
+            rateLimit?: { remaining: number; limit: number; reset: string }
+          }
+        | { error?: string }
+
+      if (!response.ok) {
+        throw new Error(("error" in data && data.error) || "Failed to load PRs")
+      }
+
+      if ("rateLimit" in data && data.rateLimit) {
+        setRateLimit({
+          remaining: data.rateLimit.remaining,
+          limit: data.rateLimit.limit,
+          reset: new Date(data.rateLimit.reset),
+        })
+      }
+
+      setPrOverview({
+        authored: data.authored.map((pr) => ({
+          id: pr.id,
+          repoFullName: pr.repoFullName,
+          number: pr.number,
+          title: pr.title,
+          state: pr.state,
+          draft: pr.draft,
+          merged: pr.merged,
+          authorLogin: pr.authorLogin,
+          authorAvatarUrl: pr.authorAvatarUrl,
+          comments: pr.comments,
+          reviewComments: pr.reviewComments,
+          githubCreatedAt: pr.githubCreatedAt ? new Date(pr.githubCreatedAt).getTime() : null,
+          githubUpdatedAt: pr.githubUpdatedAt ? new Date(pr.githubUpdatedAt).getTime() : null,
+        })),
+        reviewRequested: data.reviewRequested.map((pr) => ({
+          id: pr.id,
+          repoFullName: pr.repoFullName,
+          number: pr.number,
+          title: pr.title,
+          state: pr.state,
+          draft: pr.draft,
+          merged: pr.merged,
+          authorLogin: pr.authorLogin,
+          authorAvatarUrl: pr.authorAvatarUrl,
+          comments: pr.comments,
+          reviewComments: pr.reviewComments,
+          githubCreatedAt: pr.githubCreatedAt ? new Date(pr.githubCreatedAt).getTime() : null,
+          githubUpdatedAt: pr.githubUpdatedAt ? new Date(pr.githubUpdatedAt).getTime() : null,
+        })),
+      })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load PRs")
+    } finally {
+      setLoadingPRs(false)
+    }
+  }
 
   const handleSignOut = async () => {
     await authClient.signOut()
@@ -90,7 +199,7 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
               </div>
             )}
           </div>
-          <h1 className={styles.title}>{session.user.name}'s Repositories</h1>
+          <h1 className={styles.title}>{session.user.name}'s Pull Requests</h1>
         </div>
 
         <div className={styles.headerActions}>
@@ -110,6 +219,15 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
             onClick={() => void handleSync()}
           >
             {syncing ? "Syncing..." : "Sync GitHub"}
+          </Button>
+
+          <Button
+            variant="default"
+            leadingIcon={<GitPullRequestIcon size={16} />}
+            loading={loadingPRs}
+            onClick={() => void handleLoadPRs()}
+          >
+            {loadingPRs ? "Loading..." : "Refresh PRs"}
           </Button>
 
           <Button
@@ -135,6 +253,58 @@ export function OverviewPage({ onLogout }: OverviewPageProps) {
           {error}
         </div>
       )}
+
+      <section className={styles.prDashboard}>
+        <div className={styles.prColumns}>
+          <div className={styles.prColumn}>
+            <h2 className={styles.prColumnTitle}>Authored by you</h2>
+            <div className={styles.prList}>
+              {!prOverview ? (
+                <div className={styles.prEmptyState}>
+                  <p className={styles.prEmptyText}>Click “Refresh PRs” to load your PRs.</p>
+                </div>
+              ) : prOverview.authored.length === 0 ? (
+                <div className={styles.prEmptyState}>
+                  <p className={styles.prEmptyText}>No open PRs authored by you.</p>
+                </div>
+              ) : (
+                prOverview.authored.map((pr) => (
+                  <PRListItem
+                    key={pr.id}
+                    pr={pr}
+                    repoFullName={pr.repoFullName}
+                    isApproved={pr.merged === true}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className={styles.prColumn}>
+            <h2 className={styles.prColumnTitle}>Review requested</h2>
+            <div className={styles.prList}>
+              {!prOverview ? (
+                <div className={styles.prEmptyState}>
+                  <p className={styles.prEmptyText}>Click “Refresh PRs” to load your PRs.</p>
+                </div>
+              ) : prOverview.reviewRequested.length === 0 ? (
+                <div className={styles.prEmptyState}>
+                  <p className={styles.prEmptyText}>No PRs currently requesting your review.</p>
+                </div>
+              ) : (
+                prOverview.reviewRequested.map((pr) => (
+                  <PRListItem
+                    key={pr.id}
+                    pr={pr}
+                    repoFullName={pr.repoFullName}
+                    isApproved={pr.merged === true}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Repositories grouped by owner */}
       <RepoSection

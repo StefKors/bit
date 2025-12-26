@@ -18,6 +18,23 @@ export interface SyncResult<T> {
   fromCache: boolean
 }
 
+export interface PullRequestDashboardItem {
+  id: string
+  repoFullName: string
+  number: number
+  title: string
+  state: "open" | "closed"
+  draft: boolean
+  merged: boolean
+  authorLogin: string | null
+  authorAvatarUrl: string | null
+  comments: number
+  reviewComments: number
+  htmlUrl: string | null
+  githubCreatedAt: Date | null
+  githubUpdatedAt: Date | null
+}
+
 // GitHub API client with rate limit tracking
 export class GitHubClient {
   private octokit: Octokit
@@ -104,6 +121,155 @@ export class GitHubClient {
       .limit(1)
 
     return result[0] || null
+  }
+
+  private parseRepoFullNameFromApiUrl(repositoryUrl: string | null | undefined): string | null {
+    if (!repositoryUrl) return null
+    try {
+      const url = new URL(repositoryUrl)
+      const parts = url.pathname.split("/").filter(Boolean)
+      const reposIdx = parts.indexOf("repos")
+      if (reposIdx >= 0 && parts.length >= reposIdx + 3) {
+        return `${parts[reposIdx + 1]}/${parts[reposIdx + 2]}`
+      }
+      return null
+    } catch {
+      return null
+    }
+  }
+
+  private async ensureRepoRecord(owner: string, repo: string) {
+    const fullName = `${owner}/${repo}`
+    const existing = await this.db
+      .select()
+      .from(schema.githubRepo)
+      .where(and(eq(schema.githubRepo.fullName, fullName), eq(schema.githubRepo.userId, this.userId)))
+      .limit(1)
+
+    if (existing[0]) {
+      return existing[0]
+    }
+
+    const response = await this.octokit.rest.repos.get({ owner, repo })
+    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    const repoData = response.data
+    const repoInsert = {
+      id: repoData.node_id,
+      githubId: repoData.id,
+      name: repoData.name,
+      fullName: repoData.full_name,
+      owner: repoData.owner.login,
+      description: repoData.description || null,
+      url: repoData.url,
+      htmlUrl: repoData.html_url,
+      private: repoData.private,
+      fork: repoData.fork,
+      defaultBranch: repoData.default_branch || "main",
+      language: repoData.language || null,
+      stargazersCount: repoData.stargazers_count,
+      forksCount: repoData.forks_count,
+      openIssuesCount: repoData.open_issues_count,
+      organizationId: null,
+      userId: this.userId,
+      githubCreatedAt: repoData.created_at ? new Date(repoData.created_at) : null,
+      githubUpdatedAt: repoData.updated_at ? new Date(repoData.updated_at) : null,
+      githubPushedAt: repoData.pushed_at ? new Date(repoData.pushed_at) : null,
+      syncedAt: new Date(),
+    }
+
+    await this.db
+      .insert(schema.githubRepo)
+      .values(repoInsert)
+      .onConflictDoUpdate({
+        target: schema.githubRepo.id,
+        set: {
+          name: repoInsert.name,
+          fullName: repoInsert.fullName,
+          owner: repoInsert.owner,
+          description: repoInsert.description,
+          url: repoInsert.url,
+          htmlUrl: repoInsert.htmlUrl,
+          private: repoInsert.private,
+          fork: repoInsert.fork,
+          defaultBranch: repoInsert.defaultBranch,
+          language: repoInsert.language,
+          stargazersCount: repoInsert.stargazersCount,
+          forksCount: repoInsert.forksCount,
+          openIssuesCount: repoInsert.openIssuesCount,
+          githubCreatedAt: repoInsert.githubCreatedAt,
+          githubUpdatedAt: repoInsert.githubUpdatedAt,
+          githubPushedAt: repoInsert.githubPushedAt,
+          syncedAt: new Date(),
+          updatedAt: new Date(),
+        },
+      })
+
+    await this.updateSyncState("repo", fullName, rateLimit)
+
+    const inserted = await this.db
+      .select()
+      .from(schema.githubRepo)
+      .where(and(eq(schema.githubRepo.fullName, fullName), eq(schema.githubRepo.userId, this.userId)))
+      .limit(1)
+
+    return inserted[0] ?? repoInsert
+  }
+
+  // Fetch dashboard PRs: authored by user and review requested
+  async fetchPullRequestDashboard(
+    limit = 50,
+  ): Promise<{ authored: PullRequestDashboardItem[]; reviewRequested: PullRequestDashboardItem[]; rateLimit: RateLimitInfo }> {
+    const userResponse = await this.octokit.rest.users.getAuthenticated()
+    let rateLimit = this.extractRateLimit(userResponse.headers as Record<string, string | undefined>)
+
+    const login = userResponse.data.login
+
+    const runSearch = async (q: string) => {
+      const response = await this.octokit.rest.search.issuesAndPullRequests({
+        q,
+        per_page: Math.min(100, Math.max(1, limit)),
+        sort: "updated",
+        order: "desc",
+      })
+
+      rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+      return response.data.items
+        .map((item) => {
+          const repoFullName = this.parseRepoFullNameFromApiUrl(
+            // This is an API URL like https://api.github.com/repos/owner/repo
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            (item as unknown as { repository_url?: string }).repository_url ?? null,
+          )
+          if (!repoFullName) return null
+
+          return {
+            id: item.node_id,
+            repoFullName,
+            number: item.number,
+            title: item.title,
+            state: item.state as "open" | "closed",
+            draft: false,
+            merged: false,
+            authorLogin: item.user?.login ?? null,
+            authorAvatarUrl: item.user?.avatar_url ?? null,
+            comments: item.comments ?? 0,
+            reviewComments: 0,
+            htmlUrl: item.html_url ?? null,
+            githubCreatedAt: item.created_at ? new Date(item.created_at) : null,
+            githubUpdatedAt: item.updated_at ? new Date(item.updated_at) : null,
+          } satisfies PullRequestDashboardItem
+        })
+        .filter((x): x is PullRequestDashboardItem => x !== null)
+    }
+
+    const authored = await runSearch(`is:pr is:open author:${login} archived:false`)
+    const reviewRequested = await runSearch(`is:pr is:open review-requested:${login} archived:false`)
+
+    await this.updateSyncState("pr-dashboard", null, rateLimit)
+
+    return { authored, reviewRequested, rateLimit }
   }
 
   // Fetch user's organizations
@@ -223,21 +389,8 @@ export class GitHubClient {
     repo: string,
     state: "open" | "closed" | "all" = "all",
   ): Promise<SyncResult<(typeof schema.githubPullRequest.$inferInsert)[]>> {
-    // First, get the repo from our database to get its ID
-    const repoRecord = await this.db
-      .select()
-      .from(schema.githubRepo)
-      .where(
-        and(
-          eq(schema.githubRepo.fullName, `${owner}/${repo}`),
-          eq(schema.githubRepo.userId, this.userId),
-        ),
-      )
-      .limit(1)
-
-    if (!repoRecord[0]) {
-      throw new Error(`Repository ${owner}/${repo} not found. Please sync repositories first.`)
-    }
+    // Ensure the repo exists in our DB so we can link PRs to repoId
+    const repoRecord = await this.ensureRepoRecord(owner, repo)
 
     const response = await this.octokit.rest.pulls.list({
       owner,
@@ -254,7 +407,7 @@ export class GitHubClient {
       id: pr.node_id,
       githubId: pr.id,
       number: pr.number,
-      repoId: repoRecord[0].id,
+      repoId: repoRecord.id,
       title: pr.title,
       body: pr.body || null,
       state: pr.state,
@@ -336,21 +489,7 @@ export class GitHubClient {
     comments: (typeof schema.githubPrComment.$inferInsert)[]
     rateLimit: RateLimitInfo
   }> {
-    // Get the PR from our database
-    const repoRecord = await this.db
-      .select()
-      .from(schema.githubRepo)
-      .where(
-        and(
-          eq(schema.githubRepo.fullName, `${owner}/${repo}`),
-          eq(schema.githubRepo.userId, this.userId),
-        ),
-      )
-      .limit(1)
-
-    if (!repoRecord[0]) {
-      throw new Error(`Repository ${owner}/${repo} not found. Please sync repositories first.`)
-    }
+    const repoRecord = await this.ensureRepoRecord(owner, repo)
 
     // Fetch PR details
     const prResponse = await this.octokit.rest.pulls.get({
@@ -366,7 +505,7 @@ export class GitHubClient {
       id: prData.node_id,
       githubId: prData.id,
       number: prData.number,
-      repoId: repoRecord[0].id,
+      repoId: repoRecord.id,
       title: prData.title,
       body: prData.body || null,
       state: prData.state,

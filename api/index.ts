@@ -97,6 +97,40 @@ app.get("/github/rate-limit", async (c) => {
   }
 })
 
+// PR dashboard (authored + review requested)
+app.get("/github/pulls/overview", async (c) => {
+  const session = await requireAuth(c)
+  if (!session) {
+    return c.json({ error: "Unauthorized" }, 401)
+  }
+
+  const client = await createGitHubClient(session.user.id, pool)
+  if (!client) {
+    return c.json({ error: "GitHub account not connected" }, 400)
+  }
+
+  const limit = parseInt(c.req.query("limit") || "50", 10)
+  const safeLimit = Number.isFinite(limit) ? Math.min(100, Math.max(1, limit)) : 50
+
+  try {
+    const result = await client.fetchPullRequestDashboard(safeLimit)
+    return c.json({
+      authored: result.authored,
+      reviewRequested: result.reviewRequested,
+      rateLimit: result.rateLimit,
+    })
+  } catch (error) {
+    console.error("Error fetching PR dashboard:", error)
+    return c.json(
+      {
+        error: "Failed to fetch PR dashboard",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      500,
+    )
+  }
+})
+
 // Sync overview (organizations and repositories)
 app.post("/github/sync/overview", async (c) => {
   const session = await requireAuth(c)
