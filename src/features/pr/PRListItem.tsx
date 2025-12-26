@@ -1,6 +1,13 @@
 import { Link } from "@tanstack/react-router"
 import type { Row } from "@rocicorp/zero"
-import { CommentIcon, CheckIcon } from "@primer/octicons-react"
+import {
+  CommentIcon,
+  CheckIcon,
+  GitPullRequestIcon,
+  GitPullRequestClosedIcon,
+  GitPullRequestDraftIcon,
+  GitMergeIcon,
+} from "@primer/octicons-react"
 import styles from "./PRListItem.module.css"
 import { Avatar } from "@/components/Avatar"
 
@@ -66,12 +73,50 @@ function formatDate(date: Date | number | null | undefined): string {
   })
 }
 
+type PRStatus = "open" | "closed" | "merged" | "draft"
+
+const getPRStatus = (pr: {
+  state: string
+  merged?: boolean | null
+  draft?: boolean | null
+}): PRStatus => {
+  if (pr.draft) return "draft"
+  if (pr.merged) return "merged"
+  if (pr.state === "closed") return "closed"
+  return "open"
+}
+
+const StatusIcon = ({ status }: { status: PRStatus }) => {
+  switch (status) {
+    case "merged":
+      return (
+        <GitMergeIcon size={16} className={`${styles.statusIcon} ${styles.statusMerged}`} />
+      )
+    case "closed":
+      return (
+        <GitPullRequestClosedIcon size={16} className={`${styles.statusIcon} ${styles.statusClosed}`} />
+      )
+    case "draft":
+      return (
+        <GitPullRequestDraftIcon size={16} className={`${styles.statusIcon} ${styles.statusDraft}`} />
+      )
+    default:
+      return (
+        <GitPullRequestIcon size={16} className={`${styles.statusIcon} ${styles.statusOpen}`} />
+      )
+  }
+}
+
 export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
   const totalComments = (pr.comments ?? 0) + (pr.reviewComments ?? 0)
   const statusIndicators = getStatusIndicators(pr)
+  const prStatus = getPRStatus(pr)
 
   return (
     <Link to={`/${repoFullName}/pull/${pr.number}`} className={styles.prItem}>
+      {/* Status icon */}
+      <StatusIcon status={prStatus} />
+
       {/* Left side content */}
       <div className={styles.prContent}>
         <h3 className={styles.prTitle}>

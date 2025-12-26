@@ -69,20 +69,32 @@ export const parseLabels = (labels: string): string[] => {
       return result.filter(Boolean)
     }
   } catch {
-    return labels.split(",").map((s) => s.trim()).filter(Boolean)
+    return labels
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
   }
   return []
 }
 
+// Author type for filters
+export interface Author {
+  login: string
+  avatarUrl: string | null
+}
+
 // Extract unique authors from PRs
-export const extractAuthors = (prs: readonly GithubPullRequest[]): string[] => {
-  const authorSet = new Set<string>()
+export const extractAuthors = (prs: readonly GithubPullRequest[]): Author[] => {
+  const authorMap = new Map<string, Author>()
   for (const pr of prs) {
-    if (pr.authorLogin) {
-      authorSet.add(pr.authorLogin)
+    if (pr.authorLogin && !authorMap.has(pr.authorLogin)) {
+      authorMap.set(pr.authorLogin, {
+        login: pr.authorLogin,
+        avatarUrl: pr.authorAvatarUrl ?? null,
+      })
     }
   }
-  return Array.from(authorSet).sort()
+  return Array.from(authorMap.values()).sort((a, b) => a.login.localeCompare(b.login))
 }
 
 // Extract unique labels from PRs
@@ -100,7 +112,10 @@ export const extractLabels = (prs: readonly GithubPullRequest[]): string[] => {
 }
 
 // Filter functions
-export const filterByStatus = <T extends GithubPullRequest>(prs: readonly T[], status: PRStatus): T[] => {
+export const filterByStatus = <T extends GithubPullRequest>(
+  prs: readonly T[],
+  status: PRStatus,
+): T[] => {
   if (status === "all") return [...prs]
   if (status === "merged") return prs.filter((pr) => pr.merged === true)
   if (status === "closed") return prs.filter((pr) => pr.state === "closed" && pr.merged !== true)
@@ -115,7 +130,10 @@ export const filterByDraft = <T extends GithubPullRequest>(prs: T[], draft: PRDr
   return prs
 }
 
-export const filterByAuthor = <T extends GithubPullRequest>(prs: T[], author: string | null): T[] => {
+export const filterByAuthor = <T extends GithubPullRequest>(
+  prs: T[],
+  author: string | null,
+): T[] => {
   if (!author) return prs
   return prs.filter((pr) => pr.authorLogin === author)
 }
@@ -130,7 +148,11 @@ export const filterByLabels = <T extends GithubPullRequest>(prs: T[], labels: st
 }
 
 // Sort function
-export const sortPRs = <T extends GithubPullRequest>(prs: T[], sortBy: PRSortField, direction: PRSortDirection): T[] => {
+export const sortPRs = <T extends GithubPullRequest>(
+  prs: T[],
+  sortBy: PRSortField,
+  direction: PRSortDirection,
+): T[] => {
   const multiplier = direction === "desc" ? -1 : 1
 
   return [...prs].sort((a, b) => {
