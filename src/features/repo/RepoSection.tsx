@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { Link } from "wouter"
+import { Link } from "@tanstack/react-router"
 import { FileDirectoryIcon, OrganizationIcon, PersonIcon } from "@primer/octicons-react"
 import type { Repo, Organization } from "./types"
 import { RepoCard } from "./RepoCard"
@@ -70,7 +70,7 @@ export function RepoSection({ repos, orgs, currentUserLogin }: RepoSectionProps)
     <div className={styles.container}>
       {groupedRepos.map((group) => (
         <section key={group.owner} className={styles.section}>
-          <Link href={`/${group.owner}`} className={styles.sectionHeader}>
+          <Link to={`/${group.owner}`} className={styles.sectionHeader}>
             {group.avatarUrl ? (
               <img
                 src={group.avatarUrl}

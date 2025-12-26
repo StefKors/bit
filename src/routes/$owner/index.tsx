@@ -1,4 +1,4 @@
-import { useParams } from "wouter"
+import { createFileRoute } from "@tanstack/react-router"
 import { useQuery } from "@rocicorp/zero/react"
 import {
   FileDirectoryIcon,
@@ -8,30 +8,22 @@ import {
   StarIcon,
   RepoForkedIcon,
 } from "@primer/octicons-react"
-import { zql } from "@/db/schema"
+import { queries } from "@/db/queries"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoCard } from "@/features/repo/RepoCard"
-import styles from "./OwnerPage.module.css"
+import styles from "@/pages/OwnerPage.module.css"
+import { Avatar } from "@/components/Avatar"
 
-export function OwnerPage() {
-  const params = useParams<{ owner: string }>()
-  const owner = params.owner || ""
+function OwnerPage() {
+  const params: { owner?: string } = Route.useParams()
+  const owner = params?.owner ?? ""
 
-  // Query repos for this owner
-  const [repos] = useQuery(
-    zql.githubRepo
-      .where("owner", "=", owner)
-      .orderBy("githubUpdatedAt", "desc"),
-  )
+  const [org] = useQuery(queries.ownerWithRepos(owner))
+  const [userRepos] = useQuery(queries.reposByOwner(owner))
 
-  // Query orgs to check if this owner is an organization
-  const [orgs] = useQuery(
-    zql.githubOrganization.where("login", "=", owner).limit(1),
-  )
-  const org = orgs[0]
-  const isOrg = !!org
+  const repos = org?.githubRepo ?? userRepos
+  const isOrg = Boolean(org)
 
-  // Count stats
   const totalStars = repos.reduce(
     (acc, repo) => acc + (repo.stargazersCount ?? 0),
     0,
@@ -64,26 +56,15 @@ export function OwnerPage() {
         items={[{ label: "Repositories", href: "/" }, { label: owner }]}
       />
 
-      {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          {org?.avatarUrl ? (
-            <img
-              src={org.avatarUrl}
-              alt={owner}
-              className={`${styles.ownerAvatar} ${isOrg ? styles.ownerAvatarOrg : styles.ownerAvatarUser}`}
-            />
-          ) : (
-            <div
-              className={`${styles.ownerAvatarPlaceholder} ${isOrg ? styles.ownerAvatarPlaceholderOrg : styles.ownerAvatarPlaceholderUser}`}
-            >
-              {isOrg ? (
-                <OrganizationIcon size={24} />
-              ) : (
-                <PersonIcon size={24} />
-              )}
-            </div>
-          )}
+          <Avatar
+            src={org?.avatarUrl}
+            name={owner}
+            size={64}
+            isOrganization={isOrg}
+          />
+
           <div className={styles.ownerInfo}>
             <h1 className={styles.title}>
               {owner}
@@ -107,7 +88,6 @@ export function OwnerPage() {
         </div>
       </header>
 
-      {/* Repositories Grid */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>
           <RepoIcon className={styles.sectionIcon} size={20} />
@@ -122,3 +102,7 @@ export function OwnerPage() {
     </div>
   )
 }
+
+export const Route = createFileRoute("/$owner/")({
+  component: OwnerPage,
+})

@@ -1,4 +1,4 @@
-import { Link } from "wouter"
+import { Link } from "@tanstack/react-router"
 import { LockIcon, StarIcon, RepoForkedIcon } from "@primer/octicons-react"
 import type { Repo } from "./types"
 import styles from "./RepoCard.module.css"
@@ -33,7 +33,7 @@ interface RepoCardProps {
 
 export function RepoCard({ repo }: RepoCardProps) {
   return (
-    <Link href={`/${repo.fullName}`} className={styles.card}>
+    <Link to={`/${repo.fullName}`} className={styles.card}>
       <div className={styles.cardHeader}>
         <div className={styles.cardContent}>
           <h3 className={styles.cardTitle}>

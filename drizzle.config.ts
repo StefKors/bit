@@ -8,6 +8,6 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.ZERO_UPSTREAM_DB!,
+    url: process.env.DATABASE_URL!,
   },
 })

@@ -1,4 +1,4 @@
-import { Link } from "wouter"
+import { Link } from "@tanstack/react-router"
 import { FileIcon } from "@primer/octicons-react"
 import styles from "./RepoCodeTab.module.css"
 
@@ -14,7 +14,7 @@ export function RepoCodeTab({ fullName }: RepoCodeTabProps) {
         <h3 className={styles.emptyTitle}>Repository Overview</h3>
         <p className={styles.emptyText}>
           View{" "}
-          <Link href={`/${fullName}/pulls`} className={styles.link}>
+          <Link to={`/${fullName}/pulls`} className={styles.link}>
             Pull Requests
           </Link>{" "}
           to see code changes.

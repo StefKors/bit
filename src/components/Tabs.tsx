@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Tabs as BaseTabs } from "@base-ui/react/tabs"
-import { Link, useLocation } from "wouter"
+import { Link, useLocation } from "@tanstack/react-router"
 import styles from "./Tabs.module.css"
 
 interface TabItem {
@@ -28,12 +28,12 @@ export function Tabs({
   className,
   trailing,
 }: TabsProps) {
-  const [location] = useLocation()
+  const location = useLocation()
 
   // For link-based tabs, determine active from URL
   const activeValue =
     value ??
-    items.find((item) => item.href && location === item.href)?.value ??
+    items.find((item) => item.href && location.pathname === item.href)?.value ??
     defaultValue ??
     items[0]?.value
 
@@ -72,7 +72,7 @@ function TabTrigger({ item }: { item: TabItem }) {
       <BaseTabs.Tab
         value={item.value}
         className={styles.tab}
-        render={<Link href={item.href} />}
+        render={<Link to={item.href} />}
         nativeButton={false}
       >
         {content}

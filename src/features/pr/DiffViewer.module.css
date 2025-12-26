@@ -241,13 +241,6 @@
   margin-bottom: 0.5rem;
 }
 
-.commentAvatar {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
 .commentAuthor {
   font-size: 0.85rem;
   font-weight: 600;
