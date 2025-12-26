@@ -21,7 +21,7 @@ export const auth = betterAuth({
       verification: schema.authVerification,
     },
   }),
-  trustedOrigins: [process.env.BASE_URL!, "https://bitbitbit.netlify.app"],
+  trustedOrigins: [process.env.BASE_URL!, "https://bit.stefkors.com"],
   socialProviders: {
     github: {
       clientId: process.env.GITHUB_CLIENT_ID as string,
