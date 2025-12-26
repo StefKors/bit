@@ -5,10 +5,9 @@ import { Pool } from "pg"
 import * as schema from "../schema"
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.ZERO_UPSTREAM_DB,
 })
 
-console.log("process.env.DATABASE_URL", process.env.BASE_URL)
 const db = drizzle(pool, { schema })
 
 export const auth = betterAuth({
