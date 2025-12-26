@@ -55,13 +55,6 @@
   color: rgba(var(--bit-rgb-fg), 0.45);
 }
 
-.authorAvatar {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
 .authorName {
   font-weight: 500;
   color: rgba(var(--bit-rgb-fg), 0.6);

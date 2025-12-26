@@ -7,6 +7,7 @@ import { Button } from "@/components/Button"
 import { queries } from "@/db/queries"
 import { RepoSection } from "@/features/repo/RepoSection"
 import styles from "@/pages/OverviewPage.module.css"
+import { Avatar } from "@/components/Avatar"
 
 interface RateLimitInfo {
   remaining: number
@@ -24,8 +25,13 @@ function OverviewPage() {
 
   const orgs = repos
     .map((repo) => repo.githubOrganization)
-    .filter((org): org is NonNullable<typeof org> => org !== null && org !== undefined)
-    .filter((org, index, self) => self.findIndex((o) => o.id === org.id) === index)
+    .filter(
+      (org): org is NonNullable<typeof org> =>
+        org !== null && org !== undefined,
+    )
+    .filter(
+      (org, index, self) => self.findIndex((o) => o.id === org.id) === index,
+    )
 
   const currentUserLogin = session?.user?.name
 
@@ -77,19 +83,7 @@ function OverviewPage() {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <div className={styles.avatarContainer}>
-            {session.user.image ? (
-              <img
-                src={session.user.image}
-                alt={session.user.name}
-                className={styles.avatar}
-              />
-            ) : (
-              <div className={styles.avatarPlaceholder}>
-                {session.user.name?.charAt(0).toUpperCase() || "?"}
-              </div>
-            )}
-          </div>
+          <Avatar src={session.user.image} name={session.user.name} size={48} />
           <h1 className={styles.title}>{session.user.name}'s Repositories</h1>
         </div>
 
@@ -148,4 +142,3 @@ function OverviewPage() {
 export const Route = createFileRoute("/")({
   component: OverviewPage,
 })
-

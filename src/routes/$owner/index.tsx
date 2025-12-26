@@ -12,9 +12,11 @@ import { queries } from "@/db/queries"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoCard } from "@/features/repo/RepoCard"
 import styles from "@/pages/OwnerPage.module.css"
+import { Avatar } from "@/components/Avatar"
 
 function OwnerPage() {
-  const { owner } = Route.useParams()
+  const params: { owner?: string } = Route.useParams()
+  const owner = params?.owner ?? ""
 
   const [org] = useQuery(queries.ownerWithRepos(owner))
   const [userRepos] = useQuery(queries.reposByOwner(owner))
@@ -56,23 +58,13 @@ function OwnerPage() {
 
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          {org?.avatarUrl ? (
-            <img
-              src={org.avatarUrl}
-              alt={owner}
-              className={`${styles.ownerAvatar} ${isOrg ? styles.ownerAvatarOrg : styles.ownerAvatarUser}`}
-            />
-          ) : (
-            <div
-              className={`${styles.ownerAvatarPlaceholder} ${isOrg ? styles.ownerAvatarPlaceholderOrg : styles.ownerAvatarPlaceholderUser}`}
-            >
-              {isOrg ? (
-                <OrganizationIcon size={24} />
-              ) : (
-                <PersonIcon size={24} />
-              )}
-            </div>
-          )}
+          <Avatar
+            src={org?.avatarUrl}
+            name={owner}
+            size={64}
+            isOrganization={isOrg}
+          />
+
           <div className={styles.ownerInfo}>
             <h1 className={styles.title}>
               {owner}
@@ -114,4 +106,3 @@ function OwnerPage() {
 export const Route = createFileRoute("/$owner/")({
   component: OwnerPage,
 })
-

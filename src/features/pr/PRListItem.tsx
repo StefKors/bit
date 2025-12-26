@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router"
 import type { Row } from "@rocicorp/zero"
 import { CommentIcon, CheckIcon } from "@primer/octicons-react"
 import styles from "./PRListItem.module.css"
+import { Avatar } from "@/components/Avatar"
 
 type PullRequest = Row["githubPullRequest"]
 
@@ -12,7 +13,11 @@ interface PRListItemProps {
 }
 
 // Status indicator component for CI/check status
-function StatusDot({ status }: { status: "success" | "failure" | "pending" | "warning" }) {
+function StatusDot({
+  status,
+}: {
+  status: "success" | "failure" | "pending" | "warning"
+}) {
   const colors = {
     success: "#3fb950",
     failure: "#f85149",
@@ -21,7 +26,11 @@ function StatusDot({ status }: { status: "success" | "failure" | "pending" | "wa
   }
 
   return (
-    <span className={styles.statusDot} style={{ backgroundColor: colors[status] }} title={status} />
+    <span
+      className={styles.statusDot}
+      style={{ backgroundColor: colors[status] }}
+      title={status}
+    />
   )
 }
 
@@ -71,14 +80,10 @@ export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
         </h3>
 
         <div className={styles.prMeta}>
-          {pr.authorAvatarUrl && (
-            <img
-              src={pr.authorAvatarUrl}
-              alt={pr.authorLogin || "Author"}
-              className={styles.authorAvatar}
-            />
+          <Avatar src={pr.authorAvatarUrl} name={pr.authorLogin} size={16} />
+          {pr.authorLogin && (
+            <span className={styles.authorName}>{pr.authorLogin}</span>
           )}
-          {pr.authorLogin && <span className={styles.authorName}>{pr.authorLogin}</span>}
           <span className={styles.prPath}>
             {repoFullName}/{pr.number}
           </span>

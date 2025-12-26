@@ -1,6 +1,7 @@
 import { Markdown } from "@/components/Markdown"
 import type { GithubPrReview, GithubPrComment } from "@/db/schema"
 import styles from "./PRConversationTab.module.css"
+import { Avatar } from "@/components/Avatar"
 
 interface TimelineItem {
   type: "comment" | "review"
@@ -132,15 +133,7 @@ function TimelineItemComponent({
 }: TimelineItemComponentProps) {
   return (
     <div className={styles.timelineItem}>
-      {avatarUrl ? (
-        <img
-          src={avatarUrl}
-          alt={authorLogin || "Author"}
-          className={styles.timelineAvatar}
-        />
-      ) : (
-        <div className={styles.timelineAvatarPlaceholder} />
-      )}
+      <Avatar src={avatarUrl} name={authorLogin} size={40} />
       <div className={styles.timelineContent}>
         <div className={styles.timelineHeader}>
           <span className={styles.timelineAuthor}>{authorLogin}</span>
