@@ -2,18 +2,18 @@ services:
   zstart_postgres:
     image: postgres:16.2-alpine
     shm_size: 1g
-    user: stefkors
+    user: postgres
     restart: always
     healthcheck:
-      test: "pg_isready -U user --dbname=bit"
+      test: "pg_isready -U user --dbname=postgres"
       interval: 10s
       timeout: 5s
       retries: 5
     ports:
       - 5430:5432
     environment:
-      POSTGRES_USER: stefkors
-      POSTGRES_DB: bit
+      POSTGRES_USER: user
+      POSTGRES_DB: postgres
       POSTGRES_PASSWORD: password
     command: |
       postgres 
