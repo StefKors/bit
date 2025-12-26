@@ -8,9 +8,7 @@ function RepoPullsPage() {
 
   return (
     <RepoLayout activeTab="pulls">
-      {(repoData) => (
-        <RepoPullsTab prs={repoData.githubPullRequest} fullName={fullName} />
-      )}
+      {(repoData) => <RepoPullsTab prs={repoData.githubPullRequest} fullName={fullName} />}
     </RepoLayout>
   )
 }
@@ -18,4 +16,3 @@ function RepoPullsPage() {
 export const Route = createFileRoute("/$owner/$repo/pulls")({
   component: RepoPullsPage,
 })
-

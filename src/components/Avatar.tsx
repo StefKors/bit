@@ -27,21 +27,12 @@ interface AvatarProps {
   isOrganization?: boolean | null
 }
 
-export const Avatar = ({
-  size,
-  src,
-  name,
-  isOnline,
-  isOrganization,
-}: AvatarProps) => {
+export const Avatar = ({ size, src, name, isOnline, isOrganization }: AvatarProps) => {
   const initial = name?.charAt(0).toUpperCase()
   const [hasError, sethasError] = useState(false)
 
   return (
-    <div
-      className={styles.avatarContainer}
-      style={{ width: `${size}px`, height: `${size}px` }}
-    >
+    <div className={styles.avatarContainer} style={{ width: `${size}px`, height: `${size}px` }}>
       {src && !hasError ? (
         <img
           src={src}
@@ -57,12 +48,7 @@ export const Avatar = ({
           className={styles.avatarPlaceholder}
           style={{ width: `${size}px`, height: `${size}px` }}
         >
-          {
-            <AvatarFallback
-              initials={initial}
-              isOrganization={isOrganization}
-            />
-          }
+          {<AvatarFallback initials={initial} isOrganization={isOrganization} />}
         </div>
       )}
       {isOnline && <div className={styles.onlineIndicator} />}

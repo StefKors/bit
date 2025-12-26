@@ -41,12 +41,7 @@ function LoginPage({ onLogin }: LoginPageProps) {
       <div className={styles.container}>
         <div className={styles.card}>
           <div className={styles.header}>
-            <Avatar
-              src={session.user.image}
-              name={session.user.name}
-              size={80}
-              isOnline
-            />
+            <Avatar src={session.user.image} name={session.user.name} size={80} isOnline />
             <h1 className={styles.title}>Welcome back</h1>
             <p className={styles.subtitle}>{session.user.name}</p>
           </div>
@@ -97,9 +92,7 @@ function LoginPage({ onLogin }: LoginPageProps) {
         </Button>
 
         <div className={styles.footer}>
-          <p className={styles.footerText}>
-            By continuing, you agree to our terms of service
-          </p>
+          <p className={styles.footerText}>By continuing, you agree to our terms of service</p>
         </div>
       </div>
     </div>

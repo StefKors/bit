@@ -133,3 +133,23 @@
   color: rgba(var(--bit-rgb-fg), 0.45);
   white-space: nowrap;
 }
+
+.statusIcon {
+  flex-shrink: 0;
+}
+
+.statusOpen {
+  color: #3fb950;
+}
+
+.statusClosed {
+  color: #f85149;
+}
+
+.statusMerged {
+  color: #a371f7;
+}
+
+.statusDraft {
+  color: #848d97;
+}

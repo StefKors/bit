@@ -70,7 +70,7 @@ export function RepoSection({ repos, orgs, currentUserLogin }: RepoSectionProps)
     <div className={styles.container}>
       {groupedRepos.map((group) => (
         <section key={group.owner} className={styles.section}>
-          <Link to={`/${group.owner}`} className={styles.sectionHeader}>
+          <Link to="/$owner" params={{ owner: group.owner }} className={styles.sectionHeader}>
             {group.avatarUrl ? (
               <img
                 src={group.avatarUrl}

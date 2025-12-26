@@ -1,8 +1,4 @@
-import {
-  CodeIcon,
-  GitPullRequestIcon,
-  IssueOpenedIcon,
-} from "@primer/octicons-react"
+import { CodeIcon, GitPullRequestIcon, IssueOpenedIcon } from "@primer/octicons-react"
 import { Tabs } from "@/components/Tabs"
 import type { GithubPullRequest } from "@/db/schema"
 
@@ -16,6 +12,7 @@ interface RepoTabsProps {
 
 export function RepoTabs({ prs, fullName, activeTab }: RepoTabsProps) {
   const openPRs = prs.filter((pr) => pr.state === "open")
+  const [owner, repo] = fullName.split("/")
 
   return (
     <Tabs
@@ -25,20 +22,23 @@ export function RepoTabs({ prs, fullName, activeTab }: RepoTabsProps) {
           value: "code",
           label: "Code",
           icon: <CodeIcon size={16} />,
-          href: `/${fullName}`,
+          to: "/$owner/$repo",
+          params: { owner, repo },
         },
         {
           value: "pulls",
           label: "Pull Requests",
           icon: <GitPullRequestIcon size={16} />,
           count: openPRs.length,
-          href: `/${fullName}/pulls`,
+          to: "/$owner/$repo/pulls",
+          params: { owner, repo },
         },
         {
           value: "issues",
           label: "Issues",
           icon: <IssueOpenedIcon size={16} />,
-          href: `/${fullName}/issues`,
+          to: "/$owner/$repo/issues",
+          params: { owner, repo },
         },
       ]}
     />

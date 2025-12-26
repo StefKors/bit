@@ -24,12 +24,7 @@ export function HomePage({ onLogout }: HomePageProps) {
     <div className={styles.container}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <Avatar
-            src={session.user.image}
-            name={session.user.name}
-            size={80}
-            isOnline
-          />
+          <Avatar src={session.user.image} name={session.user.name} size={80} isOnline />
           <h1 className={styles.title}>Welcome, {session.user.name}</h1>
           <p className={styles.subtitle}>{session.user.email}</p>
         </div>

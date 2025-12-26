@@ -8,7 +8,8 @@ interface TabItem {
   label: React.ReactNode
   icon?: React.ReactNode
   count?: number
-  href?: string
+  to?: string
+  params?: Record<string, string>
 }
 
 interface TabsProps {
@@ -33,7 +34,8 @@ export function Tabs({
   // For link-based tabs, determine active from URL
   const activeValue =
     value ??
-    items.find((item) => item.href && location.pathname === item.href)?.value ??
+    items.find((item) => item.to && location.pathname.includes(item.to.replace(/\$\w+/g, "")))
+      ?.value ??
     defaultValue ??
     items[0]?.value
 
@@ -67,12 +69,12 @@ function TabTrigger({ item }: { item: TabItem }) {
     </>
   )
 
-  if (item.href) {
+  if (item.to) {
     return (
       <BaseTabs.Tab
         value={item.value}
         className={styles.tab}
-        render={<Link to={item.href} />}
+        render={<Link to={item.to} params={item.params} />}
         nativeButton={false}
       >
         {content}

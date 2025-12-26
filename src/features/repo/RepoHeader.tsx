@@ -37,13 +37,9 @@ export function RepoHeader({ repo, syncing, onSync }: RepoHeaderProps) {
         <h1 className={styles.title}>
           <RepoIcon className={styles.repoIcon} size={20} />
           {repo.name}
-          {repo.private && (
-            <LockIcon className={styles.privateIcon} size={14} />
-          )}
+          {repo.private && <LockIcon className={styles.privateIcon} size={14} />}
         </h1>
-        {repo.description && (
-          <p className={styles.description}>{repo.description}</p>
-        )}
+        {repo.description && <p className={styles.description}>{repo.description}</p>}
         <div className={styles.meta}>
           {repo.language && (
             <span className={styles.metaItem}>

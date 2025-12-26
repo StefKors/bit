@@ -11,7 +11,7 @@
 - **Real-time Sync**: Data syncs via Zero for offline access
 - **PR Viewer**: Full PR detail view with conversation, files changed, and diff viewer
 - **Webhook Support**: Real-time updates via GitHub webhooks
-- Diff viewer component from [pierre](https://diffs.com) 
+- Diff viewer component from [pierre](https://diffs.com)
 
 ## Setup
 

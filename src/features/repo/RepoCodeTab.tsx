@@ -14,7 +14,14 @@ export function RepoCodeTab({ fullName }: RepoCodeTabProps) {
         <h3 className={styles.emptyTitle}>Repository Overview</h3>
         <p className={styles.emptyText}>
           View{" "}
-          <Link to={`/${fullName}/pulls`} className={styles.link}>
+          <Link
+            to="/$owner/$repo/pulls"
+            params={{
+              owner: fullName.split("/")[0],
+              repo: fullName.split("/")[1],
+            }}
+            className={styles.link}
+          >
             Pull Requests
           </Link>{" "}
           to see code changes.

@@ -13,13 +13,7 @@ export const LoadingCube = ({ size = 48 }: LoadingCubeProps) => {
 
   return (
     <div className={styles.container}>
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 48 52"
-        fill="none"
-        className={styles.cube}
-      >
+      <svg width={size} height={size} viewBox="0 0 48 52" fill="none" className={styles.cube}>
         <path d={topFace} className={styles.line} />
         <path d={leftFace} className={styles.line} />
         <path d={rightFace} className={styles.line} />

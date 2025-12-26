@@ -21,7 +21,7 @@ interface RepoLayoutProps {
 }
 
 export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
-  const params = useParams({ strict: false }) as { owner?: string; repo?: string }
+  const params = useParams({ strict: false })
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -61,9 +61,8 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
           <FileDirectoryIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>Repository not found</h3>
           <p className={styles.emptyText}>
-            This repository hasn't been synced yet.{" "}
-            <Link to="/">Go back to overview</Link> and sync your
-            repositories.
+            This repository hasn't been synced yet. <Link to="/">Go back to overview</Link> and sync
+            your repositories.
           </p>
         </div>
       </div>
@@ -74,9 +73,9 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
     <div className={styles.container}>
       <Breadcrumb
         items={[
-          { label: "Repositories", href: "/" },
-          { label: owner, href: `/${owner}` },
-          { label: repoName, href: `/${owner}/${repoName}` },
+          { label: "Repositories", to: "/" },
+          { label: owner, to: "/$owner", params: { owner } },
+          { label: repoName, to: "/$owner/$repo", params: { owner, repo: repoName } },
         ]}
       />
 
