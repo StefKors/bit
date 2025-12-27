@@ -92,7 +92,10 @@
 }
 
 .card:hover {
-  border-color: rgba(var(--bit-rgb-accent-blue), var(--bit-alpha-accent-border-hover));
+  border-color: rgba(
+    var(--bit-rgb-accent-blue),
+    var(--bit-alpha-accent-border-hover)
+  );
   box-shadow: var(--bit-shadow-md);
 }
 
@@ -199,6 +202,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  max-width: 1200px;
 }
 
 @media (max-width: 900px) {
@@ -213,6 +217,7 @@
   border-radius: var(--bit-radius-xl);
   padding: 1.25rem;
   box-shadow: var(--bit-shadow-elevated);
+  max-width: 600px;
 }
 
 .prColumnTitle {
