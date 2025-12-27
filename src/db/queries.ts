@@ -43,6 +43,28 @@ export const queries = defineQueries({
   ),
 
   // =============================================================================
+  // Repo tree - fetch tree entries for a specific ref
+  // =============================================================================
+  repoTree: defineQuery(
+    z.object({ repoId: z.string(), ref: z.string() }),
+    ({ args }) =>
+      zql.githubRepoTree
+        .where("repoId", "=", args.repoId)
+        .where("ref", "=", args.ref)
+        .orderBy("path", "asc"),
+  ),
+
+  // Repo blob - fetch file content by sha
+  repoBlob: defineQuery(
+    z.object({ repoId: z.string(), sha: z.string() }),
+    ({ args }) =>
+      zql.githubRepoBlob
+        .where("repoId", "=", args.repoId)
+        .where("sha", "=", args.sha)
+        .one(),
+  ),
+
+  // =============================================================================
   // PR detail page - fetch repo with single PR and all its related data
   // =============================================================================
   repoWithPRFull: defineQuery(

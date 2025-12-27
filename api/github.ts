@@ -591,6 +591,217 @@ export class GitHubClient {
   getLastRateLimit(): RateLimitInfo | null {
     return this.lastRateLimit
   }
+
+  // Fetch repository tree (file structure)
+  async fetchRepoTree(
+    owner: string,
+    repo: string,
+    ref?: string,
+  ): Promise<{
+    tree: (typeof schema.githubRepoTree.$inferInsert)[]
+    rateLimit: RateLimitInfo
+  }> {
+    // Get the repo from our database
+    const repoRecord = await this.db
+      .select()
+      .from(schema.githubRepo)
+      .where(
+        and(
+          eq(schema.githubRepo.fullName, `${owner}/${repo}`),
+          eq(schema.githubRepo.userId, this.userId),
+        ),
+      )
+      .limit(1)
+
+    if (!repoRecord[0]) {
+      throw new Error(`Repository ${owner}/${repo} not found. Please sync repositories first.`)
+    }
+
+    const branch = ref || repoRecord[0].defaultBranch || "main"
+
+    // Fetch the tree recursively
+    const response = await this.octokit.rest.git.getTree({
+      owner,
+      repo,
+      tree_sha: branch,
+      recursive: "1",
+    })
+
+    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    // Process tree entries
+    const treeEntries: (typeof schema.githubRepoTree.$inferInsert)[] = []
+
+    for (const item of response.data.tree) {
+      if (!item.path) continue
+
+      const pathParts = item.path.split("/")
+      const name = pathParts[pathParts.length - 1]
+
+      treeEntries.push({
+        id: `${repoRecord[0].id}:${branch}:${item.path}`,
+        repoId: repoRecord[0].id,
+        ref: branch,
+        path: item.path,
+        name,
+        type: item.type === "tree" ? "dir" : "file",
+        sha: item.sha || "",
+        size: item.size || null,
+        url: item.url || null,
+        htmlUrl: `https://github.com/${owner}/${repo}/${item.type === "tree" ? "tree" : "blob"}/${branch}/${item.path}`,
+        userId: this.userId,
+      })
+    }
+
+    // Delete existing tree for this ref and insert new entries
+    await this.db.delete(schema.githubRepoTree).where(
+      and(
+        eq(schema.githubRepoTree.repoId, repoRecord[0].id),
+        eq(schema.githubRepoTree.ref, branch),
+      ),
+    )
+
+    for (const entry of treeEntries) {
+      await this.db.insert(schema.githubRepoTree).values(entry)
+    }
+
+    await this.updateSyncState("tree", `${owner}/${repo}:${branch}`, rateLimit)
+
+    return { tree: treeEntries, rateLimit }
+  }
+
+  // Fetch file content
+  async fetchFileContent(
+    owner: string,
+    repo: string,
+    path: string,
+    ref?: string,
+  ): Promise<{
+    blob: typeof schema.githubRepoBlob.$inferInsert
+    rateLimit: RateLimitInfo
+  }> {
+    // Get the repo from our database
+    const repoRecord = await this.db
+      .select()
+      .from(schema.githubRepo)
+      .where(
+        and(
+          eq(schema.githubRepo.fullName, `${owner}/${repo}`),
+          eq(schema.githubRepo.userId, this.userId),
+        ),
+      )
+      .limit(1)
+
+    if (!repoRecord[0]) {
+      throw new Error(`Repository ${owner}/${repo} not found. Please sync repositories first.`)
+    }
+
+    const branch = ref || repoRecord[0].defaultBranch || "main"
+
+    // Fetch file contents
+    const response = await this.octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path,
+      ref: branch,
+    })
+
+    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    // Handle file content (not directories)
+    if (Array.isArray(response.data) || response.data.type !== "file") {
+      throw new Error(`${path} is not a file`)
+    }
+
+    const content = response.data.content
+      ? Buffer.from(response.data.content, "base64").toString("utf-8")
+      : null
+
+    const blob: typeof schema.githubRepoBlob.$inferInsert = {
+      id: `${repoRecord[0].id}:${response.data.sha}`,
+      repoId: repoRecord[0].id,
+      sha: response.data.sha,
+      content,
+      encoding: response.data.encoding,
+      size: response.data.size,
+      userId: this.userId,
+    }
+
+    // Upsert blob
+    await this.db
+      .insert(schema.githubRepoBlob)
+      .values(blob)
+      .onConflictDoUpdate({
+        target: schema.githubRepoBlob.id,
+        set: {
+          content: blob.content,
+          encoding: blob.encoding,
+          size: blob.size,
+          updatedAt: new Date(),
+        },
+      })
+
+    return { blob, rateLimit }
+  }
+
+  // Fetch README content for a repo
+  async fetchReadme(
+    owner: string,
+    repo: string,
+    ref?: string,
+  ): Promise<{
+    content: string | null
+    rateLimit: RateLimitInfo
+  }> {
+    // Get the repo from our database
+    const repoRecord = await this.db
+      .select()
+      .from(schema.githubRepo)
+      .where(
+        and(
+          eq(schema.githubRepo.fullName, `${owner}/${repo}`),
+          eq(schema.githubRepo.userId, this.userId),
+        ),
+      )
+      .limit(1)
+
+    if (!repoRecord[0]) {
+      throw new Error(`Repository ${owner}/${repo} not found. Please sync repositories first.`)
+    }
+
+    const branch = ref || repoRecord[0].defaultBranch || "main"
+
+    try {
+      const response = await this.octokit.rest.repos.getReadme({
+        owner,
+        repo,
+        ref: branch,
+      })
+
+      const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+      const content = response.data.content
+        ? Buffer.from(response.data.content, "base64").toString("utf-8")
+        : null
+
+      return { content, rateLimit }
+    } catch (error) {
+      // README might not exist
+      const err = error as { status?: number }
+      if (err.status === 404) {
+        return {
+          content: null,
+          rateLimit: this.lastRateLimit || {
+            remaining: 0,
+            limit: 0,
+            reset: new Date(),
+            used: 0,
+          },
+        }
+      }
+      throw error
+    }
+  }
 }
 
 // Factory function to create a GitHub client from session

@@ -1,0 +1,133 @@
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.5rem;
+  min-height: calc(100vh - 200px);
+}
+
+.sidebar {
+  position: sticky;
+  top: 1rem;
+  height: fit-content;
+  max-height: calc(100vh - 2rem);
+  overflow: hidden;
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-lg);
+}
+
+.main {
+  min-width: 0;
+}
+
+.breadcrumbPath {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+}
+
+.breadcrumbLink {
+  color: var(--bit-color-link);
+  text-decoration: none;
+}
+
+.breadcrumbLink:hover {
+  text-decoration: underline;
+}
+
+.breadcrumbSeparator {
+  color: rgba(var(--bit-rgb-fg), 0.4);
+}
+
+.breadcrumbCurrent {
+  color: rgba(var(--bit-rgb-fg), 0.9);
+  font-weight: 500;
+}
+
+/* Directory view */
+.directoryContent {
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-lg);
+  overflow: hidden;
+}
+
+.directoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(var(--bit-rgb-surface-2), 0.5);
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(var(--bit-rgb-fg), 0.9);
+}
+
+.directoryList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.directoryItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.05);
+  color: rgba(var(--bit-rgb-fg), 0.9);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: background 0.15s ease;
+}
+
+.directoryItem:last-child {
+  border-bottom: none;
+}
+
+.directoryItem:hover {
+  background: rgba(var(--bit-rgb-fg), 0.05);
+}
+
+.itemIcon {
+  flex-shrink: 0;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+.itemIconFolder {
+  color: var(--bit-color-accent-blue);
+}
+
+.itemName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+.error {
+  padding: 2rem;
+  text-align: center;
+  color: var(--bit-color-accent-red);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: none;
+  }
+}

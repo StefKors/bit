@@ -207,6 +207,111 @@ app.post("/github/sync/:owner/:repo/pull/:number", async (c) => {
   }
 })
 
+// Sync repository tree (file structure)
+app.post("/github/sync/:owner/:repo/tree", async (c) => {
+  const session = await requireAuth(c)
+  if (!session) {
+    return c.json({ error: "Unauthorized" }, 401)
+  }
+
+  const { owner, repo } = c.req.param()
+  const ref = c.req.query("ref")
+
+  const client = await createGitHubClient(session.user.id, pool)
+  if (!client) {
+    return c.json({ error: "GitHub account not connected" }, 400)
+  }
+
+  try {
+    const result = await client.fetchRepoTree(owner, repo, ref)
+
+    return c.json({
+      files: result.tree.length,
+      rateLimit: result.rateLimit,
+    })
+  } catch (error) {
+    console.error("Error syncing repo tree:", error)
+    return c.json(
+      {
+        error: "Failed to sync repository tree",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      500,
+    )
+  }
+})
+
+// Get file content
+app.get("/github/file/:owner/:repo/*", async (c) => {
+  const session = await requireAuth(c)
+  if (!session) {
+    return c.json({ error: "Unauthorized" }, 401)
+  }
+
+  const { owner, repo } = c.req.param()
+  const path = c.req.param("*") || ""
+  const ref = c.req.query("ref")
+
+  const client = await createGitHubClient(session.user.id, pool)
+  if (!client) {
+    return c.json({ error: "GitHub account not connected" }, 400)
+  }
+
+  try {
+    const result = await client.fetchFileContent(owner, repo, path, ref)
+
+    return c.json({
+      content: result.blob.content,
+      sha: result.blob.sha,
+      size: result.blob.size,
+      rateLimit: result.rateLimit,
+    })
+  } catch (error) {
+    console.error("Error fetching file content:", error)
+    return c.json(
+      {
+        error: "Failed to fetch file content",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      500,
+    )
+  }
+})
+
+// Get README content
+app.get("/github/readme/:owner/:repo", async (c) => {
+  const session = await requireAuth(c)
+  if (!session) {
+    return c.json({ error: "Unauthorized" }, 401)
+  }
+
+  const { owner, repo } = c.req.param()
+  const ref = c.req.query("ref")
+
+  const client = await createGitHubClient(session.user.id, pool)
+  if (!client) {
+    return c.json({ error: "GitHub account not connected" }, 400)
+  }
+
+  try {
+    const result = await client.fetchReadme(owner, repo, ref)
+
+    return c.json({
+      content: result.content,
+      rateLimit: result.rateLimit,
+    })
+  } catch (error) {
+    console.error("Error fetching README:", error)
+    return c.json(
+      {
+        error: "Failed to fetch README",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      500,
+    )
+  }
+})
+
 // =============================================================================
 // GitHub Webhook Handler
 // =============================================================================
