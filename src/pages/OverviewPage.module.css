@@ -92,10 +92,7 @@
 }
 
 .card:hover {
-  border-color: rgba(
-    var(--bit-rgb-accent-blue),
-    var(--bit-alpha-accent-border-hover)
-  );
+  border-color: rgba(var(--bit-rgb-accent-blue), var(--bit-alpha-accent-border-hover));
   box-shadow: var(--bit-shadow-md);
 }
 

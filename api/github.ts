@@ -143,7 +143,9 @@ export class GitHubClient {
     const existing = await this.db
       .select()
       .from(schema.githubRepo)
-      .where(and(eq(schema.githubRepo.fullName, fullName), eq(schema.githubRepo.userId, this.userId)))
+      .where(
+        and(eq(schema.githubRepo.fullName, fullName), eq(schema.githubRepo.userId, this.userId)),
+      )
       .limit(1)
 
     if (existing[0]) {
@@ -210,7 +212,9 @@ export class GitHubClient {
     const inserted = await this.db
       .select()
       .from(schema.githubRepo)
-      .where(and(eq(schema.githubRepo.fullName, fullName), eq(schema.githubRepo.userId, this.userId)))
+      .where(
+        and(eq(schema.githubRepo.fullName, fullName), eq(schema.githubRepo.userId, this.userId)),
+      )
       .limit(1)
 
     return inserted[0] ?? repoInsert
@@ -219,9 +223,15 @@ export class GitHubClient {
   // Fetch dashboard PRs: authored by user and review requested
   async fetchPullRequestDashboard(
     limit = 50,
-  ): Promise<{ authored: PullRequestDashboardItem[]; reviewRequested: PullRequestDashboardItem[]; rateLimit: RateLimitInfo }> {
+  ): Promise<{
+    authored: PullRequestDashboardItem[]
+    reviewRequested: PullRequestDashboardItem[]
+    rateLimit: RateLimitInfo
+  }> {
     const userResponse = await this.octokit.rest.users.getAuthenticated()
-    let rateLimit = this.extractRateLimit(userResponse.headers as Record<string, string | undefined>)
+    let rateLimit = this.extractRateLimit(
+      userResponse.headers as Record<string, string | undefined>,
+    )
 
     const login = userResponse.data.login
 
@@ -239,7 +249,7 @@ export class GitHubClient {
         .map((item) => {
           const repoFullName = this.parseRepoFullNameFromApiUrl(
             // This is an API URL like https://api.github.com/repos/owner/repo
-             
+
             (item as unknown as { repository_url?: string }).repository_url ?? null,
           )
           if (!repoFullName) return null
@@ -265,7 +275,9 @@ export class GitHubClient {
     }
 
     const authored = await runSearch(`is:pr is:open author:${login} archived:false`)
-    const reviewRequested = await runSearch(`is:pr is:open review-requested:${login} archived:false`)
+    const reviewRequested = await runSearch(
+      `is:pr is:open review-requested:${login} archived:false`,
+    )
 
     await this.updateSyncState("pr-dashboard", null, rateLimit)
 

@@ -31,11 +31,7 @@ interface PRListItemProps {
 }
 
 // Status indicator component for CI/check status
-function StatusDot({
-  status,
-}: {
-  status: "success" | "failure" | "pending" | "warning"
-}) {
+function StatusDot({ status }: { status: "success" | "failure" | "pending" | "warning" }) {
   const colors = {
     success: "#3fb950",
     failure: "#f85149",
@@ -44,11 +40,7 @@ function StatusDot({
   }
 
   return (
-    <span
-      className={styles.statusDot}
-      style={{ backgroundColor: colors[status] }}
-      title={status}
-    />
+    <span className={styles.statusDot} style={{ backgroundColor: colors[status] }} title={status} />
   )
 }
 
@@ -78,11 +70,7 @@ function getStatusIndicators(pr: {
 function formatDate(date: Date | number | string | null | undefined): string {
   if (!date) return ""
   const d =
-    typeof date === "number"
-      ? new Date(date)
-      : typeof date === "string"
-        ? new Date(date)
-        : date
+    typeof date === "number" ? new Date(date) : typeof date === "string" ? new Date(date) : date
   const now = new Date()
   const diffMs = now.getTime() - d.getTime()
   const diffMinutes = Math.floor(diffMs / (1000 * 60))
@@ -145,12 +133,7 @@ const getPRStatus = (pr: {
 const StatusIcon = ({ status }: { status: PRStatus }) => {
   switch (status) {
     case "merged":
-      return (
-        <GitMergeIcon
-          size={16}
-          className={`${styles.statusIcon} ${styles.statusMerged}`}
-        />
-      )
+      return <GitMergeIcon size={16} className={`${styles.statusIcon} ${styles.statusMerged}`} />
     case "closed":
       return (
         <GitPullRequestClosedIcon
@@ -167,10 +150,7 @@ const StatusIcon = ({ status }: { status: PRStatus }) => {
       )
     default:
       return (
-        <GitPullRequestIcon
-          size={16}
-          className={`${styles.statusIcon} ${styles.statusOpen}`}
-        />
+        <GitPullRequestIcon size={16} className={`${styles.statusIcon} ${styles.statusOpen}`} />
       )
   }
 }
@@ -202,9 +182,7 @@ export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
 
         <div className={styles.prMeta}>
           <Avatar src={pr.authorAvatarUrl} name={pr.authorLogin} size={16} />
-          {pr.authorLogin && (
-            <span className={styles.authorName}>{pr.authorLogin}</span>
-          )}
+          {pr.authorLogin && <span className={styles.authorName}>{pr.authorLogin}</span>}
           <span className={styles.prPath}>
             {repoFullName}/{pr.number}
           </span>

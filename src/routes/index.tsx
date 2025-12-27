@@ -1,12 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
 import { useQuery } from "@rocicorp/zero/react"
-import {
-  ClockIcon,
-  SyncIcon,
-  SignOutIcon,
-  GitPullRequestIcon,
-} from "@primer/octicons-react"
+import { ClockIcon, SyncIcon, SignOutIcon, GitPullRequestIcon } from "@primer/octicons-react"
 import { authClient } from "@/lib/auth"
 import { Button } from "@/components/Button"
 import { queries } from "@/db/queries"
@@ -37,13 +32,8 @@ function OverviewPage() {
 
   const orgs = repos
     .map((repo) => repo.githubOrganization)
-    .filter(
-      (org): org is NonNullable<typeof org> =>
-        org !== null && org !== undefined,
-    )
-    .filter(
-      (org, index, self) => self.findIndex((o) => o.id === org.id) === index,
-    )
+    .filter((org): org is NonNullable<typeof org> => org !== null && org !== undefined)
+    .filter((org, index, self) => self.findIndex((o) => o.id === org.id) === index)
 
   const currentUserLogin = session?.user?.name
 
@@ -155,12 +145,8 @@ function OverviewPage() {
           authorAvatarUrl: pr.authorAvatarUrl,
           comments: pr.comments,
           reviewComments: pr.reviewComments,
-          githubCreatedAt: pr.githubCreatedAt
-            ? new Date(pr.githubCreatedAt).getTime()
-            : null,
-          githubUpdatedAt: pr.githubUpdatedAt
-            ? new Date(pr.githubUpdatedAt).getTime()
-            : null,
+          githubCreatedAt: pr.githubCreatedAt ? new Date(pr.githubCreatedAt).getTime() : null,
+          githubUpdatedAt: pr.githubUpdatedAt ? new Date(pr.githubUpdatedAt).getTime() : null,
         })),
         reviewRequested: data.reviewRequested.map((pr) => ({
           id: pr.id,
@@ -174,12 +160,8 @@ function OverviewPage() {
           authorAvatarUrl: pr.authorAvatarUrl,
           comments: pr.comments,
           reviewComments: pr.reviewComments,
-          githubCreatedAt: pr.githubCreatedAt
-            ? new Date(pr.githubCreatedAt).getTime()
-            : null,
-          githubUpdatedAt: pr.githubUpdatedAt
-            ? new Date(pr.githubUpdatedAt).getTime()
-            : null,
+          githubCreatedAt: pr.githubCreatedAt ? new Date(pr.githubCreatedAt).getTime() : null,
+          githubUpdatedAt: pr.githubUpdatedAt ? new Date(pr.githubUpdatedAt).getTime() : null,
         })),
       })
     } catch (err) {
@@ -210,9 +192,7 @@ function OverviewPage() {
 
         <div className={styles.headerActions}>
           {rateLimit && (
-            <div
-              className={`${styles.rateLimit} ${rateLimitLow ? styles.rateLimitLow : ""}`}
-            >
+            <div className={`${styles.rateLimit} ${rateLimitLow ? styles.rateLimitLow : ""}`}>
               <ClockIcon className={styles.buttonIcon} size={16} />
               {rateLimit.remaining}/{rateLimit.limit} requests
             </div>
@@ -267,15 +247,11 @@ function OverviewPage() {
             <div className={styles.prList}>
               {!prOverview ? (
                 <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>
-                    Click "Refresh PRs" to load your PRs.
-                  </p>
+                  <p className={styles.prEmptyText}>Click "Refresh PRs" to load your PRs.</p>
                 </div>
               ) : prOverview.authored.length === 0 ? (
                 <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>
-                    No open PRs authored by you.
-                  </p>
+                  <p className={styles.prEmptyText}>No open PRs authored by you.</p>
                 </div>
               ) : (
                 prOverview.authored.map((pr) => (
@@ -295,15 +271,11 @@ function OverviewPage() {
             <div className={styles.prList}>
               {!prOverview ? (
                 <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>
-                    Click "Refresh PRs" to load your PRs.
-                  </p>
+                  <p className={styles.prEmptyText}>Click "Refresh PRs" to load your PRs.</p>
                 </div>
               ) : prOverview.reviewRequested.length === 0 ? (
                 <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>
-                    No PRs currently requesting your review.
-                  </p>
+                  <p className={styles.prEmptyText}>No PRs currently requesting your review.</p>
                 </div>
               ) : (
                 prOverview.reviewRequested.map((pr) => (
@@ -320,11 +292,7 @@ function OverviewPage() {
         </div>
       </section>
 
-      <RepoSection
-        repos={repos}
-        orgs={orgs}
-        currentUserLogin={currentUserLogin}
-      />
+      <RepoSection repos={repos} orgs={orgs} currentUserLogin={currentUserLogin} />
     </div>
   )
 }
