@@ -281,6 +281,137 @@ export class GitHubClient {
     return { authored, reviewRequested, rateLimit }
   }
 
+  // Sync dashboard PRs to database: authored by user and review requested
+  async syncPullRequestDashboard(limit = 50): Promise<{
+    authoredCount: number
+    reviewRequestedCount: number
+    rateLimit: RateLimitInfo
+  }> {
+    const userResponse = await this.octokit.rest.users.getAuthenticated()
+    let rateLimit = this.extractRateLimit(
+      userResponse.headers as Record<string, string | undefined>,
+    )
+
+    const login = userResponse.data.login
+
+    // Helper to search and sync PRs
+    const searchAndSync = async (q: string, isReviewRequested: boolean): Promise<number> => {
+      const response = await this.octokit.rest.search.issuesAndPullRequests({
+        q,
+        per_page: Math.min(100, Math.max(1, limit)),
+        sort: "updated",
+        order: "desc",
+      })
+
+      rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+      let syncedCount = 0
+      for (const item of response.data.items) {
+        const repoFullName = this.parseRepoFullNameFromApiUrl(
+          (item as unknown as { repository_url?: string }).repository_url ?? null,
+        )
+        if (!repoFullName) continue
+
+        const [owner, repo] = repoFullName.split("/")
+        if (!owner || !repo) continue
+
+        // Ensure repo exists in database
+        const repoRecord = await this.ensureRepoRecord(owner, repo)
+        if (!repoRecord) continue
+
+        // Build reviewRequestedBy: if this is a review-requested search, add current user
+        let reviewRequestedBy: string | null = null
+        if (isReviewRequested) {
+          // Check existing PR to merge with existing reviewRequestedBy
+          const existingPr = await this.db
+            .select()
+            .from(schema.githubPullRequest)
+            .where(eq(schema.githubPullRequest.id, item.node_id))
+            .limit(1)
+
+          const existingReviewers = existingPr[0]?.reviewRequestedBy
+            ? (JSON.parse(existingPr[0].reviewRequestedBy) as string[])
+            : []
+
+          if (!existingReviewers.includes(login)) {
+            existingReviewers.push(login)
+          }
+          reviewRequestedBy = JSON.stringify(existingReviewers)
+        }
+
+        // Upsert PR to database
+        const prData = {
+          id: item.node_id,
+          githubId: (item as unknown as { id: number }).id,
+          number: item.number,
+          repoId: repoRecord.id,
+          title: item.title,
+          body: item.body ?? null,
+          state: item.state,
+          draft: false,
+          merged: false,
+          authorLogin: item.user?.login ?? null,
+          authorAvatarUrl: item.user?.avatar_url ?? null,
+          htmlUrl: item.html_url ?? null,
+          comments: item.comments ?? 0,
+          reviewComments: 0,
+          labels: JSON.stringify(
+            (item.labels ?? []).map((l) =>
+              typeof l === "string" ? { name: l } : { name: l.name, color: l.color },
+            ),
+          ),
+          reviewRequestedBy,
+          githubCreatedAt: item.created_at ? new Date(item.created_at) : null,
+          githubUpdatedAt: item.updated_at ? new Date(item.updated_at) : null,
+          closedAt: item.closed_at ? new Date(item.closed_at) : null,
+          userId: this.userId,
+          syncedAt: new Date(),
+        }
+
+        await this.db
+          .insert(schema.githubPullRequest)
+          .values(prData)
+          .onConflictDoUpdate({
+            target: schema.githubPullRequest.id,
+            set: {
+              title: prData.title,
+              body: prData.body,
+              state: prData.state,
+              draft: prData.draft,
+              merged: prData.merged,
+              authorLogin: prData.authorLogin,
+              authorAvatarUrl: prData.authorAvatarUrl,
+              htmlUrl: prData.htmlUrl,
+              comments: prData.comments,
+              labels: prData.labels,
+              ...(isReviewRequested ? { reviewRequestedBy: prData.reviewRequestedBy } : {}),
+              githubUpdatedAt: prData.githubUpdatedAt,
+              closedAt: prData.closedAt,
+              syncedAt: new Date(),
+              updatedAt: new Date(),
+            },
+          })
+
+        syncedCount++
+      }
+
+      return syncedCount
+    }
+
+    // Sync authored PRs
+    const authoredCount = await searchAndSync(`is:pr is:open author:${login} archived:false`, false)
+
+    // Sync review-requested PRs
+    const reviewRequestedCount = await searchAndSync(
+      `is:pr is:open review-requested:${login} archived:false`,
+      true,
+    )
+
+    await this.updateSyncState("pr-dashboard", null, rateLimit)
+
+    return { authoredCount, reviewRequestedCount, rateLimit }
+  }
+
   // Fetch user's organizations
   async fetchOrganizations(): Promise<
     SyncResult<(typeof schema.githubOrganization.$inferInsert)[]>

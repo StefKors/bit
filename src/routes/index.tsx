@@ -1,12 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useQuery } from "@rocicorp/zero/react"
-import { ClockIcon, SyncIcon, SignOutIcon, GitPullRequestIcon } from "@primer/octicons-react"
+import {
+  ClockIcon,
+  SyncIcon,
+  SignOutIcon,
+  GitPullRequestIcon,
+} from "@primer/octicons-react"
 import { authClient } from "@/lib/auth"
 import { Button } from "@/components/Button"
 import { queries } from "@/db/queries"
 import { RepoSection } from "@/features/repo/RepoSection"
-import type { PullRequestLike } from "@/features/pr/PRListItem"
 import { PRListItem } from "@/features/pr/PRListItem"
 import styles from "@/pages/OverviewPage.module.css"
 import { Avatar } from "@/components/Avatar"
@@ -20,22 +24,40 @@ interface RateLimitInfo {
 function OverviewPage() {
   const { data: session } = authClient.useSession()
   const [syncing, setSyncing] = useState(false)
-  const [loadingPRs, setLoadingPRs] = useState(false)
+  const [syncingPRs, setSyncingPRs] = useState(false)
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null)
-  const [prOverview, setPrOverview] = useState<{
-    authored: (PullRequestLike & { id: string; repoFullName: string })[]
-    reviewRequested: (PullRequestLike & { id: string; repoFullName: string })[]
-  } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const [repos] = useQuery(queries.overview())
 
+  // Dashboard PR queries
+  const currentUserLogin = session?.user?.name ?? ""
+  const [authoredPRs] = useQuery(queries.dashboardAuthored(currentUserLogin))
+  const [allOpenPRs] = useQuery(queries.dashboardAllOpen())
+
+  // Filter review-requested PRs: check if current user is in reviewRequestedBy JSON array
+  const reviewRequestedPRs = useMemo(() => {
+    if (!currentUserLogin) return []
+    return allOpenPRs.filter((pr) => {
+      if (!pr.reviewRequestedBy) return false
+      try {
+        const reviewers = JSON.parse(pr.reviewRequestedBy) as string[]
+        return reviewers.includes(currentUserLogin)
+      } catch {
+        return false
+      }
+    })
+  }, [allOpenPRs, currentUserLogin])
+
   const orgs = repos
     .map((repo) => repo.githubOrganization)
-    .filter((org): org is NonNullable<typeof org> => org !== null && org !== undefined)
-    .filter((org, index, self) => self.findIndex((o) => o.id === org.id) === index)
-
-  const currentUserLogin = session?.user?.name
+    .filter(
+      (org): org is NonNullable<typeof org> =>
+        org !== null && org !== undefined,
+    )
+    .filter(
+      (org, index, self) => self.findIndex((o) => o.id === org.id) === index,
+    )
 
   const handleSync = async () => {
     setSyncing(true)
@@ -63,8 +85,6 @@ function OverviewPage() {
           reset: new Date(data.rateLimit.reset),
         })
       }
-
-      await handleLoadPRs()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sync")
     } finally {
@@ -72,56 +92,25 @@ function OverviewPage() {
     }
   }
 
-  const handleLoadPRs = async () => {
-    setLoadingPRs(true)
+  const handleSyncPRs = async () => {
+    setSyncingPRs(true)
     setError(null)
 
     try {
-      const response = await fetch("/api/github/pulls/overview?limit=50", {
-        method: "GET",
+      const response = await fetch("/api/github/sync/dashboard", {
+        method: "POST",
         credentials: "include",
       })
 
-      const data = (await response.json()) as
-        | {
-            authored: Array<{
-              id: string
-              repoFullName: string
-              number: number
-              title: string
-              state: "open" | "closed"
-              draft: boolean
-              merged: boolean
-              authorLogin: string | null
-              authorAvatarUrl: string | null
-              comments: number
-              reviewComments: number
-              githubCreatedAt: string | null
-              githubUpdatedAt: string | null
-              htmlUrl: string | null
-            }>
-            reviewRequested: Array<{
-              id: string
-              repoFullName: string
-              number: number
-              title: string
-              state: "open" | "closed"
-              draft: boolean
-              merged: boolean
-              authorLogin: string | null
-              authorAvatarUrl: string | null
-              comments: number
-              reviewComments: number
-              githubCreatedAt: string | null
-              githubUpdatedAt: string | null
-              htmlUrl: string | null
-            }>
-            rateLimit?: { remaining: number; limit: number; reset: string }
-          }
-        | { error?: string }
+      const data = (await response.json()) as {
+        error?: string
+        authoredCount?: number
+        reviewRequestedCount?: number
+        rateLimit?: { remaining: number; limit: number; reset: string }
+      }
 
-      if (!response.ok || !("authored" in data)) {
-        throw new Error(("error" in data && data.error) || "Failed to load PRs")
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to sync PRs")
       }
 
       if (data.rateLimit) {
@@ -131,43 +120,10 @@ function OverviewPage() {
           reset: new Date(data.rateLimit.reset),
         })
       }
-
-      setPrOverview({
-        authored: data.authored.map((pr) => ({
-          id: pr.id,
-          repoFullName: pr.repoFullName,
-          number: pr.number,
-          title: pr.title,
-          state: pr.state,
-          draft: pr.draft,
-          merged: pr.merged,
-          authorLogin: pr.authorLogin,
-          authorAvatarUrl: pr.authorAvatarUrl,
-          comments: pr.comments,
-          reviewComments: pr.reviewComments,
-          githubCreatedAt: pr.githubCreatedAt ? new Date(pr.githubCreatedAt).getTime() : null,
-          githubUpdatedAt: pr.githubUpdatedAt ? new Date(pr.githubUpdatedAt).getTime() : null,
-        })),
-        reviewRequested: data.reviewRequested.map((pr) => ({
-          id: pr.id,
-          repoFullName: pr.repoFullName,
-          number: pr.number,
-          title: pr.title,
-          state: pr.state,
-          draft: pr.draft,
-          merged: pr.merged,
-          authorLogin: pr.authorLogin,
-          authorAvatarUrl: pr.authorAvatarUrl,
-          comments: pr.comments,
-          reviewComments: pr.reviewComments,
-          githubCreatedAt: pr.githubCreatedAt ? new Date(pr.githubCreatedAt).getTime() : null,
-          githubUpdatedAt: pr.githubUpdatedAt ? new Date(pr.githubUpdatedAt).getTime() : null,
-        })),
-      })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load PRs")
+      setError(err instanceof Error ? err.message : "Failed to sync PRs")
     } finally {
-      setLoadingPRs(false)
+      setSyncingPRs(false)
     }
   }
 
@@ -192,7 +148,9 @@ function OverviewPage() {
 
         <div className={styles.headerActions}>
           {rateLimit && (
-            <div className={`${styles.rateLimit} ${rateLimitLow ? styles.rateLimitLow : ""}`}>
+            <div
+              className={`${styles.rateLimit} ${rateLimitLow ? styles.rateLimitLow : ""}`}
+            >
               <ClockIcon className={styles.buttonIcon} size={16} />
               {rateLimit.remaining}/{rateLimit.limit} requests
             </div>
@@ -210,10 +168,10 @@ function OverviewPage() {
           <Button
             variant="default"
             leadingIcon={<GitPullRequestIcon size={16} />}
-            loading={loadingPRs}
-            onClick={() => void handleLoadPRs()}
+            loading={syncingPRs}
+            onClick={() => void handleSyncPRs()}
           >
-            {loadingPRs ? "Loading..." : "Refresh PRs"}
+            {syncingPRs ? "Syncing..." : "Sync PRs"}
           </Button>
 
           <Button
@@ -245,20 +203,32 @@ function OverviewPage() {
           <div className={styles.prColumn}>
             <h2 className={styles.prColumnTitle}>Authored by you</h2>
             <div className={styles.prList}>
-              {!prOverview ? (
+              {authoredPRs.length === 0 ? (
                 <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>Click "Refresh PRs" to load your PRs.</p>
-                </div>
-              ) : prOverview.authored.length === 0 ? (
-                <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>No open PRs authored by you.</p>
+                  <p className={styles.prEmptyText}>
+                    {currentUserLogin
+                      ? "No open PRs authored by you."
+                      : 'Click "Sync PRs" to load your PRs.'}
+                  </p>
                 </div>
               ) : (
-                prOverview.authored.map((pr) => (
+                authoredPRs.map((pr) => (
                   <PRListItem
                     key={pr.id}
-                    pr={pr}
-                    repoFullName={pr.repoFullName}
+                    pr={{
+                      number: pr.number,
+                      title: pr.title,
+                      state: pr.state as "open" | "closed",
+                      draft: pr.draft ?? false,
+                      merged: pr.merged ?? false,
+                      authorLogin: pr.authorLogin,
+                      authorAvatarUrl: pr.authorAvatarUrl,
+                      comments: pr.comments ?? 0,
+                      reviewComments: pr.reviewComments ?? 0,
+                      githubCreatedAt: pr.githubCreatedAt,
+                      githubUpdatedAt: pr.githubUpdatedAt,
+                    }}
+                    repoFullName={pr.githubRepo?.fullName ?? ""}
                     isApproved={pr.merged === true}
                   />
                 ))
@@ -269,20 +239,32 @@ function OverviewPage() {
           <div className={styles.prColumn}>
             <h2 className={styles.prColumnTitle}>Review requested</h2>
             <div className={styles.prList}>
-              {!prOverview ? (
+              {reviewRequestedPRs.length === 0 ? (
                 <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>Click "Refresh PRs" to load your PRs.</p>
-                </div>
-              ) : prOverview.reviewRequested.length === 0 ? (
-                <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>No PRs currently requesting your review.</p>
+                  <p className={styles.prEmptyText}>
+                    {currentUserLogin
+                      ? "No PRs currently requesting your review."
+                      : 'Click "Sync PRs" to load your PRs.'}
+                  </p>
                 </div>
               ) : (
-                prOverview.reviewRequested.map((pr) => (
+                reviewRequestedPRs.map((pr) => (
                   <PRListItem
                     key={pr.id}
-                    pr={pr}
-                    repoFullName={pr.repoFullName}
+                    pr={{
+                      number: pr.number,
+                      title: pr.title,
+                      state: pr.state as "open" | "closed",
+                      draft: pr.draft ?? false,
+                      merged: pr.merged ?? false,
+                      authorLogin: pr.authorLogin,
+                      authorAvatarUrl: pr.authorAvatarUrl,
+                      comments: pr.comments ?? 0,
+                      reviewComments: pr.reviewComments ?? 0,
+                      githubCreatedAt: pr.githubCreatedAt,
+                      githubUpdatedAt: pr.githubUpdatedAt,
+                    }}
+                    repoFullName={pr.githubRepo?.fullName ?? ""}
                     isApproved={pr.merged === true}
                   />
                 ))
@@ -292,7 +274,11 @@ function OverviewPage() {
         </div>
       </section>
 
-      <RepoSection repos={repos} orgs={orgs} currentUserLogin={currentUserLogin} />
+      <RepoSection
+        repos={repos}
+        orgs={orgs}
+        currentUserLogin={currentUserLogin || undefined}
+      />
     </div>
   )
 }

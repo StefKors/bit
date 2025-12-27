@@ -131,6 +131,40 @@ app.get("/github/pulls/overview", async (c) => {
   }
 })
 
+// Sync dashboard PRs (authored by user and review requested)
+app.post("/github/sync/dashboard", async (c) => {
+  const session = await requireAuth(c)
+  if (!session) {
+    return c.json({ error: "Unauthorized" }, 401)
+  }
+
+  const client = await createGitHubClient(session.user.id, pool)
+  if (!client) {
+    return c.json({ error: "GitHub account not connected" }, 400)
+  }
+
+  const limit = parseInt(c.req.query("limit") || "50", 10)
+  const safeLimit = Number.isFinite(limit) ? Math.min(100, Math.max(1, limit)) : 50
+
+  try {
+    const result = await client.syncPullRequestDashboard(safeLimit)
+    return c.json({
+      authoredCount: result.authoredCount,
+      reviewRequestedCount: result.reviewRequestedCount,
+      rateLimit: result.rateLimit,
+    })
+  } catch (error) {
+    console.error("Error syncing dashboard PRs:", error)
+    return c.json(
+      {
+        error: "Failed to sync dashboard PRs",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      500,
+    )
+  }
+})
+
 // Sync overview (organizations and repositories)
 app.post("/github/sync/overview", async (c) => {
   const session = await requireAuth(c)
