@@ -221,9 +221,7 @@ export class GitHubClient {
   }
 
   // Fetch dashboard PRs: authored by user and review requested
-  async fetchPullRequestDashboard(
-    limit = 50,
-  ): Promise<{
+  async fetchPullRequestDashboard(limit = 50): Promise<{
     authored: PullRequestDashboardItem[]
     reviewRequested: PullRequestDashboardItem[]
     rateLimit: RateLimitInfo
@@ -235,7 +233,7 @@ export class GitHubClient {
 
     const login = userResponse.data.login
 
-    const runSearch = async (q: string) => {
+    const runSearch = async (q: string): Promise<PullRequestDashboardItem[]> => {
       const response = await this.octokit.rest.search.issuesAndPullRequests({
         q,
         per_page: Math.min(100, Math.max(1, limit)),
@@ -245,33 +243,32 @@ export class GitHubClient {
 
       rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
 
-      return response.data.items
-        .map((item) => {
-          const repoFullName = this.parseRepoFullNameFromApiUrl(
-            // This is an API URL like https://api.github.com/repos/owner/repo
+      const items: PullRequestDashboardItem[] = []
+      for (const item of response.data.items) {
+        const repoFullName = this.parseRepoFullNameFromApiUrl(
+          // This is an API URL like https://api.github.com/repos/owner/repo
+          (item as unknown as { repository_url?: string }).repository_url ?? null,
+        )
+        if (!repoFullName) continue
 
-            (item as unknown as { repository_url?: string }).repository_url ?? null,
-          )
-          if (!repoFullName) return null
-
-          return {
-            id: item.node_id,
-            repoFullName,
-            number: item.number,
-            title: item.title,
-            state: item.state as "open" | "closed",
-            draft: false,
-            merged: false,
-            authorLogin: item.user?.login ?? null,
-            authorAvatarUrl: item.user?.avatar_url ?? null,
-            comments: item.comments ?? 0,
-            reviewComments: 0,
-            htmlUrl: item.html_url ?? null,
-            githubCreatedAt: item.created_at ? new Date(item.created_at) : null,
-            githubUpdatedAt: item.updated_at ? new Date(item.updated_at) : null,
-          } satisfies PullRequestDashboardItem
+        items.push({
+          id: item.node_id,
+          repoFullName,
+          number: item.number,
+          title: item.title,
+          state: item.state as "open" | "closed",
+          draft: false,
+          merged: false,
+          authorLogin: item.user?.login ?? null,
+          authorAvatarUrl: item.user?.avatar_url ?? null,
+          comments: item.comments ?? 0,
+          reviewComments: 0,
+          htmlUrl: item.html_url ?? null,
+          githubCreatedAt: item.created_at ? new Date(item.created_at) : null,
+          githubUpdatedAt: item.updated_at ? new Date(item.updated_at) : null,
         })
-        .filter((x): x is PullRequestDashboardItem => x !== null)
+      }
+      return items
     }
 
     const authored = await runSearch(`is:pr is:open author:${login} archived:false`)
