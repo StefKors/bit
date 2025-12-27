@@ -239,7 +239,7 @@ export class GitHubClient {
         .map((item) => {
           const repoFullName = this.parseRepoFullNameFromApiUrl(
             // This is an API URL like https://api.github.com/repos/owner/repo
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+             
             (item as unknown as { repository_url?: string }).repository_url ?? null,
           )
           if (!repoFullName) return null
