@@ -7,17 +7,19 @@ import {
   SyncIcon,
   CommentIcon,
   FileIcon,
+  GitCommitIcon,
 } from "@primer/octicons-react"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Tabs } from "@/components/Tabs"
 import { Button } from "@/components/Button"
 import { PRConversationTab } from "@/features/pr/PRConversationTab"
 import { PRFilesTab } from "@/features/pr/PRFilesTab"
+import { PRCommitsTab } from "@/features/pr/PRCommitsTab"
 import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
 import { queries } from "@/db/queries"
 import styles from "@/pages/PRDetailPage.module.css"
 
-type TabType = "conversation" | "files"
+type TabType = "conversation" | "commits" | "files"
 
 const defaultDiffOptions: DiffOptions = {
   diffStyle: "split",
@@ -215,6 +217,12 @@ function PRDetailPage() {
             icon: <CommentIcon size={16} />,
           },
           {
+            value: "commits",
+            label: "Commits",
+            icon: <GitCommitIcon size={16} />,
+            count: pr.githubPrCommit.length || pr.commits || 0,
+          },
+          {
             value: "files",
             label: "Files changed",
             icon: <FileIcon size={16} />,
@@ -240,6 +248,10 @@ function PRDetailPage() {
             comments={pr.githubPrComment}
             formatTimeAgo={formatTimeAgo}
           />
+        )}
+
+        {activeTab === "commits" && (
+          <PRCommitsTab commits={pr.githubPrCommit} formatTimeAgo={formatTimeAgo} />
         )}
 
         {activeTab === "files" && (

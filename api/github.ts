@@ -324,7 +324,7 @@ export class GitHubClient {
     return { data: prs, rateLimit, fromCache: false }
   }
 
-  // Fetch detailed PR info including files, comments, and reviews
+  // Fetch detailed PR info including files, comments, reviews, and commits
   async fetchPullRequestDetails(
     owner: string,
     repo: string,
@@ -334,6 +334,7 @@ export class GitHubClient {
     files: (typeof schema.githubPrFile.$inferInsert)[]
     reviews: (typeof schema.githubPrReview.$inferInsert)[]
     comments: (typeof schema.githubPrComment.$inferInsert)[]
+    commits: (typeof schema.githubPrCommit.$inferInsert)[]
     rateLimit: RateLimitInfo
   }> {
     // Get the PR from our database
@@ -582,9 +583,43 @@ export class GitHubClient {
         })
     }
 
+    // Fetch commits
+    const commitsResponse = await this.octokit.rest.pulls.listCommits({
+      owner,
+      repo,
+      pull_number: pullNumber,
+      per_page: 250,
+    })
+    rateLimit = this.extractRateLimit(commitsResponse.headers as Record<string, string | undefined>)
+
+    const commits = commitsResponse.data.map((commit) => ({
+      id: `${pr.id}:${commit.sha}`,
+      pullRequestId: pr.id,
+      sha: commit.sha,
+      message: commit.commit.message,
+      authorLogin: commit.author?.login || null,
+      authorAvatarUrl: commit.author?.avatar_url || null,
+      authorName: commit.commit.author?.name || null,
+      authorEmail: commit.commit.author?.email || null,
+      committerLogin: commit.committer?.login || null,
+      committerAvatarUrl: commit.committer?.avatar_url || null,
+      committerName: commit.commit.committer?.name || null,
+      committerEmail: commit.commit.committer?.email || null,
+      htmlUrl: commit.html_url,
+      committedAt: commit.commit.committer?.date ? new Date(commit.commit.committer.date) : null,
+      userId: this.userId,
+    }))
+
+    // Delete old commits and insert new ones
+    await this.db.delete(schema.githubPrCommit).where(eq(schema.githubPrCommit.pullRequestId, pr.id))
+
+    for (const commit of commits) {
+      await this.db.insert(schema.githubPrCommit).values(commit)
+    }
+
     await this.updateSyncState("pr-detail", `${owner}/${repo}/${pullNumber}`, rateLimit)
 
-    return { pr, files, reviews, comments: allComments, rateLimit }
+    return { pr, files, reviews, comments: allComments, commits, rateLimit }
   }
 
   // Get last rate limit info
