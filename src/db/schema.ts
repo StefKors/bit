@@ -402,6 +402,126 @@ const githubPrCommentTable = {
   primaryKey: ["id"],
   serverName: "github_pr_comment",
 } as const
+const githubPrEventTable = {
+  name: "githubPrEvent",
+  columns: {
+    id: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    githubId: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "github_id",
+    },
+    pullRequestId: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+      serverName: "pull_request_id",
+    },
+    eventType: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+      serverName: "event_type",
+    },
+    actorLogin: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "actor_login",
+    },
+    actorAvatarUrl: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "actor_avatar_url",
+    },
+    eventData: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "event_data",
+    },
+    commitSha: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "commit_sha",
+    },
+    commitMessage: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "commit_message",
+    },
+    labelName: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "label_name",
+    },
+    labelColor: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "label_color",
+    },
+    assigneeLogin: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "assignee_login",
+    },
+    assigneeAvatarUrl: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "assignee_avatar_url",
+    },
+    requestedReviewerLogin: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "requested_reviewer_login",
+    },
+    requestedReviewerAvatarUrl: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "requested_reviewer_avatar_url",
+    },
+    eventCreatedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "event_created_at",
+    },
+    userId: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+      serverName: "user_id",
+    },
+    createdAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "created_at",
+    },
+    updatedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "updated_at",
+    },
+  },
+  primaryKey: ["id"],
+  serverName: "github_pr_event",
+} as const
 const githubPrFileTable = {
   name: "githubPrFile",
   columns: {
@@ -1035,6 +1155,16 @@ const githubPrCommentRelationships = {
     },
   ],
 } as const
+const githubPrEventRelationships = {
+  githubPullRequest: [
+    {
+      sourceField: ["pullRequestId"],
+      destField: ["id"],
+      destSchema: "githubPullRequest",
+      cardinality: "one",
+    },
+  ],
+} as const
 const githubPrFileRelationships = {
   githubPullRequest: [
     {
@@ -1096,6 +1226,14 @@ const githubPullRequestRelationships = {
       cardinality: "many",
     },
   ],
+  githubPrEvent: [
+    {
+      sourceField: ["id"],
+      destField: ["pullRequestId"],
+      destSchema: "githubPrEvent",
+      cardinality: "many",
+    },
+  ],
 } as const
 const githubRepoRelationships = {
   githubOrganization: [
@@ -1127,6 +1265,7 @@ export const schema = {
     authVerification: authVerificationTable,
     githubOrganization: githubOrganizationTable,
     githubPrComment: githubPrCommentTable,
+    githubPrEvent: githubPrEventTable,
     githubPrFile: githubPrFileTable,
     githubPrReview: githubPrReviewTable,
     githubPullRequest: githubPullRequestTable,
@@ -1137,6 +1276,7 @@ export const schema = {
   relationships: {
     githubOrganization: githubOrganizationRelationships,
     githubPrComment: githubPrCommentRelationships,
+    githubPrEvent: githubPrEventRelationships,
     githubPrFile: githubPrFileRelationships,
     githubPrReview: githubPrReviewRelationships,
     githubPullRequest: githubPullRequestRelationships,
@@ -1193,6 +1333,13 @@ export type GithubOrganization = Row["githubOrganization"]
  * @deprecated Use Row["githubPrComment"] instead from "@rocicorp/zero".
  */
 export type GithubPrComment = Row["githubPrComment"]
+/**
+ * Represents a row from the "githubPrEvent" table.
+ * This type is auto-generated from your Drizzle schema definition.
+ *
+ * @deprecated Use Row["githubPrEvent"] instead from "@rocicorp/zero".
+ */
+export type GithubPrEvent = Row["githubPrEvent"]
 /**
  * Represents a row from the "githubPrFile" table.
  * This type is auto-generated from your Drizzle schema definition.

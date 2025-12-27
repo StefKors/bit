@@ -1,0 +1,262 @@
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+/* Vertical line connecting timeline items */
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(var(--bit-rgb-fg), 0.08);
+}
+
+/* Main timeline items (PR opened, reviews, comments) */
+.timelineItem {
+  display: flex;
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+  padding: 0.5rem 0;
+}
+
+.timelineItem:first-child {
+  padding-top: 0;
+}
+
+.timelineContent {
+  flex: 1;
+  background: var(--bit-color-panel-bg);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  border-radius: var(--bit-radius-lg);
+  overflow: hidden;
+}
+
+.timelineHeader {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(var(--bit-rgb-fg), 0.03);
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  font-size: 0.85rem;
+}
+
+.timelineAuthor {
+  font-weight: 600;
+  color: var(--bit-color-heading);
+}
+
+.timelineAction {
+  color: rgba(var(--bit-rgb-fg), 0.6);
+}
+
+.timelineTime {
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  margin-left: auto;
+}
+
+.timelineBody {
+  padding: 1rem;
+}
+
+/* Event items (commits, labels, assignees, etc.) */
+.eventItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  padding-left: 0.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.eventIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  color: rgba(var(--bit-rgb-fg), 0.6);
+  flex-shrink: 0;
+}
+
+.eventContent {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  flex: 1;
+  min-width: 0;
+}
+
+.eventActor {
+  font-weight: 600;
+  color: var(--bit-color-heading);
+}
+
+.eventText {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.eventTime {
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  margin-left: auto;
+}
+
+/* Event type specific colors */
+.eventCommit .eventIcon {
+  background: rgba(var(--bit-rgb-accent-blue), 0.15);
+  color: var(--bit-color-accent-blue);
+}
+
+.eventLabel .eventIcon {
+  background: rgba(var(--bit-rgb-accent-purple), 0.15);
+  color: var(--bit-color-accent-purple);
+}
+
+.eventAssign .eventIcon {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+  color: rgba(var(--bit-rgb-fg), 0.7);
+}
+
+.eventReviewRequest .eventIcon {
+  background: rgba(var(--bit-rgb-accent-orange), 0.15);
+  color: var(--bit-color-accent-orange);
+}
+
+.eventMerged .eventIcon {
+  background: rgba(var(--bit-rgb-accent-purple), 0.2);
+  color: var(--bit-color-accent-purple);
+}
+
+.eventClosed .eventIcon {
+  background: rgba(var(--bit-rgb-accent-red), 0.15);
+  color: var(--bit-color-accent-red);
+}
+
+.eventReopened .eventIcon {
+  background: rgba(var(--bit-rgb-accent-green-bright), 0.15);
+  color: var(--bit-color-accent-green-bright);
+}
+
+.eventForcePush .eventIcon {
+  background: rgba(var(--bit-rgb-accent-red), 0.15);
+  color: var(--bit-color-accent-red);
+}
+
+.eventBranch .eventIcon {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+  color: rgba(var(--bit-rgb-fg), 0.6);
+}
+
+.eventRename .eventIcon {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+  color: rgba(var(--bit-rgb-fg), 0.6);
+}
+
+.eventReadyForReview .eventIcon {
+  background: rgba(var(--bit-rgb-accent-green-bright), 0.15);
+  color: var(--bit-color-accent-green-bright);
+}
+
+.eventDraft .eventIcon {
+  background: rgba(var(--bit-rgb-muted), 0.15);
+  color: var(--bit-color-muted);
+}
+
+.eventMilestone .eventIcon {
+  background: rgba(var(--bit-rgb-accent-blue), 0.15);
+  color: var(--bit-color-accent-blue);
+}
+
+.eventLock .eventIcon {
+  background: rgba(var(--bit-rgb-muted), 0.15);
+  color: var(--bit-color-muted);
+}
+
+/* Commit styles */
+.commitSha {
+  font-family: var(--bit-font-mono);
+  font-size: 0.8rem;
+  padding: 0.15rem 0.4rem;
+  background: rgba(var(--bit-rgb-fg), 0.08);
+  border-radius: var(--bit-radius-sm);
+  color: var(--bit-color-accent-blue);
+}
+
+.commitMessage {
+  color: rgba(var(--bit-rgb-fg), 0.6);
+  font-style: italic;
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Label styles */
+.label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--bit-radius-xl);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* User mention styles */
+.userMention {
+  font-weight: 600;
+  color: var(--bit-color-heading);
+}
+
+/* Review state badges */
+.reviewState {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--bit-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.reviewApproved {
+  background: rgba(var(--bit-rgb-accent-green-bright), 0.2);
+  color: var(--bit-color-accent-green-bright);
+}
+
+.reviewChangesRequested {
+  background: rgba(var(--bit-rgb-accent-red), 0.2);
+  color: var(--bit-color-accent-red);
+}
+
+.reviewCommented {
+  background: rgba(var(--bit-rgb-muted), 0.2);
+  color: var(--bit-color-muted);
+}
+
+/* Empty state */
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.9rem;
+}

@@ -57,7 +57,8 @@ export const queries = defineQueries({
             .one()
             .related("githubPrFile", (files) => files.orderBy("filename", "asc"))
             .related("githubPrReview", (reviews) => reviews.orderBy("submittedAt", "asc"))
-            .related("githubPrComment", (comments) => comments.orderBy("githubCreatedAt", "asc")),
+            .related("githubPrComment", (comments) => comments.orderBy("githubCreatedAt", "asc"))
+            .related("githubPrEvent", (events) => events.orderBy("eventCreatedAt", "asc")),
         ),
   ),
 })
