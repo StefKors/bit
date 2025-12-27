@@ -1,0 +1,155 @@
+.container {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.headerContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.issueIcon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.issueIconOpen {
+  color: var(--bit-color-accent-green-bright);
+}
+
+.issueIconClosed {
+  color: var(--bit-color-accent-purple);
+}
+
+.issueIconNotPlanned {
+  color: var(--bit-color-muted);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--bit-color-heading);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.issueNumber {
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  font-weight: 400;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--bit-radius-2xl);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-left: 0.75rem;
+}
+
+.statusOpen {
+  background: rgba(var(--bit-rgb-accent-green-bright), 0.15);
+  color: var(--bit-color-accent-green-bright);
+}
+
+.statusClosed {
+  background: rgba(var(--bit-rgb-accent-purple), 0.15);
+  color: var(--bit-color-accent-purple);
+}
+
+.statusNotPlanned {
+  background: rgba(var(--bit-rgb-muted), 0.15);
+  color: var(--bit-color-muted);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.authorAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-left: 2.25rem;
+  margin-top: 0.75rem;
+}
+
+.label {
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--bit-radius-xl);
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: rgba(var(--bit-rgb-fg), 0.1);
+  color: rgba(var(--bit-rgb-fg), 0.7);
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  margin-left: 2.25rem;
+}
+
+.content {
+  min-height: 300px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+.emptyIcon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.9rem;
+}

@@ -327,6 +327,86 @@ export const githubPrFile = pgTable(
   ],
 )
 
+// GitHub Issues
+export const githubIssue = pgTable(
+  "github_issue",
+  {
+    id: text("id").primaryKey(), // GitHub node_id
+    githubId: bigint("github_id", { mode: "number" }).notNull(),
+    number: integer("number").notNull(),
+    repoId: text("repo_id")
+      .notNull()
+      .references(() => githubRepo.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    body: text("body"),
+    state: text("state").notNull(), // open, closed
+    stateReason: text("state_reason"), // completed, not_planned, reopened
+    // Author info
+    authorLogin: text("author_login"),
+    authorAvatarUrl: text("author_avatar_url"),
+    // URLs
+    htmlUrl: text("html_url"),
+    // Stats
+    comments: integer("comments").default(0),
+    // Labels (stored as JSON string)
+    labels: text("labels"),
+    // Assignees (stored as JSON string)
+    assignees: text("assignees"),
+    // Milestone
+    milestone: text("milestone"),
+    // Timestamps
+    githubCreatedAt: timestamp("github_created_at"),
+    githubUpdatedAt: timestamp("github_updated_at"),
+    closedAt: timestamp("closed_at"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "cascade" }),
+    syncedAt: timestamp("synced_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("github_issue_repoId_idx").on(table.repoId),
+    index("github_issue_userId_idx").on(table.userId),
+    index("github_issue_state_idx").on(table.state),
+    index("github_issue_number_idx").on(table.repoId, table.number),
+  ],
+)
+
+// GitHub Issue Comments
+export const githubIssueComment = pgTable(
+  "github_issue_comment",
+  {
+    id: text("id").primaryKey(), // GitHub node_id
+    githubId: bigint("github_id", { mode: "number" }).notNull(),
+    issueId: text("issue_id")
+      .notNull()
+      .references(() => githubIssue.id, { onDelete: "cascade" }),
+    body: text("body"),
+    authorLogin: text("author_login"),
+    authorAvatarUrl: text("author_avatar_url"),
+    htmlUrl: text("html_url"),
+    // Timestamps
+    githubCreatedAt: timestamp("github_created_at"),
+    githubUpdatedAt: timestamp("github_updated_at"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("github_issue_comment_issueId_idx").on(table.issueId),
+    index("github_issue_comment_userId_idx").on(table.userId),
+  ],
+)
+
 // GitHub Sync State (track sync status and rate limits per user)
 export const githubSyncState = pgTable(
   "github_sync_state",
@@ -373,6 +453,7 @@ export const githubRepoRelations = relations(githubRepo, ({ one, many }) => ({
     references: [githubOrganization.id],
   }),
   githubPullRequest: many(githubPullRequest),
+  githubIssue: many(githubIssue),
 }))
 
 // Pull Request relationships - key for PR detail page
@@ -412,5 +493,22 @@ export const githubPrFileRelations = relations(githubPrFile, ({ one }) => ({
   githubPullRequest: one(githubPullRequest, {
     fields: [githubPrFile.pullRequestId],
     references: [githubPullRequest.id],
+  }),
+}))
+
+// Issue relationships
+export const githubIssueRelations = relations(githubIssue, ({ one, many }) => ({
+  githubRepo: one(githubRepo, {
+    fields: [githubIssue.repoId],
+    references: [githubRepo.id],
+  }),
+  githubIssueComment: many(githubIssueComment),
+}))
+
+// Issue Comment relationships
+export const githubIssueCommentRelations = relations(githubIssueComment, ({ one }) => ({
+  githubIssue: one(githubIssue, {
+    fields: [githubIssueComment.issueId],
+    references: [githubIssue.id],
   }),
 }))

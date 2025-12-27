@@ -33,13 +33,14 @@ export const queries = defineQueries({
   ),
 
   // =============================================================================
-  // Repo page - fetch repo with PRs in one go (used by RepoLayout)
+  // Repo page - fetch repo with PRs and Issues in one go (used by RepoLayout)
   // =============================================================================
-  repoWithPRs: defineQuery(z.string(), ({ args }) =>
+  repoWithPRsAndIssues: defineQuery(z.string(), ({ args }) =>
     zql.githubRepo
       .where("fullName", "=", args)
       .one()
-      .related("githubPullRequest", (pr) => pr.orderBy("githubUpdatedAt", "desc")),
+      .related("githubPullRequest", (pr) => pr.orderBy("githubUpdatedAt", "desc"))
+      .related("githubIssue", (issue) => issue.orderBy("githubUpdatedAt", "desc")),
   ),
 
   // =============================================================================
@@ -58,6 +59,23 @@ export const queries = defineQueries({
             .related("githubPrFile", (files) => files.orderBy("filename", "asc"))
             .related("githubPrReview", (reviews) => reviews.orderBy("submittedAt", "asc"))
             .related("githubPrComment", (comments) => comments.orderBy("githubCreatedAt", "asc")),
+        ),
+  ),
+
+  // =============================================================================
+  // Issue detail page - fetch repo with single issue and all its comments
+  // =============================================================================
+  repoWithIssueFull: defineQuery(
+    z.object({ fullName: z.string(), issueNumber: z.number() }),
+    ({ args }) =>
+      zql.githubRepo
+        .where("fullName", "=", args.fullName)
+        .one()
+        .related("githubIssue", (issue) =>
+          issue
+            .where("number", "=", args.issueNumber)
+            .one()
+            .related("githubIssueComment", (comments) => comments.orderBy("githubCreatedAt", "asc")),
         ),
   ),
 })

@@ -15,6 +15,7 @@ import { Route as OwnerRepoIndexRouteImport } from './routes/$owner/$repo/index'
 import { Route as OwnerRepoPullsRouteImport } from './routes/$owner/$repo/pulls'
 import { Route as OwnerRepoIssuesRouteImport } from './routes/$owner/$repo/issues'
 import { Route as OwnerRepoPullNumberRouteImport } from './routes/$owner/$repo/pull.$number'
+import { Route as OwnerRepoIssuesNumberRouteImport } from './routes/$owner/$repo/issues.$number'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,30 +47,38 @@ const OwnerRepoPullNumberRoute = OwnerRepoPullNumberRouteImport.update({
   path: '/$owner/$repo/pull/$number',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OwnerRepoIssuesNumberRoute = OwnerRepoIssuesNumberRouteImport.update({
+  id: '/$number',
+  path: '/$number',
+  getParentRoute: () => OwnerRepoIssuesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$owner': typeof OwnerIndexRoute
-  '/$owner/$repo/issues': typeof OwnerRepoIssuesRoute
+  '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
   '/$owner/$repo/pulls': typeof OwnerRepoPullsRoute
   '/$owner/$repo': typeof OwnerRepoIndexRoute
+  '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$owner': typeof OwnerIndexRoute
-  '/$owner/$repo/issues': typeof OwnerRepoIssuesRoute
+  '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
   '/$owner/$repo/pulls': typeof OwnerRepoPullsRoute
   '/$owner/$repo': typeof OwnerRepoIndexRoute
+  '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$owner/': typeof OwnerIndexRoute
-  '/$owner/$repo/issues': typeof OwnerRepoIssuesRoute
+  '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
   '/$owner/$repo/pulls': typeof OwnerRepoPullsRoute
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
+  '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/$owner/$repo/issues'
     | '/$owner/$repo/pulls'
     | '/$owner/$repo'
+    | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/$owner/$repo/issues'
     | '/$owner/$repo/pulls'
     | '/$owner/$repo'
+    | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
   id:
     | '__root__'
@@ -96,13 +107,14 @@ export interface FileRouteTypes {
     | '/$owner/$repo/issues'
     | '/$owner/$repo/pulls'
     | '/$owner/$repo/'
+    | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OwnerIndexRoute: typeof OwnerIndexRoute
-  OwnerRepoIssuesRoute: typeof OwnerRepoIssuesRoute
+  OwnerRepoIssuesRoute: typeof OwnerRepoIssuesRouteWithChildren
   OwnerRepoPullsRoute: typeof OwnerRepoPullsRoute
   OwnerRepoIndexRoute: typeof OwnerRepoIndexRoute
   OwnerRepoPullNumberRoute: typeof OwnerRepoPullNumberRoute
@@ -152,13 +164,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OwnerRepoPullNumberRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$owner/$repo/issues/$number': {
+      id: '/$owner/$repo/issues/$number'
+      path: '/$number'
+      fullPath: '/$owner/$repo/issues/$number'
+      preLoaderRoute: typeof OwnerRepoIssuesNumberRouteImport
+      parentRoute: typeof OwnerRepoIssuesRoute
+    }
   }
 }
+
+interface OwnerRepoIssuesRouteChildren {
+  OwnerRepoIssuesNumberRoute: typeof OwnerRepoIssuesNumberRoute
+}
+
+const OwnerRepoIssuesRouteChildren: OwnerRepoIssuesRouteChildren = {
+  OwnerRepoIssuesNumberRoute: OwnerRepoIssuesNumberRoute,
+}
+
+const OwnerRepoIssuesRouteWithChildren = OwnerRepoIssuesRoute._addFileChildren(
+  OwnerRepoIssuesRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OwnerIndexRoute: OwnerIndexRoute,
-  OwnerRepoIssuesRoute: OwnerRepoIssuesRoute,
+  OwnerRepoIssuesRoute: OwnerRepoIssuesRouteWithChildren,
   OwnerRepoPullsRoute: OwnerRepoPullsRoute,
   OwnerRepoIndexRoute: OwnerRepoIndexRoute,
   OwnerRepoPullNumberRoute: OwnerRepoPullNumberRoute,
