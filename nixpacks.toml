@@ -1,0 +1,18 @@
+# Nixpacks configuration for Coolify deployment
+# TanStack Start + Bun application
+
+[phases.setup]
+nixPkgs = ["bun", "nodejs_20"]
+
+[phases.install]
+cmds = ["bun install --frozen-lockfile"]
+
+[phases.build]
+cmds = ["bun run build", "bun run db:migrate"]
+
+[start]
+cmd = "bun run server.ts"
+
+[variables]
+NODE_ENV = "production"
+
