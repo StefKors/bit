@@ -890,7 +890,9 @@ export class GitHubClient {
     }))
 
     // Delete old commits and insert new ones
-    await this.db.delete(schema.githubPrCommit).where(eq(schema.githubPrCommit.pullRequestId, pr.id))
+    await this.db
+      .delete(schema.githubPrCommit)
+      .where(eq(schema.githubPrCommit.pullRequestId, pr.id))
 
     for (const commit of commits) {
       await this.db.insert(schema.githubPrCommit).values(commit)
