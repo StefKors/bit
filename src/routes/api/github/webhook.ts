@@ -8,6 +8,8 @@ import {
   handlePullRequestReviewWebhook,
   handleCommentWebhook,
   handlePushWebhook,
+  handleIssueWebhook,
+  handleIssueCommentWebhook,
 } from "@/lib/webhooks"
 import type { WebhookEventName } from "@/lib/webhooks"
 
@@ -185,15 +187,22 @@ export const Route = createFileRoute("/api/github/webhook")({
             // =================================================================
 
             case "issues": {
-              // Stub: Triggered on issue actions (opened, closed, labeled, etc.)
-              // TODO: Implement when issues feature is built
-              console.log(`Stub: issues event - action: ${getAction(payload)}`)
+              // Implemented: Full issue syncing
+              await handleIssueWebhook(db, payload)
               break
             }
 
             case "issue_comment": {
               // Implemented: Comments on issues and PRs
-              await handleCommentWebhook(db, payload, event)
+              // Note: issue_comment is sent for both issues AND PRs
+              // handleCommentWebhook handles PR comments
+              // handleIssueCommentWebhook handles actual issue comments
+              const issue = payload.issue as Record<string, unknown> | undefined
+              if (issue?.pull_request) {
+                await handleCommentWebhook(db, payload, event)
+              } else {
+                await handleIssueCommentWebhook(db, payload)
+              }
               break
             }
 

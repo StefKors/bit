@@ -22,6 +22,7 @@ import { Route as OwnerRepoPullsRouteImport } from './routes/$owner/$repo/pulls'
 import { Route as OwnerRepoIssuesRouteImport } from './routes/$owner/$repo/issues'
 import { Route as ApiGithubSyncOverviewRouteImport } from './routes/api/github/sync/overview'
 import { Route as OwnerRepoPullNumberRouteImport } from './routes/$owner/$repo/pull.$number'
+import { Route as OwnerRepoIssuesNumberRouteImport } from './routes/$owner/$repo/issues.$number'
 import { Route as ApiGithubSyncOwnerRepoRouteImport } from './routes/api/github/sync/$owner.$repo'
 import { Route as ApiGithubSyncOwnerRepoPullNumberRouteImport } from './routes/api/github/sync/$owner.$repo.pull.$number'
 
@@ -90,6 +91,11 @@ const OwnerRepoPullNumberRoute = OwnerRepoPullNumberRouteImport.update({
   path: '/$owner/$repo/pull/$number',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OwnerRepoIssuesNumberRoute = OwnerRepoIssuesNumberRouteImport.update({
+  id: '/$number',
+  path: '/$number',
+  getParentRoute: () => OwnerRepoIssuesRoute,
+} as any)
 const ApiGithubSyncOwnerRepoRoute = ApiGithubSyncOwnerRepoRouteImport.update({
   id: '/api/github/sync/$owner/$repo',
   path: '/api/github/sync/$owner/$repo',
@@ -106,7 +112,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
   '/$owner': typeof OwnerIndexRoute
-  '/$owner/$repo/issues': typeof OwnerRepoIssuesRoute
+  '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
   '/$owner/$repo/pulls': typeof OwnerRepoPullsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/api/zero/mutate': typeof ApiZeroMutateRoute
   '/api/zero/query': typeof ApiZeroQueryRoute
   '/$owner/$repo': typeof OwnerRepoIndexRoute
+  '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
@@ -123,7 +130,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
   '/$owner': typeof OwnerIndexRoute
-  '/$owner/$repo/issues': typeof OwnerRepoIssuesRoute
+  '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
   '/$owner/$repo/pulls': typeof OwnerRepoPullsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/api/zero/mutate': typeof ApiZeroMutateRoute
   '/api/zero/query': typeof ApiZeroQueryRoute
   '/$owner/$repo': typeof OwnerRepoIndexRoute
+  '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
@@ -141,7 +149,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
   '/$owner/': typeof OwnerIndexRoute
-  '/$owner/$repo/issues': typeof OwnerRepoIssuesRoute
+  '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
   '/$owner/$repo/pulls': typeof OwnerRepoPullsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/api/zero/mutate': typeof ApiZeroMutateRoute
   '/api/zero/query': typeof ApiZeroQueryRoute
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
+  '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/api/zero/mutate'
     | '/api/zero/query'
     | '/$owner/$repo'
+    | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
     | '/api/github/sync/overview'
     | '/api/github/sync/$owner/$repo'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/api/zero/mutate'
     | '/api/zero/query'
     | '/$owner/$repo'
+    | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
     | '/api/github/sync/overview'
     | '/api/github/sync/$owner/$repo'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/api/zero/mutate'
     | '/api/zero/query'
     | '/$owner/$repo/'
+    | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
     | '/api/github/sync/overview'
     | '/api/github/sync/$owner/$repo'
@@ -212,7 +224,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiHealthRoute: typeof ApiHealthRoute
   OwnerIndexRoute: typeof OwnerIndexRoute
-  OwnerRepoIssuesRoute: typeof OwnerRepoIssuesRoute
+  OwnerRepoIssuesRoute: typeof OwnerRepoIssuesRouteWithChildren
   OwnerRepoPullsRoute: typeof OwnerRepoPullsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiGithubRateLimitRoute: typeof ApiGithubRateLimitRoute
@@ -318,6 +330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OwnerRepoPullNumberRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$owner/$repo/issues/$number': {
+      id: '/$owner/$repo/issues/$number'
+      path: '/$number'
+      fullPath: '/$owner/$repo/issues/$number'
+      preLoaderRoute: typeof OwnerRepoIssuesNumberRouteImport
+      parentRoute: typeof OwnerRepoIssuesRoute
+    }
     '/api/github/sync/$owner/$repo': {
       id: '/api/github/sync/$owner/$repo'
       path: '/api/github/sync/$owner/$repo'
@@ -334,6 +353,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface OwnerRepoIssuesRouteChildren {
+  OwnerRepoIssuesNumberRoute: typeof OwnerRepoIssuesNumberRoute
+}
+
+const OwnerRepoIssuesRouteChildren: OwnerRepoIssuesRouteChildren = {
+  OwnerRepoIssuesNumberRoute: OwnerRepoIssuesNumberRoute,
+}
+
+const OwnerRepoIssuesRouteWithChildren = OwnerRepoIssuesRoute._addFileChildren(
+  OwnerRepoIssuesRouteChildren,
+)
 
 interface ApiGithubSyncOwnerRepoRouteChildren {
   ApiGithubSyncOwnerRepoPullNumberRoute: typeof ApiGithubSyncOwnerRepoPullNumberRoute
@@ -354,7 +385,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiHealthRoute: ApiHealthRoute,
   OwnerIndexRoute: OwnerIndexRoute,
-  OwnerRepoIssuesRoute: OwnerRepoIssuesRoute,
+  OwnerRepoIssuesRoute: OwnerRepoIssuesRouteWithChildren,
   OwnerRepoPullsRoute: OwnerRepoPullsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiGithubRateLimitRoute: ApiGithubRateLimitRoute,

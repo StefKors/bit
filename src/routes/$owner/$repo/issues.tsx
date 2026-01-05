@@ -8,7 +8,7 @@ function RepoIssuesPage() {
 
   return (
     <RepoLayout activeTab="issues">
-      {(repoData) => <RepoIssuesTab repoId={repoData.id} fullName={fullName} />}
+      {(repoData) => <RepoIssuesTab issues={repoData.githubIssue} fullName={fullName} />}
     </RepoLayout>
   )
 }
