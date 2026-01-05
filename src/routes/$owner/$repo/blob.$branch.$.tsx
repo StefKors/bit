@@ -20,7 +20,7 @@ function BlobPage() {
   const [fileError, setFileError] = useState<string | null>(null)
 
   // Query the repo
-  const [repoData] = useQuery(queries.repoWithPRs(fullName))
+  const [repoData] = useQuery(queries.repoWithPRsAndIssues(fullName))
 
   // Query tree entries once we have repo
   const repoId = repoData?.id ?? ""

@@ -108,6 +108,7 @@ export type WebhookPayload = Record<string, unknown>
 
 export type RepoRecord = typeof dbSchema.githubRepo.$inferSelect
 export type PRRecord = typeof dbSchema.githubPullRequest.$inferSelect
+export type IssueRecord = typeof dbSchema.githubIssue.$inferSelect
 
 /**
  * GitHub webhook event names as sent in the x-github-event header.
