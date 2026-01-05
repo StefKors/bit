@@ -33,7 +33,7 @@ export const Route = createFileRoute("/api/zero/mutate")({
             // @ts-expect-error - mutators is empty but Zero requires this endpoint
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
             transact((tx, name, args) => mustGetMutator(mutators, name).fn({ tx, args, ctx })),
-          request
+          request,
         )
         return new Response(JSON.stringify(result), {
           headers: { "Content-Type": "application/json" },
@@ -42,5 +42,3 @@ export const Route = createFileRoute("/api/zero/mutate")({
     },
   },
 })
-
-

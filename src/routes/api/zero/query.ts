@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/zero/query")({
         const result = await handleQueryRequest(
           (name, args) => mustGetQuery(queries, name).fn({ args, ctx }),
           schema,
-          request
+          request,
         )
         return new Response(JSON.stringify(result), {
           headers: { "Content-Type": "application/json" },
@@ -31,5 +31,3 @@ export const Route = createFileRoute("/api/zero/query")({
     },
   },
 })
-
-

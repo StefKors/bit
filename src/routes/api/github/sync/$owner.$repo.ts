@@ -45,12 +45,10 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo")({
               error: "Failed to sync pull requests",
               details: error instanceof Error ? error.message : "Unknown error",
             },
-            500
+            500,
           )
         }
       },
     },
   },
 })
-
-

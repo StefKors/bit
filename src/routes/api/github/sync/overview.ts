@@ -46,12 +46,10 @@ export const Route = createFileRoute("/api/github/sync/overview")({
               error: "Failed to sync overview",
               details: error instanceof Error ? error.message : "Unknown error",
             },
-            500
+            500,
           )
         }
       },
     },
   },
 })
-
-

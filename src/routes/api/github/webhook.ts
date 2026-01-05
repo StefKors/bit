@@ -33,7 +33,7 @@ const verifyWebhookSignature = (payload: string, signature: string, secret: stri
 // Handle pull_request webhook events
 async function handlePullRequestWebhook(
   db: ReturnType<typeof drizzle>,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ) {
   const action = payload.action as string
   const pr = payload.pull_request as Record<string, unknown>
@@ -86,7 +86,7 @@ async function handlePullRequestWebhook(
         ((pr.labels as Array<Record<string, unknown>>) || []).map((l) => ({
           name: l.name,
           color: l.color,
-        }))
+        })),
       ),
       githubCreatedAt: new Date(pr.created_at as string),
       githubUpdatedAt: new Date(pr.updated_at as string),
@@ -137,7 +137,7 @@ async function handlePullRequestWebhook(
 // Handle pull_request_review webhook events
 async function handlePullRequestReviewWebhook(
   db: ReturnType<typeof drizzle>,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ) {
   const review = payload.review as Record<string, unknown>
   const pr = payload.pull_request as Record<string, unknown>
@@ -189,7 +189,7 @@ async function handlePullRequestReviewWebhook(
 async function handleCommentWebhook(
   db: ReturnType<typeof drizzle>,
   payload: Record<string, unknown>,
-  eventType: string
+  eventType: string,
 ) {
   const comment = payload.comment as Record<string, unknown>
   const pr = payload.pull_request as Record<string, unknown>
@@ -312,5 +312,3 @@ export const Route = createFileRoute("/api/github/webhook")({
     },
   },
 })
-
-

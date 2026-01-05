@@ -38,5 +38,3 @@ export const Route = createFileRoute("/api/github/rate-limit")({
     },
   },
 })
-
-
