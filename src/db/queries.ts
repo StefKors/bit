@@ -18,6 +18,27 @@ export const queries = defineQueries({
   ),
 
   // =============================================================================
+  // Dashboard PRs - authored by user (filter by authorLogin)
+  // =============================================================================
+  dashboardAuthored: defineQuery(z.string(), ({ args: authorLogin }) =>
+    zql.githubPullRequest
+      .where("authorLogin", "=", authorLogin)
+      .where("state", "=", "open")
+      .orderBy("githubUpdatedAt", "desc")
+      .related("githubRepo"),
+  ),
+
+  // =============================================================================
+  // Dashboard PRs - all open PRs (for filtering review-requested client-side)
+  // =============================================================================
+  dashboardAllOpen: defineQuery(() =>
+    zql.githubPullRequest
+      .where("state", "=", "open")
+      .orderBy("githubUpdatedAt", "desc")
+      .related("githubRepo"),
+  ),
+
+  // =============================================================================
   // Owner page - fetch org with all repos in one go
   // =============================================================================
   ownerWithRepos: defineQuery(z.string(), ({ args }) =>
@@ -45,23 +66,16 @@ export const queries = defineQueries({
   // =============================================================================
   // Repo tree - fetch tree entries for a specific ref
   // =============================================================================
-  repoTree: defineQuery(
-    z.object({ repoId: z.string(), ref: z.string() }),
-    ({ args }) =>
-      zql.githubRepoTree
-        .where("repoId", "=", args.repoId)
-        .where("ref", "=", args.ref)
-        .orderBy("path", "asc"),
+  repoTree: defineQuery(z.object({ repoId: z.string(), ref: z.string() }), ({ args }) =>
+    zql.githubRepoTree
+      .where("repoId", "=", args.repoId)
+      .where("ref", "=", args.ref)
+      .orderBy("path", "asc"),
   ),
 
   // Repo blob - fetch file content by sha
-  repoBlob: defineQuery(
-    z.object({ repoId: z.string(), sha: z.string() }),
-    ({ args }) =>
-      zql.githubRepoBlob
-        .where("repoId", "=", args.repoId)
-        .where("sha", "=", args.sha)
-        .one(),
+  repoBlob: defineQuery(z.object({ repoId: z.string(), sha: z.string() }), ({ args }) =>
+    zql.githubRepoBlob.where("repoId", "=", args.repoId).where("sha", "=", args.sha).one(),
   ),
 
   // =============================================================================
@@ -79,7 +93,8 @@ export const queries = defineQueries({
             .one()
             .related("githubPrFile", (files) => files.orderBy("filename", "asc"))
             .related("githubPrReview", (reviews) => reviews.orderBy("submittedAt", "asc"))
-            .related("githubPrComment", (comments) => comments.orderBy("githubCreatedAt", "asc")),
+            .related("githubPrComment", (comments) => comments.orderBy("githubCreatedAt", "asc"))
+            .related("githubPrCommit", (commits) => commits.orderBy("committedAt", "asc")),
         ),
   ),
 })

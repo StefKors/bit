@@ -48,7 +48,7 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProp
 
     // Find README file (case-insensitive)
     const readmeFile = treeEntries.find((entry) =>
-      entry.name.toLowerCase().match(/^readme(\.(md|mdx|txt|rst))?$/)
+      entry.name.toLowerCase().match(/^readme(\.(md|mdx|txt|rst))?$/),
     )
 
     if (!readmeFile) {

@@ -85,11 +85,33 @@ const getLanguageFromFilename = (filename: string): string => {
 const isBinaryFile = (filename: string): boolean => {
   const ext = filename.split(".").pop()?.toLowerCase() || ""
   const binaryExtensions = [
-    "png", "jpg", "jpeg", "gif", "webp", "ico", "svg", "bmp",
-    "pdf", "zip", "tar", "gz", "rar",
-    "mp3", "mp4", "wav", "avi", "mov",
-    "ttf", "otf", "woff", "woff2", "eot",
-    "exe", "dll", "so", "dylib",
+    "png",
+    "jpg",
+    "jpeg",
+    "gif",
+    "webp",
+    "ico",
+    "svg",
+    "bmp",
+    "pdf",
+    "zip",
+    "tar",
+    "gz",
+    "rar",
+    "mp3",
+    "mp4",
+    "wav",
+    "avi",
+    "mov",
+    "ttf",
+    "otf",
+    "woff",
+    "woff2",
+    "eot",
+    "exe",
+    "dll",
+    "so",
+    "dylib",
   ]
   return binaryExtensions.includes(ext)
 }
@@ -114,14 +136,7 @@ const formatSize = (bytes: number | null | undefined): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function FileViewer({
-  filename,
-  content,
-  size,
-  htmlUrl,
-  loading,
-  error,
-}: FileViewerProps) {
+export function FileViewer({ filename, content, size, htmlUrl, loading, error }: FileViewerProps) {
   const [highlightedHtml, setHighlightedHtml] = useState<string>("")
   const [highlighting, setHighlighting] = useState(false)
 
@@ -197,7 +212,9 @@ export function FileViewer({
 
     if (isImage && htmlUrl) {
       // For images, show raw URL
-      const rawUrl = htmlUrl.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/")
+      const rawUrl = htmlUrl
+        .replace("github.com", "raw.githubusercontent.com")
+        .replace("/blob/", "/")
       return (
         <div className={styles.imageWrapper}>
           <img src={rawUrl} alt={filename} />

@@ -37,6 +37,12 @@
 
 - Use CSS variables from `theme.css`
 
+# Formatting
+
+- Run `bun run format` after making changes to ensure consistent code style
+- The project uses [oxfmt](https://oxc.rs/docs/guide/usage/formatter.html) for formatting TypeScript/JavaScript files
+- VS Code is configured to format on save via the `oxc.oxc-vscode` extension
+
 # react
 
 - never test react code. instead put as much code as possible in react-agnostic functions or classes and test those if needed.
@@ -90,3 +96,108 @@ tracking uncontrolled inputs via React state means that you will need to add use
 using React state in these cases is only necessary if you have to show the input value during render. if that is not the case you can just use `inputRef.current.value` instead and set the value via `inputRef.current.value = something`
 
 ---
+
+# GitHub Webhooks
+
+Webhook handlers live in `src/lib/webhooks/` with each event type in its own file:
+
+- `pull-request.ts` - handles `pull_request` events
+- `pull-request-review.ts` - handles `pull_request_review` events
+- `comment.ts` - handles `issue_comment` and `pull_request_review_comment` events
+- `push.ts` - handles `push` events (updates repo activity timestamp, syncs commits to open PRs)
+- `utils.ts` - shared utilities for auto-tracking resources
+- `types.ts` - shared TypeScript types (re-exports `@octokit/webhooks-types`)
+
+The route handler at `src/routes/api/github/webhook.ts` receives webhooks, verifies signatures, and dispatches to the appropriate handler.
+
+## Webhook Event Implementation Status
+
+The webhook handler has stubs for **all GitHub webhook events**. Events are categorized as:
+
+### Fully Implemented
+
+| Event                         | Handler                  | Description                                                  |
+| ----------------------------- | ------------------------ | ------------------------------------------------------------ |
+| `pull_request`                | `pull-request.ts`        | PR opened/closed/updated/merged                              |
+| `pull_request_review`         | `pull-request-review.ts` | Review submitted/dismissed                                   |
+| `pull_request_review_comment` | `comment.ts`             | Inline diff comments                                         |
+| `issue_comment`               | `comment.ts`             | PR conversation comments                                     |
+| `push`                        | `push.ts`                | Updates `githubPushedAt` on repos, syncs commits to open PRs |
+| `ping`                        | (inline)                 | Webhook configuration test                                   |
+
+### Stubbed - Implement When Adding Features
+
+**Issues Feature** (implement when issues tab is built):
+
+- `issues` - Issue opened/closed/labeled/assigned
+
+**CI/CD Feature** (implement for PR status checks):
+
+- `check_run`, `check_suite` - CI check status
+- `status` - Commit status
+- `workflow_run`, `workflow_job` - GitHub Actions
+
+**Security Dashboard Feature**:
+
+- `code_scanning_alert`, `dependabot_alert`, `secret_scanning_alert`
+
+**Releases Feature**:
+
+- `release` - Release published/edited
+
+**Full event list**: See the switch statement in `src/routes/api/github/webhook.ts`
+
+## Auto-tracking behavior
+
+All webhook handlers support **auto-tracking**. When a webhook event arrives:
+
+1. **Resource already tracked** → Updates existing records for all users tracking it
+2. **Not tracked but sender is registered** → Auto-creates repo/PR records under that user
+3. **Sender not registered** → Logs and skips (no data stored)
+
+This means users automatically receive updates for repos they interact with via GitHub, even if they haven't explicitly synced those repos in the app.
+
+## Adding/Updating Webhook Handlers
+
+When adding a new feature that requires webhook data:
+
+1. **Identify relevant events**: Check which GitHub events provide the data you need
+   - Reference: https://docs.github.com/en/webhooks/webhook-events-and-payloads
+2. **Create handler file**: `src/lib/webhooks/{event-name}.ts`
+3. **Use typed payloads**: Import types from `@octokit/webhooks-types` via `./types.ts`
+4. **Export from index**: Add export to `src/lib/webhooks/index.ts`
+5. **Replace stub**: Change the stub in `webhook.ts` to call your handler
+6. **Follow auto-tracking pattern**: Use `findUserBySender`, `ensureRepoFromWebhook`, etc.
+7. **Update this doc**: Mark the event as "Fully Implemented" above
+
+### Handler function signature
+
+```typescript
+import type { WebhookDB, WebhookPayload, SomeEvent } from "./types"
+
+async function handleSomeWebhook(
+  db: WebhookDB,
+  payload: WebhookPayload,
+  // optional extra params like eventType for comment handler
+): Promise<void> {
+  // Cast to typed payload for autocomplete
+  const typedPayload = payload as unknown as SomeEvent
+  // ... implementation
+}
+```
+
+### Mapping features to webhook events
+
+| Feature     | Events to Implement                       |
+| ----------- | ----------------------------------------- |
+| Issues      | `issues`                                  |
+| CI Status   | `check_run`, `check_suite`, `status`      |
+| Releases    | `release`                                 |
+| Discussions | `discussion`, `discussion_comment`        |
+| Security    | `code_scanning_alert`, `dependabot_alert` |
+| Stars/Forks | `star`, `fork`                            |
+
+## Environment variables
+
+- `GITHUB_WEBHOOK_SECRET` - Secret for verifying webhook signatures (required)
+- `ZERO_UPSTREAM_DB` - PostgreSQL connection string for database operations

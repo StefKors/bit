@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import { useQuery } from "@rocicorp/zero/react"
 import {
   GitPullRequestIcon,
@@ -7,17 +7,19 @@ import {
   SyncIcon,
   CommentIcon,
   FileIcon,
+  GitCommitIcon,
 } from "@primer/octicons-react"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Tabs } from "@/components/Tabs"
 import { Button } from "@/components/Button"
 import { PRConversationTab } from "@/features/pr/PRConversationTab"
 import { PRFilesTab } from "@/features/pr/PRFilesTab"
+import { PRCommitsTab } from "@/features/pr/PRCommitsTab"
 import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
 import { queries } from "@/db/queries"
 import styles from "@/pages/PRDetailPage.module.css"
 
-type TabType = "conversation" | "files"
+type TabType = "conversation" | "commits" | "files"
 
 const defaultDiffOptions: DiffOptions = {
   diffStyle: "split",
@@ -59,7 +61,7 @@ function PRDetailPage() {
 
   const pr = repoData?.githubPullRequest
 
-  const handleSync = useCallback(async () => {
+  const handleSync = async () => {
     setSyncing(true)
     setError(null)
 
@@ -79,7 +81,7 @@ function PRDetailPage() {
     } finally {
       setSyncing(false)
     }
-  }, [owner, repoName, prNumber])
+  }
 
   if (pr === undefined) {
     return (
@@ -103,6 +105,29 @@ function PRDetailPage() {
               Go back to pull requests
             </Link>
           </p>
+          <div style={{ marginTop: "1rem" }}>
+            <Button
+              variant="success"
+              leadingIcon={<SyncIcon size={16} />}
+              loading={syncing}
+              onClick={() => void handleSync()}
+            >
+              {syncing ? "Syncing..." : "Sync this PR"}
+            </Button>
+          </div>
+          {error && (
+            <div
+              style={{
+                color: "#f85149",
+                marginTop: "1rem",
+                padding: "1rem",
+                background: "rgba(248, 81, 73, 0.1)",
+                borderRadius: "8px",
+              }}
+            >
+              {error}
+            </div>
+          )}
         </div>
       </div>
     )
@@ -119,8 +144,16 @@ function PRDetailPage() {
         items={[
           { label: "Repositories", to: "/" },
           { label: owner, to: "/$owner", params: { owner } },
-          { label: repoName, to: "/$owner/$repo", params: { owner, repo: repoName } },
-          { label: "pull requests", to: "/$owner/$repo/pulls", params: { owner, repo: repoName } },
+          {
+            label: repoName,
+            to: "/$owner/$repo",
+            params: { owner, repo: repoName },
+          },
+          {
+            label: "pull requests",
+            to: "/$owner/$repo/pulls",
+            params: { owner, repo: repoName },
+          },
           { label: `#${prNumber}` },
         ]}
       />
@@ -215,6 +248,12 @@ function PRDetailPage() {
             icon: <CommentIcon size={16} />,
           },
           {
+            value: "commits",
+            label: "Commits",
+            icon: <GitCommitIcon size={16} />,
+            count: pr.githubPrCommit.length || pr.commits || 0,
+          },
+          {
             value: "files",
             label: "Files changed",
             icon: <FileIcon size={16} />,
@@ -240,6 +279,10 @@ function PRDetailPage() {
             comments={pr.githubPrComment}
             formatTimeAgo={formatTimeAgo}
           />
+        )}
+
+        {activeTab === "commits" && (
+          <PRCommitsTab commits={pr.githubPrCommit} formatTimeAgo={formatTimeAgo} />
         )}
 
         {activeTab === "files" && (

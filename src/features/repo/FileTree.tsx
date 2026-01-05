@@ -108,11 +108,7 @@ export function FileTree({
           <FileDirectoryIcon className={styles.emptyIcon} size={32} />
           <p className={styles.emptyText}>No files synced yet</p>
           {onSync && (
-            <button
-              className={styles.syncButton}
-              onClick={onSync}
-              disabled={syncing}
-            >
+            <button className={styles.syncButton} onClick={onSync} disabled={syncing}>
               {syncing ? "Syncing..." : "Sync Files"}
             </button>
           )}
@@ -183,9 +179,7 @@ function FileTreeItem({ entry, owner, repo, branch, isActive }: FileTreeItemProp
   const isDir = entry.type === "dir"
 
   // For directories, link to tree view. For files, link to blob view.
-  const to = isDir
-    ? "/$owner/$repo/tree/$branch/$"
-    : "/$owner/$repo/blob/$branch/$"
+  const to = isDir ? "/$owner/$repo/tree/$branch/$" : "/$owner/$repo/blob/$branch/$"
 
   return (
     <Link
@@ -220,9 +214,7 @@ function TreeNodeItem({ node, owner, repo, branch, currentPath, depth }: TreeNod
 
   const [expanded, setExpanded] = useState(isInActivePath || depth < 1)
 
-  const to = isDir
-    ? "/$owner/$repo/tree/$branch/$"
-    : "/$owner/$repo/blob/$branch/$"
+  const to = isDir ? "/$owner/$repo/tree/$branch/$" : "/$owner/$repo/blob/$branch/$"
 
   const handleClick = (e: React.MouseEvent) => {
     if (isDir) {

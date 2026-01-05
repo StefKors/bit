@@ -87,8 +87,7 @@ function BlobPage() {
           <FileDirectoryIcon className={layoutStyles.emptyIcon} size={48} />
           <h3 className={layoutStyles.emptyTitle}>Repository not found</h3>
           <p className={layoutStyles.emptyText}>
-            This repository hasn't been synced yet.{" "}
-            <Link to="/">Go back to overview</Link>
+            This repository hasn't been synced yet. <Link to="/">Go back to overview</Link>
           </p>
         </div>
       </div>
@@ -139,12 +138,7 @@ function BlobPage() {
         </div>
 
         <div className={styles.main}>
-          <PathBreadcrumb
-            owner={owner}
-            repo={repo}
-            branch={branch}
-            pathParts={pathParts}
-          />
+          <PathBreadcrumb owner={owner} repo={repo} branch={branch} pathParts={pathParts} />
 
           <FileViewer
             filename={fileName}
@@ -170,11 +164,7 @@ interface PathBreadcrumbProps {
 function PathBreadcrumb({ owner, repo, branch, pathParts }: PathBreadcrumbProps) {
   return (
     <div className={styles.breadcrumbPath}>
-      <Link
-        to="/$owner/$repo"
-        params={{ owner, repo }}
-        className={styles.breadcrumbLink}
-      >
+      <Link to="/$owner/$repo" params={{ owner, repo }} className={styles.breadcrumbLink}>
         {repo}
       </Link>
       <span className={styles.breadcrumbSeparator}>/</span>

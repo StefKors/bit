@@ -43,8 +43,7 @@ function TreePage() {
           <FileDirectoryIcon className={layoutStyles.emptyIcon} size={48} />
           <h3 className={layoutStyles.emptyTitle}>Repository not found</h3>
           <p className={layoutStyles.emptyText}>
-            This repository hasn't been synced yet.{" "}
-            <Link to="/">Go back to overview</Link>
+            This repository hasn't been synced yet. <Link to="/">Go back to overview</Link>
           </p>
         </div>
       </div>
@@ -73,10 +72,7 @@ function TreePage() {
       }
       // Check if entry is direct child of current path
       const relativePath = entry.path.slice(currentPath.length + 1)
-      return (
-        entry.path.startsWith(currentPath + "/") &&
-        !relativePath.includes("/")
-      )
+      return entry.path.startsWith(currentPath + "/") && !relativePath.includes("/")
     })
     .sort((a, b) => {
       // Directories first, then alphabetical
@@ -117,12 +113,7 @@ function TreePage() {
         </div>
 
         <div className={styles.main}>
-          <PathBreadcrumb
-            owner={owner}
-            repo={repo}
-            branch={branch}
-            pathParts={pathParts}
-          />
+          <PathBreadcrumb owner={owner} repo={repo} branch={branch} pathParts={pathParts} />
 
           <div className={styles.directoryContent}>
             <div className={styles.directoryHeader}>
@@ -132,9 +123,7 @@ function TreePage() {
 
             {directoryEntries.length === 0 ? (
               <div className={styles.loading}>
-                {entries.length === 0
-                  ? "No files synced yet"
-                  : "Empty directory"}
+                {entries.length === 0 ? "No files synced yet" : "Empty directory"}
               </div>
             ) : (
               <ul className={styles.directoryList}>
@@ -165,9 +154,7 @@ interface DirectoryItemProps {
 
 function DirectoryItem({ entry, owner, repo, branch }: DirectoryItemProps) {
   const isDir = entry.type === "dir"
-  const to = isDir
-    ? "/$owner/$repo/tree/$branch/$"
-    : "/$owner/$repo/blob/$branch/$"
+  const to = isDir ? "/$owner/$repo/tree/$branch/$" : "/$owner/$repo/blob/$branch/$"
 
   return (
     <li>
@@ -177,10 +164,7 @@ function DirectoryItem({ entry, owner, repo, branch }: DirectoryItemProps) {
         className={styles.directoryItem}
       >
         {isDir ? (
-          <FileDirectoryIcon
-            className={`${styles.itemIcon} ${styles.itemIconFolder}`}
-            size={16}
-          />
+          <FileDirectoryIcon className={`${styles.itemIcon} ${styles.itemIconFolder}`} size={16} />
         ) : (
           <FileIcon className={styles.itemIcon} size={16} />
         )}
@@ -200,17 +184,11 @@ interface PathBreadcrumbProps {
 function PathBreadcrumb({ owner, repo, branch, pathParts }: PathBreadcrumbProps) {
   return (
     <div className={styles.breadcrumbPath}>
-      <Link
-        to="/$owner/$repo"
-        params={{ owner, repo }}
-        className={styles.breadcrumbLink}
-      >
+      <Link to="/$owner/$repo" params={{ owner, repo }} className={styles.breadcrumbLink}>
         {repo}
       </Link>
 
-      {pathParts.length > 0 && (
-        <span className={styles.breadcrumbSeparator}>/</span>
-      )}
+      {pathParts.length > 0 && <span className={styles.breadcrumbSeparator}>/</span>}
 
       {pathParts.map((part, index) => {
         const isLast = index === pathParts.length - 1
