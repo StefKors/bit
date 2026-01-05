@@ -37,15 +37,14 @@ const languageColors: Record<string, string> = {
   Svelte: "#ff3e00",
 }
 
-function OwnerPage() {
+const OwnerPage = () => {
   const params: { owner?: string } = Route.useParams()
-  const owner = params?.owner ?? ""
-
   const { data: session } = authClient.useSession()
-  const [org] = useQuery(queries.ownerWithRepos(owner))
-  const [userRepos] = useQuery(queries.reposByOwner(owner))
+  const [repos] = useQuery(queries.reposByOwner(params?.owner ?? ""))
 
-  const repos = org?.githubRepo ?? userRepos
+  const owner = params?.owner ?? ""
+  // Get org from first repo's related data (all repos share same org if it exists)
+  const org = repos[0]?.githubOrganization ?? null
   const isOrg = Boolean(org)
   const isCurrentUser = session?.user?.name?.toLowerCase() === owner.toLowerCase()
 

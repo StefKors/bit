@@ -48,9 +48,12 @@ export const queries = defineQueries({
       .related("githubRepo", (repos) => repos.orderBy("githubUpdatedAt", "desc")),
   ),
 
-  // Fallback for user repos (not org) - repos by owner
+  // Repos by owner - includes related organization for profile info
   reposByOwner: defineQuery(z.string(), ({ args }) =>
-    zql.githubRepo.where("owner", "=", args).orderBy("githubUpdatedAt", "desc"),
+    zql.githubRepo
+      .where("owner", "=", args)
+      .orderBy("githubUpdatedAt", "desc")
+      .related("githubOrganization"),
   ),
 
   // =============================================================================
