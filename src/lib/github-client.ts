@@ -95,6 +95,8 @@ export class GitHubClient {
         rateLimitReset: rateLimit.reset,
         syncStatus: status,
         syncError: error,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .onConflictDoUpdate({
         target: schema.githubSyncState.id,
@@ -178,6 +180,8 @@ export class GitHubClient {
       githubUpdatedAt: repoData.updated_at ? new Date(repoData.updated_at) : null,
       githubPushedAt: repoData.pushed_at ? new Date(repoData.pushed_at) : null,
       syncedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
 
     await this.db
@@ -366,6 +370,8 @@ export class GitHubClient {
           closedAt: item.closed_at ? new Date(item.closed_at) : null,
           userId: this.userId,
           syncedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         }
 
         await this.db
@@ -432,6 +438,8 @@ export class GitHubClient {
       url: org.url,
       userId: this.userId,
       syncedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }))
 
     // Upsert organizations
@@ -490,6 +498,8 @@ export class GitHubClient {
       githubUpdatedAt: repo.updated_at ? new Date(repo.updated_at) : null,
       githubPushedAt: repo.pushed_at ? new Date(repo.pushed_at) : null,
       syncedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }))
 
     // Upsert repositories
@@ -578,6 +588,8 @@ export class GitHubClient {
       mergedAt: pr.merged_at ? new Date(pr.merged_at) : null,
       userId: this.userId,
       syncedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }))
 
     // Upsert pull requests
@@ -675,6 +687,8 @@ export class GitHubClient {
       mergedAt: prData.merged_at ? new Date(prData.merged_at) : null,
       userId: this.userId,
       syncedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
 
     // Upsert PR
@@ -731,6 +745,8 @@ export class GitHubClient {
       rawUrl: file.raw_url,
       contentsUrl: file.contents_url,
       userId: this.userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }))
 
     // Delete old files and insert new ones
@@ -760,6 +776,8 @@ export class GitHubClient {
       htmlUrl: review.html_url,
       submittedAt: review.submitted_at ? new Date(review.submitted_at) : null,
       userId: this.userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }))
 
     // Create a map from GitHub numeric ID to node_id for linking comments to reviews
@@ -811,6 +829,8 @@ export class GitHubClient {
       githubCreatedAt: comment.created_at ? new Date(comment.created_at) : null,
       githubUpdatedAt: comment.updated_at ? new Date(comment.updated_at) : null,
       userId: this.userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }))
 
     // Fetch review comments (inline diff comments)
@@ -844,6 +864,8 @@ export class GitHubClient {
       githubCreatedAt: comment.created_at ? new Date(comment.created_at) : null,
       githubUpdatedAt: comment.updated_at ? new Date(comment.updated_at) : null,
       userId: this.userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }))
 
     const allComments = [...issueComments, ...reviewComments]
@@ -887,6 +909,8 @@ export class GitHubClient {
       htmlUrl: commit.html_url,
       committedAt: commit.commit.committer?.date ? new Date(commit.commit.committer.date) : null,
       userId: this.userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }))
 
     // Delete old commits and insert new ones
