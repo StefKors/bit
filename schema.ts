@@ -418,6 +418,48 @@ export const githubIssueComment = pgTable(
   ],
 )
 
+// GitHub PR Events (timeline events for pull requests)
+export const githubPrEvent = pgTable(
+  "github_pr_event",
+  {
+    id: text("id").primaryKey(), // GitHub node_id or composite key
+    githubId: bigint("github_id", { mode: "number" }),
+    pullRequestId: text("pull_request_id")
+      .notNull()
+      .references(() => githubPullRequest.id, { onDelete: "cascade" }),
+    eventType: text("event_type").notNull(), // committed, labeled, unlabeled, assigned, unassigned, review_requested, review_request_removed, merged, closed, reopened, head_ref_force_pushed, etc.
+    // Actor info
+    actorLogin: text("actor_login"),
+    actorAvatarUrl: text("actor_avatar_url"),
+    // Event-specific data (stored as JSON)
+    eventData: text("event_data"), // JSON string with event-specific fields
+    // Common fields for specific event types
+    commitSha: text("commit_sha"),
+    commitMessage: text("commit_message"),
+    labelName: text("label_name"),
+    labelColor: text("label_color"),
+    assigneeLogin: text("assignee_login"),
+    assigneeAvatarUrl: text("assignee_avatar_url"),
+    requestedReviewerLogin: text("requested_reviewer_login"),
+    requestedReviewerAvatarUrl: text("requested_reviewer_avatar_url"),
+    // Timestamps
+    eventCreatedAt: timestamp("event_created_at"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("github_pr_event_prId_idx").on(table.pullRequestId),
+    index("github_pr_event_userId_idx").on(table.userId),
+    index("github_pr_event_type_idx").on(table.eventType),
+  ],
+)
+
 // GitHub Sync State (track sync status and rate limits per user)
 export const githubSyncState = pgTable(
   "github_sync_state",
@@ -474,6 +516,7 @@ export const githubPullRequestRelations = relations(githubPullRequest, ({ one, m
   githubPrReview: many(githubPrReview),
   githubPrComment: many(githubPrComment),
   githubPrCommit: many(githubPrCommit),
+  githubPrEvent: many(githubPrEvent),
 }))
 
 // PR Review relationships
@@ -509,6 +552,14 @@ export const githubPrFileRelations = relations(githubPrFile, ({ one }) => ({
 export const githubPrCommitRelations = relations(githubPrCommit, ({ one }) => ({
   githubPullRequest: one(githubPullRequest, {
     fields: [githubPrCommit.pullRequestId],
+    references: [githubPullRequest.id],
+  }),
+}))
+
+// PR Event relationships
+export const githubPrEventRelations = relations(githubPrEvent, ({ one }) => ({
+  githubPullRequest: one(githubPullRequest, {
+    fields: [githubPrEvent.pullRequestId],
     references: [githubPullRequest.id],
   }),
 }))
