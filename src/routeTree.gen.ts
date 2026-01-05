@@ -24,6 +24,8 @@ import { Route as ApiGithubSyncOverviewRouteImport } from './routes/api/github/s
 import { Route as OwnerRepoPullNumberRouteImport } from './routes/$owner/$repo/pull.$number'
 import { Route as OwnerRepoIssuesNumberRouteImport } from './routes/$owner/$repo/issues.$number'
 import { Route as ApiGithubSyncOwnerRepoRouteImport } from './routes/api/github/sync/$owner.$repo'
+import { Route as OwnerRepoTreeBranchSplatRouteImport } from './routes/$owner/$repo/tree.$branch.$'
+import { Route as OwnerRepoBlobBranchSplatRouteImport } from './routes/$owner/$repo/blob.$branch.$'
 import { Route as ApiGithubSyncOwnerRepoPullNumberRouteImport } from './routes/api/github/sync/$owner.$repo.pull.$number'
 
 const IndexRoute = IndexRouteImport.update({
@@ -101,6 +103,18 @@ const ApiGithubSyncOwnerRepoRoute = ApiGithubSyncOwnerRepoRouteImport.update({
   path: '/api/github/sync/$owner/$repo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OwnerRepoTreeBranchSplatRoute =
+  OwnerRepoTreeBranchSplatRouteImport.update({
+    id: '/$owner/$repo/tree/$branch/$',
+    path: '/$owner/$repo/tree/$branch/$',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const OwnerRepoBlobBranchSplatRoute =
+  OwnerRepoBlobBranchSplatRouteImport.update({
+    id: '/$owner/$repo/blob/$branch/$',
+    path: '/$owner/$repo/blob/$branch/$',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiGithubSyncOwnerRepoPullNumberRoute =
   ApiGithubSyncOwnerRepoPullNumberRouteImport.update({
     id: '/pull/$number',
@@ -123,6 +137,8 @@ export interface FileRoutesByFullPath {
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
+  '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
+  '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
   '/api/github/sync/$owner/$repo/pull/$number': typeof ApiGithubSyncOwnerRepoPullNumberRoute
 }
@@ -141,6 +157,8 @@ export interface FileRoutesByTo {
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
+  '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
+  '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
   '/api/github/sync/$owner/$repo/pull/$number': typeof ApiGithubSyncOwnerRepoPullNumberRoute
 }
@@ -160,6 +178,8 @@ export interface FileRoutesById {
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
+  '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
+  '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
   '/api/github/sync/$owner/$repo/pull/$number': typeof ApiGithubSyncOwnerRepoPullNumberRoute
 }
@@ -180,6 +200,8 @@ export interface FileRouteTypes {
     | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
     | '/api/github/sync/overview'
+    | '/$owner/$repo/blob/$branch/$'
+    | '/$owner/$repo/tree/$branch/$'
     | '/api/github/sync/$owner/$repo'
     | '/api/github/sync/$owner/$repo/pull/$number'
   fileRoutesByTo: FileRoutesByTo
@@ -198,6 +220,8 @@ export interface FileRouteTypes {
     | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
     | '/api/github/sync/overview'
+    | '/$owner/$repo/blob/$branch/$'
+    | '/$owner/$repo/tree/$branch/$'
     | '/api/github/sync/$owner/$repo'
     | '/api/github/sync/$owner/$repo/pull/$number'
   id:
@@ -216,6 +240,8 @@ export interface FileRouteTypes {
     | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
     | '/api/github/sync/overview'
+    | '/$owner/$repo/blob/$branch/$'
+    | '/$owner/$repo/tree/$branch/$'
     | '/api/github/sync/$owner/$repo'
     | '/api/github/sync/$owner/$repo/pull/$number'
   fileRoutesById: FileRoutesById
@@ -234,6 +260,8 @@ export interface RootRouteChildren {
   OwnerRepoIndexRoute: typeof OwnerRepoIndexRoute
   OwnerRepoPullNumberRoute: typeof OwnerRepoPullNumberRoute
   ApiGithubSyncOverviewRoute: typeof ApiGithubSyncOverviewRoute
+  OwnerRepoBlobBranchSplatRoute: typeof OwnerRepoBlobBranchSplatRoute
+  OwnerRepoTreeBranchSplatRoute: typeof OwnerRepoTreeBranchSplatRoute
   ApiGithubSyncOwnerRepoRoute: typeof ApiGithubSyncOwnerRepoRouteWithChildren
 }
 
@@ -344,6 +372,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubSyncOwnerRepoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$owner/$repo/tree/$branch/$': {
+      id: '/$owner/$repo/tree/$branch/$'
+      path: '/$owner/$repo/tree/$branch/$'
+      fullPath: '/$owner/$repo/tree/$branch/$'
+      preLoaderRoute: typeof OwnerRepoTreeBranchSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$owner/$repo/blob/$branch/$': {
+      id: '/$owner/$repo/blob/$branch/$'
+      path: '/$owner/$repo/blob/$branch/$'
+      fullPath: '/$owner/$repo/blob/$branch/$'
+      preLoaderRoute: typeof OwnerRepoBlobBranchSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/github/sync/$owner/$repo/pull/$number': {
       id: '/api/github/sync/$owner/$repo/pull/$number'
       path: '/pull/$number'
@@ -395,6 +437,8 @@ const rootRouteChildren: RootRouteChildren = {
   OwnerRepoIndexRoute: OwnerRepoIndexRoute,
   OwnerRepoPullNumberRoute: OwnerRepoPullNumberRoute,
   ApiGithubSyncOverviewRoute: ApiGithubSyncOverviewRoute,
+  OwnerRepoBlobBranchSplatRoute: OwnerRepoBlobBranchSplatRoute,
+  OwnerRepoTreeBranchSplatRoute: OwnerRepoTreeBranchSplatRoute,
   ApiGithubSyncOwnerRepoRoute: ApiGithubSyncOwnerRepoRouteWithChildren,
 }
 export const routeTree = rootRouteImport

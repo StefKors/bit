@@ -68,6 +68,21 @@ export const queries = defineQueries({
   ),
 
   // =============================================================================
+  // Repo tree - fetch tree entries for a specific ref
+  // =============================================================================
+  repoTree: defineQuery(z.object({ repoId: z.string(), ref: z.string() }), ({ args }) =>
+    zql.githubRepoTree
+      .where("repoId", "=", args.repoId)
+      .where("ref", "=", args.ref)
+      .orderBy("path", "asc"),
+  ),
+
+  // Repo blob - fetch file content by sha
+  repoBlob: defineQuery(z.object({ repoId: z.string(), sha: z.string() }), ({ args }) =>
+    zql.githubRepoBlob.where("repoId", "=", args.repoId).where("sha", "=", args.sha).one(),
+  ),
+
+  // =============================================================================
   // PR detail page - fetch repo with single PR and all its related data
   // =============================================================================
   repoWithPRFull: defineQuery(
@@ -83,7 +98,8 @@ export const queries = defineQueries({
             .related("githubPrFile", (files) => files.orderBy("filename", "asc"))
             .related("githubPrReview", (reviews) => reviews.orderBy("submittedAt", "asc"))
             .related("githubPrComment", (comments) => comments.orderBy("githubCreatedAt", "asc"))
-            .related("githubPrCommit", (commits) => commits.orderBy("committedAt", "asc")),
+            .related("githubPrCommit", (commits) => commits.orderBy("committedAt", "asc"))
+            .related("githubPrEvent", (events) => events.orderBy("eventCreatedAt", "asc")),
         ),
   ),
 

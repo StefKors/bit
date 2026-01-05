@@ -307,6 +307,67 @@ export const githubPrCommit = pgTable(
   ],
 )
 
+// GitHub Repository Tree Entries (files and directories in a repo)
+export const githubRepoTree = pgTable(
+  "github_repo_tree",
+  {
+    id: text("id").primaryKey(), // composite: repo_id + ref + path
+    repoId: text("repo_id")
+      .notNull()
+      .references(() => githubRepo.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(), // branch name or commit sha
+    path: text("path").notNull(), // full path from root
+    name: text("name").notNull(), // file/directory name
+    type: text("type").notNull(), // 'file' or 'dir'
+    sha: text("sha").notNull(), // git blob/tree sha
+    size: integer("size"), // file size in bytes (null for directories)
+    url: text("url"), // API URL to this entry
+    htmlUrl: text("html_url"), // GitHub web URL
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("github_tree_repoId_idx").on(table.repoId),
+    index("github_tree_ref_idx").on(table.repoId, table.ref),
+    index("github_tree_path_idx").on(table.repoId, table.ref, table.path),
+    index("github_tree_userId_idx").on(table.userId),
+  ],
+)
+
+// GitHub Repository Blob Content (file contents)
+export const githubRepoBlob = pgTable(
+  "github_repo_blob",
+  {
+    id: text("id").primaryKey(), // sha
+    repoId: text("repo_id")
+      .notNull()
+      .references(() => githubRepo.id, { onDelete: "cascade" }),
+    sha: text("sha").notNull(),
+    content: text("content"), // file content (base64 decoded)
+    encoding: text("encoding"), // usually 'base64' or 'utf-8'
+    size: integer("size"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("github_blob_sha_idx").on(table.sha),
+    index("github_blob_repoId_idx").on(table.repoId),
+    index("github_blob_userId_idx").on(table.userId),
+  ],
+)
+
 // GitHub PR Files (changed files in a PR)
 export const githubPrFile = pgTable(
   "github_pr_file",
@@ -418,6 +479,48 @@ export const githubIssueComment = pgTable(
   ],
 )
 
+// GitHub PR Events (timeline events for pull requests)
+export const githubPrEvent = pgTable(
+  "github_pr_event",
+  {
+    id: text("id").primaryKey(), // GitHub node_id or composite key
+    githubId: bigint("github_id", { mode: "number" }),
+    pullRequestId: text("pull_request_id")
+      .notNull()
+      .references(() => githubPullRequest.id, { onDelete: "cascade" }),
+    eventType: text("event_type").notNull(), // committed, labeled, unlabeled, assigned, unassigned, review_requested, review_request_removed, merged, closed, reopened, head_ref_force_pushed, etc.
+    // Actor info
+    actorLogin: text("actor_login"),
+    actorAvatarUrl: text("actor_avatar_url"),
+    // Event-specific data (stored as JSON)
+    eventData: text("event_data"), // JSON string with event-specific fields
+    // Common fields for specific event types
+    commitSha: text("commit_sha"),
+    commitMessage: text("commit_message"),
+    labelName: text("label_name"),
+    labelColor: text("label_color"),
+    assigneeLogin: text("assignee_login"),
+    assigneeAvatarUrl: text("assignee_avatar_url"),
+    requestedReviewerLogin: text("requested_reviewer_login"),
+    requestedReviewerAvatarUrl: text("requested_reviewer_avatar_url"),
+    // Timestamps
+    eventCreatedAt: timestamp("event_created_at"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("github_pr_event_prId_idx").on(table.pullRequestId),
+    index("github_pr_event_userId_idx").on(table.userId),
+    index("github_pr_event_type_idx").on(table.eventType),
+  ],
+)
+
 // GitHub Sync State (track sync status and rate limits per user)
 export const githubSyncState = pgTable(
   "github_sync_state",
@@ -461,7 +564,25 @@ export const githubRepoRelations = relations(githubRepo, ({ one, many }) => ({
     references: [githubOrganization.id],
   }),
   githubPullRequest: many(githubPullRequest),
+  githubRepoTree: many(githubRepoTree),
+  githubRepoBlob: many(githubRepoBlob),
   githubIssue: many(githubIssue),
+}))
+
+// Repo Tree relationships
+export const githubRepoTreeRelations = relations(githubRepoTree, ({ one }) => ({
+  githubRepo: one(githubRepo, {
+    fields: [githubRepoTree.repoId],
+    references: [githubRepo.id],
+  }),
+}))
+
+// Repo Blob relationships
+export const githubRepoBlobRelations = relations(githubRepoBlob, ({ one }) => ({
+  githubRepo: one(githubRepo, {
+    fields: [githubRepoBlob.repoId],
+    references: [githubRepo.id],
+  }),
 }))
 
 // Pull Request relationships - key for PR detail page
@@ -474,6 +595,7 @@ export const githubPullRequestRelations = relations(githubPullRequest, ({ one, m
   githubPrReview: many(githubPrReview),
   githubPrComment: many(githubPrComment),
   githubPrCommit: many(githubPrCommit),
+  githubPrEvent: many(githubPrEvent),
 }))
 
 // PR Review relationships
@@ -509,6 +631,14 @@ export const githubPrFileRelations = relations(githubPrFile, ({ one }) => ({
 export const githubPrCommitRelations = relations(githubPrCommit, ({ one }) => ({
   githubPullRequest: one(githubPullRequest, {
     fields: [githubPrCommit.pullRequestId],
+    references: [githubPullRequest.id],
+  }),
+}))
+
+// PR Event relationships
+export const githubPrEventRelations = relations(githubPrEvent, ({ one }) => ({
+  githubPullRequest: one(githubPullRequest, {
+    fields: [githubPrEvent.pullRequestId],
     references: [githubPullRequest.id],
   }),
 }))

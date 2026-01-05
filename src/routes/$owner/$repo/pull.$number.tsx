@@ -5,14 +5,14 @@ import {
   GitPullRequestIcon,
   GitMergeIcon,
   SyncIcon,
-  CommentIcon,
+  HistoryIcon,
   FileIcon,
   GitCommitIcon,
 } from "@primer/octicons-react"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Tabs } from "@/components/Tabs"
 import { Button } from "@/components/Button"
-import { PRConversationTab } from "@/features/pr/PRConversationTab"
+import { PRActivityFeed } from "@/features/pr/PRActivityFeed"
 import { PRFilesTab } from "@/features/pr/PRFilesTab"
 import { PRCommitsTab } from "@/features/pr/PRCommitsTab"
 import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
@@ -244,8 +244,8 @@ function PRDetailPage() {
         items={[
           {
             value: "conversation",
-            label: "Conversation",
-            icon: <CommentIcon size={16} />,
+            label: "Activity",
+            icon: <HistoryIcon size={16} />,
           },
           {
             value: "commits",
@@ -268,13 +268,14 @@ function PRDetailPage() {
 
       <div className={styles.content}>
         {activeTab === "conversation" && (
-          <PRConversationTab
+          <PRActivityFeed
             prBody={pr.body}
             prAuthor={{
               login: pr.authorLogin,
               avatarUrl: pr.authorAvatarUrl,
             }}
             prCreatedAt={pr.githubCreatedAt}
+            events={pr.githubPrEvent}
             reviews={pr.githubPrReview}
             comments={pr.githubPrComment}
             formatTimeAgo={formatTimeAgo}

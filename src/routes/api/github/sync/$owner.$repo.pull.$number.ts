@@ -41,6 +41,8 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/pull/$number
             files: result.files.length,
             reviews: result.reviews.length,
             comments: result.comments.length,
+            commits: result.commits.length,
+            events: result.events.length,
             rateLimit: result.rateLimit,
           })
         } catch (error) {

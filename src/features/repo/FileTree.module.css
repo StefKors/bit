@@ -1,0 +1,160 @@
+.container {
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-lg);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(var(--bit-rgb-surface-2), 0.5);
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+}
+
+.branchIcon {
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+.branchName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(var(--bit-rgb-fg), 0.9);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.05);
+  color: rgba(var(--bit-rgb-fg), 0.9);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: background 0.15s ease;
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.item:hover {
+  background: rgba(var(--bit-rgb-fg), 0.05);
+}
+
+.itemActive {
+  background: rgba(var(--bit-rgb-accent-blue), 0.1);
+}
+
+.icon {
+  flex-shrink: 0;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+.iconFolder {
+  color: var(--bit-color-accent-blue);
+}
+
+.name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emptyState {
+  padding: 2rem;
+  text-align: center;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+.emptyIcon {
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.syncButton {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: var(--bit-gradient-accent);
+  border: none;
+  border-radius: var(--bit-radius-md);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.syncButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.syncButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Sidebar variant (for file viewer page) */
+.sidebar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: none;
+  border-radius: 0;
+}
+
+.sidebar .header {
+  border-radius: 0;
+}
+
+.sidebar .list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebarItem {
+  padding-left: calc(0.5rem + var(--indent, 0) * 1rem);
+}
+
+.expandButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  transition: transform 0.15s ease;
+}
+
+.expandButton:hover {
+  color: rgba(var(--bit-rgb-fg), 0.7);
+}
+
+.expanded {
+  transform: rotate(90deg);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}

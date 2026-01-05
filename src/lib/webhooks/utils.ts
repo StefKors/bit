@@ -50,6 +50,7 @@ export async function ensureRepoFromWebhook(
   }
 
   const owner = repo.owner as Record<string, unknown>
+  const now = new Date()
 
   const repoData = {
     id: nodeId,
@@ -72,9 +73,9 @@ export async function ensureRepoFromWebhook(
     githubCreatedAt: repo.created_at ? new Date(repo.created_at as string) : null,
     githubUpdatedAt: repo.updated_at ? new Date(repo.updated_at as string) : null,
     githubPushedAt: repo.pushed_at ? new Date(repo.pushed_at as string) : null,
-    syncedAt: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    syncedAt: now,
+    createdAt: now,
+    updatedAt: now,
   }
 
   await db
@@ -137,6 +138,7 @@ export async function ensurePRFromWebhook(
     return existing[0]
   }
 
+  const now = new Date()
   const prData = {
     id: prNodeId,
     githubId: pr.id as number,
@@ -174,9 +176,9 @@ export async function ensurePRFromWebhook(
     closedAt: pr.closed_at ? new Date(pr.closed_at as string) : null,
     mergedAt: pr.merged_at ? new Date(pr.merged_at as string) : null,
     userId: repoRecord.userId,
-    syncedAt: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    syncedAt: now,
+    createdAt: now,
+    updatedAt: now,
   }
 
   await db

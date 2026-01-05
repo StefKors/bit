@@ -82,6 +82,7 @@ export class GitHubClient {
   ) {
     const id = `${this.userId}:${resourceType}${resourceId ? `:${resourceId}` : ""}`
 
+    const now = new Date()
     await this.db
       .insert(schema.githubSyncState)
       .values({
@@ -89,14 +90,14 @@ export class GitHubClient {
         userId: this.userId,
         resourceType,
         resourceId,
-        lastSyncedAt: new Date(),
+        lastSyncedAt: now,
         lastEtag: etag,
         rateLimitRemaining: rateLimit.remaining,
         rateLimitReset: rateLimit.reset,
         syncStatus: status,
         syncError: error,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: now,
+        updatedAt: now,
       })
       .onConflictDoUpdate({
         target: schema.githubSyncState.id,
@@ -158,6 +159,7 @@ export class GitHubClient {
     const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
 
     const repoData = response.data
+    const now = new Date()
     const repoInsert = {
       id: repoData.node_id,
       githubId: repoData.id,
@@ -179,9 +181,9 @@ export class GitHubClient {
       githubCreatedAt: repoData.created_at ? new Date(repoData.created_at) : null,
       githubUpdatedAt: repoData.updated_at ? new Date(repoData.updated_at) : null,
       githubPushedAt: repoData.pushed_at ? new Date(repoData.pushed_at) : null,
-      syncedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      syncedAt: now,
+      createdAt: now,
+      updatedAt: now,
     }
 
     await this.db
@@ -344,6 +346,7 @@ export class GitHubClient {
         }
 
         // Upsert PR to database
+        const now = new Date()
         const prData = {
           id: item.node_id,
           githubId: (item as unknown as { id: number }).id,
@@ -369,9 +372,9 @@ export class GitHubClient {
           githubUpdatedAt: item.updated_at ? new Date(item.updated_at) : null,
           closedAt: item.closed_at ? new Date(item.closed_at) : null,
           userId: this.userId,
-          syncedAt: new Date(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          syncedAt: now,
+          createdAt: now,
+          updatedAt: now,
         }
 
         await this.db
@@ -428,6 +431,7 @@ export class GitHubClient {
 
     const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
 
+    const now = new Date()
     const orgs = response.data.map((org) => ({
       id: org.node_id,
       githubId: org.id,
@@ -437,9 +441,9 @@ export class GitHubClient {
       avatarUrl: org.avatar_url,
       url: org.url,
       userId: this.userId,
-      syncedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      syncedAt: now,
+      createdAt: now,
+      updatedAt: now,
     }))
 
     // Upsert organizations
@@ -475,6 +479,7 @@ export class GitHubClient {
 
     const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
 
+    const now = new Date()
     const repos = response.data.map((repo) => ({
       id: repo.node_id,
       githubId: repo.id,
@@ -497,9 +502,9 @@ export class GitHubClient {
       githubCreatedAt: repo.created_at ? new Date(repo.created_at) : null,
       githubUpdatedAt: repo.updated_at ? new Date(repo.updated_at) : null,
       githubPushedAt: repo.pushed_at ? new Date(repo.pushed_at) : null,
-      syncedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      syncedAt: now,
+      createdAt: now,
+      updatedAt: now,
     }))
 
     // Upsert repositories
@@ -553,6 +558,7 @@ export class GitHubClient {
 
     const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
 
+    const now = new Date()
     const prs = response.data.map((pr) => ({
       id: pr.node_id,
       githubId: pr.id,
@@ -587,9 +593,9 @@ export class GitHubClient {
       closedAt: pr.closed_at ? new Date(pr.closed_at) : null,
       mergedAt: pr.merged_at ? new Date(pr.merged_at) : null,
       userId: this.userId,
-      syncedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      syncedAt: now,
+      createdAt: now,
+      updatedAt: now,
     }))
 
     // Upsert pull requests
@@ -629,7 +635,7 @@ export class GitHubClient {
     return { data: prs, rateLimit, fromCache: false }
   }
 
-  // Fetch detailed PR info including files, comments, reviews, and commits
+  // Fetch detailed PR info including files, comments, reviews, commits, and events
   async fetchPullRequestDetails(
     owner: string,
     repo: string,
@@ -640,6 +646,7 @@ export class GitHubClient {
     reviews: (typeof schema.githubPrReview.$inferInsert)[]
     comments: (typeof schema.githubPrComment.$inferInsert)[]
     commits: (typeof schema.githubPrCommit.$inferInsert)[]
+    events: (typeof schema.githubPrEvent.$inferInsert)[]
     rateLimit: RateLimitInfo
   }> {
     const repoRecord = await this.ensureRepoRecord(owner, repo)
@@ -654,6 +661,7 @@ export class GitHubClient {
     let rateLimit = this.extractRateLimit(prResponse.headers as Record<string, string | undefined>)
     const prData = prResponse.data
 
+    const now = new Date()
     const pr = {
       id: prData.node_id,
       githubId: prData.id,
@@ -686,9 +694,9 @@ export class GitHubClient {
       closedAt: prData.closed_at ? new Date(prData.closed_at) : null,
       mergedAt: prData.merged_at ? new Date(prData.merged_at) : null,
       userId: this.userId,
-      syncedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      syncedAt: now,
+      createdAt: now,
+      updatedAt: now,
     }
 
     // Upsert PR
@@ -730,6 +738,7 @@ export class GitHubClient {
     })
     rateLimit = this.extractRateLimit(filesResponse.headers as Record<string, string | undefined>)
 
+    const fileNow = new Date()
     const files = filesResponse.data.map((file) => ({
       id: `${pr.id}:${file.sha}:${file.filename}`,
       pullRequestId: pr.id,
@@ -745,8 +754,8 @@ export class GitHubClient {
       rawUrl: file.raw_url,
       contentsUrl: file.contents_url,
       userId: this.userId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: fileNow,
+      updatedAt: fileNow,
     }))
 
     // Delete old files and insert new ones
@@ -765,6 +774,7 @@ export class GitHubClient {
     })
     rateLimit = this.extractRateLimit(reviewsResponse.headers as Record<string, string | undefined>)
 
+    const reviewNow = new Date()
     const reviews = reviewsResponse.data.map((review) => ({
       id: review.node_id,
       githubId: review.id,
@@ -776,8 +786,8 @@ export class GitHubClient {
       htmlUrl: review.html_url,
       submittedAt: review.submitted_at ? new Date(review.submitted_at) : null,
       userId: this.userId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: reviewNow,
+      updatedAt: reviewNow,
     }))
 
     // Create a map from GitHub numeric ID to node_id for linking comments to reviews
@@ -812,6 +822,7 @@ export class GitHubClient {
       issueCommentsResponse.headers as Record<string, string | undefined>,
     )
 
+    const commentNow = new Date()
     const issueComments = issueCommentsResponse.data.map((comment) => ({
       id: comment.node_id,
       githubId: comment.id,
@@ -829,8 +840,8 @@ export class GitHubClient {
       githubCreatedAt: comment.created_at ? new Date(comment.created_at) : null,
       githubUpdatedAt: comment.updated_at ? new Date(comment.updated_at) : null,
       userId: this.userId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: commentNow,
+      updatedAt: commentNow,
     }))
 
     // Fetch review comments (inline diff comments)
@@ -844,6 +855,7 @@ export class GitHubClient {
       reviewCommentsResponse.headers as Record<string, string | undefined>,
     )
 
+    const reviewCommentNow = new Date()
     const reviewComments = reviewCommentsResponse.data.map((comment) => ({
       id: comment.node_id,
       githubId: comment.id,
@@ -864,8 +876,8 @@ export class GitHubClient {
       githubCreatedAt: comment.created_at ? new Date(comment.created_at) : null,
       githubUpdatedAt: comment.updated_at ? new Date(comment.updated_at) : null,
       userId: this.userId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: reviewCommentNow,
+      updatedAt: reviewCommentNow,
     }))
 
     const allComments = [...issueComments, ...reviewComments]
@@ -893,6 +905,7 @@ export class GitHubClient {
     })
     rateLimit = this.extractRateLimit(commitsResponse.headers as Record<string, string | undefined>)
 
+    const commitNow = new Date()
     const commits = commitsResponse.data.map((commit) => ({
       id: `${pr.id}:${commit.sha}`,
       pullRequestId: pr.id,
@@ -909,8 +922,8 @@ export class GitHubClient {
       htmlUrl: commit.html_url,
       committedAt: commit.commit.committer?.date ? new Date(commit.commit.committer.date) : null,
       userId: this.userId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: commitNow,
+      updatedAt: commitNow,
     }))
 
     // Delete old commits and insert new ones
@@ -922,14 +935,408 @@ export class GitHubClient {
       await this.db.insert(schema.githubPrCommit).values(commit)
     }
 
+    // Fetch PR timeline events
+    const timelineResponse = await this.octokit.rest.issues.listEventsForTimeline({
+      owner,
+      repo,
+      issue_number: pullNumber,
+      per_page: 100,
+    })
+    rateLimit = this.extractRateLimit(
+      timelineResponse.headers as Record<string, string | undefined>,
+    )
+
+    // Process timeline events into our schema format
+    const events: (typeof schema.githubPrEvent.$inferInsert)[] = []
+
+    for (const event of timelineResponse.data) {
+      // Skip certain event types that are already handled by reviews/comments
+      // or that don't have useful display information
+      const skipTypes = ["commented", "reviewed", "line-commented"]
+      if (skipTypes.includes(event.event ?? "")) continue
+
+      // Get actor info - handle different event structures
+      let actorLogin: string | null = null
+      let actorAvatarUrl: string | null = null
+
+      if ("actor" in event && event.actor) {
+        actorLogin = event.actor.login ?? null
+        actorAvatarUrl = event.actor.avatar_url ?? null
+      } else if ("user" in event && event.user) {
+        actorLogin = event.user.login ?? null
+        actorAvatarUrl = event.user.avatar_url ?? null
+      } else if ("author" in event && event.author) {
+        // For commits
+        const author = event.author as { login?: string; avatar_url?: string }
+        actorLogin = author.login ?? null
+        actorAvatarUrl = author.avatar_url ?? null
+      }
+
+      // Generate unique ID based on event type and available data
+      let eventId: string
+      if ("node_id" in event && event.node_id) {
+        eventId = event.node_id
+      } else if ("id" in event && event.id) {
+        eventId = `${pr.id}:${event.event}:${event.id}`
+      } else if ("sha" in event && event.sha) {
+        eventId = `${pr.id}:committed:${event.sha}`
+      } else {
+        eventId = `${pr.id}:${event.event}:${Date.now()}:${Math.random()}`
+      }
+
+      // Get event timestamp
+      let eventCreatedAt: Date | null = null
+      if ("created_at" in event && event.created_at) {
+        eventCreatedAt = new Date(event.created_at)
+      } else if ("committer" in event && event.committer && "date" in event.committer) {
+        eventCreatedAt = new Date(event.committer.date)
+      }
+
+      const baseEvent = {
+        id: eventId,
+        githubId: "id" in event ? event.id : null,
+        pullRequestId: pr.id,
+        eventType: event.event ?? "committed",
+        actorLogin,
+        actorAvatarUrl,
+        eventCreatedAt,
+        userId: this.userId,
+      }
+
+      // Add event-specific data
+      switch (event.event) {
+        case "committed":
+          if ("sha" in event && "message" in event) {
+            events.push({
+              ...baseEvent,
+              eventType: "committed",
+              commitSha: event.sha ?? null,
+              commitMessage: event.message ?? null,
+            })
+          }
+          break
+
+        case "labeled":
+          if ("label" in event && event.label) {
+            events.push({
+              ...baseEvent,
+              labelName: event.label.name ?? null,
+              labelColor: event.label.color ?? null,
+            })
+          }
+          break
+
+        case "unlabeled":
+          if ("label" in event && event.label) {
+            events.push({
+              ...baseEvent,
+              labelName: event.label.name ?? null,
+              labelColor: event.label.color ?? null,
+            })
+          }
+          break
+
+        case "assigned":
+          if ("assignee" in event && event.assignee) {
+            events.push({
+              ...baseEvent,
+              assigneeLogin: event.assignee.login ?? null,
+              assigneeAvatarUrl: event.assignee.avatar_url ?? null,
+            })
+          }
+          break
+
+        case "unassigned":
+          if ("assignee" in event && event.assignee) {
+            events.push({
+              ...baseEvent,
+              assigneeLogin: event.assignee.login ?? null,
+              assigneeAvatarUrl: event.assignee.avatar_url ?? null,
+            })
+          }
+          break
+
+        case "review_requested":
+          if ("requested_reviewer" in event && event.requested_reviewer) {
+            events.push({
+              ...baseEvent,
+              requestedReviewerLogin: event.requested_reviewer.login ?? null,
+              requestedReviewerAvatarUrl: event.requested_reviewer.avatar_url ?? null,
+            })
+          } else {
+            events.push(baseEvent)
+          }
+          break
+
+        case "review_request_removed":
+          if ("requested_reviewer" in event && event.requested_reviewer) {
+            events.push({
+              ...baseEvent,
+              requestedReviewerLogin: event.requested_reviewer.login ?? null,
+              requestedReviewerAvatarUrl: event.requested_reviewer.avatar_url ?? null,
+            })
+          } else {
+            events.push(baseEvent)
+          }
+          break
+
+        case "merged":
+        case "closed":
+        case "reopened":
+        case "head_ref_force_pushed":
+        case "head_ref_deleted":
+        case "head_ref_restored":
+        case "base_ref_changed":
+        case "renamed":
+        case "ready_for_review":
+        case "convert_to_draft":
+        case "milestoned":
+        case "demilestoned":
+        case "locked":
+        case "unlocked":
+          // Store event data as JSON for complex events
+          events.push({
+            ...baseEvent,
+            eventData: JSON.stringify(event),
+          })
+          break
+
+        default:
+          // For any other event types, store the basic info
+          events.push(baseEvent)
+      }
+    }
+
+    // Delete old events and insert new ones
+    await this.db.delete(schema.githubPrEvent).where(eq(schema.githubPrEvent.pullRequestId, pr.id))
+
+    for (const event of events) {
+      await this.db.insert(schema.githubPrEvent).values(event)
+    }
+
     await this.updateSyncState("pr-detail", `${owner}/${repo}/${pullNumber}`, rateLimit)
 
-    return { pr, files, reviews, comments: allComments, commits, rateLimit }
+    return { pr, files, reviews, comments: allComments, commits, events, rateLimit }
   }
 
   // Get last rate limit info
   getLastRateLimit(): RateLimitInfo | null {
     return this.lastRateLimit
+  }
+
+  // Fetch repository tree (file structure)
+  async fetchRepoTree(
+    owner: string,
+    repo: string,
+    ref?: string,
+  ): Promise<{
+    tree: (typeof schema.githubRepoTree.$inferInsert)[]
+    rateLimit: RateLimitInfo
+  }> {
+    // Get the repo from our database
+    const repoRecord = await this.db
+      .select()
+      .from(schema.githubRepo)
+      .where(
+        and(
+          eq(schema.githubRepo.fullName, `${owner}/${repo}`),
+          eq(schema.githubRepo.userId, this.userId),
+        ),
+      )
+      .limit(1)
+
+    if (!repoRecord[0]) {
+      throw new Error(`Repository ${owner}/${repo} not found. Please sync repositories first.`)
+    }
+
+    const branch = ref || repoRecord[0].defaultBranch || "main"
+
+    // Fetch the tree recursively
+    const response = await this.octokit.rest.git.getTree({
+      owner,
+      repo,
+      tree_sha: branch,
+      recursive: "1",
+    })
+
+    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    // Process tree entries
+    const treeEntries: (typeof schema.githubRepoTree.$inferInsert)[] = []
+
+    for (const item of response.data.tree) {
+      if (!item.path) continue
+
+      const pathParts = item.path.split("/")
+      const name = pathParts[pathParts.length - 1]
+
+      treeEntries.push({
+        id: `${repoRecord[0].id}:${branch}:${item.path}`,
+        repoId: repoRecord[0].id,
+        ref: branch,
+        path: item.path,
+        name,
+        type: item.type === "tree" ? "dir" : "file",
+        sha: item.sha || "",
+        size: item.size || null,
+        url: item.url || null,
+        htmlUrl: `https://github.com/${owner}/${repo}/${item.type === "tree" ? "tree" : "blob"}/${branch}/${item.path}`,
+        userId: this.userId,
+      })
+    }
+
+    // Delete existing tree for this ref and insert new entries
+    await this.db
+      .delete(schema.githubRepoTree)
+      .where(
+        and(
+          eq(schema.githubRepoTree.repoId, repoRecord[0].id),
+          eq(schema.githubRepoTree.ref, branch),
+        ),
+      )
+
+    for (const entry of treeEntries) {
+      await this.db.insert(schema.githubRepoTree).values(entry)
+    }
+
+    await this.updateSyncState("tree", `${owner}/${repo}:${branch}`, rateLimit)
+
+    return { tree: treeEntries, rateLimit }
+  }
+
+  // Fetch file content
+  async fetchFileContent(
+    owner: string,
+    repo: string,
+    path: string,
+    ref?: string,
+  ): Promise<{
+    blob: typeof schema.githubRepoBlob.$inferInsert
+    rateLimit: RateLimitInfo
+  }> {
+    // Get the repo from our database
+    const repoRecord = await this.db
+      .select()
+      .from(schema.githubRepo)
+      .where(
+        and(
+          eq(schema.githubRepo.fullName, `${owner}/${repo}`),
+          eq(schema.githubRepo.userId, this.userId),
+        ),
+      )
+      .limit(1)
+
+    if (!repoRecord[0]) {
+      throw new Error(`Repository ${owner}/${repo} not found. Please sync repositories first.`)
+    }
+
+    const branch = ref || repoRecord[0].defaultBranch || "main"
+
+    // Fetch file contents
+    const response = await this.octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path,
+      ref: branch,
+    })
+
+    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    // Handle file content (not directories)
+    if (Array.isArray(response.data) || response.data.type !== "file") {
+      throw new Error(`${path} is not a file`)
+    }
+
+    const content = response.data.content
+      ? Buffer.from(response.data.content, "base64").toString("utf-8")
+      : null
+
+    const blob: typeof schema.githubRepoBlob.$inferInsert = {
+      id: `${repoRecord[0].id}:${response.data.sha}`,
+      repoId: repoRecord[0].id,
+      sha: response.data.sha,
+      content,
+      encoding: response.data.encoding,
+      size: response.data.size,
+      userId: this.userId,
+    }
+
+    // Upsert blob
+    await this.db
+      .insert(schema.githubRepoBlob)
+      .values(blob)
+      .onConflictDoUpdate({
+        target: schema.githubRepoBlob.id,
+        set: {
+          content: blob.content,
+          encoding: blob.encoding,
+          size: blob.size,
+          updatedAt: new Date(),
+        },
+      })
+
+    return { blob, rateLimit }
+  }
+
+  // Fetch README content for a repo
+  async fetchReadme(
+    owner: string,
+    repo: string,
+    ref?: string,
+  ): Promise<{
+    content: string | null
+    rateLimit: RateLimitInfo
+  }> {
+    // Get the repo from our database
+    const repoRecord = await this.db
+      .select()
+      .from(schema.githubRepo)
+      .where(
+        and(
+          eq(schema.githubRepo.fullName, `${owner}/${repo}`),
+          eq(schema.githubRepo.userId, this.userId),
+        ),
+      )
+      .limit(1)
+
+    if (!repoRecord[0]) {
+      throw new Error(`Repository ${owner}/${repo} not found. Please sync repositories first.`)
+    }
+
+    const branch = ref || repoRecord[0].defaultBranch || "main"
+
+    try {
+      const response = await this.octokit.rest.repos.getReadme({
+        owner,
+        repo,
+        ref: branch,
+      })
+
+      const rateLimit = this.extractRateLimit(
+        response.headers as Record<string, string | undefined>,
+      )
+
+      const content = response.data.content
+        ? Buffer.from(response.data.content, "base64").toString("utf-8")
+        : null
+
+      return { content, rateLimit }
+    } catch (error) {
+      // README might not exist
+      const err = error as { status?: number }
+      if (err.status === 404) {
+        return {
+          content: null,
+          rateLimit: this.lastRateLimit || {
+            remaining: 0,
+            limit: 0,
+            reset: new Date(),
+            used: 0,
+          },
+        }
+      }
+      throw error
+    }
   }
 }
 

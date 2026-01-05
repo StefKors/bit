@@ -59,6 +59,7 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
   }
 
   for (const prRecord of prRecords) {
+    const now = new Date()
     const reviewData = {
       id: reviewNodeId,
       githubId: review.id as number,
@@ -70,8 +71,8 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
       htmlUrl: review.html_url as string,
       submittedAt: review.submitted_at ? new Date(review.submitted_at as string) : null,
       userId: prRecord.userId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     }
 
     await db

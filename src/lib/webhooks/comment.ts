@@ -67,6 +67,7 @@ export async function handleCommentWebhook(
   }
 
   for (const prRecord of prRecords) {
+    const now = new Date()
     const commentData = {
       id: comment.node_id as string,
       githubId: comment.id as number,
@@ -84,8 +85,8 @@ export async function handleCommentWebhook(
       githubCreatedAt: new Date(comment.created_at as string),
       githubUpdatedAt: new Date(comment.updated_at as string),
       userId: prRecord.userId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     }
 
     await db

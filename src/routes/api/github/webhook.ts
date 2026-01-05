@@ -12,6 +12,9 @@ import {
   handleStarWebhook,
   handleForkWebhook,
   handleOrganizationWebhook,
+  handleCreateWebhook,
+  handleDeleteWebhook,
+  handlePullRequestEventWebhook,
   handleIssueWebhook,
   handleIssueCommentWebhook,
 } from "@/lib/webhooks"
@@ -44,12 +47,6 @@ const verifyWebhookSignature = (payload: string, signature: string, secret: stri
 // Helper to safely extract action from payload
 const getAction = (payload: Record<string, unknown>): string =>
   (payload.action as string) || "unknown"
-
-// Helper to safely extract ref info from payload
-const getRefType = (payload: Record<string, unknown>): string =>
-  (payload.ref_type as string) || "unknown"
-
-const getRef = (payload: Record<string, unknown>): string => (payload.ref as string) || "unknown"
 
 // Helper to safely extract state from payload
 const getState = (payload: Record<string, unknown>): string =>
@@ -109,20 +106,16 @@ export const Route = createFileRoute("/api/github/webhook")({
             }
 
             case "create": {
-              // Stub: Triggered when a branch or tag is created
-              // Future: Could track new branches for PRs
-              console.log(
-                `Stub: create event - ${getRefType(payload)} "${getRef(payload)}" created`,
-              )
+              // Implemented: Triggered when a branch or tag is created
+              // Updates repo syncedAt and tracks new refs
+              await handleCreateWebhook(db, payload)
               break
             }
 
             case "delete": {
-              // Stub: Triggered when a branch or tag is deleted
-              // Future: Could clean up PR branch references
-              console.log(
-                `Stub: delete event - ${getRefType(payload)} "${getRef(payload)}" deleted`,
-              )
+              // Implemented: Triggered when a branch or tag is deleted
+              // Cleans up cached tree data for deleted refs
+              await handleDeleteWebhook(db, payload)
               break
             }
 
@@ -163,6 +156,8 @@ export const Route = createFileRoute("/api/github/webhook")({
             case "pull_request": {
               // Implemented: Full PR syncing
               await handlePullRequestWebhook(db, payload)
+              // Also create event records for tracked event types
+              await handlePullRequestEventWebhook(db, payload)
               break
             }
 
