@@ -104,7 +104,7 @@ Webhook handlers live in `src/lib/webhooks/` with each event type in its own fil
 - `pull-request.ts` - handles `pull_request` events
 - `pull-request-review.ts` - handles `pull_request_review` events
 - `comment.ts` - handles `issue_comment` and `pull_request_review_comment` events
-- `push.ts` - handles `push` events (updates repo activity timestamp)
+- `push.ts` - handles `push` events (updates repo activity timestamp, syncs commits to open PRs)
 - `utils.ts` - shared utilities for auto-tracking resources
 - `types.ts` - shared TypeScript types (re-exports `@octokit/webhooks-types`)
 
@@ -116,14 +116,14 @@ The webhook handler has stubs for **all GitHub webhook events**. Events are cate
 
 ### Fully Implemented
 
-| Event                         | Handler                  | Description                       |
-| ----------------------------- | ------------------------ | --------------------------------- |
-| `pull_request`                | `pull-request.ts`        | PR opened/closed/updated/merged   |
-| `pull_request_review`         | `pull-request-review.ts` | Review submitted/dismissed        |
-| `pull_request_review_comment` | `comment.ts`             | Inline diff comments              |
-| `issue_comment`               | `comment.ts`             | PR conversation comments          |
-| `push`                        | `push.ts`                | Updates `githubPushedAt` on repos |
-| `ping`                        | (inline)                 | Webhook configuration test        |
+| Event                         | Handler                  | Description                                                  |
+| ----------------------------- | ------------------------ | ------------------------------------------------------------ |
+| `pull_request`                | `pull-request.ts`        | PR opened/closed/updated/merged                              |
+| `pull_request_review`         | `pull-request-review.ts` | Review submitted/dismissed                                   |
+| `pull_request_review_comment` | `comment.ts`             | Inline diff comments                                         |
+| `issue_comment`               | `comment.ts`             | PR conversation comments                                     |
+| `push`                        | `push.ts`                | Updates `githubPushedAt` on repos, syncs commits to open PRs |
+| `ping`                        | (inline)                 | Webhook configuration test                                   |
 
 ### Stubbed - Implement When Adding Features
 
