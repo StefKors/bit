@@ -1,5 +1,4 @@
 {
-  "oxc.fmt.experimental": true,
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.formatOnSave": true,
   "[typescript]": {
@@ -22,5 +21,8 @@
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   }
 }

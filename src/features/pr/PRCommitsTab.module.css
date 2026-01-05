@@ -1,0 +1,105 @@
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.commitsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.commitItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--bit-color-panel-bg);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  border-radius: var(--bit-radius-lg);
+  transition: border-color 0.15s ease;
+}
+
+.commitItem:hover {
+  border-color: rgba(var(--bit-rgb-fg), 0.15);
+}
+
+.commitContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.commitHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.commitTitle {
+  font-weight: 500;
+  color: var(--bit-color-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hasBody {
+  color: rgba(var(--bit-rgb-fg), 0.4);
+  flex-shrink: 0;
+}
+
+.commitMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+}
+
+.author {
+  font-weight: 500;
+}
+
+.separator {
+  opacity: 0.5;
+}
+
+.time {
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+.commitActions {
+  flex-shrink: 0;
+}
+
+.sha,
+.shaLink {
+  font-family: var(--bit-font-mono);
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  border-radius: var(--bit-radius-md);
+  color: rgba(var(--bit-rgb-fg), 0.7);
+}
+
+.shaLink {
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.shaLink:hover {
+  background: rgba(var(--bit-rgb-fg), 0.1);
+  color: var(--bit-color-accent-blue);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.9rem;
+}

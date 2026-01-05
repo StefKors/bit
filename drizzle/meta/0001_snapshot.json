@@ -1,5 +1,5 @@
 {
-  "id": "3b823db9-d992-4d67-b16b-d46dd459147c",
+  "id": "4fc6b8cf-323c-4ff5-b424-b3652222f257",
   "prevId": "bb44ed60-360b-4426-9153-d9460216802c",
   "version": "7",
   "dialect": "postgresql",
@@ -110,12 +110,8 @@
           "name": "auth_account_user_id_auth_user_id_fk",
           "tableFrom": "auth_account",
           "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -202,12 +198,8 @@
           "name": "auth_session_user_id_auth_user_id_fk",
           "tableFrom": "auth_session",
           "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -217,9 +209,7 @@
         "auth_session_token_unique": {
           "name": "auth_session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -283,9 +273,7 @@
         "auth_user_email_unique": {
           "name": "auth_user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -353,394 +341,6 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.github_issue": {
-      "name": "github_issue",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "github_id": {
-          "name": "github_id",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "number": {
-          "name": "number",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "repo_id": {
-          "name": "repo_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "body": {
-          "name": "body",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "state": {
-          "name": "state",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "state_reason": {
-          "name": "state_reason",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "author_login": {
-          "name": "author_login",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "author_avatar_url": {
-          "name": "author_avatar_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "html_url": {
-          "name": "html_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "comments": {
-          "name": "comments",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "default": 0
-        },
-        "labels": {
-          "name": "labels",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "assignees": {
-          "name": "assignees",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "milestone": {
-          "name": "milestone",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "github_created_at": {
-          "name": "github_created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "github_updated_at": {
-          "name": "github_updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "closed_at": {
-          "name": "closed_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "synced_at": {
-          "name": "synced_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "github_issue_repoId_idx": {
-          "name": "github_issue_repoId_idx",
-          "columns": [
-            {
-              "expression": "repo_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "github_issue_userId_idx": {
-          "name": "github_issue_userId_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "github_issue_state_idx": {
-          "name": "github_issue_state_idx",
-          "columns": [
-            {
-              "expression": "state",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "github_issue_number_idx": {
-          "name": "github_issue_number_idx",
-          "columns": [
-            {
-              "expression": "repo_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "number",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "github_issue_repo_id_github_repo_id_fk": {
-          "name": "github_issue_repo_id_github_repo_id_fk",
-          "tableFrom": "github_issue",
-          "tableTo": "github_repo",
-          "columnsFrom": [
-            "repo_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "github_issue_user_id_auth_user_id_fk": {
-          "name": "github_issue_user_id_auth_user_id_fk",
-          "tableFrom": "github_issue",
-          "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.github_issue_comment": {
-      "name": "github_issue_comment",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "github_id": {
-          "name": "github_id",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "issue_id": {
-          "name": "issue_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "body": {
-          "name": "body",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "author_login": {
-          "name": "author_login",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "author_avatar_url": {
-          "name": "author_avatar_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "html_url": {
-          "name": "html_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "github_created_at": {
-          "name": "github_created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "github_updated_at": {
-          "name": "github_updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "github_issue_comment_issueId_idx": {
-          "name": "github_issue_comment_issueId_idx",
-          "columns": [
-            {
-              "expression": "issue_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "github_issue_comment_userId_idx": {
-          "name": "github_issue_comment_userId_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "github_issue_comment_issue_id_github_issue_id_fk": {
-          "name": "github_issue_comment_issue_id_github_issue_id_fk",
-          "tableFrom": "github_issue_comment",
-          "tableTo": "github_issue",
-          "columnsFrom": [
-            "issue_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "github_issue_comment_user_id_auth_user_id_fk": {
-          "name": "github_issue_comment_user_id_auth_user_id_fk",
-          "tableFrom": "github_issue_comment",
-          "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -858,12 +458,8 @@
           "name": "github_organization_user_id_auth_user_id_fk",
           "tableFrom": "github_organization",
           "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -873,9 +469,7 @@
         "github_organization_github_id_unique": {
           "name": "github_organization_github_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "github_id"
-          ]
+          "columns": ["github_id"]
         }
       },
       "policies": {},
@@ -1049,12 +643,8 @@
           "name": "github_pr_comment_pull_request_id_github_pull_request_id_fk",
           "tableFrom": "github_pr_comment",
           "tableTo": "github_pull_request",
-          "columnsFrom": [
-            "pull_request_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pull_request_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1062,12 +652,8 @@
           "name": "github_pr_comment_review_id_github_pr_review_id_fk",
           "tableFrom": "github_pr_comment",
           "tableTo": "github_pr_review",
-          "columnsFrom": [
-            "review_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["review_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1075,12 +661,8 @@
           "name": "github_pr_comment_user_id_auth_user_id_fk",
           "tableFrom": "github_pr_comment",
           "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1234,12 +816,8 @@
           "name": "github_pr_file_pull_request_id_github_pull_request_id_fk",
           "tableFrom": "github_pr_file",
           "tableTo": "github_pull_request",
-          "columnsFrom": [
-            "pull_request_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pull_request_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1247,12 +825,8 @@
           "name": "github_pr_file_user_id_auth_user_id_fk",
           "tableFrom": "github_pr_file",
           "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1379,12 +953,8 @@
           "name": "github_pr_review_pull_request_id_github_pull_request_id_fk",
           "tableFrom": "github_pr_review",
           "tableTo": "github_pull_request",
-          "columnsFrom": [
-            "pull_request_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pull_request_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1392,12 +962,8 @@
           "name": "github_pr_review_user_id_auth_user_id_fk",
           "tableFrom": "github_pr_review",
           "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1576,6 +1142,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "review_requested_by": {
+          "name": "review_requested_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "github_created_at": {
           "name": "github_created_at",
           "type": "timestamp",
@@ -1701,12 +1273,8 @@
           "name": "github_pull_request_repo_id_github_repo_id_fk",
           "tableFrom": "github_pull_request",
           "tableTo": "github_repo",
-          "columnsFrom": [
-            "repo_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["repo_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1714,12 +1282,8 @@
           "name": "github_pull_request_user_id_auth_user_id_fk",
           "tableFrom": "github_pull_request",
           "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1934,12 +1498,8 @@
           "name": "github_repo_organization_id_github_organization_id_fk",
           "tableFrom": "github_repo",
           "tableTo": "github_organization",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -1947,12 +1507,8 @@
           "name": "github_repo_user_id_auth_user_id_fk",
           "tableFrom": "github_repo",
           "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1962,9 +1518,7 @@
         "github_repo_github_id_unique": {
           "name": "github_repo_github_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "github_id"
-          ]
+          "columns": ["github_id"]
         }
       },
       "policies": {},
@@ -2094,12 +1648,8 @@
           "name": "github_sync_state_user_id_auth_user_id_fk",
           "tableFrom": "github_sync_state",
           "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

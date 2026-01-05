@@ -1,0 +1,135 @@
+.container {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 1000;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(var(--bit-rgb-surface-2), 0.9);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-pill);
+  font-family: var(--bit-font-mono);
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.pill:hover {
+  background: rgba(var(--bit-rgb-surface-3), 0.95);
+  border-color: rgba(var(--bit-rgb-accent-blue), 0.3);
+  color: rgba(var(--bit-rgb-fg), 0.8);
+}
+
+.icon {
+  opacity: 0.7;
+}
+
+.sha {
+  font-weight: 500;
+}
+
+.popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  min-width: 320px;
+  background: var(--bit-gradient-surface);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-xl);
+  padding: 16px;
+  box-shadow: var(--bit-shadow-elevated);
+  backdrop-filter: blur(20px);
+  animation: slideUp 0.15s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.popoverHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+}
+
+.popoverIcon {
+  color: var(--bit-color-accent-blue);
+}
+
+.popoverTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(var(--bit-rgb-fg), 0.9);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.commitTitle {
+  font-size: 0.85rem;
+  color: rgba(var(--bit-rgb-fg), 0.9);
+  margin: 0 0 12px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.detailsGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.detailRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detailLabel {
+  font-size: 0.7rem;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+  min-width: 50px;
+}
+
+.detailValue {
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  font-family: var(--bit-font-mono);
+}
+
+.detailValueText {
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  font-family: var(--bit-font);
+}
+
+.shaBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: rgba(var(--bit-rgb-accent-blue), 0.15);
+  border: 1px solid rgba(var(--bit-rgb-accent-blue), 0.3);
+  border-radius: var(--bit-radius-md);
+  font-size: 0.75rem;
+  color: var(--bit-color-accent-blue);
+  font-weight: 500;
+}

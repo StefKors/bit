@@ -1,4 +1,4 @@
-import { useState, useCallback, type ReactNode } from "react"
+import { useState, type ReactNode } from "react"
 import { Link, useParams } from "@tanstack/react-router"
 import { useQuery } from "@rocicorp/zero/react"
 import { FileDirectoryIcon } from "@primer/octicons-react"
@@ -33,7 +33,7 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
   // Query the repo with PRs and issues in one go
   const [repo] = useQuery(queries.repoWithPRsAndIssues(fullName))
 
-  const handleSync = useCallback(async () => {
+  const handleSync = async () => {
     setSyncing(true)
     setError(null)
 
@@ -53,7 +53,7 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
     } finally {
       setSyncing(false)
     }
-  }, [owner, repoName])
+  }
 
   if (!repo) {
     return (
