@@ -73,6 +73,8 @@ export async function ensureRepoFromWebhook(
     githubUpdatedAt: repo.updated_at ? new Date(repo.updated_at as string) : null,
     githubPushedAt: repo.pushed_at ? new Date(repo.pushed_at as string) : null,
     syncedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }
 
   await db
@@ -173,6 +175,8 @@ export async function ensurePRFromWebhook(
     mergedAt: pr.merged_at ? new Date(pr.merged_at as string) : null,
     userId: repoRecord.userId,
     syncedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }
 
   await db

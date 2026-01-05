@@ -114,6 +114,8 @@ async function syncCommitsToPRs(
           htmlUrl: commit.url,
           committedAt: commit.timestamp ? new Date(commit.timestamp) : null,
           userId: repoRecord.userId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         }
 
         await db
