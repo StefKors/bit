@@ -402,6 +402,112 @@ const githubPrCommentTable = {
   primaryKey: ["id"],
   serverName: "github_pr_comment",
 } as const
+const githubPrCommitTable = {
+  name: "githubPrCommit",
+  columns: {
+    id: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    pullRequestId: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+      serverName: "pull_request_id",
+    },
+    sha: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    message: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    authorLogin: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "author_login",
+    },
+    authorAvatarUrl: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "author_avatar_url",
+    },
+    authorName: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "author_name",
+    },
+    authorEmail: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "author_email",
+    },
+    committerLogin: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "committer_login",
+    },
+    committerAvatarUrl: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "committer_avatar_url",
+    },
+    committerName: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "committer_name",
+    },
+    committerEmail: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "committer_email",
+    },
+    htmlUrl: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "html_url",
+    },
+    committedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "committed_at",
+    },
+    userId: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+      serverName: "user_id",
+    },
+    createdAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "created_at",
+    },
+    updatedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "updated_at",
+    },
+  },
+  primaryKey: ["id"],
+  serverName: "github_pr_commit",
+} as const
 const githubPrFileTable = {
   name: "githubPrFile",
   columns: {
@@ -1041,6 +1147,16 @@ const githubPrCommentRelationships = {
     },
   ],
 } as const
+const githubPrCommitRelationships = {
+  githubPullRequest: [
+    {
+      sourceField: ["pullRequestId"],
+      destField: ["id"],
+      destSchema: "githubPullRequest",
+      cardinality: "one",
+    },
+  ],
+} as const
 const githubPrFileRelationships = {
   githubPullRequest: [
     {
@@ -1102,6 +1218,14 @@ const githubPullRequestRelationships = {
       cardinality: "many",
     },
   ],
+  githubPrCommit: [
+    {
+      sourceField: ["id"],
+      destField: ["pullRequestId"],
+      destSchema: "githubPrCommit",
+      cardinality: "many",
+    },
+  ],
 } as const
 const githubRepoRelationships = {
   githubOrganization: [
@@ -1133,6 +1257,7 @@ export const schema = {
     authVerification: authVerificationTable,
     githubOrganization: githubOrganizationTable,
     githubPrComment: githubPrCommentTable,
+    githubPrCommit: githubPrCommitTable,
     githubPrFile: githubPrFileTable,
     githubPrReview: githubPrReviewTable,
     githubPullRequest: githubPullRequestTable,
@@ -1143,6 +1268,7 @@ export const schema = {
   relationships: {
     githubOrganization: githubOrganizationRelationships,
     githubPrComment: githubPrCommentRelationships,
+    githubPrCommit: githubPrCommitRelationships,
     githubPrFile: githubPrFileRelationships,
     githubPrReview: githubPrReviewRelationships,
     githubPullRequest: githubPullRequestRelationships,
@@ -1199,6 +1325,13 @@ export type GithubOrganization = Row["githubOrganization"]
  * @deprecated Use Row["githubPrComment"] instead from "@rocicorp/zero".
  */
 export type GithubPrComment = Row["githubPrComment"]
+/**
+ * Represents a row from the "githubPrCommit" table.
+ * This type is auto-generated from your Drizzle schema definition.
+ *
+ * @deprecated Use Row["githubPrCommit"] instead from "@rocicorp/zero".
+ */
+export type GithubPrCommit = Row["githubPrCommit"]
 /**
  * Represents a row from the "githubPrFile" table.
  * This type is auto-generated from your Drizzle schema definition.

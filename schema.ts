@@ -295,6 +295,42 @@ export const githubPrComment = pgTable(
   ],
 )
 
+// GitHub PR Commits (commits in a PR)
+export const githubPrCommit = pgTable(
+  "github_pr_commit",
+  {
+    id: text("id").primaryKey(), // composite: pr_id + sha
+    pullRequestId: text("pull_request_id")
+      .notNull()
+      .references(() => githubPullRequest.id, { onDelete: "cascade" }),
+    sha: text("sha").notNull(),
+    message: text("message").notNull(),
+    authorLogin: text("author_login"),
+    authorAvatarUrl: text("author_avatar_url"),
+    authorName: text("author_name"),
+    authorEmail: text("author_email"),
+    committerLogin: text("committer_login"),
+    committerAvatarUrl: text("committer_avatar_url"),
+    committerName: text("committer_name"),
+    committerEmail: text("committer_email"),
+    htmlUrl: text("html_url"),
+    // Timestamps
+    committedAt: timestamp("committed_at"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("github_commit_prId_idx").on(table.pullRequestId),
+    index("github_commit_userId_idx").on(table.userId),
+  ],
+)
+
 // GitHub PR Files (changed files in a PR)
 export const githubPrFile = pgTable(
   "github_pr_file",
@@ -386,6 +422,7 @@ export const githubPullRequestRelations = relations(githubPullRequest, ({ one, m
   githubPrFile: many(githubPrFile),
   githubPrReview: many(githubPrReview),
   githubPrComment: many(githubPrComment),
+  githubPrCommit: many(githubPrCommit),
 }))
 
 // PR Review relationships
@@ -413,6 +450,14 @@ export const githubPrCommentRelations = relations(githubPrComment, ({ one }) => 
 export const githubPrFileRelations = relations(githubPrFile, ({ one }) => ({
   githubPullRequest: one(githubPullRequest, {
     fields: [githubPrFile.pullRequestId],
+    references: [githubPullRequest.id],
+  }),
+}))
+
+// PR Commit relationships
+export const githubPrCommitRelations = relations(githubPrCommit, ({ one }) => ({
+  githubPullRequest: one(githubPullRequest, {
+    fields: [githubPrCommit.pullRequestId],
     references: [githubPullRequest.id],
   }),
 }))
