@@ -85,10 +85,7 @@
   height: 32px;
   border-radius: 50%;
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-fg), 0.06),
-      rgba(var(--bit-rgb-fg), 0.06)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-fg), 0.06), rgba(var(--bit-rgb-fg), 0.06)),
     rgb(var(--bit-rgb-surface-2));
   color: rgba(var(--bit-rgb-fg), 0.6);
   flex-shrink: 0;
@@ -125,140 +122,103 @@
 /* Event type specific colors */
 .eventCommit .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-accent-blue), 0.15),
-      rgba(var(--bit-rgb-accent-blue), 0.15)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-accent-blue), 0.15), rgba(var(--bit-rgb-accent-blue), 0.15)),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-blue);
 }
 
 .eventLabel .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-accent-purple), 0.15),
-      rgba(var(--bit-rgb-accent-purple), 0.15)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-accent-purple), 0.15),
+      rgba(var(--bit-rgb-accent-purple), 0.15)),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-purple);
 }
 
 .eventAssign .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-fg), 0.08),
-      rgba(var(--bit-rgb-fg), 0.08)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-fg), 0.08), rgba(var(--bit-rgb-fg), 0.08)),
     rgb(var(--bit-rgb-surface-2));
   color: rgba(var(--bit-rgb-fg), 0.7);
 }
 
 .eventReviewRequest .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-accent-orange), 0.15),
-      rgba(var(--bit-rgb-accent-orange), 0.15)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-accent-orange), 0.15),
+      rgba(var(--bit-rgb-accent-orange), 0.15)),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-orange);
 }
 
 .eventMerged .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-accent-purple), 0.2),
-      rgba(var(--bit-rgb-accent-purple), 0.2)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-accent-purple), 0.2),
+      rgba(var(--bit-rgb-accent-purple), 0.2)),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-purple);
 }
 
 .eventClosed .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-accent-red), 0.15),
-      rgba(var(--bit-rgb-accent-red), 0.15)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-accent-red), 0.15), rgba(var(--bit-rgb-accent-red), 0.15)),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-red);
 }
 
 .eventReopened .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-accent-green-bright), 0.15),
-      rgba(var(--bit-rgb-accent-green-bright), 0.15)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-accent-green-bright), 0.15),
+      rgba(var(--bit-rgb-accent-green-bright), 0.15)),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-green-bright);
 }
 
 .eventForcePush .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-accent-red), 0.15),
-      rgba(var(--bit-rgb-accent-red), 0.15)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-accent-red), 0.15), rgba(var(--bit-rgb-accent-red), 0.15)),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-red);
 }
 
 .eventBranch .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-fg), 0.08),
-      rgba(var(--bit-rgb-fg), 0.08)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-fg), 0.08), rgba(var(--bit-rgb-fg), 0.08)),
     rgb(var(--bit-rgb-surface-2));
   color: rgba(var(--bit-rgb-fg), 0.6);
 }
 
 .eventRename .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-fg), 0.08),
-      rgba(var(--bit-rgb-fg), 0.08)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-fg), 0.08), rgba(var(--bit-rgb-fg), 0.08)),
     rgb(var(--bit-rgb-surface-2));
   color: rgba(var(--bit-rgb-fg), 0.6);
 }
 
 .eventReadyForReview .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-accent-green-bright), 0.15),
-      rgba(var(--bit-rgb-accent-green-bright), 0.15)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-accent-green-bright), 0.15),
+      rgba(var(--bit-rgb-accent-green-bright), 0.15)),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-green-bright);
 }
 
 .eventDraft .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-muted), 0.15),
-      rgba(var(--bit-rgb-muted), 0.15)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-muted), 0.15), rgba(var(--bit-rgb-muted), 0.15)),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-muted);
 }
 
 .eventMilestone .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-accent-blue), 0.15),
-      rgba(var(--bit-rgb-accent-blue), 0.15)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-accent-blue), 0.15), rgba(var(--bit-rgb-accent-blue), 0.15)),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-blue);
 }
 
 .eventLock .eventIcon {
   background:
-    linear-gradient(
-      rgba(var(--bit-rgb-muted), 0.15),
-      rgba(var(--bit-rgb-muted), 0.15)
-    ),
+    linear-gradient(rgba(var(--bit-rgb-muted), 0.15), rgba(var(--bit-rgb-muted), 0.15)),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-muted);
 }
