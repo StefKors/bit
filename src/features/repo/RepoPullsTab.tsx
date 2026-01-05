@@ -1,35 +1,31 @@
-import { useState, useMemo } from "react"
+import { useMemo } from "react"
 import { GitPullRequestIcon } from "@primer/octicons-react"
 import type { GithubPullRequest } from "@/db/schema"
 import { PRListItem } from "@/features/pr/PRListItem"
 import { PRFiltersBar } from "@/features/pr/PRFiltersBar"
 import {
   type PRFilters,
-  DEFAULT_PR_FILTERS,
   extractAuthors,
   extractLabels,
   applyFiltersAndSort,
+  hasActiveFilters as checkActiveFilters,
 } from "@/lib/pr-filters"
 import styles from "./RepoPullsTab.module.css"
 
 interface RepoPullsTabProps {
   prs: readonly GithubPullRequest[]
   fullName: string
+  filters: PRFilters
+  onFiltersChange: (filters: PRFilters) => void
 }
 
-export const RepoPullsTab = ({ prs, fullName }: RepoPullsTabProps) => {
-  const [filters, setFilters] = useState<PRFilters>(DEFAULT_PR_FILTERS)
-
+export const RepoPullsTab = ({ prs, fullName, filters, onFiltersChange }: RepoPullsTabProps) => {
   // Compute derived data
   const authors = useMemo(() => extractAuthors(prs), [prs])
   const labels = useMemo(() => extractLabels(prs), [prs])
   const filteredPrs = useMemo(() => applyFiltersAndSort(prs, filters), [prs, filters])
 
-  const hasActiveFilters =
-    filters.status !== "all" ||
-    filters.author !== null ||
-    filters.labels.length > 0 ||
-    filters.draft !== "all"
+  const hasActiveFilters = checkActiveFilters(filters)
 
   if (prs.length === 0) {
     return (
@@ -47,7 +43,7 @@ export const RepoPullsTab = ({ prs, fullName }: RepoPullsTabProps) => {
     <div className={styles.content}>
       <PRFiltersBar
         filters={filters}
-        onFiltersChange={setFilters}
+        onFiltersChange={onFiltersChange}
         authors={authors}
         labels={labels}
         hasActiveFilters={hasActiveFilters}

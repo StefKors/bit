@@ -197,3 +197,85 @@ export const applyFiltersAndSort = <T extends GithubPullRequest>(
   result = sortPRs(result, filters.sortBy, filters.sortDirection)
   return result
 }
+
+// URL search params type (all optional strings/arrays for URL compatibility)
+export interface PRFiltersSearchParams {
+  status?: PRStatus
+  author?: string
+  labels?: string[]
+  draft?: PRDraftFilter
+  sortBy?: PRSortField
+  sortDirection?: PRSortDirection
+}
+
+// Valid values for validation
+const VALID_STATUS: PRStatus[] = ["all", "open", "closed", "merged"]
+const VALID_DRAFT: PRDraftFilter[] = ["all", "draft", "ready"]
+const VALID_SORT_BY: PRSortField[] = ["updated", "created", "comments", "title", "author"]
+const VALID_SORT_DIRECTION: PRSortDirection[] = ["desc", "asc"]
+
+// Parse and validate search params into PRFilters
+export const parseFiltersFromSearch = (search: Record<string, unknown>): PRFilters => {
+  const status = VALID_STATUS.includes(search.status as PRStatus)
+    ? (search.status as PRStatus)
+    : DEFAULT_PR_FILTERS.status
+
+  const author =
+    typeof search.author === "string" && search.author.length > 0
+      ? search.author
+      : DEFAULT_PR_FILTERS.author
+
+  const labels = Array.isArray(search.labels)
+    ? search.labels.filter((l): l is string => typeof l === "string")
+    : DEFAULT_PR_FILTERS.labels
+
+  const draft = VALID_DRAFT.includes(search.draft as PRDraftFilter)
+    ? (search.draft as PRDraftFilter)
+    : DEFAULT_PR_FILTERS.draft
+
+  const sortBy = VALID_SORT_BY.includes(search.sortBy as PRSortField)
+    ? (search.sortBy as PRSortField)
+    : DEFAULT_PR_FILTERS.sortBy
+
+  const sortDirection = VALID_SORT_DIRECTION.includes(search.sortDirection as PRSortDirection)
+    ? (search.sortDirection as PRSortDirection)
+    : DEFAULT_PR_FILTERS.sortDirection
+
+  return { status, author, labels, draft, sortBy, sortDirection }
+}
+
+// Convert PRFilters to search params, omitting default values
+export const filtersToSearchParams = (filters: PRFilters): PRFiltersSearchParams => {
+  const params: PRFiltersSearchParams = {}
+
+  if (filters.status !== DEFAULT_PR_FILTERS.status) {
+    params.status = filters.status
+  }
+  if (filters.author !== DEFAULT_PR_FILTERS.author) {
+    params.author = filters.author ?? undefined
+  }
+  if (filters.labels.length > 0) {
+    params.labels = filters.labels
+  }
+  if (filters.draft !== DEFAULT_PR_FILTERS.draft) {
+    params.draft = filters.draft
+  }
+  if (filters.sortBy !== DEFAULT_PR_FILTERS.sortBy) {
+    params.sortBy = filters.sortBy
+  }
+  if (filters.sortDirection !== DEFAULT_PR_FILTERS.sortDirection) {
+    params.sortDirection = filters.sortDirection
+  }
+
+  return params
+}
+
+// Check if filters have any active (non-default) values
+export const hasActiveFilters = (filters: PRFilters): boolean => {
+  return (
+    filters.status !== DEFAULT_PR_FILTERS.status ||
+    filters.author !== DEFAULT_PR_FILTERS.author ||
+    filters.labels.length > 0 ||
+    filters.draft !== DEFAULT_PR_FILTERS.draft
+  )
+}
