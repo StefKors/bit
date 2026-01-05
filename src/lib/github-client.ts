@@ -635,7 +635,7 @@ export class GitHubClient {
     return { data: prs, rateLimit, fromCache: false }
   }
 
-  // Fetch detailed PR info including files, comments, reviews, and commits
+  // Fetch detailed PR info including files, comments, reviews, commits, and events
   async fetchPullRequestDetails(
     owner: string,
     repo: string,
@@ -646,6 +646,7 @@ export class GitHubClient {
     reviews: (typeof schema.githubPrReview.$inferInsert)[]
     comments: (typeof schema.githubPrComment.$inferInsert)[]
     commits: (typeof schema.githubPrCommit.$inferInsert)[]
+    events: (typeof schema.githubPrEvent.$inferInsert)[]
     rateLimit: RateLimitInfo
   }> {
     const repoRecord = await this.ensureRepoRecord(owner, repo)
@@ -934,9 +935,188 @@ export class GitHubClient {
       await this.db.insert(schema.githubPrCommit).values(commit)
     }
 
+    // Fetch PR timeline events
+    const timelineResponse = await this.octokit.rest.issues.listEventsForTimeline({
+      owner,
+      repo,
+      issue_number: pullNumber,
+      per_page: 100,
+    })
+    rateLimit = this.extractRateLimit(
+      timelineResponse.headers as Record<string, string | undefined>,
+    )
+
+    // Process timeline events into our schema format
+    const events: (typeof schema.githubPrEvent.$inferInsert)[] = []
+
+    for (const event of timelineResponse.data) {
+      // Skip certain event types that are already handled by reviews/comments
+      // or that don't have useful display information
+      const skipTypes = ["commented", "reviewed", "line-commented"]
+      if (skipTypes.includes(event.event ?? "")) continue
+
+      // Get actor info - handle different event structures
+      let actorLogin: string | null = null
+      let actorAvatarUrl: string | null = null
+
+      if ("actor" in event && event.actor) {
+        actorLogin = event.actor.login ?? null
+        actorAvatarUrl = event.actor.avatar_url ?? null
+      } else if ("user" in event && event.user) {
+        actorLogin = event.user.login ?? null
+        actorAvatarUrl = event.user.avatar_url ?? null
+      } else if ("author" in event && event.author) {
+        // For commits
+        const author = event.author as { login?: string; avatar_url?: string }
+        actorLogin = author.login ?? null
+        actorAvatarUrl = author.avatar_url ?? null
+      }
+
+      // Generate unique ID based on event type and available data
+      let eventId: string
+      if ("node_id" in event && event.node_id) {
+        eventId = event.node_id
+      } else if ("id" in event && event.id) {
+        eventId = `${pr.id}:${event.event}:${event.id}`
+      } else if ("sha" in event && event.sha) {
+        eventId = `${pr.id}:committed:${event.sha}`
+      } else {
+        eventId = `${pr.id}:${event.event}:${Date.now()}:${Math.random()}`
+      }
+
+      // Get event timestamp
+      let eventCreatedAt: Date | null = null
+      if ("created_at" in event && event.created_at) {
+        eventCreatedAt = new Date(event.created_at)
+      } else if ("committer" in event && event.committer && "date" in event.committer) {
+        eventCreatedAt = new Date(event.committer.date)
+      }
+
+      const baseEvent = {
+        id: eventId,
+        githubId: "id" in event ? event.id : null,
+        pullRequestId: pr.id,
+        eventType: event.event ?? "committed",
+        actorLogin,
+        actorAvatarUrl,
+        eventCreatedAt,
+        userId: this.userId,
+      }
+
+      // Add event-specific data
+      switch (event.event) {
+        case "committed":
+          if ("sha" in event && "message" in event) {
+            events.push({
+              ...baseEvent,
+              eventType: "committed",
+              commitSha: event.sha ?? null,
+              commitMessage: event.message ?? null,
+            })
+          }
+          break
+
+        case "labeled":
+          if ("label" in event && event.label) {
+            events.push({
+              ...baseEvent,
+              labelName: event.label.name ?? null,
+              labelColor: event.label.color ?? null,
+            })
+          }
+          break
+
+        case "unlabeled":
+          if ("label" in event && event.label) {
+            events.push({
+              ...baseEvent,
+              labelName: event.label.name ?? null,
+              labelColor: event.label.color ?? null,
+            })
+          }
+          break
+
+        case "assigned":
+          if ("assignee" in event && event.assignee) {
+            events.push({
+              ...baseEvent,
+              assigneeLogin: event.assignee.login ?? null,
+              assigneeAvatarUrl: event.assignee.avatar_url ?? null,
+            })
+          }
+          break
+
+        case "unassigned":
+          if ("assignee" in event && event.assignee) {
+            events.push({
+              ...baseEvent,
+              assigneeLogin: event.assignee.login ?? null,
+              assigneeAvatarUrl: event.assignee.avatar_url ?? null,
+            })
+          }
+          break
+
+        case "review_requested":
+          if ("requested_reviewer" in event && event.requested_reviewer) {
+            events.push({
+              ...baseEvent,
+              requestedReviewerLogin: event.requested_reviewer.login ?? null,
+              requestedReviewerAvatarUrl: event.requested_reviewer.avatar_url ?? null,
+            })
+          } else {
+            events.push(baseEvent)
+          }
+          break
+
+        case "review_request_removed":
+          if ("requested_reviewer" in event && event.requested_reviewer) {
+            events.push({
+              ...baseEvent,
+              requestedReviewerLogin: event.requested_reviewer.login ?? null,
+              requestedReviewerAvatarUrl: event.requested_reviewer.avatar_url ?? null,
+            })
+          } else {
+            events.push(baseEvent)
+          }
+          break
+
+        case "merged":
+        case "closed":
+        case "reopened":
+        case "head_ref_force_pushed":
+        case "head_ref_deleted":
+        case "head_ref_restored":
+        case "base_ref_changed":
+        case "renamed":
+        case "ready_for_review":
+        case "convert_to_draft":
+        case "milestoned":
+        case "demilestoned":
+        case "locked":
+        case "unlocked":
+          // Store event data as JSON for complex events
+          events.push({
+            ...baseEvent,
+            eventData: JSON.stringify(event),
+          })
+          break
+
+        default:
+          // For any other event types, store the basic info
+          events.push(baseEvent)
+      }
+    }
+
+    // Delete old events and insert new ones
+    await this.db.delete(schema.githubPrEvent).where(eq(schema.githubPrEvent.pullRequestId, pr.id))
+
+    for (const event of events) {
+      await this.db.insert(schema.githubPrEvent).values(event)
+    }
+
     await this.updateSyncState("pr-detail", `${owner}/${repo}/${pullNumber}`, rateLimit)
 
-    return { pr, files, reviews, comments: allComments, commits, rateLimit }
+    return { pr, files, reviews, comments: allComments, commits, events, rateLimit }
   }
 
   // Get last rate limit info
