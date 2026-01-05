@@ -70,6 +70,8 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
       htmlUrl: review.html_url as string,
       submittedAt: review.submitted_at ? new Date(review.submitted_at as string) : null,
       userId: prRecord.userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
 
     await db
