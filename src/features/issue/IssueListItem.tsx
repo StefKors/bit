@@ -1,11 +1,6 @@
 import { Link } from "@tanstack/react-router"
 import type { Row } from "@rocicorp/zero"
-import {
-  CommentIcon,
-  IssueOpenedIcon,
-  IssueClosedIcon,
-  SkipIcon,
-} from "@primer/octicons-react"
+import { CommentIcon, IssueOpenedIcon, IssueClosedIcon, SkipIcon } from "@primer/octicons-react"
 import styles from "./IssueListItem.module.css"
 import { Avatar } from "@/components/Avatar"
 import { parseLabels } from "@/lib/issue-filters"
@@ -68,10 +63,7 @@ const formatDate = (date: Date | number | null | undefined): string => {
 
 type IssueStatus = "open" | "closed" | "not_planned"
 
-const getIssueStatus = (issue: {
-  state: string
-  stateReason?: string | null
-}): IssueStatus => {
+const getIssueStatus = (issue: { state: string; stateReason?: string | null }): IssueStatus => {
   if (issue.state === "closed") {
     if (issue.stateReason === "not_planned") return "not_planned"
     return "closed"
@@ -82,9 +74,7 @@ const getIssueStatus = (issue: {
 const StatusIcon = ({ status }: { status: IssueStatus }) => {
   switch (status) {
     case "closed":
-      return (
-        <IssueClosedIcon size={16} className={`${styles.statusIcon} ${styles.statusClosed}`} />
-      )
+      return <IssueClosedIcon size={16} className={`${styles.statusIcon} ${styles.statusClosed}`} />
     case "not_planned":
       return <SkipIcon size={16} className={`${styles.statusIcon} ${styles.statusNotPlanned}`} />
     default:

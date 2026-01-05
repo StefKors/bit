@@ -97,7 +97,9 @@ export const queries = defineQueries({
           issue
             .where("number", "=", args.issueNumber)
             .one()
-            .related("githubIssueComment", (comments) => comments.orderBy("githubCreatedAt", "asc")),
+            .related("githubIssueComment", (comments) =>
+              comments.orderBy("githubCreatedAt", "asc"),
+            ),
         ),
   ),
 })

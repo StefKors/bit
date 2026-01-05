@@ -112,10 +112,7 @@ export const filterByStatus = <T extends GithubIssue>(
   return [...issues]
 }
 
-export const filterByAuthor = <T extends GithubIssue>(
-  issues: T[],
-  author: string | null,
-): T[] => {
+export const filterByAuthor = <T extends GithubIssue>(issues: T[], author: string | null): T[] => {
   if (!author) return issues
   return issues.filter((issue) => issue.authorLogin === author)
 }

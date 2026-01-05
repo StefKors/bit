@@ -1,12 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useState, useCallback } from "react"
 import { useQuery } from "@rocicorp/zero/react"
-import {
-  IssueOpenedIcon,
-  IssueClosedIcon,
-  SkipIcon,
-  SyncIcon,
-} from "@primer/octicons-react"
+import { IssueOpenedIcon, IssueClosedIcon, SkipIcon, SyncIcon } from "@primer/octicons-react"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Button } from "@/components/Button"
 import { IssueConversationTab } from "@/features/issue/IssueConversationTab"
