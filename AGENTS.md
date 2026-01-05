@@ -90,3 +90,48 @@ tracking uncontrolled inputs via React state means that you will need to add use
 using React state in these cases is only necessary if you have to show the input value during render. if that is not the case you can just use `inputRef.current.value` instead and set the value via `inputRef.current.value = something`
 
 ---
+
+# GitHub Webhooks
+
+Webhook handlers live in `src/lib/webhooks/` with each event type in its own file:
+
+- `pull-request.ts` - handles `pull_request` events
+- `pull-request-review.ts` - handles `pull_request_review` events
+- `comment.ts` - handles `issue_comment` and `pull_request_review_comment` events
+- `utils.ts` - shared utilities for auto-tracking resources
+- `types.ts` - shared TypeScript types
+
+The route handler at `src/routes/api/github/webhook.ts` receives webhooks, verifies signatures, and dispatches to the appropriate handler.
+
+## Auto-tracking behavior
+
+All webhook handlers support **auto-tracking**. When a webhook event arrives:
+
+1. **Resource already tracked** → Updates existing records for all users tracking it
+2. **Not tracked but sender is registered** → Auto-creates repo/PR records under that user
+3. **Sender not registered** → Logs and skips (no data stored)
+
+This means users automatically receive updates for repos they interact with via GitHub, even if they haven't explicitly synced those repos in the app.
+
+## Adding new webhook handlers
+
+1. Create a new file in `src/lib/webhooks/` (e.g., `push.ts`)
+2. Export the handler function following the pattern of existing handlers
+3. Add the export to `src/lib/webhooks/index.ts`
+4. Add a case to the switch statement in `src/routes/api/github/webhook.ts`
+5. Use the shared utilities (`findUserBySender`, `ensureRepoFromWebhook`, `ensurePRFromWebhook`) for auto-tracking
+
+## Handler function signature
+
+```typescript
+async function handleSomeWebhook(
+  db: WebhookDB,
+  payload: WebhookPayload,
+  // optional extra params like eventType for comment handler
+): Promise<void>
+```
+
+## Environment variables
+
+- `GITHUB_WEBHOOK_SECRET` - Secret for verifying webhook signatures (required)
+- `ZERO_UPSTREAM_DB` - PostgreSQL connection string for database operations
