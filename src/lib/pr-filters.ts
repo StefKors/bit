@@ -220,9 +220,10 @@ export const parseFiltersFromSearch = (search: Record<string, unknown>): PRFilte
     ? (search.status as PRStatus)
     : DEFAULT_PR_FILTERS.status
 
-  const author = typeof search.author === "string" && search.author.length > 0
-    ? search.author
-    : DEFAULT_PR_FILTERS.author
+  const author =
+    typeof search.author === "string" && search.author.length > 0
+      ? search.author
+      : DEFAULT_PR_FILTERS.author
 
   const labels = Array.isArray(search.labels)
     ? search.labels.filter((l): l is string => typeof l === "string")
