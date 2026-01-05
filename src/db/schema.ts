@@ -402,19 +402,13 @@ const githubPrCommentTable = {
   primaryKey: ["id"],
   serverName: "github_pr_comment",
 } as const
-const githubPrEventTable = {
-  name: "githubPrEvent",
+const githubPrCommitTable = {
+  name: "githubPrCommit",
   columns: {
     id: {
       type: "string",
       optional: false,
       customType: null as unknown as string,
-    },
-    githubId: {
-      type: "number",
-      optional: true,
-      customType: null as unknown as number,
-      serverName: "github_id",
     },
     pullRequestId: {
       type: "string",
@@ -422,83 +416,75 @@ const githubPrEventTable = {
       customType: null as unknown as string,
       serverName: "pull_request_id",
     },
-    eventType: {
+    sha: {
       type: "string",
       optional: false,
       customType: null as unknown as string,
-      serverName: "event_type",
     },
-    actorLogin: {
+    message: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    authorLogin: {
       type: "string",
       optional: true,
       customType: null as unknown as string,
-      serverName: "actor_login",
+      serverName: "author_login",
     },
-    actorAvatarUrl: {
+    authorAvatarUrl: {
       type: "string",
       optional: true,
       customType: null as unknown as string,
-      serverName: "actor_avatar_url",
+      serverName: "author_avatar_url",
     },
-    eventData: {
+    authorName: {
       type: "string",
       optional: true,
       customType: null as unknown as string,
-      serverName: "event_data",
+      serverName: "author_name",
     },
-    commitSha: {
+    authorEmail: {
       type: "string",
       optional: true,
       customType: null as unknown as string,
-      serverName: "commit_sha",
+      serverName: "author_email",
     },
-    commitMessage: {
+    committerLogin: {
       type: "string",
       optional: true,
       customType: null as unknown as string,
-      serverName: "commit_message",
+      serverName: "committer_login",
     },
-    labelName: {
+    committerAvatarUrl: {
       type: "string",
       optional: true,
       customType: null as unknown as string,
-      serverName: "label_name",
+      serverName: "committer_avatar_url",
     },
-    labelColor: {
+    committerName: {
       type: "string",
       optional: true,
       customType: null as unknown as string,
-      serverName: "label_color",
+      serverName: "committer_name",
     },
-    assigneeLogin: {
+    committerEmail: {
       type: "string",
       optional: true,
       customType: null as unknown as string,
-      serverName: "assignee_login",
+      serverName: "committer_email",
     },
-    assigneeAvatarUrl: {
+    htmlUrl: {
       type: "string",
       optional: true,
       customType: null as unknown as string,
-      serverName: "assignee_avatar_url",
+      serverName: "html_url",
     },
-    requestedReviewerLogin: {
-      type: "string",
-      optional: true,
-      customType: null as unknown as string,
-      serverName: "requested_reviewer_login",
-    },
-    requestedReviewerAvatarUrl: {
-      type: "string",
-      optional: true,
-      customType: null as unknown as string,
-      serverName: "requested_reviewer_avatar_url",
-    },
-    eventCreatedAt: {
+    committedAt: {
       type: "number",
       optional: true,
       customType: null as unknown as number,
-      serverName: "event_created_at",
+      serverName: "committed_at",
     },
     userId: {
       type: "string",
@@ -520,7 +506,7 @@ const githubPrEventTable = {
     },
   },
   primaryKey: ["id"],
-  serverName: "github_pr_event",
+  serverName: "github_pr_commit",
 } as const
 const githubPrFileTable = {
   name: "githubPrFile",
@@ -839,6 +825,12 @@ const githubPullRequestTable = {
       optional: true,
       customType: null as unknown as string,
     },
+    reviewRequestedBy: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "review_requested_by",
+    },
     githubCreatedAt: {
       type: "number",
       optional: true,
@@ -1155,7 +1147,7 @@ const githubPrCommentRelationships = {
     },
   ],
 } as const
-const githubPrEventRelationships = {
+const githubPrCommitRelationships = {
   githubPullRequest: [
     {
       sourceField: ["pullRequestId"],
@@ -1226,11 +1218,11 @@ const githubPullRequestRelationships = {
       cardinality: "many",
     },
   ],
-  githubPrEvent: [
+  githubPrCommit: [
     {
       sourceField: ["id"],
       destField: ["pullRequestId"],
-      destSchema: "githubPrEvent",
+      destSchema: "githubPrCommit",
       cardinality: "many",
     },
   ],
@@ -1265,7 +1257,7 @@ export const schema = {
     authVerification: authVerificationTable,
     githubOrganization: githubOrganizationTable,
     githubPrComment: githubPrCommentTable,
-    githubPrEvent: githubPrEventTable,
+    githubPrCommit: githubPrCommitTable,
     githubPrFile: githubPrFileTable,
     githubPrReview: githubPrReviewTable,
     githubPullRequest: githubPullRequestTable,
@@ -1276,7 +1268,7 @@ export const schema = {
   relationships: {
     githubOrganization: githubOrganizationRelationships,
     githubPrComment: githubPrCommentRelationships,
-    githubPrEvent: githubPrEventRelationships,
+    githubPrCommit: githubPrCommitRelationships,
     githubPrFile: githubPrFileRelationships,
     githubPrReview: githubPrReviewRelationships,
     githubPullRequest: githubPullRequestRelationships,
@@ -1334,12 +1326,12 @@ export type GithubOrganization = Row["githubOrganization"]
  */
 export type GithubPrComment = Row["githubPrComment"]
 /**
- * Represents a row from the "githubPrEvent" table.
+ * Represents a row from the "githubPrCommit" table.
  * This type is auto-generated from your Drizzle schema definition.
  *
- * @deprecated Use Row["githubPrEvent"] instead from "@rocicorp/zero".
+ * @deprecated Use Row["githubPrCommit"] instead from "@rocicorp/zero".
  */
-export type GithubPrEvent = Row["githubPrEvent"]
+export type GithubPrCommit = Row["githubPrCommit"]
 /**
  * Represents a row from the "githubPrFile" table.
  * This type is auto-generated from your Drizzle schema definition.

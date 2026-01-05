@@ -18,6 +18,27 @@ export const queries = defineQueries({
   ),
 
   // =============================================================================
+  // Dashboard PRs - authored by user (filter by authorLogin)
+  // =============================================================================
+  dashboardAuthored: defineQuery(z.string(), ({ args: authorLogin }) =>
+    zql.githubPullRequest
+      .where("authorLogin", "=", authorLogin)
+      .where("state", "=", "open")
+      .orderBy("githubUpdatedAt", "desc")
+      .related("githubRepo"),
+  ),
+
+  // =============================================================================
+  // Dashboard PRs - all open PRs (for filtering review-requested client-side)
+  // =============================================================================
+  dashboardAllOpen: defineQuery(() =>
+    zql.githubPullRequest
+      .where("state", "=", "open")
+      .orderBy("githubUpdatedAt", "desc")
+      .related("githubRepo"),
+  ),
+
+  // =============================================================================
   // Owner page - fetch org with all repos in one go
   // =============================================================================
   ownerWithRepos: defineQuery(z.string(), ({ args }) =>
@@ -58,7 +79,7 @@ export const queries = defineQueries({
             .related("githubPrFile", (files) => files.orderBy("filename", "asc"))
             .related("githubPrReview", (reviews) => reviews.orderBy("submittedAt", "asc"))
             .related("githubPrComment", (comments) => comments.orderBy("githubCreatedAt", "asc"))
-            .related("githubPrEvent", (events) => events.orderBy("eventCreatedAt", "asc")),
+            .related("githubPrCommit", (commits) => commits.orderBy("committedAt", "asc")),
         ),
   ),
 })

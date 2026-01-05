@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router"
-import type { Row } from "@rocicorp/zero"
 import {
   CommentIcon,
   CheckIcon,
@@ -11,10 +10,22 @@ import {
 import styles from "./PRListItem.module.css"
 import { Avatar } from "@/components/Avatar"
 
-type PullRequest = Row["githubPullRequest"]
+export interface PullRequestLike {
+  number: number
+  title: string
+  state: string
+  draft?: boolean | null
+  merged?: boolean | null
+  authorLogin?: string | null
+  authorAvatarUrl?: string | null
+  comments?: number | null
+  reviewComments?: number | null
+  githubCreatedAt?: Date | number | string | null
+  githubUpdatedAt?: Date | number | string | null
+}
 
 interface PRListItemProps {
-  pr: PullRequest
+  pr: PullRequestLike
   repoFullName: string
   isApproved?: boolean
 }
@@ -56,9 +67,10 @@ function getStatusIndicators(pr: {
   return [{ status: "success" as const }, { status: "success" as const }]
 }
 
-function formatDate(date: Date | number | null | undefined): string {
+function formatDate(date: Date | number | string | null | undefined): string {
   if (!date) return ""
-  const d = typeof date === "number" ? new Date(date) : date
+  const d =
+    typeof date === "number" ? new Date(date) : typeof date === "string" ? new Date(date) : date
   const now = new Date()
   const diffMs = now.getTime() - d.getTime()
   const diffMinutes = Math.floor(diffMs / (1000 * 60))
