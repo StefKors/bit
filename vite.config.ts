@@ -30,6 +30,7 @@ export default defineConfig({
   build: {
     target: "es2022",
     outDir: "dist",
+    sourcemap: true,
   },
   define: {
     __COMMIT_INFO__: JSON.stringify(commitInfo),
