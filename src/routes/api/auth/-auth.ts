@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { Pool } from "pg"
-import * as schema from "../schema"
+import * as schema from "../../../../schema"
 
 const pool = new Pool({
   connectionString: process.env.ZERO_UPSTREAM_DB,
@@ -36,3 +36,5 @@ export const auth = betterAuth({
     },
   },
 })
+
+

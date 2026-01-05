@@ -2,7 +2,7 @@ import { Octokit } from "octokit"
 import { Pool } from "pg"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { eq, and } from "drizzle-orm"
-import * as schema from "../schema"
+import * as schema from "../../../../schema"
 
 // Types for rate limit info
 export interface RateLimitInfo {
@@ -61,7 +61,7 @@ export class GitHubClient {
     rateLimit: RateLimitInfo,
     status: "idle" | "syncing" | "error" = "idle",
     error?: string,
-    etag?: string,
+    etag?: string
   ) {
     const id = `${this.userId}:${resourceType}${resourceId ? `:${resourceId}` : ""}`
 
@@ -221,7 +221,7 @@ export class GitHubClient {
   async fetchPullRequests(
     owner: string,
     repo: string,
-    state: "open" | "closed" | "all" = "all",
+    state: "open" | "closed" | "all" = "all"
   ): Promise<SyncResult<(typeof schema.githubPullRequest.$inferInsert)[]>> {
     // First, get the repo from our database to get its ID
     const repoRecord = await this.db
@@ -230,8 +230,8 @@ export class GitHubClient {
       .where(
         and(
           eq(schema.githubRepo.fullName, `${owner}/${repo}`),
-          eq(schema.githubRepo.userId, this.userId),
-        ),
+          eq(schema.githubRepo.userId, this.userId)
+        )
       )
       .limit(1)
 
@@ -328,7 +328,7 @@ export class GitHubClient {
   async fetchPullRequestDetails(
     owner: string,
     repo: string,
-    pullNumber: number,
+    pullNumber: number
   ): Promise<{
     pr: typeof schema.githubPullRequest.$inferInsert
     files: (typeof schema.githubPrFile.$inferInsert)[]
@@ -343,8 +343,8 @@ export class GitHubClient {
       .where(
         and(
           eq(schema.githubRepo.fullName, `${owner}/${repo}`),
-          eq(schema.githubRepo.userId, this.userId),
-        ),
+          eq(schema.githubRepo.userId, this.userId)
+        )
       )
       .limit(1)
 
@@ -511,7 +511,7 @@ export class GitHubClient {
       per_page: 100,
     })
     rateLimit = this.extractRateLimit(
-      issueCommentsResponse.headers as Record<string, string | undefined>,
+      issueCommentsResponse.headers as Record<string, string | undefined>
     )
 
     const issueComments = issueCommentsResponse.data.map((comment) => ({
@@ -541,7 +541,7 @@ export class GitHubClient {
       per_page: 100,
     })
     rateLimit = this.extractRateLimit(
-      reviewCommentsResponse.headers as Record<string, string | undefined>,
+      reviewCommentsResponse.headers as Record<string, string | undefined>
     )
 
     const reviewComments = reviewCommentsResponse.data.map((comment) => ({
@@ -610,3 +610,5 @@ export async function createGitHubClient(userId: string, pool: Pool): Promise<Gi
 
   return new GitHubClient(accounts[0].accessToken, userId, pool)
 }
+
+

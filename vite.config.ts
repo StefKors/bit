@@ -1,23 +1,12 @@
-import { getRequestListener } from "@hono/node-server"
-import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import path from "path"
-import dotenv from "dotenv"
-import { tanstackRouter } from "@tanstack/router-plugin/vite"
-
-if (process.env.NODE_ENV === "development") {
-  dotenv.config()
-}
+import { tanstackStart } from "@tanstack/react-start/plugin/vite"
+import viteTsConfigPaths from "vite-tsconfig-paths"
 
 export default defineConfig({
   build: {
     target: "es2022",
-    cssCodeSplit: true,
-  },
-  optimizeDeps: {
-    esbuildOptions: {
-      target: "es2022",
-    },
+    outDir: "dist",
   },
   resolve: {
     alias: {
@@ -29,24 +18,14 @@ export default defineConfig({
     },
   },
   plugins: [
-    tanstackRouter({
-      target: "react",
-      autoCodeSplitting: true,
+    viteTsConfigPaths({
+      projects: ["./tsconfig.json"],
     }),
-    react(),
-    {
-      name: "api-server",
-      configureServer(server) {
-        server.middlewares.use((req, res, next) => {
-          if (!req.url?.startsWith("/api")) {
-            return next()
-          }
-          void getRequestListener(async (request) => {
-            const { app } = await import("./api/index.js")
-            return await app.fetch(request, {})
-          })(req, res)
-        })
+    tanstackStart({
+      ssr: {
+        entry: "./src/entry.server.tsx",
       },
-    },
+    }),
   ],
 })
+
