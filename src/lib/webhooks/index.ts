@@ -18,4 +18,4 @@ export * from "./utils"
 export { handlePullRequestWebhook } from "./pull-request"
 export { handlePullRequestReviewWebhook } from "./pull-request-review"
 export { handleCommentWebhook } from "./comment"
-
+export { handlePushWebhook } from "./push"

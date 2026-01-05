@@ -98,10 +98,43 @@ Webhook handlers live in `src/lib/webhooks/` with each event type in its own fil
 - `pull-request.ts` - handles `pull_request` events
 - `pull-request-review.ts` - handles `pull_request_review` events
 - `comment.ts` - handles `issue_comment` and `pull_request_review_comment` events
+- `push.ts` - handles `push` events (updates repo activity timestamp)
 - `utils.ts` - shared utilities for auto-tracking resources
-- `types.ts` - shared TypeScript types
+- `types.ts` - shared TypeScript types (re-exports `@octokit/webhooks-types`)
 
 The route handler at `src/routes/api/github/webhook.ts` receives webhooks, verifies signatures, and dispatches to the appropriate handler.
+
+## Webhook Event Implementation Status
+
+The webhook handler has stubs for **all GitHub webhook events**. Events are categorized as:
+
+### Fully Implemented
+| Event | Handler | Description |
+|-------|---------|-------------|
+| `pull_request` | `pull-request.ts` | PR opened/closed/updated/merged |
+| `pull_request_review` | `pull-request-review.ts` | Review submitted/dismissed |
+| `pull_request_review_comment` | `comment.ts` | Inline diff comments |
+| `issue_comment` | `comment.ts` | PR conversation comments |
+| `push` | `push.ts` | Updates `githubPushedAt` on repos |
+| `ping` | (inline) | Webhook configuration test |
+
+### Stubbed - Implement When Adding Features
+
+**Issues Feature** (implement when issues tab is built):
+- `issues` - Issue opened/closed/labeled/assigned
+
+**CI/CD Feature** (implement for PR status checks):
+- `check_run`, `check_suite` - CI check status
+- `status` - Commit status
+- `workflow_run`, `workflow_job` - GitHub Actions
+
+**Security Dashboard Feature**:
+- `code_scanning_alert`, `dependabot_alert`, `secret_scanning_alert`
+
+**Releases Feature**:
+- `release` - Release published/edited
+
+**Full event list**: See the switch statement in `src/routes/api/github/webhook.ts`
 
 ## Auto-tracking behavior
 
@@ -113,23 +146,45 @@ All webhook handlers support **auto-tracking**. When a webhook event arrives:
 
 This means users automatically receive updates for repos they interact with via GitHub, even if they haven't explicitly synced those repos in the app.
 
-## Adding new webhook handlers
+## Adding/Updating Webhook Handlers
 
-1. Create a new file in `src/lib/webhooks/` (e.g., `push.ts`)
-2. Export the handler function following the pattern of existing handlers
-3. Add the export to `src/lib/webhooks/index.ts`
-4. Add a case to the switch statement in `src/routes/api/github/webhook.ts`
-5. Use the shared utilities (`findUserBySender`, `ensureRepoFromWebhook`, `ensurePRFromWebhook`) for auto-tracking
+When adding a new feature that requires webhook data:
 
-## Handler function signature
+1. **Identify relevant events**: Check which GitHub events provide the data you need
+   - Reference: https://docs.github.com/en/webhooks/webhook-events-and-payloads
+2. **Create handler file**: `src/lib/webhooks/{event-name}.ts`
+3. **Use typed payloads**: Import types from `@octokit/webhooks-types` via `./types.ts`
+4. **Export from index**: Add export to `src/lib/webhooks/index.ts`
+5. **Replace stub**: Change the stub in `webhook.ts` to call your handler
+6. **Follow auto-tracking pattern**: Use `findUserBySender`, `ensureRepoFromWebhook`, etc.
+7. **Update this doc**: Mark the event as "Fully Implemented" above
+
+### Handler function signature
 
 ```typescript
+import type { WebhookDB, WebhookPayload, SomeEvent } from "./types"
+
 async function handleSomeWebhook(
   db: WebhookDB,
   payload: WebhookPayload,
   // optional extra params like eventType for comment handler
-): Promise<void>
+): Promise<void> {
+  // Cast to typed payload for autocomplete
+  const typedPayload = payload as unknown as SomeEvent
+  // ... implementation
+}
 ```
+
+### Mapping features to webhook events
+
+| Feature | Events to Implement |
+|---------|-------------------|
+| Issues | `issues` |
+| CI Status | `check_run`, `check_suite`, `status` |
+| Releases | `release` |
+| Discussions | `discussion`, `discussion_comment` |
+| Security | `code_scanning_alert`, `dependabot_alert` |
+| Stars/Forks | `star`, `fork` |
 
 ## Environment variables
 
