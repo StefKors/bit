@@ -133,7 +133,7 @@ function OverviewPage() {
   }
 
   if (!session) {
-    return null
+    return <div>Loading...</div>
   }
 
   const rateLimitLow = rateLimit && rateLimit.remaining < 100

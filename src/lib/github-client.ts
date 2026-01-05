@@ -2,7 +2,7 @@ import { Octokit } from "octokit"
 import { Pool } from "pg"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { eq, and } from "drizzle-orm"
-import * as schema from "../schema"
+import * as schema from "../../schema"
 
 // Types for rate limit info
 export interface RateLimitInfo {
