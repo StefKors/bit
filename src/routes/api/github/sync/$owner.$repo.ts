@@ -57,7 +57,8 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo")({
               return jsonResponse(
                 {
                   error: "Access denied",
-                  details: "Rate limit exceeded or insufficient permissions to access this repository.",
+                  details:
+                    "Rate limit exceeded or insufficient permissions to access this repository.",
                 },
                 403,
               )
