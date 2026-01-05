@@ -8,6 +8,7 @@ import {
   handlePullRequestReviewWebhook,
   handleCommentWebhook,
   handlePushWebhook,
+  handlePullRequestEventWebhook,
 } from "@/lib/webhooks"
 import type { WebhookEventName } from "@/lib/webhooks"
 
@@ -158,6 +159,8 @@ export const Route = createFileRoute("/api/github/webhook")({
             case "pull_request": {
               // Implemented: Full PR syncing
               await handlePullRequestWebhook(db, payload)
+              // Also create event records for tracked event types
+              await handlePullRequestEventWebhook(db, payload)
               break
             }
 

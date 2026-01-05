@@ -465,6 +465,7 @@ export const githubPullRequestRelations = relations(githubPullRequest, ({ one, m
   githubPrReview: many(githubPrReview),
   githubPrComment: many(githubPrComment),
   githubPrCommit: many(githubPrCommit),
+  githubPrEvent: many(githubPrEvent),
 }))
 
 // PR Review relationships
@@ -500,6 +501,14 @@ export const githubPrFileRelations = relations(githubPrFile, ({ one }) => ({
 export const githubPrCommitRelations = relations(githubPrCommit, ({ one }) => ({
   githubPullRequest: one(githubPullRequest, {
     fields: [githubPrCommit.pullRequestId],
+    references: [githubPullRequest.id],
+  }),
+}))
+
+// PR Event relationships
+export const githubPrEventRelations = relations(githubPrEvent, ({ one }) => ({
+  githubPullRequest: one(githubPullRequest, {
+    fields: [githubPrEvent.pullRequestId],
     references: [githubPullRequest.id],
   }),
 }))
