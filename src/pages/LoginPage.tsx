@@ -1,8 +1,9 @@
 import { SignOutIcon, MarkGithubIcon } from "@primer/octicons-react"
 import { authClient } from "@/lib/auth"
 import { Button } from "@/components/Button"
-import styles from "./LoginPage.module.css"
+import { CommitInfo } from "@/components/CommitInfo"
 import { Avatar } from "@/components/Avatar"
+import styles from "./LoginPage.module.css"
 
 interface LoginPageProps {
   onLogin?: () => void
@@ -32,6 +33,7 @@ function LoginPage({ onLogin }: LoginPageProps) {
             <span>Loading...</span>
           </div>
         </div>
+        <CommitInfo />
       </div>
     )
   }
@@ -67,6 +69,7 @@ function LoginPage({ onLogin }: LoginPageProps) {
             Sign out
           </Button>
         </div>
+        <CommitInfo />
       </div>
     )
   }
@@ -95,6 +98,7 @@ function LoginPage({ onLogin }: LoginPageProps) {
           <p className={styles.footerText}>By continuing, you agree to our terms of service</p>
         </div>
       </div>
+      <CommitInfo />
     </div>
   )
 }

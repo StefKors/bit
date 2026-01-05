@@ -12,11 +12,20 @@
     "moduleDetection": "force",
     "noEmit": true,
 
+    /* Path aliases */
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/pages/*": ["./src/pages/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/db/*": ["./src/db/*"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts", "./api"]
+  "include": ["server.ts", "vite.config.ts", "./api"]
 }

@@ -825,6 +825,12 @@ const githubPullRequestTable = {
       optional: true,
       customType: null as unknown as string,
     },
+    reviewRequestedBy: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "review_requested_by",
+    },
     githubCreatedAt: {
       type: "number",
       optional: true,

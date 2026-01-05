@@ -201,6 +201,8 @@ export const githubPullRequest = pgTable(
     reviewComments: integer("review_comments").default(0),
     // Labels (stored as JSON string)
     labels: text("labels"),
+    // Dashboard tracking: JSON array of user logins who requested review
+    reviewRequestedBy: text("review_requested_by"),
     // Timestamps
     githubCreatedAt: timestamp("github_created_at"),
     githubUpdatedAt: timestamp("github_updated_at"),

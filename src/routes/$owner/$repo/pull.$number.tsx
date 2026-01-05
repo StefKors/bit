@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import { useQuery } from "@rocicorp/zero/react"
 import {
   GitPullRequestIcon,
@@ -61,7 +61,7 @@ function PRDetailPage() {
 
   const pr = repoData?.githubPullRequest
 
-  const handleSync = useCallback(async () => {
+  const handleSync = async () => {
     setSyncing(true)
     setError(null)
 
@@ -81,7 +81,7 @@ function PRDetailPage() {
     } finally {
       setSyncing(false)
     }
-  }, [owner, repoName, prNumber])
+  }
 
   if (pr === undefined) {
     return (
@@ -105,6 +105,29 @@ function PRDetailPage() {
               Go back to pull requests
             </Link>
           </p>
+          <div style={{ marginTop: "1rem" }}>
+            <Button
+              variant="success"
+              leadingIcon={<SyncIcon size={16} />}
+              loading={syncing}
+              onClick={() => void handleSync()}
+            >
+              {syncing ? "Syncing..." : "Sync this PR"}
+            </Button>
+          </div>
+          {error && (
+            <div
+              style={{
+                color: "#f85149",
+                marginTop: "1rem",
+                padding: "1rem",
+                background: "rgba(248, 81, 73, 0.1)",
+                borderRadius: "8px",
+              }}
+            >
+              {error}
+            </div>
+          )}
         </div>
       </div>
     )
@@ -121,8 +144,16 @@ function PRDetailPage() {
         items={[
           { label: "Repositories", to: "/" },
           { label: owner, to: "/$owner", params: { owner } },
-          { label: repoName, to: "/$owner/$repo", params: { owner, repo: repoName } },
-          { label: "pull requests", to: "/$owner/$repo/pulls", params: { owner, repo: repoName } },
+          {
+            label: repoName,
+            to: "/$owner/$repo",
+            params: { owner, repo: repoName },
+          },
+          {
+            label: "pull requests",
+            to: "/$owner/$repo/pulls",
+            params: { owner, repo: repoName },
+          },
           { label: `#${prNumber}` },
         ]}
       />
