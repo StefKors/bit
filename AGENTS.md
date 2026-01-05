@@ -37,6 +37,12 @@
 
 - Use CSS variables from `theme.css`
 
+# Formatting
+
+- Run `bun run format` after making changes to ensure consistent code style
+- The project uses [oxfmt](https://oxc.rs/docs/guide/usage/formatter.html) for formatting TypeScript/JavaScript files
+- VS Code is configured to format on save via the `oxc.oxc-vscode` extension
+
 # react
 
 - never test react code. instead put as much code as possible in react-agnostic functions or classes and test those if needed.
