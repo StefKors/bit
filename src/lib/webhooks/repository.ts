@@ -37,7 +37,7 @@ export async function handleRepositoryWebhook(db: WebhookDB, payload: WebhookPay
 
   // If no users tracking, try to auto-track for the webhook sender
   if (repoRecords.length === 0 && sender) {
-    const userId = await findUserBySender(db, sender as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
     if (userId) {
       const newRepo = await ensureRepoFromWebhook(
         db,
@@ -121,7 +121,7 @@ export async function handleStarWebhook(db: WebhookDB, payload: WebhookPayload) 
 
   // If no users tracking, try to auto-track for the webhook sender
   if (repoRecords.length === 0 && sender) {
-    const userId = await findUserBySender(db, sender as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
     if (userId) {
       const newRepo = await ensureRepoFromWebhook(
         db,
@@ -194,7 +194,7 @@ export async function handleForkWebhook(db: WebhookDB, payload: WebhookPayload) 
 
   // Auto-track the new fork for the sender if they're a registered user
   if (sender) {
-    const userId = await findUserBySender(db, sender as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
     if (userId) {
       await ensureRepoFromWebhook(db, forkee as unknown as Record<string, unknown>, userId)
       console.log(`Auto-tracked forked repo ${forkee.full_name} for user ${userId}`)

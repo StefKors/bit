@@ -35,7 +35,7 @@ export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookP
 
   // If no users tracking, try to auto-track for the webhook sender
   if (orgRecords.length === 0 && sender) {
-    const userId = await findUserBySender(db, sender as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
     if (userId) {
       const newOrg = await ensureOrgFromWebhook(
         db,
@@ -116,6 +116,8 @@ export async function ensureOrgFromWebhook(
     url: (org.url as string) || null,
     userId,
     syncedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }
 
   await db
