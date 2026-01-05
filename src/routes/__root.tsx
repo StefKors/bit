@@ -22,7 +22,7 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Bit" },
     ],
-    links: [{ rel: "icon", type: "image/png", href: "/public/bit-cube-small.png" }],
+    links: [{ rel: "icon", type: "image/png", href: "/bit-cube-small.png" }],
   }),
   component: RootComponent,
 })
