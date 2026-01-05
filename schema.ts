@@ -307,6 +307,67 @@ export const githubPrCommit = pgTable(
   ],
 )
 
+// GitHub Repository Tree Entries (files and directories in a repo)
+export const githubRepoTree = pgTable(
+  "github_repo_tree",
+  {
+    id: text("id").primaryKey(), // composite: repo_id + ref + path
+    repoId: text("repo_id")
+      .notNull()
+      .references(() => githubRepo.id, { onDelete: "cascade" }),
+    ref: text("ref").notNull(), // branch name or commit sha
+    path: text("path").notNull(), // full path from root
+    name: text("name").notNull(), // file/directory name
+    type: text("type").notNull(), // 'file' or 'dir'
+    sha: text("sha").notNull(), // git blob/tree sha
+    size: integer("size"), // file size in bytes (null for directories)
+    url: text("url"), // API URL to this entry
+    htmlUrl: text("html_url"), // GitHub web URL
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("github_tree_repoId_idx").on(table.repoId),
+    index("github_tree_ref_idx").on(table.repoId, table.ref),
+    index("github_tree_path_idx").on(table.repoId, table.ref, table.path),
+    index("github_tree_userId_idx").on(table.userId),
+  ],
+)
+
+// GitHub Repository Blob Content (file contents)
+export const githubRepoBlob = pgTable(
+  "github_repo_blob",
+  {
+    id: text("id").primaryKey(), // sha
+    repoId: text("repo_id")
+      .notNull()
+      .references(() => githubRepo.id, { onDelete: "cascade" }),
+    sha: text("sha").notNull(),
+    content: text("content"), // file content (base64 decoded)
+    encoding: text("encoding"), // usually 'base64' or 'utf-8'
+    size: integer("size"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("github_blob_sha_idx").on(table.sha),
+    index("github_blob_repoId_idx").on(table.repoId),
+    index("github_blob_userId_idx").on(table.userId),
+  ],
+)
+
 // GitHub PR Files (changed files in a PR)
 export const githubPrFile = pgTable(
   "github_pr_file",
@@ -503,7 +564,25 @@ export const githubRepoRelations = relations(githubRepo, ({ one, many }) => ({
     references: [githubOrganization.id],
   }),
   githubPullRequest: many(githubPullRequest),
+  githubRepoTree: many(githubRepoTree),
+  githubRepoBlob: many(githubRepoBlob),
   githubIssue: many(githubIssue),
+}))
+
+// Repo Tree relationships
+export const githubRepoTreeRelations = relations(githubRepoTree, ({ one }) => ({
+  githubRepo: one(githubRepo, {
+    fields: [githubRepoTree.repoId],
+    references: [githubRepo.id],
+  }),
+}))
+
+// Repo Blob relationships
+export const githubRepoBlobRelations = relations(githubRepoBlob, ({ one }) => ({
+  githubRepo: one(githubRepo, {
+    fields: [githubRepoBlob.repoId],
+    references: [githubRepo.id],
+  }),
 }))
 
 // Pull Request relationships - key for PR detail page

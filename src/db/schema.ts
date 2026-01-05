@@ -1347,6 +1347,139 @@ const githubRepoTable = {
   primaryKey: ["id"],
   serverName: "github_repo",
 } as const
+const githubRepoBlobTable = {
+  name: "githubRepoBlob",
+  columns: {
+    id: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    repoId: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+      serverName: "repo_id",
+    },
+    sha: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    content: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+    },
+    encoding: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+    },
+    size: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+    },
+    userId: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+      serverName: "user_id",
+    },
+    createdAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "created_at",
+    },
+    updatedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "updated_at",
+    },
+  },
+  primaryKey: ["id"],
+  serverName: "github_repo_blob",
+} as const
+const githubRepoTreeTable = {
+  name: "githubRepoTree",
+  columns: {
+    id: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    repoId: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+      serverName: "repo_id",
+    },
+    ref: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    path: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    name: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    type: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    sha: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    size: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+    },
+    url: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+    },
+    htmlUrl: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "html_url",
+    },
+    userId: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+      serverName: "user_id",
+    },
+    createdAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "created_at",
+    },
+    updatedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "updated_at",
+    },
+  },
+  primaryKey: ["id"],
+  serverName: "github_repo_tree",
+} as const
 const githubSyncStateTable = {
   name: "githubSyncState",
   columns: {
@@ -1600,6 +1733,16 @@ const githubPullRequestRelationships = {
     },
   ],
 } as const
+const githubRepoBlobRelationships = {
+  githubRepo: [
+    {
+      sourceField: ["repoId"],
+      destField: ["id"],
+      destSchema: "githubRepo",
+      cardinality: "one",
+    },
+  ],
+} as const
 const githubRepoRelationships = {
   githubOrganization: [
     {
@@ -1617,12 +1760,38 @@ const githubRepoRelationships = {
       cardinality: "many",
     },
   ],
+  githubRepoTree: [
+    {
+      sourceField: ["id"],
+      destField: ["repoId"],
+      destSchema: "githubRepoTree",
+      cardinality: "many",
+    },
+  ],
+  githubRepoBlob: [
+    {
+      sourceField: ["id"],
+      destField: ["repoId"],
+      destSchema: "githubRepoBlob",
+      cardinality: "many",
+    },
+  ],
   githubIssue: [
     {
       sourceField: ["id"],
       destField: ["repoId"],
       destSchema: "githubIssue",
       cardinality: "many",
+    },
+  ],
+} as const
+const githubRepoTreeRelationships = {
+  githubRepo: [
+    {
+      sourceField: ["repoId"],
+      destField: ["id"],
+      destSchema: "githubRepo",
+      cardinality: "one",
     },
   ],
 } as const
@@ -1646,6 +1815,8 @@ export const schema = {
     githubPrReview: githubPrReviewTable,
     githubPullRequest: githubPullRequestTable,
     githubRepo: githubRepoTable,
+    githubRepoBlob: githubRepoBlobTable,
+    githubRepoTree: githubRepoTreeTable,
     githubSyncState: githubSyncStateTable,
     user: userTable,
   },
@@ -1659,7 +1830,9 @@ export const schema = {
     githubPrFile: githubPrFileRelationships,
     githubPrReview: githubPrReviewRelationships,
     githubPullRequest: githubPullRequestRelationships,
+    githubRepoBlob: githubRepoBlobRelationships,
     githubRepo: githubRepoRelationships,
+    githubRepoTree: githubRepoTreeRelationships,
   },
   enableLegacyQueries: false,
   enableLegacyMutators: false,
@@ -1768,6 +1941,20 @@ export type GithubPullRequest = Row["githubPullRequest"]
  * @deprecated Use Row["githubRepo"] instead from "@rocicorp/zero".
  */
 export type GithubRepo = Row["githubRepo"]
+/**
+ * Represents a row from the "githubRepoBlob" table.
+ * This type is auto-generated from your Drizzle schema definition.
+ *
+ * @deprecated Use Row["githubRepoBlob"] instead from "@rocicorp/zero".
+ */
+export type GithubRepoBlob = Row["githubRepoBlob"]
+/**
+ * Represents a row from the "githubRepoTree" table.
+ * This type is auto-generated from your Drizzle schema definition.
+ *
+ * @deprecated Use Row["githubRepoTree"] instead from "@rocicorp/zero".
+ */
+export type GithubRepoTree = Row["githubRepoTree"]
 /**
  * Represents a row from the "githubSyncState" table.
  * This type is auto-generated from your Drizzle schema definition.

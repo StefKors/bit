@@ -1,4 +1,7 @@
 .content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   padding: 1rem 0;
 }
 
@@ -34,4 +37,32 @@
 
 .link:hover {
   text-decoration: underline;
+}
+
+/* README section */
+.readmeContainer {
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-lg);
+  overflow: hidden;
+}
+
+.readmeHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(var(--bit-rgb-surface-2), 0.5);
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(var(--bit-rgb-fg), 0.9);
+}
+
+.readmeContent {
+  padding: 1.5rem;
+}
+
+.readmeLoading {
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  font-size: 0.875rem;
 }

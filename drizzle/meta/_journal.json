@@ -15,6 +15,27 @@
       "when": 1766849503712,
       "tag": "0001_calm_stature",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766849503713,
+      "tag": "0002_github_pr_commits",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1766850000000,
+      "tag": "0003_github_repo_tree_blob",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1766850100000,
+      "tag": "0004_github_issues",
+      "breakpoints": true
     }
   ]
 }

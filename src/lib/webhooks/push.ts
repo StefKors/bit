@@ -8,6 +8,7 @@ import { findUserBySender, ensureRepoFromWebhook } from "./utils"
  *
  * Updates the repository's githubPushedAt timestamp to reflect recent activity.
  * Also syncs commits to any open PRs whose head branch matches the pushed ref.
+ * Invalidates cached tree data for the pushed ref so it's re-fetched on next view.
  *
  * Auto-tracking behavior:
  * - If repo is already tracked by users → updates githubPushedAt for all tracking users
@@ -63,12 +64,33 @@ export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) 
   const branch = ref.replace("refs/heads/", "").replace("refs/tags/", "")
   const commits = pushPayload.commits ?? []
 
+  // Invalidate cached tree data for the pushed ref
+  // This ensures the tree is re-fetched on next view with fresh data
+  await invalidateTreeCache(db, repoRecords, branch)
+
   // Sync commits to any open PRs on this branch
   if (commits.length > 0) {
     await syncCommitsToPRs(db, repoRecords, branch, commits)
   }
 
   console.log(`Processed push event for ${repoFullName}: ${commits.length} commit(s) to ${branch}`)
+}
+
+/**
+ * Invalidate cached tree data for a specific branch.
+ * Deletes existing tree entries so they're re-fetched from GitHub on next view.
+ */
+async function invalidateTreeCache(db: WebhookDB, repoRecords: RepoRecord[], branch: string) {
+  for (const repoRecord of repoRecords) {
+    await db
+      .delete(dbSchema.githubRepoTree)
+      .where(
+        and(
+          eq(dbSchema.githubRepoTree.repoId, repoRecord.id),
+          eq(dbSchema.githubRepoTree.ref, branch),
+        ),
+      )
+  }
 }
 
 /**
@@ -98,6 +120,7 @@ async function syncCommitsToPRs(
     // Insert commits for each matching PR
     for (const pr of matchingPRs) {
       for (const commit of commits) {
+        const now = new Date()
         const commitData = {
           id: `${pr.id}:${commit.id}`,
           pullRequestId: pr.id,
@@ -114,8 +137,8 @@ async function syncCommitsToPRs(
           htmlUrl: commit.url,
           committedAt: commit.timestamp ? new Date(commit.timestamp) : null,
           userId: repoRecord.userId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: now,
+          updatedAt: now,
         }
 
         await db
