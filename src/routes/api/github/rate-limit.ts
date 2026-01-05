@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { Pool } from "pg"
-import { auth } from "../auth/-auth"
-import { createGitHubClient } from "./-client"
+import { auth } from "@/lib/auth-server"
+import { createGitHubClient } from "@/lib/github-client"
 
 const pool = new Pool({
   connectionString: process.env.ZERO_UPSTREAM_DB,

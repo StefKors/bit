@@ -5,7 +5,7 @@ import { handleMutateRequest } from "@rocicorp/zero/server"
 import { zeroNodePg } from "@rocicorp/zero/server/adapters/pg"
 import { mutators } from "@/db/mutators"
 import { schema } from "@/db/schema"
-import { auth } from "../auth/-auth"
+import { auth } from "@/lib/auth-server"
 import type { AuthData } from "@/db/types"
 
 const pool = new Pool({

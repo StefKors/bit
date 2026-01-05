@@ -3,7 +3,7 @@ import { mustGetQuery } from "@rocicorp/zero"
 import { handleQueryRequest } from "@rocicorp/zero/server"
 import { queries } from "@/db/queries"
 import { schema } from "@/db/schema"
-import { auth } from "../auth/-auth"
+import { auth } from "@/lib/auth-server"
 import type { AuthData } from "@/db/types"
 
 const getAuthContext = async (request: Request): Promise<AuthData> => {

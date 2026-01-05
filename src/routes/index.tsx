@@ -25,8 +25,13 @@ function OverviewPage() {
 
   const orgs = repos
     .map((repo) => repo.githubOrganization)
-    .filter((org): org is NonNullable<typeof org> => org !== null && org !== undefined)
-    .filter((org, index, self) => self.findIndex((o) => o.id === org.id) === index)
+    .filter(
+      (org): org is NonNullable<typeof org> =>
+        org !== null && org !== undefined,
+    )
+    .filter(
+      (org, index, self) => self.findIndex((o) => o.id === org.id) === index,
+    )
 
   const currentUserLogin = session?.user?.name
 
@@ -69,7 +74,7 @@ function OverviewPage() {
   }
 
   if (!session) {
-    return null
+    return <div>Loading...</div>
   }
 
   const rateLimitLow = rateLimit && rateLimit.remaining < 100
@@ -84,7 +89,9 @@ function OverviewPage() {
 
         <div className={styles.headerActions}>
           {rateLimit && (
-            <div className={`${styles.rateLimit} ${rateLimitLow ? styles.rateLimitLow : ""}`}>
+            <div
+              className={`${styles.rateLimit} ${rateLimitLow ? styles.rateLimitLow : ""}`}
+            >
               <ClockIcon className={styles.buttonIcon} size={16} />
               {rateLimit.remaining}/{rateLimit.limit} requests
             </div>
@@ -123,7 +130,11 @@ function OverviewPage() {
         </div>
       )}
 
-      <RepoSection repos={repos} orgs={orgs} currentUserLogin={currentUserLogin} />
+      <RepoSection
+        repos={repos}
+        orgs={orgs}
+        currentUserLogin={currentUserLogin}
+      />
     </div>
   )
 }

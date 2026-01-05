@@ -1,6 +1,7 @@
 import { defineConfig } from "vite"
 import path from "path"
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
+import viteReact from "@vitejs/plugin-react"
 import viteTsConfigPaths from "vite-tsconfig-paths"
 
 export default defineConfig({
@@ -21,11 +22,7 @@ export default defineConfig({
     viteTsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
-    tanstackStart({
-      ssr: {
-        entry: "./src/entry.server.tsx",
-      },
-    }),
+    tanstackStart(),
+    viteReact(),
   ],
 })
-

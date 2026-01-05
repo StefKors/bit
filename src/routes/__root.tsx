@@ -1,4 +1,11 @@
-import { createRootRoute, Outlet } from "@tanstack/react-router"
+/// <reference types="vite/client" />
+import type { ReactNode } from "react"
+import {
+  createRootRoute,
+  Outlet,
+  HeadContent,
+  Scripts,
+} from "@tanstack/react-router"
 import { ZeroProvider } from "@rocicorp/zero/react"
 import { useState } from "react"
 import { mutators } from "@/db/mutators"
@@ -8,10 +15,48 @@ import { Layout } from "@/layout"
 import { LoadingCube } from "@/components/LoadingCube"
 import LoginPage from "@/pages/LoginPage"
 import { authClient } from "@/lib/auth"
+import "@/theme.css"
+import "@/index.css"
 
 const cacheURL = import.meta.env.VITE_PUBLIC_ZERO_CACHE_URL as string
 
+export const Route = createRootRoute({
+  head: () => ({
+    meta: [
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "Bit" },
+    ],
+    links: [
+      { rel: "icon", type: "image/png", href: "/public/bit-cube-small.png" },
+    ],
+  }),
+  component: RootComponent,
+})
+
 function RootComponent() {
+  return (
+    <RootDocument>
+      <AppContent />
+    </RootDocument>
+  )
+}
+
+function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
+  return (
+    <html lang="en">
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        {children}
+        <Scripts />
+      </body>
+    </html>
+  )
+}
+
+function AppContent() {
   const { data: session, isPending } = authClient.useSession()
   const [forceReload, setForceReload] = useState(0)
 
@@ -52,7 +97,3 @@ function RootComponent() {
     </ZeroProvider>
   )
 }
-
-export const Route = createRootRoute({
-  component: RootComponent,
-})
