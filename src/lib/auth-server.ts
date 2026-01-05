@@ -33,6 +33,12 @@ export const auth = betterAuth({
       // - read:user: basic user profile info
       // - user:email: access user's email addresses
       scope: ["read:org", "repo", "read:user", "user:email"],
+      // Map GitHub login (username) to name field so queries can match authorLogin
+      mapProfileToUser: (profile) => ({
+        name: profile.login, // Use GitHub username instead of display name
+      }),
+      // Update user info on every sign in (so existing users get the username mapping)
+      overrideUserInfoOnSignIn: true,
     },
   },
 })
