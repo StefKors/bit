@@ -27,6 +27,22 @@
   - Add Drizzle `relations(...)` in the root `schema.ts`, then regenerate: `npm run generate-zero-schema`.
 - Prefer `.one()` for detail pages (repo detail, PR detail) and do ordering/filtering inside the query.
 
+## Database Defaults
+
+**Do NOT use Drizzle database defaults with Zero.** This includes:
+
+- `.default()` - e.g., `.default(false)`, `.default(0)`
+- `.defaultNow()` - for timestamps
+- `.$onUpdate()` - auto-update triggers
+
+**Why**: Zero mutations run locally first before the server replays them. The local database doesn't know about Postgres defaults, so fields would be `null`/`undefined` until the server fills them in.
+
+**Solution**: Set all values explicitly in mutators and sync code. The sync endpoints and webhook handlers must provide every value when inserting/upserting rows.
+
+See: https://github.com/rocicorp/drizzle-zero/issues/197
+
+## Mutators
+
 - Mutators live in `src/db/mutators.ts`.
   - Define with `defineMutators(...)` + `defineMutator(...)` and validate args with Zod.
   - Write using `tx.mutate.<table>.<insert|upsert|update|delete>(...)` and use `ctx.userID` for authz.
