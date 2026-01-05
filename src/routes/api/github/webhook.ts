@@ -8,6 +8,10 @@ import {
   handlePullRequestReviewWebhook,
   handleCommentWebhook,
   handlePushWebhook,
+  handleRepositoryWebhook,
+  handleStarWebhook,
+  handleForkWebhook,
+  handleOrganizationWebhook,
 } from "@/lib/webhooks"
 import type { WebhookEventName } from "@/lib/webhooks"
 
@@ -121,9 +125,8 @@ export const Route = createFileRoute("/api/github/webhook")({
             }
 
             case "fork": {
-              // Stub: Triggered when a repository is forked
-              // Future: Could track forks for contribution workflows
-              console.log(`Stub: fork event - repo forked`)
+              // Implemented: Updates fork count, auto-tracks forked repo for sender
+              await handleForkWebhook(db, payload)
               break
             }
 
@@ -134,8 +137,8 @@ export const Route = createFileRoute("/api/github/webhook")({
             }
 
             case "repository": {
-              // Stub: Triggered on repository actions (created, deleted, archived, etc.)
-              console.log(`Stub: repository event - action: ${getAction(payload)}`)
+              // Implemented: Syncs repo metadata updates (name, description, visibility, etc.)
+              await handleRepositoryWebhook(db, payload)
               break
             }
 
@@ -333,8 +336,8 @@ export const Route = createFileRoute("/api/github/webhook")({
             }
 
             case "organization": {
-              // Stub: Triggered on organization actions
-              console.log(`Stub: organization event - action: ${getAction(payload)}`)
+              // Implemented: Syncs org metadata updates (name, description, etc.)
+              await handleOrganizationWebhook(db, payload)
               break
             }
 
@@ -472,9 +475,8 @@ export const Route = createFileRoute("/api/github/webhook")({
             }
 
             case "star": {
-              // Stub: Triggered when a repository is starred/unstarred
-              // Future: Could track star counts
-              console.log(`Stub: star event - action: ${getAction(payload)}`)
+              // Implemented: Updates stargazers count on repos
+              await handleStarWebhook(db, payload)
               break
             }
 

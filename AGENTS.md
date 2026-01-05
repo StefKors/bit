@@ -123,6 +123,10 @@ The webhook handler has stubs for **all GitHub webhook events**. Events are cate
 | `pull_request_review_comment` | `comment.ts`             | Inline diff comments                                         |
 | `issue_comment`               | `comment.ts`             | PR conversation comments                                     |
 | `push`                        | `push.ts`                | Updates `githubPushedAt` on repos, syncs commits to open PRs |
+| `repository`                  | `repository.ts`          | Repo created/deleted/archived/edited, syncs metadata         |
+| `star`                        | `repository.ts`          | Updates `stargazersCount` on repos                           |
+| `fork`                        | `repository.ts`          | Updates `forksCount`, auto-tracks forked repos               |
+| `organization`                | `organization.ts`        | Org renamed/deleted, syncs metadata                          |
 | `ping`                        | (inline)                 | Webhook configuration test                                   |
 
 ### Stubbed - Implement When Adding Features
@@ -188,14 +192,16 @@ async function handleSomeWebhook(
 
 ### Mapping features to webhook events
 
-| Feature     | Events to Implement                       |
-| ----------- | ----------------------------------------- |
-| Issues      | `issues`                                  |
-| CI Status   | `check_run`, `check_suite`, `status`      |
-| Releases    | `release`                                 |
-| Discussions | `discussion`, `discussion_comment`        |
-| Security    | `code_scanning_alert`, `dependabot_alert` |
-| Stars/Forks | `star`, `fork`                            |
+| Feature     | Events to Implement                       | Status  |
+| ----------- | ----------------------------------------- | ------- |
+| Stars/Forks | `star`, `fork`                            | ✓ Done  |
+| Repo Sync   | `repository`                              | ✓ Done  |
+| Org Sync    | `organization`                            | ✓ Done  |
+| Issues      | `issues`                                  | Stubbed |
+| CI Status   | `check_run`, `check_suite`, `status`      | Stubbed |
+| Releases    | `release`                                 | Stubbed |
+| Discussions | `discussion`, `discussion_comment`        | Stubbed |
+| Security    | `code_scanning_alert`, `dependabot_alert` | Stubbed |
 
 ## Environment variables
 

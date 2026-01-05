@@ -70,7 +70,9 @@ const OwnerPage = () => {
                   className={`${styles.avatar} ${isOrg ? styles.avatarOrg : ""}`}
                 />
               ) : (
-                <div className={`${styles.avatarPlaceholder} ${isOrg ? styles.avatarPlaceholderOrg : ""}`}>
+                <div
+                  className={`${styles.avatarPlaceholder} ${isOrg ? styles.avatarPlaceholderOrg : ""}`}
+                >
                   {isOrg ? <OrganizationIcon /> : <PersonIcon />}
                 </div>
               )}
@@ -114,7 +116,9 @@ const OwnerPage = () => {
                 className={`${styles.avatar} ${isOrg ? styles.avatarOrg : ""}`}
               />
             ) : (
-              <div className={`${styles.avatarPlaceholder} ${isOrg ? styles.avatarPlaceholderOrg : ""}`}>
+              <div
+                className={`${styles.avatarPlaceholder} ${isOrg ? styles.avatarPlaceholderOrg : ""}`}
+              >
                 {isOrg ? <OrganizationIcon /> : <PersonIcon />}
               </div>
             )}
@@ -195,9 +199,7 @@ interface RepoListItemProps {
 }
 
 const RepoListItem = ({ repo }: RepoListItemProps) => {
-  const updatedAt = repo.githubUpdatedAt
-    ? formatRelativeTime(new Date(repo.githubUpdatedAt))
-    : null
+  const updatedAt = repo.githubUpdatedAt ? formatRelativeTime(new Date(repo.githubUpdatedAt)) : null
 
   return (
     <Link
@@ -213,9 +215,7 @@ const RepoListItem = ({ repo }: RepoListItemProps) => {
           </span>
         )}
       </div>
-      {repo.description && (
-        <p className={styles.repoItemDescription}>{repo.description}</p>
-      )}
+      {repo.description && <p className={styles.repoItemDescription}>{repo.description}</p>}
       <div className={styles.repoItemMeta}>
         {repo.language && (
           <span className={styles.repoItemStat}>
@@ -240,9 +240,7 @@ const RepoListItem = ({ repo }: RepoListItemProps) => {
             {repo.forksCount}
           </span>
         )}
-        {updatedAt && (
-          <span className={styles.repoItemStat}>Updated {updatedAt}</span>
-        )}
+        {updatedAt && <span className={styles.repoItemStat}>Updated {updatedAt}</span>}
       </div>
     </Link>
   )
