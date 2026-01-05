@@ -1,11 +1,6 @@
 /// <reference types="vite/client" />
 import type { ReactNode } from "react"
-import {
-  createRootRoute,
-  Outlet,
-  HeadContent,
-  Scripts,
-} from "@tanstack/react-router"
+import { createRootRoute, Outlet, HeadContent, Scripts } from "@tanstack/react-router"
 import { ZeroProvider } from "@rocicorp/zero/react"
 import { useState } from "react"
 import { mutators } from "@/db/mutators"
@@ -27,9 +22,7 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Bit" },
     ],
-    links: [
-      { rel: "icon", type: "image/png", href: "/public/bit-cube-small.png" },
-    ],
+    links: [{ rel: "icon", type: "image/png", href: "/public/bit-cube-small.png" }],
   }),
   component: RootComponent,
 })
