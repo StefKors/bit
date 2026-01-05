@@ -40,6 +40,30 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo")({
           })
         } catch (error) {
           console.error("Error syncing pull requests:", error)
+
+          // Handle GitHub API errors with specific status codes
+          if (error && typeof error === "object" && "status" in error) {
+            const status = (error as { status: number }).status
+            if (status === 404) {
+              return jsonResponse(
+                {
+                  error: "Repository not found",
+                  details: `Could not find ${owner}/${repo}. It may not exist, be private, or your GitHub token may not have access.`,
+                },
+                404,
+              )
+            }
+            if (status === 403) {
+              return jsonResponse(
+                {
+                  error: "Access denied",
+                  details: "Rate limit exceeded or insufficient permissions to access this repository.",
+                },
+                403,
+              )
+            }
+          }
+
           return jsonResponse(
             {
               error: "Failed to sync pull requests",
