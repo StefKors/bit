@@ -129,8 +129,10 @@
 
 .eventLabel .eventIcon {
   background:
-    linear-gradient(rgba(var(--bit-rgb-accent-purple), 0.15),
-      rgba(var(--bit-rgb-accent-purple), 0.15)),
+    linear-gradient(
+      rgba(var(--bit-rgb-accent-purple), 0.15),
+      rgba(var(--bit-rgb-accent-purple), 0.15)
+    ),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-purple);
 }
@@ -144,16 +146,20 @@
 
 .eventReviewRequest .eventIcon {
   background:
-    linear-gradient(rgba(var(--bit-rgb-accent-orange), 0.15),
-      rgba(var(--bit-rgb-accent-orange), 0.15)),
+    linear-gradient(
+      rgba(var(--bit-rgb-accent-orange), 0.15),
+      rgba(var(--bit-rgb-accent-orange), 0.15)
+    ),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-orange);
 }
 
 .eventMerged .eventIcon {
   background:
-    linear-gradient(rgba(var(--bit-rgb-accent-purple), 0.2),
-      rgba(var(--bit-rgb-accent-purple), 0.2)),
+    linear-gradient(
+      rgba(var(--bit-rgb-accent-purple), 0.2),
+      rgba(var(--bit-rgb-accent-purple), 0.2)
+    ),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-purple);
 }
@@ -167,8 +173,10 @@
 
 .eventReopened .eventIcon {
   background:
-    linear-gradient(rgba(var(--bit-rgb-accent-green-bright), 0.15),
-      rgba(var(--bit-rgb-accent-green-bright), 0.15)),
+    linear-gradient(
+      rgba(var(--bit-rgb-accent-green-bright), 0.15),
+      rgba(var(--bit-rgb-accent-green-bright), 0.15)
+    ),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-green-bright);
 }
@@ -196,8 +204,10 @@
 
 .eventReadyForReview .eventIcon {
   background:
-    linear-gradient(rgba(var(--bit-rgb-accent-green-bright), 0.15),
-      rgba(var(--bit-rgb-accent-green-bright), 0.15)),
+    linear-gradient(
+      rgba(var(--bit-rgb-accent-green-bright), 0.15),
+      rgba(var(--bit-rgb-accent-green-bright), 0.15)
+    ),
     rgb(var(--bit-rgb-surface-2));
   color: var(--bit-color-accent-green-bright);
 }

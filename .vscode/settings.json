@@ -26,6 +26,6 @@
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[css]": {
-    "editor.defaultFormatter": "vscode.css-language-features"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   }
 }
