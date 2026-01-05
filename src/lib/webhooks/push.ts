@@ -62,8 +62,5 @@ export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) 
   const branch = ref.replace("refs/heads/", "").replace("refs/tags/", "")
   const commitCount = pushPayload.commits?.length ?? 0
 
-  console.log(
-    `Processed push event for ${repoFullName}: ${commitCount} commit(s) to ${branch}`,
-  )
+  console.log(`Processed push event for ${repoFullName}: ${commitCount} commit(s) to ${branch}`)
 }
-

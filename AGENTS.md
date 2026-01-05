@@ -109,29 +109,34 @@ The route handler at `src/routes/api/github/webhook.ts` receives webhooks, verif
 The webhook handler has stubs for **all GitHub webhook events**. Events are categorized as:
 
 ### Fully Implemented
-| Event | Handler | Description |
-|-------|---------|-------------|
-| `pull_request` | `pull-request.ts` | PR opened/closed/updated/merged |
-| `pull_request_review` | `pull-request-review.ts` | Review submitted/dismissed |
-| `pull_request_review_comment` | `comment.ts` | Inline diff comments |
-| `issue_comment` | `comment.ts` | PR conversation comments |
-| `push` | `push.ts` | Updates `githubPushedAt` on repos |
-| `ping` | (inline) | Webhook configuration test |
+
+| Event                         | Handler                  | Description                       |
+| ----------------------------- | ------------------------ | --------------------------------- |
+| `pull_request`                | `pull-request.ts`        | PR opened/closed/updated/merged   |
+| `pull_request_review`         | `pull-request-review.ts` | Review submitted/dismissed        |
+| `pull_request_review_comment` | `comment.ts`             | Inline diff comments              |
+| `issue_comment`               | `comment.ts`             | PR conversation comments          |
+| `push`                        | `push.ts`                | Updates `githubPushedAt` on repos |
+| `ping`                        | (inline)                 | Webhook configuration test        |
 
 ### Stubbed - Implement When Adding Features
 
 **Issues Feature** (implement when issues tab is built):
+
 - `issues` - Issue opened/closed/labeled/assigned
 
 **CI/CD Feature** (implement for PR status checks):
+
 - `check_run`, `check_suite` - CI check status
 - `status` - Commit status
 - `workflow_run`, `workflow_job` - GitHub Actions
 
 **Security Dashboard Feature**:
+
 - `code_scanning_alert`, `dependabot_alert`, `secret_scanning_alert`
 
 **Releases Feature**:
+
 - `release` - Release published/edited
 
 **Full event list**: See the switch statement in `src/routes/api/github/webhook.ts`
@@ -177,14 +182,14 @@ async function handleSomeWebhook(
 
 ### Mapping features to webhook events
 
-| Feature | Events to Implement |
-|---------|-------------------|
-| Issues | `issues` |
-| CI Status | `check_run`, `check_suite`, `status` |
-| Releases | `release` |
-| Discussions | `discussion`, `discussion_comment` |
-| Security | `code_scanning_alert`, `dependabot_alert` |
-| Stars/Forks | `star`, `fork` |
+| Feature     | Events to Implement                       |
+| ----------- | ----------------------------------------- |
+| Issues      | `issues`                                  |
+| CI Status   | `check_run`, `check_suite`, `status`      |
+| Releases    | `release`                                 |
+| Discussions | `discussion`, `discussion_comment`        |
+| Security    | `code_scanning_alert`, `dependabot_alert` |
+| Stars/Forks | `star`, `fork`                            |
 
 ## Environment variables
 

@@ -88,4 +88,3 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
 
   console.log(`Processed pull_request_review for PR #${pr.number as number}`)
 }
-

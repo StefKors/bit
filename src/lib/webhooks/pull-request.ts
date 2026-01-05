@@ -122,4 +122,3 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
 
   console.log(`Processed pull_request.${action} for ${repoFullName}#${pr.number as number}`)
 }
-

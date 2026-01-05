@@ -101,4 +101,3 @@ export async function handleCommentWebhook(
 
   console.log(`Processed ${eventType} for PR`)
 }
-
