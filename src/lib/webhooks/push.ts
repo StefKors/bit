@@ -120,6 +120,7 @@ async function syncCommitsToPRs(
     // Insert commits for each matching PR
     for (const pr of matchingPRs) {
       for (const commit of commits) {
+        const now = new Date()
         const commitData = {
           id: `${pr.id}:${commit.id}`,
           pullRequestId: pr.id,
@@ -136,6 +137,8 @@ async function syncCommitsToPRs(
           htmlUrl: commit.url,
           committedAt: commit.timestamp ? new Date(commit.timestamp) : null,
           userId: repoRecord.userId,
+          createdAt: now,
+          updatedAt: now,
         }
 
         await db

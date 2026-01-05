@@ -45,6 +45,7 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
   }
 
   for (const repoRecord of repoRecords) {
+    const now = new Date()
     const prData = {
       id: prNodeId,
       githubId: pr.id as number,
@@ -82,7 +83,9 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
       closedAt: pr.closed_at ? new Date(pr.closed_at as string) : null,
       mergedAt: pr.merged_at ? new Date(pr.merged_at as string) : null,
       userId: repoRecord.userId,
-      syncedAt: new Date(),
+      syncedAt: now,
+      createdAt: now,
+      updatedAt: now,
     }
 
     if (action === "closed" && pr.merged) {
