@@ -5,19 +5,20 @@ import { relations } from "drizzle-orm"
 // Drizzle Schema
 // Used by: Better Auth, drizzle-kit, drizzle-zero
 // Generate Zero schema: bun run generate-zero-schema
+//
+// NOTE: Database defaults are NOT used because Zero runs mutations locally
+// first. All values must be set explicitly in mutators/sync code.
+// See: https://github.com/rocicorp/drizzle-zero/issues/197
 // =============================================================================
 
 export const authUser = pgTable("auth_user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: boolean("email_verified").default(false).notNull(),
+  emailVerified: boolean("email_verified").notNull(),
   image: text("image"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
 })
 
 export const authSession = pgTable(
@@ -26,10 +27,8 @@ export const authSession = pgTable(
     id: text("id").primaryKey(),
     expiresAt: timestamp("expires_at").notNull(),
     token: text("token").notNull().unique(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .$onUpdate(() => new Date())
-      .notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
     userId: text("user_id")
@@ -55,10 +54,8 @@ export const authAccount = pgTable(
     refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
     scope: text("scope"),
     password: text("password"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .$onUpdate(() => new Date())
-      .notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [index("auth_account_userId_idx").on(table.userId)],
 )
@@ -70,11 +67,8 @@ export const authVerification = pgTable(
     identifier: text("identifier").notNull(),
     value: text("value").notNull(),
     expiresAt: timestamp("expires_at").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [index("auth_verification_identifier_idx").on(table.identifier)],
 )
@@ -107,12 +101,9 @@ export const githubOrganization = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => authUser.id, { onDelete: "cascade" }),
-    syncedAt: timestamp("synced_at").defaultNow().notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    syncedAt: timestamp("synced_at").notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [
     index("github_org_userId_idx").on(table.userId),
@@ -132,13 +123,13 @@ export const githubRepo = pgTable(
     description: text("description"),
     url: text("url"),
     htmlUrl: text("html_url"),
-    private: boolean("private").default(false).notNull(),
-    fork: boolean("fork").default(false).notNull(),
-    defaultBranch: text("default_branch").default("main"),
+    private: boolean("private").notNull(),
+    fork: boolean("fork").notNull(),
+    defaultBranch: text("default_branch"),
     language: text("language"),
-    stargazersCount: integer("stargazers_count").default(0),
-    forksCount: integer("forks_count").default(0),
-    openIssuesCount: integer("open_issues_count").default(0),
+    stargazersCount: integer("stargazers_count"),
+    forksCount: integer("forks_count"),
+    openIssuesCount: integer("open_issues_count"),
     organizationId: text("organization_id").references(() => githubOrganization.id, {
       onDelete: "set null",
     }),
@@ -150,12 +141,9 @@ export const githubRepo = pgTable(
     githubUpdatedAt: timestamp("github_updated_at"),
     githubPushedAt: timestamp("github_pushed_at"),
     // Internal timestamps
-    syncedAt: timestamp("synced_at").defaultNow().notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    syncedAt: timestamp("synced_at").notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [
     index("github_repo_userId_idx").on(table.userId),
@@ -177,8 +165,8 @@ export const githubPullRequest = pgTable(
     title: text("title").notNull(),
     body: text("body"),
     state: text("state").notNull(), // open, closed
-    draft: boolean("draft").default(false).notNull(),
-    merged: boolean("merged").default(false).notNull(),
+    draft: boolean("draft").notNull(),
+    merged: boolean("merged").notNull(),
     mergeable: boolean("mergeable"),
     mergeableState: text("mergeable_state"),
     // Author info
@@ -193,12 +181,12 @@ export const githubPullRequest = pgTable(
     htmlUrl: text("html_url"),
     diffUrl: text("diff_url"),
     // Stats
-    additions: integer("additions").default(0),
-    deletions: integer("deletions").default(0),
-    changedFiles: integer("changed_files").default(0),
-    commits: integer("commits").default(0),
-    comments: integer("comments").default(0),
-    reviewComments: integer("review_comments").default(0),
+    additions: integer("additions"),
+    deletions: integer("deletions"),
+    changedFiles: integer("changed_files"),
+    commits: integer("commits"),
+    comments: integer("comments"),
+    reviewComments: integer("review_comments"),
     // Labels (stored as JSON string)
     labels: text("labels"),
     // Dashboard tracking: JSON array of user logins who requested review
@@ -211,12 +199,9 @@ export const githubPullRequest = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => authUser.id, { onDelete: "cascade" }),
-    syncedAt: timestamp("synced_at").defaultNow().notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    syncedAt: timestamp("synced_at").notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [
     index("github_pr_repoId_idx").on(table.repoId),
@@ -244,11 +229,8 @@ export const githubPrReview = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => authUser.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [
     index("github_review_prId_idx").on(table.pullRequestId),
@@ -282,11 +264,8 @@ export const githubPrComment = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => authUser.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [
     index("github_comment_prId_idx").on(table.pullRequestId),
@@ -319,11 +298,8 @@ export const githubPrCommit = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => authUser.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [
     index("github_commit_prId_idx").on(table.pullRequestId),
@@ -342,14 +318,91 @@ export const githubPrFile = pgTable(
     sha: text("sha").notNull(),
     filename: text("filename").notNull(),
     status: text("status").notNull(), // added, removed, modified, renamed, copied, changed
-    additions: integer("additions").default(0),
-    deletions: integer("deletions").default(0),
-    changes: integer("changes").default(0),
+    additions: integer("additions"),
+    deletions: integer("deletions"),
+    changes: integer("changes"),
     patch: text("patch"), // The diff patch
     previousFilename: text("previous_filename"), // For renamed files
     blobUrl: text("blob_url"),
     rawUrl: text("raw_url"),
     contentsUrl: text("contents_url"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
+  },
+  (table) => [
+    index("github_file_prId_idx").on(table.pullRequestId),
+    index("github_file_userId_idx").on(table.userId),
+  ],
+)
+
+// GitHub Issues
+export const githubIssue = pgTable(
+  "github_issue",
+  {
+    id: text("id").primaryKey(), // GitHub node_id
+    githubId: bigint("github_id", { mode: "number" }).notNull(),
+    number: integer("number").notNull(),
+    repoId: text("repo_id")
+      .notNull()
+      .references(() => githubRepo.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    body: text("body"),
+    state: text("state").notNull(), // open, closed
+    stateReason: text("state_reason"), // completed, not_planned, reopened
+    // Author info
+    authorLogin: text("author_login"),
+    authorAvatarUrl: text("author_avatar_url"),
+    // URLs
+    htmlUrl: text("html_url"),
+    // Stats
+    comments: integer("comments").default(0),
+    // Labels (stored as JSON string)
+    labels: text("labels"),
+    // Assignees (stored as JSON string)
+    assignees: text("assignees"),
+    // Milestone
+    milestone: text("milestone"),
+    // Timestamps
+    githubCreatedAt: timestamp("github_created_at"),
+    githubUpdatedAt: timestamp("github_updated_at"),
+    closedAt: timestamp("closed_at"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "cascade" }),
+    syncedAt: timestamp("synced_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("github_issue_repoId_idx").on(table.repoId),
+    index("github_issue_userId_idx").on(table.userId),
+    index("github_issue_state_idx").on(table.state),
+    index("github_issue_number_idx").on(table.repoId, table.number),
+  ],
+)
+
+// GitHub Issue Comments
+export const githubIssueComment = pgTable(
+  "github_issue_comment",
+  {
+    id: text("id").primaryKey(), // GitHub node_id
+    githubId: bigint("github_id", { mode: "number" }).notNull(),
+    issueId: text("issue_id")
+      .notNull()
+      .references(() => githubIssue.id, { onDelete: "cascade" }),
+    body: text("body"),
+    authorLogin: text("author_login"),
+    authorAvatarUrl: text("author_avatar_url"),
+    htmlUrl: text("html_url"),
+    // Timestamps
+    githubCreatedAt: timestamp("github_created_at"),
+    githubUpdatedAt: timestamp("github_updated_at"),
     userId: text("user_id")
       .notNull()
       .references(() => authUser.id, { onDelete: "cascade" }),
@@ -360,8 +413,8 @@ export const githubPrFile = pgTable(
       .notNull(),
   },
   (table) => [
-    index("github_file_prId_idx").on(table.pullRequestId),
-    index("github_file_userId_idx").on(table.userId),
+    index("github_issue_comment_issueId_idx").on(table.issueId),
+    index("github_issue_comment_userId_idx").on(table.userId),
   ],
 )
 
@@ -423,13 +476,10 @@ export const githubSyncState = pgTable(
     rateLimitRemaining: integer("rate_limit_remaining"),
     rateLimitReset: timestamp("rate_limit_reset"),
     // Sync status
-    syncStatus: text("sync_status").default("idle"), // idle, syncing, error
+    syncStatus: text("sync_status"), // idle, syncing, error
     syncError: text("sync_error"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [
     index("github_sync_userId_idx").on(table.userId),
@@ -453,6 +503,7 @@ export const githubRepoRelations = relations(githubRepo, ({ one, many }) => ({
     references: [githubOrganization.id],
   }),
   githubPullRequest: many(githubPullRequest),
+  githubIssue: many(githubIssue),
 }))
 
 // Pull Request relationships - key for PR detail page
@@ -510,5 +561,22 @@ export const githubPrEventRelations = relations(githubPrEvent, ({ one }) => ({
   githubPullRequest: one(githubPullRequest, {
     fields: [githubPrEvent.pullRequestId],
     references: [githubPullRequest.id],
+  }),
+}))
+
+// Issue relationships
+export const githubIssueRelations = relations(githubIssue, ({ one, many }) => ({
+  githubRepo: one(githubRepo, {
+    fields: [githubIssue.repoId],
+    references: [githubRepo.id],
+  }),
+  githubIssueComment: many(githubIssueComment),
+}))
+
+// Issue Comment relationships
+export const githubIssueCommentRelations = relations(githubIssueComment, ({ one }) => ({
+  githubIssue: one(githubIssue, {
+    fields: [githubIssueComment.issueId],
+    references: [githubIssue.id],
   }),
 }))

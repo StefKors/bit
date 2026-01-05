@@ -72,13 +72,13 @@ const authAccountTable = {
     },
     createdAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "created_at",
     },
     updatedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "updated_at",
     },
@@ -107,13 +107,13 @@ const authSessionTable = {
     },
     createdAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "created_at",
     },
     updatedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "updated_at",
     },
@@ -159,7 +159,7 @@ const authUserTable = {
     },
     emailVerified: {
       type: "boolean",
-      optional: true,
+      optional: false,
       customType: null as unknown as boolean,
       serverName: "email_verified",
     },
@@ -170,13 +170,13 @@ const authUserTable = {
     },
     createdAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "created_at",
     },
     updatedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "updated_at",
     },
@@ -210,6 +210,136 @@ const authVerificationTable = {
     },
     createdAt: {
       type: "number",
+      optional: false,
+      customType: null as unknown as number,
+      serverName: "created_at",
+    },
+    updatedAt: {
+      type: "number",
+      optional: false,
+      customType: null as unknown as number,
+      serverName: "updated_at",
+    },
+  },
+  primaryKey: ["id"],
+  serverName: "auth_verification",
+} as const
+const githubIssueTable = {
+  name: "githubIssue",
+  columns: {
+    id: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    githubId: {
+      type: "number",
+      optional: false,
+      customType: null as unknown as number,
+      serverName: "github_id",
+    },
+    number: {
+      type: "number",
+      optional: false,
+      customType: null as unknown as number,
+    },
+    repoId: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+      serverName: "repo_id",
+    },
+    title: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    body: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+    },
+    state: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    stateReason: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "state_reason",
+    },
+    authorLogin: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "author_login",
+    },
+    authorAvatarUrl: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "author_avatar_url",
+    },
+    htmlUrl: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "html_url",
+    },
+    comments: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+    },
+    labels: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+    },
+    assignees: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+    },
+    milestone: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+    },
+    githubCreatedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "github_created_at",
+    },
+    githubUpdatedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "github_updated_at",
+    },
+    closedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "closed_at",
+    },
+    userId: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+      serverName: "user_id",
+    },
+    syncedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "synced_at",
+    },
+    createdAt: {
+      type: "number",
       optional: true,
       customType: null as unknown as number,
       serverName: "created_at",
@@ -222,7 +352,84 @@ const authVerificationTable = {
     },
   },
   primaryKey: ["id"],
-  serverName: "auth_verification",
+  serverName: "github_issue",
+} as const
+const githubIssueCommentTable = {
+  name: "githubIssueComment",
+  columns: {
+    id: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+    },
+    githubId: {
+      type: "number",
+      optional: false,
+      customType: null as unknown as number,
+      serverName: "github_id",
+    },
+    issueId: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+      serverName: "issue_id",
+    },
+    body: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+    },
+    authorLogin: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "author_login",
+    },
+    authorAvatarUrl: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "author_avatar_url",
+    },
+    htmlUrl: {
+      type: "string",
+      optional: true,
+      customType: null as unknown as string,
+      serverName: "html_url",
+    },
+    githubCreatedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "github_created_at",
+    },
+    githubUpdatedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "github_updated_at",
+    },
+    userId: {
+      type: "string",
+      optional: false,
+      customType: null as unknown as string,
+      serverName: "user_id",
+    },
+    createdAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "created_at",
+    },
+    updatedAt: {
+      type: "number",
+      optional: true,
+      customType: null as unknown as number,
+      serverName: "updated_at",
+    },
+  },
+  primaryKey: ["id"],
+  serverName: "github_issue_comment",
 } as const
 const githubOrganizationTable = {
   name: "githubOrganization",
@@ -272,19 +479,19 @@ const githubOrganizationTable = {
     },
     syncedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "synced_at",
     },
     createdAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "created_at",
     },
     updatedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "updated_at",
     },
@@ -388,13 +595,13 @@ const githubPrCommentTable = {
     },
     createdAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "created_at",
     },
     updatedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "updated_at",
     },
@@ -494,13 +701,13 @@ const githubPrCommitTable = {
     },
     createdAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "created_at",
     },
     updatedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "updated_at",
     },
@@ -709,13 +916,13 @@ const githubPrFileTable = {
     },
     createdAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "created_at",
     },
     updatedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "updated_at",
     },
@@ -785,13 +992,13 @@ const githubPrReviewTable = {
     },
     createdAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "created_at",
     },
     updatedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "updated_at",
     },
@@ -841,12 +1048,12 @@ const githubPullRequestTable = {
     },
     draft: {
       type: "boolean",
-      optional: true,
+      optional: false,
       customType: null as unknown as boolean,
     },
     merged: {
       type: "boolean",
-      optional: true,
+      optional: false,
       customType: null as unknown as boolean,
     },
     mergeable: {
@@ -983,19 +1190,19 @@ const githubPullRequestTable = {
     },
     syncedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "synced_at",
     },
     createdAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "created_at",
     },
     updatedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "updated_at",
     },
@@ -1051,12 +1258,12 @@ const githubRepoTable = {
     },
     private: {
       type: "boolean",
-      optional: true,
+      optional: false,
       customType: null as unknown as boolean,
     },
     fork: {
       type: "boolean",
-      optional: true,
+      optional: false,
       customType: null as unknown as boolean,
     },
     defaultBranch: {
@@ -1120,19 +1327,19 @@ const githubRepoTable = {
     },
     syncedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "synced_at",
     },
     createdAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "created_at",
     },
     updatedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "updated_at",
     },
@@ -1204,13 +1411,13 @@ const githubSyncStateTable = {
     },
     createdAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "created_at",
     },
     updatedAt: {
       type: "number",
-      optional: true,
+      optional: false,
       customType: null as unknown as number,
       serverName: "updated_at",
     },
@@ -1238,6 +1445,34 @@ const userTable = {
     },
   },
   primaryKey: ["id"],
+} as const
+const githubIssueCommentRelationships = {
+  githubIssue: [
+    {
+      sourceField: ["issueId"],
+      destField: ["id"],
+      destSchema: "githubIssue",
+      cardinality: "one",
+    },
+  ],
+} as const
+const githubIssueRelationships = {
+  githubRepo: [
+    {
+      sourceField: ["repoId"],
+      destField: ["id"],
+      destSchema: "githubRepo",
+      cardinality: "one",
+    },
+  ],
+  githubIssueComment: [
+    {
+      sourceField: ["id"],
+      destField: ["issueId"],
+      destSchema: "githubIssueComment",
+      cardinality: "many",
+    },
+  ],
 } as const
 const githubOrganizationRelationships = {
   githubRepo: [
@@ -1382,6 +1617,14 @@ const githubRepoRelationships = {
       cardinality: "many",
     },
   ],
+  githubIssue: [
+    {
+      sourceField: ["id"],
+      destField: ["repoId"],
+      destSchema: "githubIssue",
+      cardinality: "many",
+    },
+  ],
 } as const
 /**
  * The Zero schema object.
@@ -1393,6 +1636,8 @@ export const schema = {
     authSession: authSessionTable,
     authUser: authUserTable,
     authVerification: authVerificationTable,
+    githubIssue: githubIssueTable,
+    githubIssueComment: githubIssueCommentTable,
     githubOrganization: githubOrganizationTable,
     githubPrComment: githubPrCommentTable,
     githubPrCommit: githubPrCommitTable,
@@ -1405,6 +1650,8 @@ export const schema = {
     user: userTable,
   },
   relationships: {
+    githubIssueComment: githubIssueCommentRelationships,
+    githubIssue: githubIssueRelationships,
     githubOrganization: githubOrganizationRelationships,
     githubPrComment: githubPrCommentRelationships,
     githubPrCommit: githubPrCommitRelationships,
@@ -1451,6 +1698,20 @@ export type AuthUser = Row["authUser"]
  * @deprecated Use Row["authVerification"] instead from "@rocicorp/zero".
  */
 export type AuthVerification = Row["authVerification"]
+/**
+ * Represents a row from the "githubIssue" table.
+ * This type is auto-generated from your Drizzle schema definition.
+ *
+ * @deprecated Use Row["githubIssue"] instead from "@rocicorp/zero".
+ */
+export type GithubIssue = Row["githubIssue"]
+/**
+ * Represents a row from the "githubIssueComment" table.
+ * This type is auto-generated from your Drizzle schema definition.
+ *
+ * @deprecated Use Row["githubIssueComment"] instead from "@rocicorp/zero".
+ */
+export type GithubIssueComment = Row["githubIssueComment"]
 /**
  * Represents a row from the "githubOrganization" table.
  * This type is auto-generated from your Drizzle schema definition.
