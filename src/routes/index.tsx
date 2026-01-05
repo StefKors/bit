@@ -1,12 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useState, useMemo } from "react"
 import { useQuery } from "@rocicorp/zero/react"
-import {
-  ClockIcon,
-  SyncIcon,
-  SignOutIcon,
-  GitPullRequestIcon,
-} from "@primer/octicons-react"
+import { ClockIcon, SyncIcon, SignOutIcon, GitPullRequestIcon } from "@primer/octicons-react"
 import { authClient } from "@/lib/auth"
 import { Button } from "@/components/Button"
 import { queries } from "@/db/queries"
@@ -51,13 +46,8 @@ function OverviewPage() {
 
   const orgs = repos
     .map((repo) => repo.githubOrganization)
-    .filter(
-      (org): org is NonNullable<typeof org> =>
-        org !== null && org !== undefined,
-    )
-    .filter(
-      (org, index, self) => self.findIndex((o) => o.id === org.id) === index,
-    )
+    .filter((org): org is NonNullable<typeof org> => org !== null && org !== undefined)
+    .filter((org, index, self) => self.findIndex((o) => o.id === org.id) === index)
 
   const handleSync = async () => {
     setSyncing(true)
@@ -148,9 +138,7 @@ function OverviewPage() {
 
         <div className={styles.headerActions}>
           {rateLimit && (
-            <div
-              className={`${styles.rateLimit} ${rateLimitLow ? styles.rateLimitLow : ""}`}
-            >
+            <div className={`${styles.rateLimit} ${rateLimitLow ? styles.rateLimitLow : ""}`}>
               <ClockIcon className={styles.buttonIcon} size={16} />
               {rateLimit.remaining}/{rateLimit.limit} requests
             </div>
@@ -274,11 +262,7 @@ function OverviewPage() {
         </div>
       </section>
 
-      <RepoSection
-        repos={repos}
-        orgs={orgs}
-        currentUserLogin={currentUserLogin || undefined}
-      />
+      <RepoSection repos={repos} orgs={orgs} currentUserLogin={currentUserLogin || undefined} />
     </div>
   )
 }
