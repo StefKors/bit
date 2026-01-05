@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useState, useMemo } from "react"
 import { useQuery } from "@rocicorp/zero/react"
-import { ClockIcon, SyncIcon, SignOutIcon, GitPullRequestIcon } from "@primer/octicons-react"
+import { ClockIcon, SyncIcon, SignOutIcon } from "@primer/octicons-react"
 import { authClient } from "@/lib/auth"
 import { Button } from "@/components/Button"
 import { queries } from "@/db/queries"
@@ -19,7 +19,6 @@ interface RateLimitInfo {
 function OverviewPage() {
   const { data: session } = authClient.useSession()
   const [syncing, setSyncing] = useState(false)
-  const [syncingPRs, setSyncingPRs] = useState(false)
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -82,41 +81,6 @@ function OverviewPage() {
     }
   }
 
-  const handleSyncPRs = async () => {
-    setSyncingPRs(true)
-    setError(null)
-
-    try {
-      const response = await fetch("/api/github/sync/dashboard", {
-        method: "POST",
-        credentials: "include",
-      })
-
-      const data = (await response.json()) as {
-        error?: string
-        authoredCount?: number
-        reviewRequestedCount?: number
-        rateLimit?: { remaining: number; limit: number; reset: string }
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to sync PRs")
-      }
-
-      if (data.rateLimit) {
-        setRateLimit({
-          remaining: data.rateLimit.remaining,
-          limit: data.rateLimit.limit,
-          reset: new Date(data.rateLimit.reset),
-        })
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sync PRs")
-    } finally {
-      setSyncingPRs(false)
-    }
-  }
-
   const handleSignOut = async () => {
     await authClient.signOut()
     window.location.reload()
@@ -154,15 +118,6 @@ function OverviewPage() {
           </Button>
 
           <Button
-            variant="default"
-            leadingIcon={<GitPullRequestIcon size={16} />}
-            loading={syncingPRs}
-            onClick={() => void handleSyncPRs()}
-          >
-            {syncingPRs ? "Syncing..." : "Sync PRs"}
-          </Button>
-
-          <Button
             variant="danger"
             leadingIcon={<SignOutIcon size={16} />}
             onClick={() => void handleSignOut()}
@@ -193,11 +148,7 @@ function OverviewPage() {
             <div className={styles.prList}>
               {authoredPRs.length === 0 ? (
                 <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>
-                    {currentUserLogin
-                      ? "No open PRs authored by you."
-                      : 'Click "Sync PRs" to load your PRs.'}
-                  </p>
+                  <p className={styles.prEmptyText}>No open PRs authored by you.</p>
                 </div>
               ) : (
                 authoredPRs.map((pr) => (
@@ -229,11 +180,7 @@ function OverviewPage() {
             <div className={styles.prList}>
               {reviewRequestedPRs.length === 0 ? (
                 <div className={styles.prEmptyState}>
-                  <p className={styles.prEmptyText}>
-                    {currentUserLogin
-                      ? "No PRs currently requesting your review."
-                      : 'Click "Sync PRs" to load your PRs.'}
-                  </p>
+                  <p className={styles.prEmptyText}>No PRs currently requesting your review.</p>
                 </div>
               ) : (
                 reviewRequestedPRs.map((pr) => (

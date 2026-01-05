@@ -84,6 +84,8 @@ export async function handleCommentWebhook(
       githubCreatedAt: new Date(comment.created_at as string),
       githubUpdatedAt: new Date(comment.updated_at as string),
       userId: prRecord.userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
 
     await db

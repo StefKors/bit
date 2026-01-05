@@ -83,6 +83,8 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
       mergedAt: pr.merged_at ? new Date(pr.merged_at as string) : null,
       userId: repoRecord.userId,
       syncedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
 
     if (action === "closed" && pr.merged) {
