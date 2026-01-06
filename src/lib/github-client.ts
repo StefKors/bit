@@ -1,14 +1,7 @@
 import { Octokit } from "octokit"
-import { v5 as uuidv5 } from "uuid"
 import { id } from "@instantdb/admin"
 import { adminDb } from "./instantAdmin"
-
-// Namespace for generating deterministic UUIDs from keys
-// Using a custom namespace based on the app name
-const UUID_NAMESPACE = "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-
-// Generate a deterministic UUID v5 from a string key
-const generateSyncStateId = (key: string): string => uuidv5(key, UUID_NAMESPACE)
+import { findOrCreateSyncStateId } from "./sync-state"
 
 // Types for rate limit info
 export interface RateLimitInfo {
@@ -84,8 +77,11 @@ export class GitHubClient {
     error?: string,
     etag?: string,
   ) {
-    const stateKey = `${this.userId}:${resourceType}${resourceId ? `:${resourceId}` : ""}`
-    const stateId = generateSyncStateId(stateKey)
+    const stateId = await findOrCreateSyncStateId(
+      resourceType,
+      this.userId,
+      resourceId ?? undefined,
+    )
     const now = Date.now()
 
     await adminDb.transact(
@@ -99,7 +95,7 @@ export class GitHubClient {
           rateLimitReset: rateLimit.reset.getTime(),
           syncStatus: status,
           syncError: error ?? undefined,
-          userId: this.userId, // Required attribute
+          userId: this.userId,
           createdAt: now,
           updatedAt: now,
         })
@@ -717,7 +713,7 @@ export class GitHubClient {
     pullRequests?: { completed: number; total: number; prsFound: number }
     error?: string
   }) {
-    const stateId = generateSyncStateId(`${this.userId}:initial_sync`)
+    const stateId = await findOrCreateSyncStateId("initial_sync", this.userId)
     const now = Date.now()
 
     await adminDb.transact(
@@ -830,15 +826,14 @@ export class GitHubClient {
 
 // Factory function to create a GitHub client from session
 export async function createGitHubClient(userId: string): Promise<GitHubClient | null> {
-  // Try to get the user's stored GitHub access token
-  const tokenStateId = generateSyncStateId(`${userId}:github:token`)
-
   try {
+    // Query for the user's stored GitHub access token by fields
     const { syncStates } = await adminDb.query({
       syncStates: {
         $: {
           where: {
-            id: tokenStateId,
+            resourceType: "github:token",
+            userId,
           },
         },
       },

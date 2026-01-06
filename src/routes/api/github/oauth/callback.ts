@@ -1,13 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { v5 as uuidv5 } from "uuid"
 import { adminDb } from "@/lib/instantAdmin"
 import { GitHubClient } from "@/lib/github-client"
-
-// Namespace for generating deterministic UUIDs from keys
-const UUID_NAMESPACE = "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-
-// Generate a deterministic UUID v5 from a string key
-const generateSyncStateId = (key: string): string => uuidv5(key, UUID_NAMESPACE)
+import { findOrCreateSyncStateId } from "@/lib/sync-state"
 
 // GitHub OAuth callback handler
 // This is called after the user authorizes the GitHub App
@@ -176,7 +170,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           // In production, you'd want to encrypt this token
 
           // Also store the access token in a sync state record for this user
-          const tokenStateId = generateSyncStateId(`${userId}:github:token`)
+          const tokenStateId = await findOrCreateSyncStateId("github:token", userId)
           await adminDb.transact(
             adminDb.tx.syncStates[tokenStateId]
               .update({
@@ -184,7 +178,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
                 resourceId: "access_token",
                 lastEtag: accessToken, // Using lastEtag to store the token (encrypted in production)
                 syncStatus: "idle",
-                userId, // Required attribute
+                userId,
                 createdAt: now,
                 updatedAt: now,
               })
