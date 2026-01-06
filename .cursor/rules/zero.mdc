@@ -1,0 +1,99 @@
+---
+description: Zero sync engine - schema, queries, mutations, and permissions
+alwaysApply: true
+globs:
+  - schema.ts
+  - src/db/**
+  - src/routes/api/zero/**
+---
+
+# Zero + Drizzle Rules
+
+## Schema: No Database Defaults
+
+**NEVER use Drizzle database defaults with Zero:**
+
+```ts
+// ❌ BAD - Zero client won't see these defaults
+createdAt: timestamp("created_at").defaultNow().notNull(),
+updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
+comments: integer("comments").default(0),
+
+// ✅ GOOD - Set values explicitly in sync code
+createdAt: timestamp("created_at").notNull(),
+updatedAt: timestamp("updated_at").notNull(),
+comments: integer("comments"),
+```
+
+**Why:** Zero mutations run locally first. The local DB doesn't know Postgres defaults, so fields are `null` until server replay.
+
+**After schema changes:** Run `bun run generate-zero-schema`
+
+## Queries: Filter by User Context
+
+All queries MUST filter by `ctx.userID` for row-level security:
+
+```ts
+// ✅ GOOD - Filter by authenticated user
+overview: defineQuery(({ ctx }) =>
+  zql.githubRepo
+    .where("userId", "=", ctx.userID ?? "")
+    .orderBy("pushedAt", "desc")
+    .related("githubOrganization"),
+),
+
+// ❌ BAD - No user filtering, exposes all data
+overview: defineQuery(() =>
+  zql.githubRepo.orderBy("pushedAt", "desc"),
+),
+```
+
+Reference: `src/db/queries.ts`
+
+## Queries: Use `.related()` for Joins
+
+Prefer one query with `.related()` over multiple queries:
+
+```ts
+// ✅ GOOD - Single query with related data
+repoWithPRFull: defineQuery(
+  z.object({ fullName: z.string(), prNumber: z.number() }),
+  ({ ctx, args }) =>
+    zql.githubRepo
+      .where("userId", "=", ctx.userID ?? "")
+      .where("fullName", "=", args.fullName)
+      .one()
+      .related("githubPullRequest", (pr) =>
+        pr.where("number", "=", args.prNumber).one()
+          .related("githubPrFile")
+          .related("githubPrReview")
+          .related("githubPrComment"),
+      ),
+),
+```
+
+## Mutators: Set All Values Explicitly
+
+When inserting rows in webhooks/sync code, provide every value:
+
+```ts
+const now = new Date()
+await db.insert(githubIssue).values({
+  id: issue.node_id,
+  // ... all fields
+  comments: issue.comments ?? 0,  // Explicit, not default
+  syncedAt: now,
+  createdAt: now,
+  updatedAt: now,
+})
+```
+
+## Permissions: No RLS, Use Query Filtering
+
+Zero deprecated `definePermissions`. Permissions are implemented via query filtering:
+
+1. Define `Context` type in `src/db/types.ts`
+2. Pass `ctx` to queries via endpoint handlers
+3. Filter using `ctx.userID` in every query
+
+Reference: https://zero.rocicorp.dev/docs/auth#permissions

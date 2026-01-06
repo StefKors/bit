@@ -2,26 +2,41 @@ import { defineQueries, defineQuery } from "@rocicorp/zero"
 import { zql } from "./schema"
 import z from "zod"
 
+/**
+ * Zero queries with row-level security via context filtering.
+ *
+ * All queries filter by ctx.userID to ensure users only see their own data.
+ * This is the new Zero permissions model - no RLS, filter in queries instead.
+ *
+ * @see https://zero.rocicorp.dev/docs/auth#permissions
+ */
 export const queries = defineQueries({
   // =============================================================================
   // User queries
   // =============================================================================
   users: {
-    all: defineQuery(() => zql.user.orderBy("name", "asc")),
+    // Users can only see themselves
+    all: defineQuery(({ ctx }) =>
+      zql.user.where("id", "=", ctx.userID ?? "").orderBy("name", "asc"),
+    ),
   },
 
   // =============================================================================
   // Overview page - fetch repos with orgs in one go
   // =============================================================================
-  overview: defineQuery(() =>
-    zql.githubRepo.orderBy("githubUpdatedAt", "desc").related("githubOrganization"),
+  overview: defineQuery(({ ctx }) =>
+    zql.githubRepo
+      .where("userId", "=", ctx.userID ?? "")
+      .orderBy("pushedAt", "desc")
+      .related("githubOrganization"),
   ),
 
   // =============================================================================
   // Dashboard PRs - authored by user (filter by authorLogin)
   // =============================================================================
-  dashboardAuthored: defineQuery(z.string(), ({ args: authorLogin }) =>
+  dashboardAuthored: defineQuery(z.string(), ({ ctx, args: authorLogin }) =>
     zql.githubPullRequest
+      .where("userId", "=", ctx.userID ?? "")
       .where("authorLogin", "=", authorLogin)
       .where("state", "=", "open")
       .orderBy("githubUpdatedAt", "desc")
@@ -31,8 +46,9 @@ export const queries = defineQueries({
   // =============================================================================
   // Dashboard PRs - all open PRs (for filtering review-requested client-side)
   // =============================================================================
-  dashboardAllOpen: defineQuery(() =>
+  dashboardAllOpen: defineQuery(({ ctx }) =>
     zql.githubPullRequest
+      .where("userId", "=", ctx.userID ?? "")
       .where("state", "=", "open")
       .orderBy("githubUpdatedAt", "desc")
       .related("githubRepo"),
@@ -41,26 +57,29 @@ export const queries = defineQueries({
   // =============================================================================
   // Owner page - fetch org with all repos in one go
   // =============================================================================
-  ownerWithRepos: defineQuery(z.string(), ({ args }) =>
+  ownerWithRepos: defineQuery(z.string(), ({ ctx, args }) =>
     zql.githubOrganization
+      .where("userId", "=", ctx.userID ?? "")
       .where("login", "=", args)
       .one()
-      .related("githubRepo", (repos) => repos.orderBy("githubUpdatedAt", "desc")),
+      .related("githubRepo", (repos) => repos.orderBy("pushedAt", "desc")),
   ),
 
   // Repos by owner - includes related organization for profile info
-  reposByOwner: defineQuery(z.string(), ({ args }) =>
+  reposByOwner: defineQuery(z.string(), ({ ctx, args }) =>
     zql.githubRepo
+      .where("userId", "=", ctx.userID ?? "")
       .where("owner", "=", args)
-      .orderBy("githubUpdatedAt", "desc")
+      .orderBy("pushedAt", "desc")
       .related("githubOrganization"),
   ),
 
   // =============================================================================
   // Repo page - fetch repo with PRs and Issues in one go (used by RepoLayout)
   // =============================================================================
-  repoWithPRsAndIssues: defineQuery(z.string(), ({ args }) =>
+  repoWithPRsAndIssues: defineQuery(z.string(), ({ ctx, args }) =>
     zql.githubRepo
+      .where("userId", "=", ctx.userID ?? "")
       .where("fullName", "=", args)
       .one()
       .related("githubPullRequest", (pr) => pr.orderBy("githubUpdatedAt", "desc"))
@@ -70,16 +89,21 @@ export const queries = defineQueries({
   // =============================================================================
   // Repo tree - fetch tree entries for a specific ref
   // =============================================================================
-  repoTree: defineQuery(z.object({ repoId: z.string(), ref: z.string() }), ({ args }) =>
+  repoTree: defineQuery(z.object({ repoId: z.string(), ref: z.string() }), ({ ctx, args }) =>
     zql.githubRepoTree
+      .where("userId", "=", ctx.userID ?? "")
       .where("repoId", "=", args.repoId)
       .where("ref", "=", args.ref)
       .orderBy("path", "asc"),
   ),
 
   // Repo blob - fetch file content by sha
-  repoBlob: defineQuery(z.object({ repoId: z.string(), sha: z.string() }), ({ args }) =>
-    zql.githubRepoBlob.where("repoId", "=", args.repoId).where("sha", "=", args.sha).one(),
+  repoBlob: defineQuery(z.object({ repoId: z.string(), sha: z.string() }), ({ ctx, args }) =>
+    zql.githubRepoBlob
+      .where("userId", "=", ctx.userID ?? "")
+      .where("repoId", "=", args.repoId)
+      .where("sha", "=", args.sha)
+      .one(),
   ),
 
   // =============================================================================
@@ -87,8 +111,9 @@ export const queries = defineQueries({
   // =============================================================================
   repoWithPRFull: defineQuery(
     z.object({ fullName: z.string(), prNumber: z.number() }),
-    ({ args }) =>
+    ({ ctx, args }) =>
       zql.githubRepo
+        .where("userId", "=", ctx.userID ?? "")
         .where("fullName", "=", args.fullName)
         .one()
         .related("githubPullRequest", (pr) =>
@@ -108,8 +133,9 @@ export const queries = defineQueries({
   // =============================================================================
   repoWithIssueFull: defineQuery(
     z.object({ fullName: z.string(), issueNumber: z.number() }),
-    ({ args }) =>
+    ({ ctx, args }) =>
       zql.githubRepo
+        .where("userId", "=", ctx.userID ?? "")
         .where("fullName", "=", args.fullName)
         .one()
         .related("githubIssue", (issue) =>

@@ -1,0 +1,125 @@
+---
+description: Code style, formatting, and CSS conventions
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.css"
+---
+
+# Formatting & Style Rules
+
+## Code Formatting
+
+The project uses [oxfmt](https://oxc.rs/docs/guide/usage/formatter.html):
+
+```bash
+# Format all files
+bun run format
+
+# Check formatting without writing
+bun run format:check
+```
+
+VS Code formats on save via `oxc.oxc-vscode` extension.
+
+## CSS: Use Theme Variables
+
+Always use CSS variables from `theme.css`:
+
+```css
+/* ✅ GOOD */
+.button {
+  background: var(--color-accent);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+/* ❌ BAD - Hardcoded values */
+.button {
+  background: #007bff;
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+```
+
+## CSS Modules
+
+Use CSS modules for component styles:
+
+```tsx
+// Component file
+import styles from "./Button.module.css"
+
+const Button = ({ children }) => (
+  <button className={styles.button}>{children}</button>
+)
+```
+
+```css
+/* Button.module.css */
+.button {
+  /* styles */
+}
+
+.button:hover {
+  /* hover styles */
+}
+
+.primary {
+  composes: button;
+  background: var(--color-accent);
+}
+```
+
+## Import Organization
+
+Organize imports by type:
+
+```tsx
+// 1. React/framework
+import { useState } from "react"
+import { createFileRoute, Link } from "@tanstack/react-router"
+
+// 2. Third-party
+import { useQuery } from "@rocicorp/zero/react"
+
+// 3. Internal - absolute imports
+import { queries } from "@/db/queries"
+import { LoadingCube } from "@/components/LoadingCube"
+
+// 4. Relative imports
+import styles from "./MyComponent.module.css"
+```
+
+## TypeScript
+
+- Prefer `type` over `interface` for object types
+- Use explicit return types on exported functions
+- Avoid `any` - use `unknown` and narrow
+
+```tsx
+// ✅ GOOD
+type Props = {
+  pr: GithubPullRequest
+  onSelect: (id: string) => void
+}
+
+export const PRCard = ({ pr, onSelect }: Props): JSX.Element => {
+  // ...
+}
+
+// ❌ BAD
+export const PRCard = ({ pr, onSelect }: any) => {
+  // ...
+}
+```
+
+## File Naming
+
+| Type | Convention | Example |
+|------|------------|---------|
+| Components | PascalCase | `PRListItem.tsx` |
+| CSS Modules | Match component | `PRListItem.module.css` |
+| Utilities | kebab-case | `github-client.ts` |
+| Routes | TanStack conventions | `pull.$number.tsx` |

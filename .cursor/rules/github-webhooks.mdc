@@ -1,0 +1,110 @@
+---
+description: GitHub webhook handlers - patterns and implementation
+globs:
+  - src/lib/webhooks/**
+  - src/routes/api/github/webhook.ts
+---
+
+# GitHub Webhook Rules
+
+## File Structure
+
+```
+src/lib/webhooks/
+├── index.ts              # Re-exports all handlers
+├── types.ts              # TypeScript types (from @octokit/webhooks-types)
+├── utils.ts              # Shared utilities
+├── pull-request.ts       # pull_request events
+├── pull-request-review.ts
+├── comment.ts            # issue_comment + pull_request_review_comment
+├── push.ts
+├── repository.ts
+├── organization.ts
+└── issue.ts
+```
+
+## Handler Signature
+
+```ts
+import type { WebhookDB, WebhookPayload, PullRequestEvent } from "./types"
+
+export async function handlePullRequestWebhook(
+  db: WebhookDB,
+  payload: WebhookPayload,
+): Promise<void> {
+  const typedPayload = payload as unknown as PullRequestEvent
+  // Implementation...
+}
+```
+
+## Auto-tracking Pattern
+
+All handlers should support auto-tracking:
+
+```ts
+export async function handlePullRequestWebhook(db, payload) {
+  const { action, pull_request, repository, sender } = payload
+
+  // 1. Find users tracking this resource
+  const trackedUsers = await findUsersTrackingRepo(db, repository.node_id)
+
+  // 2. If not tracked, check if sender is registered
+  if (trackedUsers.length === 0) {
+    const senderUser = await findUserBySender(db, sender.login)
+    if (!senderUser) {
+      console.log(`Skipping: sender ${sender.login} not registered`)
+      return
+    }
+    // Auto-track for this user
+    trackedUsers.push(senderUser)
+  }
+
+  // 3. Update/insert for all tracking users
+  for (const user of trackedUsers) {
+    await upsertPullRequest(db, pull_request, user.id)
+  }
+}
+```
+
+## Explicit Timestamps
+
+Always set timestamps explicitly (no database defaults):
+
+```ts
+const now = new Date()
+await db.insert(githubPullRequest).values({
+  id: pr.node_id,
+  // ... other fields
+  syncedAt: now,
+  createdAt: now,
+  updatedAt: now,
+})
+```
+
+## Event Types Reference
+
+| Event | Handler | Description |
+|-------|---------|-------------|
+| `pull_request` | `pull-request.ts` | PR opened/closed/updated |
+| `pull_request_review` | `pull-request-review.ts` | Review submitted |
+| `pull_request_review_comment` | `comment.ts` | Inline comments |
+| `issue_comment` | `comment.ts` | PR conversation |
+| `push` | `push.ts` | Updates repo timestamp |
+| `repository` | `repository.ts` | Repo metadata |
+| `star` | `repository.ts` | Star count |
+| `fork` | `repository.ts` | Fork count |
+| `organization` | `organization.ts` | Org metadata |
+| `issues` | `issue.ts` | Issue events |
+
+## Adding New Handlers
+
+1. Create file: `src/lib/webhooks/{event-name}.ts`
+2. Import types from `./types.ts`
+3. Export handler function
+4. Add export to `index.ts`
+5. Update switch in `webhook.ts` to call handler
+
+## Environment Variables
+
+- `GITHUB_WEBHOOK_SECRET` - Required for signature verification
+- `ZERO_UPSTREAM_DB` - PostgreSQL connection string

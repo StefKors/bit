@@ -1,0 +1,133 @@
+---
+description: React patterns - hooks, state, effects, and best practices
+globs:
+  - src/**/*.tsx
+  - src/routes/**/*.tsx
+---
+
+# React Rules
+
+## Hooks: Rules of Hooks
+
+Hooks MUST be called at the top of components, never in conditionals or callbacks:
+
+```tsx
+// ✅ GOOD - Hooks at top, logic after
+const MyComponent = () => {
+  const { data } = useQuery(queries.overview)
+  const [count, setCount] = useState(0)
+  const zero = useZero()
+
+  // Non-hook logic comes after all hooks
+  const filteredData = data?.filter(item => item.active)
+  if (!data) return <Loading />
+
+  return <div>{/* ... */}</div>
+}
+
+// ❌ BAD - Hook inside conditional
+const MyComponent = () => {
+  if (someCondition) {
+    const { data } = useQuery(queries.overview) // WRONG
+  }
+}
+```
+
+## State: Minimize useState
+
+Before adding `useState`, consider alternatives:
+
+1. **Derive from existing state** - Compute in render
+2. **Use loader/query data** - Already available
+3. **Use URL params** - `useParams()` for route state
+
+```tsx
+// ❌ BAD - Unnecessary state
+const [isOpen, setIsOpen] = useState(false)
+const [hasError, setHasError] = useState(false)
+// Then useEffect to sync isOpen with hasError...
+
+// ✅ GOOD - Derive from existing data
+const { error } = useQuery(...)
+const isOpen = Boolean(error)  // Popover opens when error exists
+```
+
+## Effects: Avoid useEffect
+
+`useEffect` is discouraged. Before using it, consider:
+
+1. **Move to event handler** - Side effects on user action
+2. **Move to query/mutation** - Data fetching belongs there
+3. **Compute in render** - Derived state doesn't need effects
+
+```tsx
+// ❌ BAD - Effect to sync state
+useEffect(() => {
+  setFilteredItems(items.filter(i => i.active))
+}, [items])
+
+// ✅ GOOD - Compute in render
+const filteredItems = items.filter(i => i.active)
+```
+
+## Callbacks: Avoid useCallback
+
+`useCallback` creates viral memoization. Only use for:
+
+- **Ref callbacks** - Functions passed to `ref` props must be stable
+
+```tsx
+// ❌ BAD - Unnecessary memoization
+const handleClick = useCallback(() => {
+  doSomething()
+}, [])
+
+// ✅ GOOD - Just define the function
+const handleClick = () => {
+  doSomething()
+}
+```
+
+## Refs: Always Include undefined
+
+When using `useRef` with generics, always include `undefined`:
+
+```tsx
+// ✅ GOOD
+const inputRef = useRef<HTMLInputElement>(undefined)
+const countRef = useRef<number>(undefined)
+
+// ❌ BAD - TypeScript errors
+const inputRef = useRef<HTMLInputElement>()
+```
+
+## JSX: Avoid Number Coercion
+
+When using `&&` with numbers, wrap in `Boolean()`:
+
+```tsx
+// ❌ BAD - Shows "0" when count is 0
+{count && <Badge>{count}</Badge>}
+
+// ✅ GOOD - Shows nothing when count is 0
+{Boolean(count) && <Badge>{count}</Badge>}
+// or
+{count > 0 && <Badge>{count}</Badge>}
+```
+
+## Custom Hooks: Avoid Creating Them
+
+Prefer plain functions over custom hooks. Only create hooks if explicitly asked.
+
+```tsx
+// ❌ BAD - Custom hook for simple logic
+const useFilteredItems = (items) => {
+  return items.filter(i => i.active)
+}
+
+// ✅ GOOD - Plain function
+const filterActiveItems = (items) => items.filter(i => i.active)
+
+// In component:
+const activeItems = filterActiveItems(items)
+```

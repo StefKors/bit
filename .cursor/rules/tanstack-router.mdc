@@ -1,0 +1,116 @@
+---
+description: TanStack Router patterns and conventions
+globs:
+  - src/routes/**
+  - src/router.tsx
+---
+
+# TanStack Router Rules
+
+## Route File Structure
+
+```
+src/routes/
+├── __root.tsx           # Root layout with ZeroProvider
+├── index.tsx            # Home page (/)
+├── $owner/
+│   ├── index.tsx        # Owner page (/:owner)
+│   └── $repo/
+│       ├── index.tsx    # Repo page (/:owner/:repo)
+│       ├── pulls.tsx    # PRs list (/:owner/:repo/pulls)
+│       ├── pull.$number.tsx  # PR detail
+│       ├── issues.tsx
+│       └── issues.$number.tsx
+└── api/                 # API routes
+    └── github/
+        └── webhook.ts
+```
+
+## Dynamic Parameters
+
+Use `params` prop for dynamic route parameters:
+
+```tsx
+// ✅ GOOD
+<Link
+  to="/$owner/$repo/pull/$number"
+  params={{
+    owner: repo.owner,
+    repo: repo.name,
+    number: String(pr.number),
+  }}
+>
+  {pr.title}
+</Link>
+
+// ❌ BAD - String interpolation
+<Link to={`/${repo.owner}/${repo.name}/pull/${pr.number}`}>
+  {pr.title}
+</Link>
+```
+
+## One Query Per Page
+
+Prefer one `useQuery` per route with `.related()` for all data:
+
+```tsx
+// ✅ GOOD - Single query with related data
+const PRDetailPage = () => {
+  const { owner, repo, number } = Route.useParams()
+  const [result] = useQuery(queries.repoWithPRFull, {
+    fullName: `${owner}/${repo}`,
+    prNumber: Number(number),
+  })
+
+  const { githubPullRequest: pr } = result ?? {}
+  // pr.githubPrFile, pr.githubPrReview, etc. all available
+}
+
+// ❌ BAD - Multiple queries
+const PRDetailPage = () => {
+  const [pr] = useQuery(queries.pr, prId)
+  const [files] = useQuery(queries.prFiles, prId)      // Extra query
+  const [reviews] = useQuery(queries.prReviews, prId)  // Extra query
+}
+```
+
+## Route Component Pattern
+
+```tsx
+import { createFileRoute } from "@tanstack/react-router"
+
+export const Route = createFileRoute("/$owner/$repo/pull/$number")({
+  component: PRDetailPage,
+})
+
+function PRDetailPage() {
+  const { owner, repo, number } = Route.useParams()
+
+  // Query data
+  const [result] = useQuery(queries.repoWithPRFull, {
+    fullName: `${owner}/${repo}`,
+    prNumber: Number(number),
+  })
+
+  if (!result) return <LoadingCube />
+
+  return <PRDetail pr={result.githubPullRequest} />
+}
+```
+
+## API Routes
+
+Server-side handlers use the `server` property:
+
+```tsx
+export const Route = createFileRoute("/api/github/webhook")({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        // Handle webhook
+        return new Response(JSON.stringify({ ok: true }))
+      },
+    },
+  },
+})
+```

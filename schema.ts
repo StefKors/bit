@@ -326,11 +326,8 @@ export const githubRepoTree = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => authUser.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [
     index("github_tree_repoId_idx").on(table.repoId),
@@ -355,11 +352,8 @@ export const githubRepoBlob = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => authUser.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [
     index("github_blob_sha_idx").on(table.sha),
@@ -419,7 +413,7 @@ export const githubIssue = pgTable(
     // URLs
     htmlUrl: text("html_url"),
     // Stats
-    comments: integer("comments").default(0),
+    comments: integer("comments"),
     // Labels (stored as JSON string)
     labels: text("labels"),
     // Assignees (stored as JSON string)
@@ -433,12 +427,9 @@ export const githubIssue = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => authUser.id, { onDelete: "cascade" }),
-    syncedAt: timestamp("synced_at").defaultNow().notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    syncedAt: timestamp("synced_at").notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [
     index("github_issue_repoId_idx").on(table.repoId),
@@ -467,11 +458,8 @@ export const githubIssueComment = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => authUser.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [
     index("github_issue_comment_issueId_idx").on(table.issueId),
@@ -508,11 +496,8 @@ export const githubPrEvent = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => authUser.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
   (table) => [
     index("github_pr_event_prId_idx").on(table.pullRequestId),

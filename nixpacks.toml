@@ -8,7 +8,7 @@ nixPkgs = ["bun", "nodejs_20"]
 cmds = ["bun install --frozen-lockfile"]
 
 [phases.build]
-cmds = ["bun run build", "bun run db:migrate", "bunx zero-deploy-permissions --schema-path src/db/schema.ts"]
+cmds = ["bun run build", "bun run db:migrate"]
 
 [start]
 cmd = "bun run server.ts"
