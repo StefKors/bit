@@ -8,13 +8,13 @@ import type { WebhookDB, RepoRecord, PRRecord } from "./types"
  * returns null. To enable auto-tracking, we'd need to add a custom accounts
  * table or store GitHub user IDs on the user entity.
  */
-export async function findUserBySender(
+export function findUserBySender(
   _db: WebhookDB,
   sender: Record<string, unknown>,
 ): Promise<string | null> {
   // TODO: Implement user lookup by GitHub account ID when accounts table is added
-  console.log(`findUserBySender: Cannot look up user for GitHub sender ${sender.id}`)
-  return null
+  console.log(`findUserBySender: Cannot look up user for GitHub sender ${String(sender.id)}`)
+  return Promise.resolve(null)
 }
 
 /**

@@ -8,7 +8,12 @@ function RepoIssuesPage() {
 
   return (
     <RepoLayout activeTab="issues">
-      {(repoData) => <RepoIssuesTab issues={repoData.issues} fullName={fullName} />}
+      {(repoData) => (
+        <RepoIssuesTab
+          issues={repoData.issues as Parameters<typeof RepoIssuesTab>[0]["issues"]}
+          fullName={fullName}
+        />
+      )}
     </RepoLayout>
   )
 }

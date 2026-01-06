@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { adminDb } from "@/lib/instantAdmin"
 import { createGitHubClient } from "@/lib/github-client"
 
 const jsonResponse = <T>(data: T, status = 200) =>

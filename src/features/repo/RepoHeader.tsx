@@ -1,5 +1,3 @@
-import type { InstaQLEntity } from "@instantdb/core"
-import type { AppSchema } from "@/instant.schema"
 import {
   RepoIcon,
   LockIcon,
@@ -11,7 +9,16 @@ import {
 import { Button } from "@/components/Button"
 import styles from "./RepoHeader.module.css"
 
-type Repo = InstaQLEntity<AppSchema, "repos">
+// Accept both full Repo from InstantDB and partial RepoData from parent
+interface RepoLike {
+  name: string
+  private?: boolean
+  description?: string | null
+  language?: string | null
+  stargazersCount?: number | null
+  forksCount?: number | null
+  openIssuesCount?: number | null
+}
 
 // Language colors
 const languageColors: Record<string, string> = {
@@ -26,7 +33,7 @@ const languageColors: Record<string, string> = {
 }
 
 interface RepoHeaderProps {
-  repo: Repo
+  repo: RepoLike
   syncing: boolean
   onSync: () => void | Promise<void>
 }

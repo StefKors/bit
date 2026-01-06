@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { adminDb } from "@/lib/instantAdmin"
 import { createGitHubClient } from "@/lib/github-client"
 
 const jsonResponse = <T>(data: T, status = 200) =>
@@ -12,12 +11,15 @@ export const Route = createFileRoute("/api/github/rate-limit")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const user = await adminDb.auth.getUser({ headers: request.headers })
-        if (!user) {
+        // Get user from request headers
+        const authHeader = request.headers.get("Authorization")
+        const userId = authHeader?.replace("Bearer ", "") || ""
+
+        if (!userId) {
           return jsonResponse({ error: "Unauthorized" }, 401)
         }
 
-        const client = await createGitHubClient(user.id, adminDb)
+        const client = await createGitHubClient(userId)
         if (!client) {
           return jsonResponse({ error: "GitHub account not connected" }, 400)
         }

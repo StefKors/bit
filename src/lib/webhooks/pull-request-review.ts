@@ -29,7 +29,7 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
     },
   })
 
-  let prRecords = prResult.pullRequests || []
+  const prRecords = prResult.pullRequests || []
 
   // If PR not found, try to auto-create it if the repo is tracked or sender is registered
   if (prRecords.length === 0) {

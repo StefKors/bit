@@ -15,7 +15,7 @@ const SCOPES = ["repo", "read:org", "read:user", "user:email"].join(" ")
 export const Route = createFileRoute("/api/github/oauth/")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
+      GET: ({ request }) => {
         const url = new URL(request.url)
         const userId = url.searchParams.get("userId")
 

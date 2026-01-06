@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { FileDirectoryIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { Markdown } from "@/components/Markdown"
@@ -11,6 +11,15 @@ interface RepoCodeTabProps {
   defaultBranch: string
 }
 
+interface TreeEntryData {
+  id: string
+  path: string
+  name: string
+  type: string
+  sha: string
+  size?: number
+}
+
 export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProps) {
   const [owner, repo] = fullName.split("/")
   const branch = defaultBranch || "main"
@@ -19,15 +28,19 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProp
   const [readme, setReadme] = useState<string | null>(null)
   const [readmeLoading, setReadmeLoading] = useState(false)
 
-  // Query the tree entries
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: treeData } = db.useQuery({
+  // Query the tree entries (uses type assertion because repoTrees has dynamic schema fields)
+  const treeQuery = {
     repoTrees: {
       $: { where: { repoId, ref: branch }, orderBy: { path: "asc" } },
     },
-  } as any)
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+  const { data: treeData } = db.useQuery(treeQuery as any)
 
-  const treeEntries = treeData?.repoTrees || []
+  const treeEntries = useMemo<TreeEntryData[]>(() => {
+    const data = (treeData as { repoTrees?: TreeEntryData[] } | undefined)?.repoTrees
+    return data ?? []
+  }, [treeData])
 
   const handleSync = async () => {
     setSyncing(true)
@@ -92,16 +105,14 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProp
   }, [treeEntries, owner, repo, branch])
 
   // Convert query result to TreeEntry array
-  const entries: TreeEntry[] = treeEntries
-    ? treeEntries.map((entry) => ({
-        id: entry.id,
-        path: entry.path,
-        name: entry.name,
-        type: entry.type as "file" | "dir",
-        sha: entry.sha,
-        size: entry.size ?? null,
-      }))
-    : []
+  const entries: TreeEntry[] = treeEntries.map((entry) => ({
+    id: entry.id,
+    path: entry.path,
+    name: entry.name,
+    type: entry.type as "file" | "dir",
+    sha: entry.sha,
+    size: entry.size ?? null,
+  }))
 
   return (
     <div className={styles.content}>

@@ -95,7 +95,10 @@ function BlobPage() {
           <FileDirectoryIcon className={layoutStyles.emptyIcon} size={48} />
           <h3 className={layoutStyles.emptyTitle}>Repository not found</h3>
           <p className={layoutStyles.emptyText}>
-            This repository hasn't been synced yet. <Link to="/">Go back to overview</Link>
+            This repository hasn't been synced yet.{" "}
+            <Link to="/" search={{ github: undefined, error: undefined }}>
+              Go back to overview
+            </Link>
           </p>
         </div>
       </div>
@@ -109,7 +112,7 @@ function BlobPage() {
     name: entry.name,
     type: entry.type as "file" | "dir",
     sha: entry.sha,
-    size: entry.size,
+    size: entry.size ?? null,
   }))
 
   // Build path breadcrumb

@@ -39,7 +39,7 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
     },
   })
 
-  let issueRecords = issuesResult.issues || []
+  const issueRecords = issuesResult.issues || []
 
   // If issue not found, try to auto-create it
   if (issueRecords.length === 0) {

@@ -112,8 +112,11 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
           <FileDirectoryIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>Repository not found</h3>
           <p className={styles.emptyText}>
-            This repository hasn't been synced yet. <Link to="/">Go back to overview</Link> and sync
-            your repositories.
+            This repository hasn't been synced yet.{" "}
+            <Link to="/" search={{ github: undefined, error: undefined }}>
+              Go back to overview
+            </Link>{" "}
+            and sync your repositories.
           </p>
         </div>
       </div>
@@ -151,8 +154,8 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
       {error && <div className={styles.error}>{error}</div>}
 
       <RepoTabs
-        prs={repo.pullRequests}
-        issues={repo.issues}
+        prs={repo.pullRequests as Parameters<typeof RepoTabs>[0]["prs"]}
+        issues={repo.issues as Parameters<typeof RepoTabs>[0]["issues"]}
         fullName={fullName}
         activeTab={activeTab}
       />

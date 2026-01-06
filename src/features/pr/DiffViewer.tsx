@@ -13,8 +13,8 @@ type Comment = InstaQLEntity<AppSchema, "prComments">
 
 interface DiffViewerProps {
   filename: string
-  previousFilename: string | null
-  patch: string | null
+  previousFilename: string | null | undefined
+  patch: string | null | undefined
   comments?: Comment[]
   diffOptions: DiffOptions
 }

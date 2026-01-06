@@ -679,6 +679,7 @@ const _schema = i.schema({
 })
 
 type _AppSchema = typeof _schema
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AppSchema extends _AppSchema {}
 const schema: AppSchema = _schema
 

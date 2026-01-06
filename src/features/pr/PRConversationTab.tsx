@@ -10,22 +10,22 @@ import { Avatar } from "@/components/Avatar"
 interface TimelineItem {
   type: "comment" | "review"
   id: string
-  authorLogin: string | null
-  authorAvatarUrl: string | null
-  body: string | null
+  authorLogin: string | null | undefined
+  authorAvatarUrl: string | null | undefined
+  body: string | null | undefined
   createdAt: Date | null
   reviewState?: string
 }
 
 interface PRAuthor {
-  login: string | null
-  avatarUrl: string | null
+  login: string | null | undefined
+  avatarUrl: string | null | undefined
 }
 
 interface PRConversationTabProps {
-  prBody: string | null
+  prBody: string | null | undefined
   prAuthor: PRAuthor
-  prCreatedAt: Date | number | null
+  prCreatedAt: Date | number | null | undefined
   reviews: readonly GithubPrReview[]
   comments: readonly GithubPrComment[]
   formatTimeAgo: (date: Date | number | null | undefined) => string
@@ -121,10 +121,10 @@ export function PRConversationTab({
 }
 
 interface TimelineItemComponentProps {
-  avatarUrl: string | null
-  authorLogin: string | null
+  avatarUrl: string | null | undefined
+  authorLogin: string | null | undefined
   headerContent: React.ReactNode
-  body: string | null
+  body: string | null | undefined
 }
 
 function TimelineItemComponent({

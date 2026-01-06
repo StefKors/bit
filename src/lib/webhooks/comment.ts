@@ -37,7 +37,7 @@ export async function handleCommentWebhook(
     },
   })
 
-  let prRecords = prResult.pullRequests || []
+  const prRecords = prResult.pullRequests || []
 
   // If PR not found and we have PR data, try to auto-create it
   if (prRecords.length === 0 && pr) {

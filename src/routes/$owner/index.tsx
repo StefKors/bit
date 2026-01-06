@@ -59,7 +59,11 @@ const OwnerPage = () => {
   const totalForks = repos.reduce((acc, repo) => acc + (repo.forksCount ?? 0), 0)
 
   // Get avatar and display name
-  const avatarUrl = isOrg ? org?.avatarUrl : isCurrentUser ? user?.image : null
+  const avatarUrl = isOrg
+    ? org?.avatarUrl
+    : isCurrentUser
+      ? (user as { avatarUrl?: string } | undefined)?.avatarUrl
+      : null
   const displayName = isOrg ? org?.name || owner : isCurrentUser ? user?.email : owner
   const description = isOrg ? org?.description : null
 
@@ -196,12 +200,12 @@ interface RepoListItemProps {
     id: string
     name: string
     owner: string
-    description: string | null | undefined
-    language: string | null | undefined
-    stargazersCount: number | null | undefined
-    forksCount: number | null | undefined
-    private: boolean | null | undefined
-    githubUpdatedAt: number | null | undefined
+    description?: string | null | undefined
+    language?: string | null | undefined
+    stargazersCount?: number | null | undefined
+    forksCount?: number | null | undefined
+    private?: boolean | null | undefined
+    githubUpdatedAt?: number | null | undefined
   }
 }
 
