@@ -1,15 +1,14 @@
 import { Octokit } from "octokit"
-import { createHash } from "crypto"
+import { v5 as uuidv5 } from "uuid"
 import { id } from "@instantdb/admin"
 import { adminDb } from "./instantAdmin"
 
-// Generate a deterministic UUID-like ID from a string key
-// InstantDB requires valid UUIDs for entity IDs
-const generateSyncStateId = (key: string): string => {
-  const hash = createHash("sha256").update(key).digest("hex")
-  // Format as UUID: 8-4-4-4-12
-  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-${hash.slice(12, 16)}-${hash.slice(16, 20)}-${hash.slice(20, 32)}`
-}
+// Namespace for generating deterministic UUIDs from keys
+// Using a custom namespace based on the app name
+const UUID_NAMESPACE = "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+
+// Generate a deterministic UUID v5 from a string key
+const generateSyncStateId = (key: string): string => uuidv5(key, UUID_NAMESPACE)
 
 // Types for rate limit info
 export interface RateLimitInfo {
