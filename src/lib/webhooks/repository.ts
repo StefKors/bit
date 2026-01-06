@@ -1,5 +1,3 @@
-import { eq } from "drizzle-orm"
-import * as dbSchema from "../../../schema"
 import type { WebhookDB, WebhookPayload, RepositoryEvent, StarEvent, ForkEvent } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
 
@@ -27,13 +25,16 @@ export async function handleRepositoryWebhook(db: WebhookDB, payload: WebhookPay
   if (!repo) return
 
   const repoFullName = repo.full_name
-  const now = new Date()
+  const now = Date.now()
 
   // Find users who have this repo synced
-  let repoRecords = await db
-    .select()
-    .from(dbSchema.githubRepo)
-    .where(eq(dbSchema.githubRepo.fullName, repoFullName))
+  const reposResult = await db.query({
+    repos: {
+      $: { where: { fullName: repoFullName } },
+    },
+  })
+
+  let repoRecords = reposResult.repos || []
 
   // If no users tracking, try to auto-track for the webhook sender
   if (repoRecords.length === 0 && sender) {
@@ -58,7 +59,7 @@ export async function handleRepositoryWebhook(db: WebhookDB, payload: WebhookPay
   // Handle deletion - remove repo records
   if (action === "deleted") {
     for (const repoRecord of repoRecords) {
-      await db.delete(dbSchema.githubRepo).where(eq(dbSchema.githubRepo.id, repoRecord.id))
+      await db.transact(db.tx.repos[repoRecord.id].delete())
     }
     console.log(`Deleted repo ${repoFullName} from all tracking users`)
     return
@@ -66,9 +67,8 @@ export async function handleRepositoryWebhook(db: WebhookDB, payload: WebhookPay
 
   // Update repo metadata for all tracked instances
   for (const repoRecord of repoRecords) {
-    await db
-      .update(dbSchema.githubRepo)
-      .set({
+    await db.transact(
+      db.tx.repos[repoRecord.id].update({
         name: repo.name,
         fullName: repo.full_name,
         owner: repo.owner.login,
@@ -82,11 +82,11 @@ export async function handleRepositoryWebhook(db: WebhookDB, payload: WebhookPay
         stargazersCount: repo.stargazers_count || 0,
         forksCount: repo.forks_count || 0,
         openIssuesCount: repo.open_issues_count || 0,
-        githubUpdatedAt: repo.updated_at ? new Date(repo.updated_at) : null,
+        githubUpdatedAt: repo.updated_at ? new Date(repo.updated_at).getTime() : null,
         syncedAt: now,
         updatedAt: now,
-      })
-      .where(eq(dbSchema.githubRepo.id, repoRecord.id))
+      }),
+    )
   }
 
   console.log(`Processed repository ${action} event for ${repoFullName}`)
@@ -111,13 +111,16 @@ export async function handleStarWebhook(db: WebhookDB, payload: WebhookPayload) 
   if (!repo) return
 
   const repoFullName = repo.full_name
-  const now = new Date()
+  const now = Date.now()
 
   // Find users who have this repo synced
-  let repoRecords = await db
-    .select()
-    .from(dbSchema.githubRepo)
-    .where(eq(dbSchema.githubRepo.fullName, repoFullName))
+  const reposResult = await db.query({
+    repos: {
+      $: { where: { fullName: repoFullName } },
+    },
+  })
+
+  let repoRecords = reposResult.repos || []
 
   // If no users tracking, try to auto-track for the webhook sender
   if (repoRecords.length === 0 && sender) {
@@ -141,14 +144,13 @@ export async function handleStarWebhook(db: WebhookDB, payload: WebhookPayload) 
 
   // Update star count for all tracked instances
   for (const repoRecord of repoRecords) {
-    await db
-      .update(dbSchema.githubRepo)
-      .set({
+    await db.transact(
+      db.tx.repos[repoRecord.id].update({
         stargazersCount: repo.stargazers_count || 0,
         syncedAt: now,
         updatedAt: now,
-      })
-      .where(eq(dbSchema.githubRepo.id, repoRecord.id))
+      }),
+    )
   }
 
   console.log(`Processed star ${action} event for ${repoFullName}: ${repo.stargazers_count} stars`)
@@ -173,23 +175,25 @@ export async function handleForkWebhook(db: WebhookDB, payload: WebhookPayload) 
   if (!repo || !forkee) return
 
   const repoFullName = repo.full_name
-  const now = new Date()
+  const now = Date.now()
 
   // Update fork count on the original repo
-  const repoRecords = await db
-    .select()
-    .from(dbSchema.githubRepo)
-    .where(eq(dbSchema.githubRepo.fullName, repoFullName))
+  const reposResult = await db.query({
+    repos: {
+      $: { where: { fullName: repoFullName } },
+    },
+  })
+
+  const repoRecords = reposResult.repos || []
 
   for (const repoRecord of repoRecords) {
-    await db
-      .update(dbSchema.githubRepo)
-      .set({
+    await db.transact(
+      db.tx.repos[repoRecord.id].update({
         forksCount: repo.forks_count || 0,
         syncedAt: now,
         updatedAt: now,
-      })
-      .where(eq(dbSchema.githubRepo.id, repoRecord.id))
+      }),
+    )
   }
 
   // Auto-track the new fork for the sender if they're a registered user

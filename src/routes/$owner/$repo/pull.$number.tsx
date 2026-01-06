@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useState } from "react"
-import { useQuery } from "@rocicorp/zero/react"
 import {
   GitPullRequestIcon,
   GitMergeIcon,
@@ -16,7 +15,7 @@ import { PRActivityFeed } from "@/features/pr/PRActivityFeed"
 import { PRFilesTab } from "@/features/pr/PRFilesTab"
 import { PRCommitsTab } from "@/features/pr/PRCommitsTab"
 import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
-import { queries } from "@/db/queries"
+import { db } from "@/lib/instantDb"
 import styles from "@/pages/PRDetailPage.module.css"
 
 type TabType = "conversation" | "commits" | "files"
@@ -57,9 +56,23 @@ function PRDetailPage() {
   const prNumber = parseInt(number, 10)
   const fullName = `${owner}/${repoName}`
 
-  const [repoData] = useQuery(queries.repoWithPRFull({ fullName, prNumber }))
+  // Query repo with PR and all related data using InstantDB
+  const { data: reposData } = db.useQuery({
+    repos: {
+      $: { where: { fullName } },
+      pullRequests: {
+        $: { where: { number: prNumber } },
+        prFiles: {},
+        prReviews: {},
+        prComments: {},
+        prCommits: {},
+        prEvents: {},
+      },
+    },
+  })
 
-  const pr = repoData?.githubPullRequest
+  const repoData = reposData?.repos?.[0] ?? null
+  const pr = repoData?.pullRequests?.[0] ?? null
 
   const handleSync = async () => {
     setSyncing(true)
@@ -137,6 +150,12 @@ function PRDetailPage() {
   const isClosed = pr.state === "closed"
   const isOpen = pr.state === "open"
   const isDraft = pr.draft
+
+  const prFiles = pr.prFiles ?? []
+  const prReviews = pr.prReviews ?? []
+  const prComments = pr.prComments ?? []
+  const prCommits = pr.prCommits ?? []
+  const prEvents = pr.prEvents ?? []
 
   return (
     <div className={styles.container}>
@@ -251,7 +270,7 @@ function PRDetailPage() {
             value: "commits",
             label: "Commits",
             icon: <GitCommitIcon size={16} />,
-            count: pr.githubPrCommit.length || pr.commits || 0,
+            count: prCommits.length || pr.commits || 0,
           },
           {
             value: "files",
@@ -275,23 +294,19 @@ function PRDetailPage() {
               avatarUrl: pr.authorAvatarUrl,
             }}
             prCreatedAt={pr.githubCreatedAt}
-            events={pr.githubPrEvent}
-            reviews={pr.githubPrReview}
-            comments={pr.githubPrComment}
+            events={prEvents}
+            reviews={prReviews}
+            comments={prComments}
             formatTimeAgo={formatTimeAgo}
           />
         )}
 
         {activeTab === "commits" && (
-          <PRCommitsTab commits={pr.githubPrCommit} formatTimeAgo={formatTimeAgo} />
+          <PRCommitsTab commits={prCommits} formatTimeAgo={formatTimeAgo} />
         )}
 
         {activeTab === "files" && (
-          <PRFilesTab
-            files={pr.githubPrFile}
-            comments={pr.githubPrComment}
-            diffOptions={diffOptions}
-          />
+          <PRFilesTab files={prFiles} comments={prComments} diffOptions={diffOptions} />
         )}
       </div>
     </div>

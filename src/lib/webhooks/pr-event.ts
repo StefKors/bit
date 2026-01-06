@@ -1,10 +1,8 @@
-import { eq } from "drizzle-orm"
-import * as dbSchema from "../../../schema"
 import type { WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./utils"
 
 /**
- * Event types that should be recorded in the githubPrEvent table.
+ * Event types that should be recorded in the prEvents table.
  * These are PR actions that represent timeline events.
  */
 const TRACKED_PR_EVENTS = [
@@ -30,7 +28,7 @@ const isTrackedEvent = (action: string): action is TrackedPREvent =>
   TRACKED_PR_EVENTS.includes(action as TrackedPREvent)
 
 /**
- * Handle pull_request webhook events and create githubPrEvent records.
+ * Handle pull_request webhook events and create prEvent records.
  *
  * This handler creates event timeline entries for PR activities like
  * labeling, assignments, review requests, and state changes.
@@ -47,10 +45,13 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
   const prNodeId = pr.node_id as string
 
   // Find users who have this repo synced
-  let repoRecords = await db
-    .select()
-    .from(dbSchema.githubRepo)
-    .where(eq(dbSchema.githubRepo.fullName, repoFullName))
+  const reposResult = await db.query({
+    repos: {
+      $: { where: { fullName: repoFullName } },
+    },
+  })
+
+  let repoRecords = reposResult.repos || []
 
   // If no users tracking, try to auto-track for the webhook sender
   if (repoRecords.length === 0 && sender) {
@@ -76,8 +77,8 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
     // Build the event data
     const eventId = `${prNodeId}:${action}:${Date.now()}`
 
-    const now = new Date()
-    const baseEventData = {
+    const now = Date.now()
+    const baseEventData: Record<string, unknown> = {
       id: eventId,
       pullRequestId: prNodeId,
       eventType: action,
@@ -89,7 +90,7 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
       updatedAt: now,
     }
 
-    let eventData: typeof baseEventData & Record<string, unknown> = { ...baseEventData }
+    let eventData: Record<string, unknown> = { ...baseEventData }
 
     // Add event-specific data
     switch (action) {
@@ -153,7 +154,7 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
       }
     }
 
-    await db.insert(dbSchema.githubPrEvent).values(eventData)
+    await db.transact(db.tx.prEvents[eventId].update(eventData))
   }
 
   console.log(`Processed pull_request.${action} event for ${repoFullName}#${pr.number as number}`)

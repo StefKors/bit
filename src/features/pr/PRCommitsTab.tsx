@@ -1,5 +1,8 @@
 import { Avatar } from "@/components/Avatar"
-import type { GithubPrCommit } from "@/db/schema"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
+
+type GithubPrCommit = InstaQLEntity<AppSchema, "prCommits">
 import styles from "./PRCommitsTab.module.css"
 
 interface PRCommitsTabProps {

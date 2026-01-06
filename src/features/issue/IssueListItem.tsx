@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router"
-import type { Row } from "@rocicorp/zero"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
 import { CommentIcon, IssueOpenedIcon, IssueClosedIcon, SkipIcon } from "@primer/octicons-react"
 import styles from "./IssueListItem.module.css"
 import { Avatar } from "@/components/Avatar"
 import { parseLabels } from "@/lib/issue-filters"
 
-type Issue = Row["githubIssue"]
+type Issue = InstaQLEntity<AppSchema, "issues">
 
 interface IssueListItemProps {
   issue: Issue
@@ -124,7 +125,7 @@ export const IssueListItem = ({ issue, repoFullName }: IssueListItemProps) => {
         ))}
 
         {/* Comment count */}
-        {Boolean(issue.comments) && issue.comments! > 0 && (
+        {Boolean(issue.comments) && (issue.comments ?? 0) > 0 && (
           <div className={styles.commentCount}>
             <CommentIcon className={styles.commentIcon} size={16} />
             {issue.comments}

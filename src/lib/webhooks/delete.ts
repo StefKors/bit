@@ -1,5 +1,3 @@
-import { eq, and } from "drizzle-orm"
-import * as dbSchema from "../../../schema"
 import type { WebhookDB, WebhookPayload, DeleteEvent } from "./types"
 
 /**
@@ -19,10 +17,13 @@ export async function handleDeleteWebhook(db: WebhookDB, payload: WebhookPayload
   const refName = deletePayload.ref
 
   // Find users who have this repo synced
-  const repoRecords = await db
-    .select()
-    .from(dbSchema.githubRepo)
-    .where(eq(dbSchema.githubRepo.fullName, repoFullName))
+  const reposResult = await db.query({
+    repos: {
+      $: { where: { fullName: repoFullName } },
+    },
+  })
+
+  const repoRecords = reposResult.repos || []
 
   if (repoRecords.length === 0) {
     console.log(`No users tracking repo ${repoFullName}`)
@@ -31,14 +32,20 @@ export async function handleDeleteWebhook(db: WebhookDB, payload: WebhookPayload
 
   // Delete cached tree data for the deleted ref
   for (const repoRecord of repoRecords) {
-    await db
-      .delete(dbSchema.githubRepoTree)
-      .where(
-        and(
-          eq(dbSchema.githubRepoTree.repoId, repoRecord.id),
-          eq(dbSchema.githubRepoTree.ref, refName),
-        ),
-      )
+    // Query tree entries for this repo and ref
+    const treeResult = await db.query({
+      repoTrees: {
+        $: { where: { repoId: repoRecord.id, ref: refName } },
+      },
+    })
+
+    const treeEntries = treeResult.repoTrees || []
+
+    // Delete each tree entry
+    if (treeEntries.length > 0) {
+      const deleteTxs = treeEntries.map((entry) => db.tx.repoTrees[entry.id].delete())
+      await db.transact(deleteTxs)
+    }
   }
 
   console.log(`Processed delete event for ${repoFullName}: ${refType} "${refName}" deleted`)

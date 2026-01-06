@@ -1,8 +1,7 @@
 import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useQuery } from "@rocicorp/zero/react"
 import { FileIcon, FileDirectoryIcon } from "@primer/octicons-react"
-import { queries } from "@/db/queries"
+import { db } from "@/lib/instantDb"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoHeader } from "@/features/repo/RepoHeader"
 import { FileTree, type TreeEntry } from "@/features/repo/FileTree"
@@ -15,12 +14,21 @@ function TreePage() {
 
   const [syncing, setSyncing] = useState(false)
 
-  // Query the repo
-  const [repoData] = useQuery(queries.repoWithPRsAndIssues(fullName))
+  // Query the repo with InstantDB
+  const { data: reposData } = db.useQuery({
+    repos: {
+      $: { where: { fullName } },
+      organization: {},
+      pullRequests: {},
+      issues: {},
+      repoTrees: {
+        $: { where: { ref: branch } },
+      },
+    },
+  })
 
-  // Query tree entries once we have repo
-  const repoId = repoData?.id ?? ""
-  const [treeEntries] = useQuery(queries.repoTree({ repoId, ref: branch }))
+  const repoData = reposData?.repos?.[0] ?? null
+  const treeEntries = repoData?.repoTrees ?? []
 
   const handleSync = async () => {
     setSyncing(true)
@@ -43,7 +51,10 @@ function TreePage() {
           <FileDirectoryIcon className={layoutStyles.emptyIcon} size={48} />
           <h3 className={layoutStyles.emptyTitle}>Repository not found</h3>
           <p className={layoutStyles.emptyText}>
-            This repository hasn't been synced yet. <Link to="/">Go back to overview</Link>
+            This repository hasn't been synced yet.{" "}
+            <Link to="/" search={{ github: undefined, error: undefined }}>
+              Go back to overview
+            </Link>
           </p>
         </div>
       </div>
@@ -51,16 +62,14 @@ function TreePage() {
   }
 
   // Convert tree entries to TreeEntry type
-  const entries: TreeEntry[] = treeEntries
-    ? treeEntries.map((entry) => ({
-        id: entry.id,
-        path: entry.path,
-        name: entry.name,
-        type: entry.type as "file" | "dir",
-        sha: entry.sha,
-        size: entry.size,
-      }))
-    : []
+  const entries: TreeEntry[] = treeEntries.map((entry) => ({
+    id: entry.id,
+    path: entry.path,
+    name: entry.name,
+    type: entry.type as "file" | "dir",
+    sha: entry.sha,
+    size: entry.size ?? null,
+  }))
 
   // Get children of current directory
   const currentPath = path || ""
@@ -86,6 +95,22 @@ function TreePage() {
   const pathParts = currentPath ? currentPath.split("/") : []
   const dirName = pathParts[pathParts.length - 1] || repo
 
+  // Build repo data for RepoHeader
+  const repoForHeader = {
+    id: repoData.id,
+    name: repoData.name,
+    fullName: repoData.fullName,
+    owner: repoData.owner,
+    description: repoData.description,
+    htmlUrl: repoData.htmlUrl,
+    stargazersCount: repoData.stargazersCount,
+    forksCount: repoData.forksCount,
+    defaultBranch: repoData.defaultBranch,
+    organization: repoData.organization ?? null,
+    pullRequests: repoData.pullRequests ?? [],
+    issues: repoData.issues ?? [],
+  }
+
   return (
     <div className={layoutStyles.container}>
       <Breadcrumb
@@ -96,7 +121,7 @@ function TreePage() {
         ]}
       />
 
-      <RepoHeader repo={repoData} syncing={syncing} onSync={() => void handleSync()} />
+      <RepoHeader repo={repoForHeader} syncing={syncing} onSync={() => void handleSync()} />
 
       <div className={styles.layout}>
         <div className={styles.sidebar}>

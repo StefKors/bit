@@ -1,5 +1,3 @@
-import { eq } from "drizzle-orm"
-import * as dbSchema from "../../../schema"
 import type { WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./utils"
 
@@ -25,18 +23,24 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
   const repoFullName = repo.full_name as string
 
   // Find the PR in our database
-  const prRecords = await db
-    .select()
-    .from(dbSchema.githubPullRequest)
-    .where(eq(dbSchema.githubPullRequest.id, prNodeId))
+  const prResult = await db.query({
+    pullRequests: {
+      $: { where: { id: prNodeId } },
+    },
+  })
+
+  const prRecords = prResult.pullRequests || []
 
   // If PR not found, try to auto-create it if the repo is tracked or sender is registered
   if (prRecords.length === 0) {
     // First check if any user is tracking this repo
-    const repoRecords = await db
-      .select()
-      .from(dbSchema.githubRepo)
-      .where(eq(dbSchema.githubRepo.fullName, repoFullName))
+    const reposResult = await db.query({
+      repos: {
+        $: { where: { fullName: repoFullName } },
+      },
+    })
+
+    let repoRecords = reposResult.repos || []
 
     // If no users tracking repo, try to auto-track for sender
     if (repoRecords.length === 0 && sender) {
@@ -44,7 +48,7 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
       if (userId) {
         const newRepo = await ensureRepoFromWebhook(db, repo, userId)
         if (newRepo) {
-          repoRecords.push(newRepo)
+          repoRecords = [newRepo]
         }
       }
     }
@@ -59,7 +63,7 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
   }
 
   for (const prRecord of prRecords) {
-    const now = new Date()
+    const now = Date.now()
     const reviewData = {
       id: reviewNodeId,
       githubId: review.id as number,
@@ -69,24 +73,13 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
       authorLogin: ((review.user as Record<string, unknown>)?.login as string) || null,
       authorAvatarUrl: ((review.user as Record<string, unknown>)?.avatar_url as string) || null,
       htmlUrl: review.html_url as string,
-      submittedAt: review.submitted_at ? new Date(review.submitted_at as string) : null,
+      submittedAt: review.submitted_at ? new Date(review.submitted_at as string).getTime() : null,
       userId: prRecord.userId,
       createdAt: now,
       updatedAt: now,
     }
 
-    await db
-      .insert(dbSchema.githubPrReview)
-      .values(reviewData)
-      .onConflictDoUpdate({
-        target: dbSchema.githubPrReview.id,
-        set: {
-          state: reviewData.state,
-          body: reviewData.body,
-          submittedAt: reviewData.submittedAt,
-          updatedAt: new Date(),
-        },
-      })
+    await db.transact(db.tx.prReviews[reviewNodeId].update(reviewData))
   }
 
   console.log(`Processed pull_request_review for PR #${pr.number as number}`)

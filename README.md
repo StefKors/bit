@@ -8,7 +8,7 @@
 ## Features
 
 - **GitHub Integration**: View your organizations, repositories, and pull requests
-- **Real-time Sync**: Data syncs via Zero for offline access
+- **Real-time Sync**: Data syncs via InstantDB for offline access
 - **PR Viewer**: Full PR detail view with conversation, files changed, and diff viewer
 - **Webhook Support**: Real-time updates via GitHub webhooks
 - Diff viewer component from [pierre](https://diffs.com)
@@ -20,36 +20,24 @@
 Create a `.env` file with the following variables:
 
 ```bash
-# Database
-ZERO_UPSTREAM_DB=postgresql://user:password@localhost:5432/database
-
-# GitHub OAuth (via Better Auth)
-GITHUB_CLIENT_ID=your_github_oauth_app_client_id
-GITHUB_CLIENT_SECRET=your_github_oauth_app_client_secret
+# InstantDB
+INSTANT_APP_ID=your_instantdb_app_id
+INSTANT_ADMIN_TOKEN=your_instantdb_admin_token
 
 # GitHub Webhook Secret (for real-time updates)
 GITHUB_WEBHOOK_SECRET=your_webhook_secret
-
-# Zero Cache URL
-VITE_PUBLIC_ZERO_CACHE_URL=http://localhost:4848
 ```
 
-### GitHub OAuth App Setup
+### InstantDB Setup
 
-1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
-2. Create a new OAuth App
-3. Set Homepage URL to `http://localhost:5173`
-4. Set Authorization callback URL to `http://localhost:5173/api/auth/callback/github`
-5. Copy the Client ID and Client Secret to your `.env` file
-
-**Required OAuth Scopes** (configured automatically):
-
-- `read:org` - List user's organizations
-- `repo` - Access repositories (including private) and pull requests
-- `read:user` - Basic user profile info
-- `user:email` - Access user's email addresses
-
-> **Note**: If you previously logged in with limited scopes, you need to **sign out and sign back in** for the new scopes to take effect.
+1. Go to [InstantDB Dashboard](https://www.instantdb.com/dash)
+2. Create a new app
+3. Copy the App ID to your `.env` file
+4. Generate an Admin Token and add it to your `.env` file
+5. Configure GitHub OAuth in InstantDB dashboard:
+   - Go to Auth settings
+   - Enable GitHub OAuth
+   - Set redirect URL to `http://localhost:5173/`
 
 ### GitHub App Setup (for Webhooks)
 
@@ -75,8 +63,8 @@ To receive real-time updates, create a GitHub App:
 # Install dependencies
 bun install
 
-# Start the database
-bun run dev:db-up
+# Push schema to InstantDB
+bun run instant:push
 
 # Run the development server
 bun run dev
@@ -115,9 +103,9 @@ GitHub API has a limit of 5000 requests per hour for authenticated users. The ap
 ## Tech Stack
 
 - **Frontend**: React + Vite + TypeScript
-- **Routing**: wouter
-- **State**: Rocicorp Zero (offline-first sync)
+- **Routing**: TanStack Router
+- **State**: InstantDB (offline-first sync)
 - **Styling**: CSS Modules
-- **Backend**: Hono
-- **Database**: PostgreSQL + Drizzle ORM
-- **Auth**: Better Auth with GitHub OAuth
+- **Backend**: Hono + TanStack Start
+- **Database**: InstantDB
+- **Auth**: InstantDB with GitHub OAuth

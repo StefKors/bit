@@ -1,6 +1,10 @@
 import { CodeIcon, GitPullRequestIcon, IssueOpenedIcon } from "@primer/octicons-react"
 import { Tabs } from "@/components/Tabs"
-import type { GithubPullRequest, GithubIssue } from "@/db/schema"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
+
+type GithubPullRequest = InstaQLEntity<AppSchema, "pullRequests">
+type GithubIssue = InstaQLEntity<AppSchema, "issues">
 
 type TabType = "code" | "pulls" | "issues"
 

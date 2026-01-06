@@ -7,7 +7,7 @@
 - Use css modules
 - Use queries with related over doing multiple fetches
 - each file should contain 1 main component. avoid creating multiple large components in the same file.
-- Prefer **1 `useQuery(...)` per page**. Expand all page data from a single root query via `.related(...)` instead of adding more `useQuery` calls in subcomponents/tabs.
+- Prefer **1 `db.useQuery(...)` per page**. Expand all page data from a single root query via nested relations instead of adding more `useQuery` calls in subcomponents/tabs.
 
 # TanStack Router
 
@@ -19,35 +19,62 @@
   />
   ```
 
-# Zero (queries + mutations)
+# InstantDB (queries + mutations)
 
-- Queries live in `src/db/queries.ts` and should be composed using ZQL (`zql` from `src/db/schema.ts`) + `.related(...)`.
-- `.related(...)` only works once the generated Zero schema has relationships.
-  - Right now `src/db/schema.ts` has `relationships: {}`.
-  - Add Drizzle `relations(...)` in the root `schema.ts`, then regenerate: `npm run generate-zero-schema`.
-- Prefer `.one()` for detail pages (repo detail, PR detail) and do ordering/filtering inside the query.
+- Schema lives in `src/instant.schema.ts`
+- Permissions live in `src/instant.perms.ts`
+- Client SDK initialized in `src/lib/instantDb.ts`
+- Admin SDK initialized in `src/lib/instantAdmin.ts`
 
-## Database Defaults
+## Queries
 
-**Do NOT use Drizzle database defaults with Zero.** This includes:
+```typescript
+import { db } from "@/lib/instantDb"
 
-- `.default()` - e.g., `.default(false)`, `.default(0)`
-- `.defaultNow()` - for timestamps
-- `.$onUpdate()` - auto-update triggers
+// In components, use db.useQuery()
+const { data, isLoading, error } = db.useQuery({
+  repos: {
+    $: { where: { owner: "user" }, orderBy: { name: "asc" } },
+    pullRequests: {},
+    issues: {},
+  },
+})
+```
 
-**Why**: Zero mutations run locally first before the server replays them. The local database doesn't know about Postgres defaults, so fields would be `null`/`undefined` until the server fills them in.
+## Mutations (Admin SDK)
 
-**Solution**: Set all values explicitly in mutators and sync code. The sync endpoints and webhook handlers must provide every value when inserting/upserting rows.
+```typescript
+import { adminDb } from "@/lib/instantAdmin"
 
-See: https://github.com/rocicorp/drizzle-zero/issues/197
+// Insert/update using transact
+await adminDb.transact(
+  adminDb.tx.repos[nodeId].update({
+    name: repo.name,
+    fullName: repo.full_name,
+    // ... all fields
+  })
+)
+```
 
-## Mutators
+## Schema Changes
 
-- Mutators live in `src/db/mutators.ts`.
-  - Define with `defineMutators(...)` + `defineMutator(...)` and validate args with Zod.
-  - Write using `tx.mutate.<table>.<insert|upsert|update|delete>(...)` and use `ctx.userID` for authz.
-  - This repo has `schema.enableLegacyMutators = false`, so call custom mutators like:
-    - `const zero = useZero(); await zero.mutate(mutators.foo.bar(args))`
+After modifying `src/instant.schema.ts`:
+
+```bash
+bun run instant:push:schema
+```
+
+After modifying `src/instant.perms.ts`:
+
+```bash
+bun run instant:push:perms
+```
+
+Or push both:
+
+```bash
+bun run instant:push
+```
 
 # CSS
 
@@ -222,4 +249,5 @@ async function handleSomeWebhook(
 ## Environment variables
 
 - `GITHUB_WEBHOOK_SECRET` - Secret for verifying webhook signatures (required)
-- `ZERO_UPSTREAM_DB` - PostgreSQL connection string for database operations
+- `INSTANT_APP_ID` - InstantDB app ID
+- `INSTANT_ADMIN_TOKEN` - InstantDB admin token for server-side operations

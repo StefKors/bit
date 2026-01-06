@@ -1,5 +1,3 @@
-import { eq } from "drizzle-orm"
-import * as dbSchema from "../../../schema"
 import type { WebhookDB, WebhookPayload, RepoRecord, IssueRecord } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
 
@@ -29,10 +27,13 @@ export const handleIssueWebhook = async (db: WebhookDB, payload: WebhookPayload)
   const issueNodeId = issue.node_id as string
 
   // Find users who have this repo synced
-  let repoRecords = await db
-    .select()
-    .from(dbSchema.githubRepo)
-    .where(eq(dbSchema.githubRepo.fullName, repoFullName))
+  const reposResult = await db.query({
+    repos: {
+      $: { where: { fullName: repoFullName } },
+    },
+  })
+
+  let repoRecords = reposResult.repos || []
 
   // If no users tracking, try to auto-track for the webhook sender
   if (repoRecords.length === 0 && sender) {
@@ -51,7 +52,7 @@ export const handleIssueWebhook = async (db: WebhookDB, payload: WebhookPayload)
   }
 
   for (const repoRecord of repoRecords) {
-    const now = new Date()
+    const now = Date.now()
     const issueData = {
       id: issueNodeId,
       githubId: issue.id as number,
@@ -83,35 +84,16 @@ export const handleIssueWebhook = async (db: WebhookDB, payload: WebhookPayload)
             number: (issue.milestone as Record<string, unknown>).number,
           })
         : null,
-      githubCreatedAt: new Date(issue.created_at as string),
-      githubUpdatedAt: new Date(issue.updated_at as string),
-      closedAt: issue.closed_at ? new Date(issue.closed_at as string) : null,
+      githubCreatedAt: new Date(issue.created_at as string).getTime(),
+      githubUpdatedAt: new Date(issue.updated_at as string).getTime(),
+      closedAt: issue.closed_at ? new Date(issue.closed_at as string).getTime() : null,
       userId: repoRecord.userId,
       syncedAt: now,
       createdAt: now,
       updatedAt: now,
     }
 
-    await db
-      .insert(dbSchema.githubIssue)
-      .values(issueData)
-      .onConflictDoUpdate({
-        target: dbSchema.githubIssue.id,
-        set: {
-          title: issueData.title,
-          body: issueData.body,
-          state: issueData.state,
-          stateReason: issueData.stateReason,
-          comments: issueData.comments,
-          labels: issueData.labels,
-          assignees: issueData.assignees,
-          milestone: issueData.milestone,
-          githubUpdatedAt: issueData.githubUpdatedAt,
-          closedAt: issueData.closedAt,
-          syncedAt: new Date(),
-          updatedAt: new Date(),
-        },
-      })
+    await db.transact(db.tx.issues[issueNodeId].update(issueData))
   }
 
   console.log(`Processed issues.${action} for ${repoFullName}#${issue.number as number}`)
@@ -129,17 +111,18 @@ export const ensureIssueFromWebhook = async (
   const issueNodeId = issue.node_id as string
 
   // Check if issue already exists
-  const existing = await db
-    .select()
-    .from(dbSchema.githubIssue)
-    .where(eq(dbSchema.githubIssue.id, issueNodeId))
-    .limit(1)
+  const existingResult = await db.query({
+    issues: {
+      $: { where: { id: issueNodeId }, limit: 1 },
+    },
+  })
 
+  const existing = existingResult.issues || []
   if (existing[0]) {
-    return existing[0]
+    return existing[0] as IssueRecord
   }
 
-  const now = new Date()
+  const now = Date.now()
   const issueData = {
     id: issueNodeId,
     githubId: issue.id as number,
@@ -171,43 +154,26 @@ export const ensureIssueFromWebhook = async (
           number: (issue.milestone as Record<string, unknown>).number,
         })
       : null,
-    githubCreatedAt: issue.created_at ? new Date(issue.created_at as string) : null,
-    githubUpdatedAt: issue.updated_at ? new Date(issue.updated_at as string) : null,
-    closedAt: issue.closed_at ? new Date(issue.closed_at as string) : null,
+    githubCreatedAt: issue.created_at ? new Date(issue.created_at as string).getTime() : null,
+    githubUpdatedAt: issue.updated_at ? new Date(issue.updated_at as string).getTime() : null,
+    closedAt: issue.closed_at ? new Date(issue.closed_at as string).getTime() : null,
     userId: repoRecord.userId,
     syncedAt: now,
     createdAt: now,
     updatedAt: now,
   }
 
-  await db
-    .insert(dbSchema.githubIssue)
-    .values(issueData)
-    .onConflictDoUpdate({
-      target: dbSchema.githubIssue.id,
-      set: {
-        title: issueData.title,
-        body: issueData.body,
-        state: issueData.state,
-        stateReason: issueData.stateReason,
-        comments: issueData.comments,
-        labels: issueData.labels,
-        assignees: issueData.assignees,
-        milestone: issueData.milestone,
-        githubUpdatedAt: issueData.githubUpdatedAt,
-        closedAt: issueData.closedAt,
-        syncedAt: new Date(),
-        updatedAt: new Date(),
-      },
-    })
+  await db.transact(db.tx.issues[issueNodeId].update(issueData))
 
-  const inserted = await db
-    .select()
-    .from(dbSchema.githubIssue)
-    .where(eq(dbSchema.githubIssue.id, issueNodeId))
-    .limit(1)
+  // Fetch the inserted record
+  const insertedResult = await db.query({
+    issues: {
+      $: { where: { id: issueNodeId }, limit: 1 },
+    },
+  })
 
+  const inserted = insertedResult.issues || []
   console.log(`Auto-tracked issue #${issue.number as number} for repo ${repoRecord.fullName}`)
 
-  return inserted[0] ?? null
+  return (inserted[0] as IssueRecord) ?? null
 }

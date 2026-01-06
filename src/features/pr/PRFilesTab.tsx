@@ -1,13 +1,16 @@
 import { useMemo } from "react"
-import { Row } from "@rocicorp/zero"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
 import { DiffViewer } from "./DiffViewer"
 import type { DiffOptions } from "./DiffOptionsBar"
-import type { GithubPrFile, GithubPrComment } from "@/db/schema"
 import styles from "./PRFilesTab.module.css"
 
+type PrFile = InstaQLEntity<AppSchema, "prFiles">
+type PrComment = InstaQLEntity<AppSchema, "prComments">
+
 interface PRFilesTabProps {
-  files: readonly GithubPrFile[]
-  comments: readonly GithubPrComment[]
+  files: readonly PrFile[]
+  comments: readonly PrComment[]
   diffOptions: DiffOptions
 }
 
@@ -20,7 +23,7 @@ export const PRFilesTab = ({ files, comments, diffOptions }: PRFilesTabProps) =>
 
   // Group comments by path for easy access
   const commentsByPath = useMemo(() => {
-    const map = new Map<string, Row["githubPrComment"][]>()
+    const map = new Map<string, PrComment[]>()
     for (const comment of reviewComments) {
       if (comment.path) {
         const existing = map.get(comment.path) || []
@@ -56,8 +59,8 @@ export const PRFilesTab = ({ files, comments, diffOptions }: PRFilesTabProps) =>
 }
 
 interface FileItemProps {
-  file: Row["githubPrFile"]
-  comments: Row["githubPrComment"][]
+  file: PrFile
+  comments: PrComment[]
   diffOptions: DiffOptions
 }
 

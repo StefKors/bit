@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useQuery } from "@rocicorp/zero/react"
 import {
   FileDirectoryIcon,
   RepoIcon,
@@ -10,8 +9,7 @@ import {
   LinkExternalIcon,
   LockIcon,
 } from "@primer/octicons-react"
-import { authClient } from "@/lib/auth"
-import { queries } from "@/db/queries"
+import { db } from "@/lib/instantDb"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import styles from "@/pages/OwnerPage.module.css"
 
@@ -39,21 +37,34 @@ const languageColors: Record<string, string> = {
 
 const OwnerPage = () => {
   const params: { owner?: string } = Route.useParams()
-  const { data: session } = authClient.useSession()
-  const [repos] = useQuery(queries.reposByOwner(params?.owner ?? ""))
+  const { user } = db.useAuth()
 
   const owner = params?.owner ?? ""
+
+  // Query repos by owner with organization
+  const { data: reposData } = db.useQuery({
+    repos: {
+      $: { where: { owner } },
+      organization: {},
+    },
+  })
+  const repos = reposData?.repos ?? []
+
   // Get org from first repo's related data (all repos share same org if it exists)
-  const org = repos[0]?.githubOrganization ?? null
+  const org = repos[0]?.organization ?? null
   const isOrg = Boolean(org)
-  const isCurrentUser = session?.user?.name?.toLowerCase() === owner.toLowerCase()
+  const isCurrentUser = user?.email?.split("@")[0]?.toLowerCase() === owner.toLowerCase()
 
   const totalStars = repos.reduce((acc, repo) => acc + (repo.stargazersCount ?? 0), 0)
   const totalForks = repos.reduce((acc, repo) => acc + (repo.forksCount ?? 0), 0)
 
   // Get avatar and display name
-  const avatarUrl = isOrg ? org?.avatarUrl : isCurrentUser ? session?.user?.image : null
-  const displayName = isOrg ? org?.name || owner : isCurrentUser ? session?.user?.name : owner
+  const avatarUrl = isOrg
+    ? org?.avatarUrl
+    : isCurrentUser
+      ? (user as { avatarUrl?: string } | undefined)?.avatarUrl
+      : null
+  const displayName = isOrg ? org?.name || owner : isCurrentUser ? user?.email : owner
   const description = isOrg ? org?.description : null
 
   if (repos.length === 0) {
@@ -189,12 +200,12 @@ interface RepoListItemProps {
     id: string
     name: string
     owner: string
-    description: string | null
-    language: string | null
-    stargazersCount: number | null
-    forksCount: number | null
-    private: boolean | null
-    githubUpdatedAt: number | null
+    description?: string | null | undefined
+    language?: string | null | undefined
+    stargazersCount?: number | null | undefined
+    forksCount?: number | null | undefined
+    private?: boolean | null | undefined
+    githubUpdatedAt?: number | null | undefined
   }
 }
 

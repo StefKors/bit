@@ -144,3 +144,79 @@
     transform: rotate(360deg);
   }
 }
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inputLabel {
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  color: var(--bit-color-fg);
+  background: rgba(var(--bit-rgb-fg), 0.03);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-lg);
+  font-family: inherit;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input::placeholder {
+  color: rgba(var(--bit-rgb-fg), 0.3);
+}
+
+.input:focus {
+  border-color: var(--bit-color-accent-blue);
+  background: rgba(var(--bit-rgb-accent-blue), 0.05);
+  box-shadow: 0 0 0 3px rgba(var(--bit-rgb-accent-blue), 0.15);
+}
+
+.error {
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  color: var(--bit-color-accent-red);
+  background: rgba(var(--bit-rgb-accent-red), 0.1);
+  border: 1px solid rgba(var(--bit-rgb-accent-red), 0.2);
+  border-radius: var(--bit-radius-lg);
+}
+
+.backLink {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  background: transparent;
+  border: none;
+  border-radius: var(--bit-radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  color: var(--bit-color-fg);
+  background: rgba(var(--bit-rgb-fg), 0.05);
+}

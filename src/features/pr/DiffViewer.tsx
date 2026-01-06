@@ -1,19 +1,20 @@
 import { useMemo } from "react"
 import { PlusIcon } from "@primer/octicons-react"
 import { PatchDiff } from "@pierre/diffs/react"
-import { Row } from "@rocicorp/zero"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
 import { Button } from "@/components/Button"
 import { Markdown } from "@/components/Markdown"
 import styles from "./DiffViewer.module.css"
 import type { DiffOptions } from "./DiffOptionsBar"
 import { Avatar } from "@/components/Avatar"
 
-type Comment = Row["githubPrComment"]
+type Comment = InstaQLEntity<AppSchema, "prComments">
 
 interface DiffViewerProps {
   filename: string
-  previousFilename: string | null
-  patch: string | null
+  previousFilename: string | null | undefined
+  patch: string | null | undefined
   comments?: Comment[]
   diffOptions: DiffOptions
 }

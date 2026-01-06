@@ -1,11 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useState, useCallback } from "react"
-import { useQuery } from "@rocicorp/zero/react"
 import { IssueOpenedIcon, IssueClosedIcon, SkipIcon, SyncIcon } from "@primer/octicons-react"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Button } from "@/components/Button"
 import { IssueConversationTab } from "@/features/issue/IssueConversationTab"
-import { queries } from "@/db/queries"
+import { db } from "@/lib/instantDb"
 import { parseLabels } from "@/lib/issue-filters"
 import styles from "@/pages/IssueDetailPage.module.css"
 
@@ -34,9 +33,19 @@ const IssueDetailPage = () => {
   const issueNumber = parseInt(number, 10)
   const fullName = `${owner}/${repoName}`
 
-  const [repoData] = useQuery(queries.repoWithIssueFull({ fullName, issueNumber }))
+  // Query repo with issue and comments using InstantDB
+  const { data: reposData } = db.useQuery({
+    repos: {
+      $: { where: { fullName } },
+      issues: {
+        $: { where: { number: issueNumber } },
+        issueComments: {},
+      },
+    },
+  })
 
-  const issue = repoData?.githubIssue
+  const repoData = reposData?.repos?.[0] ?? null
+  const issue = repoData?.issues?.[0] ?? null
 
   const handleSync = useCallback(async () => {
     setSyncing(true)
@@ -91,6 +100,7 @@ const IssueDetailPage = () => {
   const isOpen = issue.state === "open"
   const isNotPlanned = issue.stateReason === "not_planned"
   const labels = issue.labels ? parseLabels(issue.labels) : []
+  const issueComments = issue.issueComments ?? []
 
   return (
     <div className={styles.container}>
@@ -202,7 +212,7 @@ const IssueDetailPage = () => {
             avatarUrl: issue.authorAvatarUrl,
           }}
           issueCreatedAt={issue.githubCreatedAt}
-          comments={issue.githubIssueComment}
+          comments={issueComments}
           formatTimeAgo={formatTimeAgo}
         />
       </div>

@@ -1,5 +1,6 @@
-import { drizzle } from "drizzle-orm/node-postgres"
-import * as dbSchema from "../../../schema"
+import type { adminDb } from "@/lib/instantAdmin"
+import type { AppSchema } from "@/instant.schema"
+import type { InstaQLEntity } from "@instantdb/core"
 
 // Re-export types from @octokit/webhooks-types for type-safe webhook handling
 export type {
@@ -102,13 +103,13 @@ export type {
   Issue,
 } from "@octokit/webhooks-types"
 
-export type WebhookDB = ReturnType<typeof drizzle<typeof dbSchema>>
+export type WebhookDB = typeof adminDb
 
 export type WebhookPayload = Record<string, unknown>
 
-export type RepoRecord = typeof dbSchema.githubRepo.$inferSelect
-export type PRRecord = typeof dbSchema.githubPullRequest.$inferSelect
-export type IssueRecord = typeof dbSchema.githubIssue.$inferSelect
+export type RepoRecord = InstaQLEntity<AppSchema, "repos">
+export type PRRecord = InstaQLEntity<AppSchema, "pullRequests">
+export type IssueRecord = InstaQLEntity<AppSchema, "issues">
 
 /**
  * GitHub webhook event names as sent in the x-github-event header.

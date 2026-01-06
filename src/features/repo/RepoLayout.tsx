@@ -1,19 +1,60 @@
 import { useState, type ReactNode } from "react"
 import { Link, useParams } from "@tanstack/react-router"
-import { useQuery } from "@rocicorp/zero/react"
 import { FileDirectoryIcon } from "@primer/octicons-react"
-import { queries } from "@/db/queries"
+import { db } from "@/lib/instantDb"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoHeader } from "./RepoHeader"
 import { RepoTabs } from "./RepoTabs"
 import styles from "./RepoLayout.module.css"
-import type { GithubRepo, GithubPullRequest, GithubIssue } from "@/db/schema"
 
 type TabType = "code" | "pulls" | "issues"
 
-export interface RepoData extends GithubRepo {
-  githubPullRequest: readonly GithubPullRequest[]
-  githubIssue: readonly GithubIssue[]
+// Define types for InstantDB data
+interface Organization {
+  id: string
+  login: string
+  name?: string | null
+  description?: string | null
+  avatarUrl?: string | null
+}
+
+interface PullRequest {
+  id: string
+  number: number
+  title: string
+  state: string
+  draft: boolean
+  merged: boolean
+  authorLogin?: string | null
+  authorAvatarUrl?: string | null
+  githubCreatedAt?: number | null
+  githubUpdatedAt?: number | null
+}
+
+interface Issue {
+  id: string
+  number: number
+  title: string
+  state: string
+  authorLogin?: string | null
+  authorAvatarUrl?: string | null
+  githubCreatedAt?: number | null
+  githubUpdatedAt?: number | null
+}
+
+export interface RepoData {
+  id: string
+  name: string
+  fullName: string
+  owner: string
+  description?: string | null
+  htmlUrl?: string | null
+  stargazersCount?: number | null
+  forksCount?: number | null
+  defaultBranch?: string | null
+  organization?: Organization | null
+  pullRequests: readonly PullRequest[]
+  issues: readonly Issue[]
 }
 
 interface RepoLayoutProps {
@@ -30,8 +71,17 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
   const repoName = params.repo || ""
   const fullName = `${owner}/${repoName}`
 
-  // Query the repo with PRs and issues in one go
-  const [repo] = useQuery(queries.repoWithPRsAndIssues(fullName))
+  // Query the repo with PRs and issues using InstantDB
+  const { data: reposData } = db.useQuery({
+    repos: {
+      $: { where: { fullName } },
+      organization: {},
+      pullRequests: {},
+      issues: {},
+    },
+  })
+
+  const repoRaw = reposData?.repos?.[0] ?? null
 
   const handleSync = async () => {
     setSyncing(true)
@@ -55,19 +105,38 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
     }
   }
 
-  if (!repo) {
+  if (!repoRaw) {
     return (
       <div className={styles.container}>
         <div className={styles.emptyState}>
           <FileDirectoryIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>Repository not found</h3>
           <p className={styles.emptyText}>
-            This repository hasn't been synced yet. <Link to="/">Go back to overview</Link> and sync
-            your repositories.
+            This repository hasn't been synced yet.{" "}
+            <Link to="/" search={{ github: undefined, error: undefined }}>
+              Go back to overview
+            </Link>{" "}
+            and sync your repositories.
           </p>
         </div>
       </div>
     )
+  }
+
+  // Transform to expected shape
+  const repo: RepoData = {
+    id: repoRaw.id,
+    name: repoRaw.name,
+    fullName: repoRaw.fullName,
+    owner: repoRaw.owner,
+    description: repoRaw.description,
+    htmlUrl: repoRaw.htmlUrl,
+    stargazersCount: repoRaw.stargazersCount,
+    forksCount: repoRaw.forksCount,
+    defaultBranch: repoRaw.defaultBranch,
+    organization: repoRaw.organization ?? null,
+    pullRequests: repoRaw.pullRequests ?? [],
+    issues: repoRaw.issues ?? [],
   }
 
   return (
@@ -85,14 +154,14 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
       {error && <div className={styles.error}>{error}</div>}
 
       <RepoTabs
-        prs={repo.githubPullRequest}
-        issues={repo.githubIssue}
+        prs={repo.pullRequests as Parameters<typeof RepoTabs>[0]["prs"]}
+        issues={repo.issues as Parameters<typeof RepoTabs>[0]["issues"]}
         fullName={fullName}
         activeTab={activeTab}
       />
 
       <div className={styles.content}>
-        {typeof children === "function" ? children(repo as RepoData) : children}
+        {typeof children === "function" ? children(repo) : children}
       </div>
     </div>
   )

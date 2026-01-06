@@ -113,7 +113,9 @@
 
   /* Shadows */
   --bit-shadow-md: 0 1px 2px 0 rgba(var(--bit-rgb-shadow), 0.05);
-  --bit-shadow-lg: 0 10px 15px -3px rgba(var(--bit-rgb-shadow), 0.1), 0 4px 6px -4px rgba(var(--bit-rgb-shadow), 0.1);
+  --bit-shadow-lg:
+    0 10px 15px -3px rgba(var(--bit-rgb-shadow), 0.1),
+    0 4px 6px -4px rgba(var(--bit-rgb-shadow), 0.1);
   --bit-shadow-glow-success: 0 0 8px rgba(var(--bit-rgb-accent-green), 0.4);
 
   /* Radii */

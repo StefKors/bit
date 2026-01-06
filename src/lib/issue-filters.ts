@@ -1,4 +1,7 @@
-import type { GithubIssue } from "@/db/schema"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
+
+type GithubIssue = InstaQLEntity<AppSchema, "issues">
 
 // Filter types
 export type IssueStatus = "all" | "open" | "closed"

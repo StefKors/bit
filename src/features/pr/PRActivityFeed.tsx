@@ -1,4 +1,9 @@
-import type { GithubPrEvent, GithubPrReview, GithubPrComment } from "@/db/schema"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
+
+type GithubPrEvent = InstaQLEntity<AppSchema, "prEvents">
+type GithubPrReview = InstaQLEntity<AppSchema, "prReviews">
+type GithubPrComment = InstaQLEntity<AppSchema, "prComments">
 import { Avatar } from "@/components/Avatar"
 import { Markdown } from "@/components/Markdown"
 import {
@@ -21,14 +26,14 @@ import {
 import styles from "./PRActivityFeed.module.css"
 
 interface PRAuthor {
-  login: string | null
-  avatarUrl: string | null
+  login: string | null | undefined
+  avatarUrl: string | null | undefined
 }
 
 interface PRActivityFeedProps {
-  prBody: string | null
+  prBody: string | null | undefined
   prAuthor: PRAuthor
-  prCreatedAt: Date | number | null
+  prCreatedAt: Date | number | null | undefined
   events: readonly GithubPrEvent[]
   reviews: readonly GithubPrReview[]
   comments: readonly GithubPrComment[]
@@ -38,12 +43,12 @@ interface PRActivityFeedProps {
 interface TimelineItem {
   type: "pr_opened" | "event" | "review" | "comment"
   id: string
-  timestamp: number | null
+  timestamp: number | null | undefined
   data: {
     event?: GithubPrEvent
     review?: GithubPrReview
     comment?: GithubPrComment
-    prBody?: string | null
+    prBody?: string | null | undefined
     prAuthor?: PRAuthor
   }
 }
@@ -160,7 +165,7 @@ const PROpenedItem = ({
 }: {
   prBody: string | null | undefined
   prAuthor: PRAuthor
-  timestamp: number | null
+  timestamp: number | null | undefined
   formatTimeAgo: (date: Date | number | null | undefined) => string
 }) => {
   return (

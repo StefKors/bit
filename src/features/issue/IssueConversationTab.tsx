@@ -1,17 +1,20 @@
 import { Markdown } from "@/components/Markdown"
-import type { GithubIssueComment } from "@/db/schema"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
+
+type GithubIssueComment = InstaQLEntity<AppSchema, "issueComments">
 import styles from "./IssueConversationTab.module.css"
 import { Avatar } from "@/components/Avatar"
 
 interface IssueAuthor {
-  login: string | null
-  avatarUrl: string | null
+  login: string | null | undefined
+  avatarUrl: string | null | undefined
 }
 
 interface IssueConversationTabProps {
-  issueBody: string | null
+  issueBody: string | null | undefined
   issueAuthor: IssueAuthor
-  issueCreatedAt: Date | number | null
+  issueCreatedAt: Date | number | null | undefined
   comments: readonly GithubIssueComment[]
   formatTimeAgo: (date: Date | number | null | undefined) => string
 }
@@ -73,10 +76,10 @@ export const IssueConversationTab = ({
 }
 
 interface TimelineItemComponentProps {
-  avatarUrl: string | null
-  authorLogin: string | null
+  avatarUrl: string | null | undefined
+  authorLogin: string | null | undefined
   headerContent: React.ReactNode
-  body: string | null
+  body: string | null | undefined
 }
 
 const TimelineItemComponent = ({
