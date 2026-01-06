@@ -76,14 +76,17 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
     // Build the event data
     const eventId = `${prNodeId}:${action}:${Date.now()}`
 
+    const now = new Date()
     const baseEventData = {
       id: eventId,
       pullRequestId: prNodeId,
       eventType: action,
       actorLogin: (sender?.login as string) || null,
       actorAvatarUrl: (sender?.avatar_url as string) || null,
-      eventCreatedAt: new Date(),
+      eventCreatedAt: now,
       userId: repoRecord.userId,
+      createdAt: now,
+      updatedAt: now,
     }
 
     let eventData: typeof baseEventData & Record<string, unknown> = { ...baseEventData }

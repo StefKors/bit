@@ -992,6 +992,7 @@ export class GitHubClient {
         eventCreatedAt = new Date(event.committer.date)
       }
 
+      const now = new Date()
       const baseEvent = {
         id: eventId,
         githubId: "id" in event ? event.id : null,
@@ -1001,6 +1002,8 @@ export class GitHubClient {
         actorAvatarUrl,
         eventCreatedAt,
         userId: this.userId,
+        createdAt: now,
+        updatedAt: now,
       }
 
       // Add event-specific data
@@ -1164,6 +1167,7 @@ export class GitHubClient {
     // Process tree entries
     const treeEntries: (typeof schema.githubRepoTree.$inferInsert)[] = []
 
+    const now = new Date()
     for (const item of response.data.tree) {
       if (!item.path) continue
 
@@ -1182,6 +1186,8 @@ export class GitHubClient {
         url: item.url || null,
         htmlUrl: `https://github.com/${owner}/${repo}/${item.type === "tree" ? "tree" : "blob"}/${branch}/${item.path}`,
         userId: this.userId,
+        createdAt: now,
+        updatedAt: now,
       })
     }
 
@@ -1251,6 +1257,7 @@ export class GitHubClient {
       ? Buffer.from(response.data.content, "base64").toString("utf-8")
       : null
 
+    const now = new Date()
     const blob: typeof schema.githubRepoBlob.$inferInsert = {
       id: `${repoRecord[0].id}:${response.data.sha}`,
       repoId: repoRecord[0].id,
@@ -1259,6 +1266,8 @@ export class GitHubClient {
       encoding: response.data.encoding,
       size: response.data.size,
       userId: this.userId,
+      createdAt: now,
+      updatedAt: now,
     }
 
     // Upsert blob

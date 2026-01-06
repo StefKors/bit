@@ -51,6 +51,7 @@ export const handleIssueWebhook = async (db: WebhookDB, payload: WebhookPayload)
   }
 
   for (const repoRecord of repoRecords) {
+    const now = new Date()
     const issueData = {
       id: issueNodeId,
       githubId: issue.id as number,
@@ -86,7 +87,9 @@ export const handleIssueWebhook = async (db: WebhookDB, payload: WebhookPayload)
       githubUpdatedAt: new Date(issue.updated_at as string),
       closedAt: issue.closed_at ? new Date(issue.closed_at as string) : null,
       userId: repoRecord.userId,
-      syncedAt: new Date(),
+      syncedAt: now,
+      createdAt: now,
+      updatedAt: now,
     }
 
     await db
@@ -136,6 +139,7 @@ export const ensureIssueFromWebhook = async (
     return existing[0]
   }
 
+  const now = new Date()
   const issueData = {
     id: issueNodeId,
     githubId: issue.id as number,
@@ -171,7 +175,9 @@ export const ensureIssueFromWebhook = async (
     githubUpdatedAt: issue.updated_at ? new Date(issue.updated_at as string) : null,
     closedAt: issue.closed_at ? new Date(issue.closed_at as string) : null,
     userId: repoRecord.userId,
-    syncedAt: new Date(),
+    syncedAt: now,
+    createdAt: now,
+    updatedAt: now,
   }
 
   await db

@@ -84,6 +84,7 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
   }
 
   for (const issueRecord of issueRecords) {
+    const now = new Date()
     const commentData = {
       id: comment.node_id as string,
       githubId: comment.id as number,
@@ -95,6 +96,8 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
       githubCreatedAt: new Date(comment.created_at as string),
       githubUpdatedAt: new Date(comment.updated_at as string),
       userId: issueRecord.userId,
+      createdAt: now,
+      updatedAt: now,
     }
 
     await db

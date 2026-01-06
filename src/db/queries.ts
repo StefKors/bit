@@ -27,7 +27,7 @@ export const queries = defineQueries({
   overview: defineQuery(({ ctx }) =>
     zql.githubRepo
       .where("userId", "=", ctx.userID ?? "")
-      .orderBy("pushedAt", "desc")
+      .orderBy("githubPushedAt", "desc")
       .related("githubOrganization"),
   ),
 
@@ -62,7 +62,7 @@ export const queries = defineQueries({
       .where("userId", "=", ctx.userID ?? "")
       .where("login", "=", args)
       .one()
-      .related("githubRepo", (repos) => repos.orderBy("pushedAt", "desc")),
+      .related("githubRepo", (repos) => repos.orderBy("githubPushedAt", "desc")),
   ),
 
   // Repos by owner - includes related organization for profile info
@@ -70,7 +70,7 @@ export const queries = defineQueries({
     zql.githubRepo
       .where("userId", "=", ctx.userID ?? "")
       .where("owner", "=", args)
-      .orderBy("pushedAt", "desc")
+      .orderBy("githubPushedAt", "desc")
       .related("githubOrganization"),
   ),
 
