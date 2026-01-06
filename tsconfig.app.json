@@ -17,8 +17,7 @@
       "@/*": ["./src/*"],
       "@/components/*": ["./src/components/*"],
       "@/pages/*": ["./src/pages/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/db/*": ["./src/db/*"]
+      "@/lib/*": ["./src/lib/*"]
     },
     /* Linting */
     "strict": true,
@@ -26,5 +25,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "api", "schema.ts"]
+  "include": ["src", "api"]
 }
