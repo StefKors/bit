@@ -1,8 +1,6 @@
 ---
-description: React patterns - hooks, state, effects, and best practices
-globs:
-  - src/**/*.tsx
-  - src/routes/**/*.tsx
+globs: src/**/*.tsx,src/routes/**/*.tsx
+alwaysApply: false
 ---
 
 # React Rules

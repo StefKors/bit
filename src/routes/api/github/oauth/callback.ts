@@ -1,5 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { createHash } from "crypto"
 import { adminDb } from "@/lib/instantAdmin"
+
+// Generate a deterministic UUID-like ID from a string key
+// InstantDB requires valid UUIDs for entity IDs
+const generateSyncStateId = (key: string): string => {
+  const hash = createHash("sha256").update(key).digest("hex")
+  // Format as UUID: 8-4-4-4-12
+  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-${hash.slice(12, 16)}-${hash.slice(16, 20)}-${hash.slice(20, 32)}`
+}
 
 // GitHub OAuth callback handler
 // This is called after the user authorizes the GitHub App
@@ -168,7 +177,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           // In production, you'd want to encrypt this token
 
           // Also store the access token in a sync state record for this user
-          const tokenStateId = `${userId}:github:token`
+          const tokenStateId = generateSyncStateId(`${userId}:github:token`)
           await adminDb.transact(
             adminDb.tx.syncStates[tokenStateId]
               .update({

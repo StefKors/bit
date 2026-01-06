@@ -1,8 +1,6 @@
 ---
-description: GitHub webhook handlers - patterns and implementation
-globs:
-  - src/lib/webhooks/**
-  - src/routes/api/github/webhook.ts
+globs: src/lib/webhooks/**/*.ts,src/routes/api/github/webhook.ts
+alwaysApply: false
 ---
 
 # GitHub Webhook Rules

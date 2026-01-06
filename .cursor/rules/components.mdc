@@ -1,9 +1,6 @@
 ---
-description: Component structure, organization, and patterns
-globs:
-  - src/components/**
-  - src/features/**
-  - src/pages/**
+globs: src/components/**/*.tsx,src/features/**/*.tsx,src/pages/**/*.tsx
+alwaysApply: false
 ---
 
 # Component Rules

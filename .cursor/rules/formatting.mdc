@@ -1,9 +1,6 @@
 ---
-description: Code style, formatting, and CSS conventions
-globs:
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/*.css"
+globs: src/**/*.ts,src/**/*.tsx,src/**/*.css
+alwaysApply: false
 ---
 
 # Formatting & Style Rules

@@ -1,10 +1,6 @@
 ---
-description: Zero sync engine - schema, queries, mutations, and permissions
-alwaysApply: true
-globs:
-  - schema.ts
-  - src/db/**
-  - src/routes/api/zero/**
+globs: schema.ts,src/db/**/*.ts,src/routes/api/zero/**/*.ts
+alwaysApply: false
 ---
 
 # Zero + Drizzle Rules

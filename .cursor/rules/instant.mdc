@@ -1,7 +1,6 @@
 ---
-description:
-globs:
-alwaysApply: true
+globs: src/instant.schema.ts,src/instant.perms.ts,src/lib/instantDb.ts,src/lib/instantAdmin.ts
+alwaysApply: false
 ---
 
 Act as a world-class senior frontend engineer with deep expertise in InstantDB

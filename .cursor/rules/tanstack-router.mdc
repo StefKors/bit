@@ -1,8 +1,6 @@
 ---
-description: TanStack Router patterns and conventions
-globs:
-  - src/routes/**
-  - src/router.tsx
+globs: src/routes/**/*.tsx,src/routes/**/*.ts,src/router.tsx,src/routeTree.gen.ts
+alwaysApply: false
 ---
 
 # TanStack Router Rules
