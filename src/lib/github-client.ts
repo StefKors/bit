@@ -100,6 +100,8 @@ export class GitHubClient {
           rateLimitReset: rateLimit.reset.getTime(),
           syncStatus: status,
           syncError: error ?? undefined,
+          userId: this.userId, // Required attribute
+          createdAt: now,
           updatedAt: now,
         })
         .link({ user: this.userId }),

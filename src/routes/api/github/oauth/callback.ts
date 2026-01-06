@@ -185,6 +185,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
                 resourceId: "access_token",
                 lastEtag: accessToken, // Using lastEtag to store the token (encrypted in production)
                 syncStatus: "idle",
+                userId, // Required attribute
                 createdAt: now,
                 updatedAt: now,
               })
