@@ -1,5 +1,3 @@
-import { eq } from "drizzle-orm"
-import * as dbSchema from "../../../schema"
 import type { WebhookDB, WebhookPayload, OrganizationEvent } from "./types"
 import { findUserBySender } from "./utils"
 
@@ -25,13 +23,16 @@ export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookP
   if (!org) return
 
   const orgLogin = org.login
-  const now = new Date()
+  const now = Date.now()
 
   // Find users who have this org synced
-  let orgRecords = await db
-    .select()
-    .from(dbSchema.githubOrganization)
-    .where(eq(dbSchema.githubOrganization.login, orgLogin))
+  const orgsResult = await db.query({
+    organizations: {
+      $: { where: { login: orgLogin } },
+    },
+  })
+
+  let orgRecords = orgsResult.organizations || []
 
   // If no users tracking, try to auto-track for the webhook sender
   if (orgRecords.length === 0 && sender) {
@@ -56,9 +57,7 @@ export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookP
   // Handle deletion - remove org records
   if (action === "deleted") {
     for (const orgRecord of orgRecords) {
-      await db
-        .delete(dbSchema.githubOrganization)
-        .where(eq(dbSchema.githubOrganization.id, orgRecord.id))
+      await db.transact(db.tx.organizations[orgRecord.id].delete())
     }
     console.log(`Deleted org ${orgLogin} from all tracking users`)
     return
@@ -66,9 +65,8 @@ export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookP
 
   // Update org metadata for all tracked instances
   for (const orgRecord of orgRecords) {
-    await db
-      .update(dbSchema.githubOrganization)
-      .set({
+    await db.transact(
+      db.tx.organizations[orgRecord.id].update({
         login: org.login,
         name: (org as { name?: string | null }).name || null,
         description: org.description || null,
@@ -76,8 +74,8 @@ export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookP
         url: org.url || null,
         syncedAt: now,
         updatedAt: now,
-      })
-      .where(eq(dbSchema.githubOrganization.id, orgRecord.id))
+      }),
+    )
   }
 
   console.log(`Processed organization ${action} event for ${orgLogin}`)
@@ -96,16 +94,18 @@ export async function ensureOrgFromWebhook(
   const login = org.login as string
 
   // Check if org already exists for this user
-  const existing = await db
-    .select()
-    .from(dbSchema.githubOrganization)
-    .where(eq(dbSchema.githubOrganization.login, login))
-    .limit(1)
+  const existingResult = await db.query({
+    organizations: {
+      $: { where: { login }, limit: 1 },
+    },
+  })
 
+  const existing = existingResult.organizations || []
   if (existing[0]) {
     return existing[0]
   }
 
+  const now = Date.now()
   const orgData = {
     id: nodeId,
     githubId: org.id as number,
@@ -115,33 +115,21 @@ export async function ensureOrgFromWebhook(
     avatarUrl: (org.avatar_url as string) || null,
     url: (org.url as string) || null,
     userId,
-    syncedAt: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    syncedAt: now,
+    createdAt: now,
+    updatedAt: now,
   }
 
-  await db
-    .insert(dbSchema.githubOrganization)
-    .values(orgData)
-    .onConflictDoUpdate({
-      target: dbSchema.githubOrganization.id,
-      set: {
-        login: orgData.login,
-        name: orgData.name,
-        description: orgData.description,
-        avatarUrl: orgData.avatarUrl,
-        url: orgData.url,
-        syncedAt: new Date(),
-        updatedAt: new Date(),
-      },
-    })
+  await db.transact(db.tx.organizations[nodeId].update(orgData))
 
-  const inserted = await db
-    .select()
-    .from(dbSchema.githubOrganization)
-    .where(eq(dbSchema.githubOrganization.login, login))
-    .limit(1)
+  // Fetch the inserted record
+  const insertedResult = await db.query({
+    organizations: {
+      $: { where: { login }, limit: 1 },
+    },
+  })
 
+  const inserted = insertedResult.organizations || []
   console.log(`Auto-tracked org ${login} for user ${userId}`)
 
   return inserted[0] ?? null

@@ -1,5 +1,3 @@
-import { eq } from "drizzle-orm"
-import * as dbSchema from "../../../schema"
 import type { WebhookDB, WebhookPayload, CreateEvent } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
 
@@ -25,13 +23,16 @@ export async function handleCreateWebhook(db: WebhookDB, payload: WebhookPayload
   const repoFullName = repo.full_name as string
   const refType = createPayload.ref_type // 'branch' or 'tag'
   const refName = createPayload.ref
-  const now = new Date()
+  const now = Date.now()
 
   // Find users who have this repo synced
-  let repoRecords = await db
-    .select()
-    .from(dbSchema.githubRepo)
-    .where(eq(dbSchema.githubRepo.fullName, repoFullName))
+  const reposResult = await db.query({
+    repos: {
+      $: { where: { fullName: repoFullName } },
+    },
+  })
+
+  let repoRecords = reposResult.repos || []
 
   // If no users tracking, try to auto-track for the webhook sender
   if (repoRecords.length === 0 && sender) {
@@ -51,13 +52,12 @@ export async function handleCreateWebhook(db: WebhookDB, payload: WebhookPayload
 
   // Update syncedAt for all tracked instances of this repo
   for (const repoRecord of repoRecords) {
-    await db
-      .update(dbSchema.githubRepo)
-      .set({
+    await db.transact(
+      db.tx.repos[repoRecord.id].update({
         syncedAt: now,
         updatedAt: now,
-      })
-      .where(eq(dbSchema.githubRepo.id, repoRecord.id))
+      }),
+    )
   }
 
   console.log(`Processed create event for ${repoFullName}: ${refType} "${refName}" created`)

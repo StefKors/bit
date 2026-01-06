@@ -1,4 +1,5 @@
-import type { Row } from "@rocicorp/zero"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
 import {
   RepoIcon,
   LockIcon,
@@ -10,7 +11,7 @@ import {
 import { Button } from "@/components/Button"
 import styles from "./RepoHeader.module.css"
 
-type Repo = Row["githubRepo"]
+type Repo = InstaQLEntity<AppSchema, "repos">
 
 // Language colors
 const languageColors: Record<string, string> = {

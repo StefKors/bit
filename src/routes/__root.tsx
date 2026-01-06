@@ -1,19 +1,12 @@
 /// <reference types="vite/client" />
 import type { ReactNode } from "react"
 import { createRootRoute, Outlet, HeadContent, Scripts } from "@tanstack/react-router"
-import { ZeroProvider } from "@rocicorp/zero/react"
-import { useState } from "react"
-import { mutators } from "@/db/mutators"
-import { schema } from "@/db/schema"
-import "@/db/types"
 import { Layout } from "@/layout"
 import { LoadingCube } from "@/components/LoadingCube"
 import LoginPage from "@/pages/LoginPage"
-import { authClient } from "@/lib/auth"
+import { db } from "@/lib/instantDb"
 import "@/theme.css"
 import "@/index.css"
-
-const cacheURL = import.meta.env.VITE_PUBLIC_ZERO_CACHE_URL as string
 
 export const Route = createRootRoute({
   head: () => ({
@@ -50,18 +43,9 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 }
 
 function AppContent() {
-  const { data: session, isPending } = authClient.useSession()
-  const [forceReload, setForceReload] = useState(0)
+  const { isLoading, user, error } = db.useAuth()
 
-  const userID = session?.user?.id ?? null
-  const context = { userID }
-
-  const handleAuthChange = () => {
-    setForceReload((prev) => prev + 1)
-    window.location.reload()
-  }
-
-  if (isPending) {
+  if (isLoading) {
     return (
       <Layout>
         <LoadingCube />
@@ -69,24 +53,23 @@ function AppContent() {
     )
   }
 
-  if (!session) {
-    return <LoginPage onLogin={handleAuthChange} />
+  if (error) {
+    return (
+      <Layout>
+        <div style={{ padding: "2rem", color: "#f85149" }}>
+          Authentication error: {error.message}
+        </div>
+      </Layout>
+    )
+  }
+
+  if (!user) {
+    return <LoginPage />
   }
 
   return (
-    <ZeroProvider
-      key={`${userID}-${forceReload}`}
-      {...{
-        userID: userID ?? "anon",
-        cacheURL,
-        schema,
-        mutators,
-        context,
-      }}
-    >
-      <Layout>
-        <Outlet />
-      </Layout>
-    </ZeroProvider>
+    <Layout>
+      <Outlet />
+    </Layout>
   )
 }

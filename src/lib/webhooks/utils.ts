@@ -1,29 +1,20 @@
-import { eq, and } from "drizzle-orm"
-import * as dbSchema from "../../../schema"
 import type { WebhookDB, RepoRecord, PRRecord } from "./types"
 
 /**
  * Find a user who has a GitHub account connected matching the webhook sender.
  * Used for auto-tracking repos when webhooks arrive from registered users.
+ *
+ * Note: InstantDB doesn't expose OAuth accounts table, so this currently
+ * returns null. To enable auto-tracking, we'd need to add a custom accounts
+ * table or store GitHub user IDs on the user entity.
  */
 export async function findUserBySender(
-  db: WebhookDB,
+  _db: WebhookDB,
   sender: Record<string, unknown>,
 ): Promise<string | null> {
-  const senderId = String(sender.id)
-
-  const accounts = await db
-    .select()
-    .from(dbSchema.authAccount)
-    .where(
-      and(
-        eq(dbSchema.authAccount.accountId, senderId),
-        eq(dbSchema.authAccount.providerId, "github"),
-      ),
-    )
-    .limit(1)
-
-  return accounts[0]?.userId ?? null
+  // TODO: Implement user lookup by GitHub account ID when accounts table is added
+  console.log(`findUserBySender: Cannot look up user for GitHub sender ${sender.id}`)
+  return null
 }
 
 /**
@@ -39,18 +30,19 @@ export async function ensureRepoFromWebhook(
   const fullName = repo.full_name as string
 
   // Check if repo already exists for this user
-  const existing = await db
-    .select()
-    .from(dbSchema.githubRepo)
-    .where(and(eq(dbSchema.githubRepo.fullName, fullName), eq(dbSchema.githubRepo.userId, userId)))
-    .limit(1)
+  const existingResult = await db.query({
+    repos: {
+      $: { where: { fullName, userId }, limit: 1 },
+    },
+  })
 
+  const existing = existingResult.repos || []
   if (existing[0]) {
-    return existing[0]
+    return existing[0] as RepoRecord
   }
 
   const owner = repo.owner as Record<string, unknown>
-  const now = new Date()
+  const now = Date.now()
 
   const repoData = {
     id: nodeId,
@@ -70,50 +62,27 @@ export async function ensureRepoFromWebhook(
     openIssuesCount: (repo.open_issues_count as number) || 0,
     organizationId: null,
     userId,
-    githubCreatedAt: repo.created_at ? new Date(repo.created_at as string) : null,
-    githubUpdatedAt: repo.updated_at ? new Date(repo.updated_at as string) : null,
-    githubPushedAt: repo.pushed_at ? new Date(repo.pushed_at as string) : null,
+    githubCreatedAt: repo.created_at ? new Date(repo.created_at as string).getTime() : null,
+    githubUpdatedAt: repo.updated_at ? new Date(repo.updated_at as string).getTime() : null,
+    githubPushedAt: repo.pushed_at ? new Date(repo.pushed_at as string).getTime() : null,
     syncedAt: now,
     createdAt: now,
     updatedAt: now,
   }
 
-  await db
-    .insert(dbSchema.githubRepo)
-    .values(repoData)
-    .onConflictDoUpdate({
-      target: dbSchema.githubRepo.id,
-      set: {
-        name: repoData.name,
-        fullName: repoData.fullName,
-        owner: repoData.owner,
-        description: repoData.description,
-        url: repoData.url,
-        htmlUrl: repoData.htmlUrl,
-        private: repoData.private,
-        fork: repoData.fork,
-        defaultBranch: repoData.defaultBranch,
-        language: repoData.language,
-        stargazersCount: repoData.stargazersCount,
-        forksCount: repoData.forksCount,
-        openIssuesCount: repoData.openIssuesCount,
-        githubCreatedAt: repoData.githubCreatedAt,
-        githubUpdatedAt: repoData.githubUpdatedAt,
-        githubPushedAt: repoData.githubPushedAt,
-        syncedAt: new Date(),
-        updatedAt: new Date(),
-      },
-    })
+  await db.transact(db.tx.repos[nodeId].update(repoData))
 
-  const inserted = await db
-    .select()
-    .from(dbSchema.githubRepo)
-    .where(and(eq(dbSchema.githubRepo.fullName, fullName), eq(dbSchema.githubRepo.userId, userId)))
-    .limit(1)
+  // Fetch the inserted record
+  const insertedResult = await db.query({
+    repos: {
+      $: { where: { fullName, userId }, limit: 1 },
+    },
+  })
 
+  const inserted = insertedResult.repos || []
   console.log(`Auto-tracked repo ${fullName} for user ${userId}`)
 
-  return inserted[0] ?? null
+  return (inserted[0] as RepoRecord) ?? null
 }
 
 /**
@@ -128,17 +97,18 @@ export async function ensurePRFromWebhook(
   const prNodeId = pr.node_id as string
 
   // Check if PR already exists
-  const existing = await db
-    .select()
-    .from(dbSchema.githubPullRequest)
-    .where(eq(dbSchema.githubPullRequest.id, prNodeId))
-    .limit(1)
+  const existingResult = await db.query({
+    pullRequests: {
+      $: { where: { id: prNodeId }, limit: 1 },
+    },
+  })
 
+  const existing = existingResult.pullRequests || []
   if (existing[0]) {
-    return existing[0]
+    return existing[0] as PRRecord
   }
 
-  const now = new Date()
+  const now = Date.now()
   const prData = {
     id: prNodeId,
     githubId: pr.id as number,
@@ -171,52 +141,27 @@ export async function ensurePRFromWebhook(
         color: l.color,
       })),
     ),
-    githubCreatedAt: pr.created_at ? new Date(pr.created_at as string) : null,
-    githubUpdatedAt: pr.updated_at ? new Date(pr.updated_at as string) : null,
-    closedAt: pr.closed_at ? new Date(pr.closed_at as string) : null,
-    mergedAt: pr.merged_at ? new Date(pr.merged_at as string) : null,
+    githubCreatedAt: pr.created_at ? new Date(pr.created_at as string).getTime() : null,
+    githubUpdatedAt: pr.updated_at ? new Date(pr.updated_at as string).getTime() : null,
+    closedAt: pr.closed_at ? new Date(pr.closed_at as string).getTime() : null,
+    mergedAt: pr.merged_at ? new Date(pr.merged_at as string).getTime() : null,
     userId: repoRecord.userId,
     syncedAt: now,
     createdAt: now,
     updatedAt: now,
   }
 
-  await db
-    .insert(dbSchema.githubPullRequest)
-    .values(prData)
-    .onConflictDoUpdate({
-      target: dbSchema.githubPullRequest.id,
-      set: {
-        title: prData.title,
-        body: prData.body,
-        state: prData.state,
-        draft: prData.draft,
-        merged: prData.merged,
-        mergeable: prData.mergeable,
-        mergeableState: prData.mergeableState,
-        headSha: prData.headSha,
-        additions: prData.additions,
-        deletions: prData.deletions,
-        changedFiles: prData.changedFiles,
-        commits: prData.commits,
-        comments: prData.comments,
-        reviewComments: prData.reviewComments,
-        labels: prData.labels,
-        githubUpdatedAt: prData.githubUpdatedAt,
-        closedAt: prData.closedAt,
-        mergedAt: prData.mergedAt,
-        syncedAt: new Date(),
-        updatedAt: new Date(),
-      },
-    })
+  await db.transact(db.tx.pullRequests[prNodeId].update(prData))
 
-  const inserted = await db
-    .select()
-    .from(dbSchema.githubPullRequest)
-    .where(eq(dbSchema.githubPullRequest.id, prNodeId))
-    .limit(1)
+  // Fetch the inserted record
+  const insertedResult = await db.query({
+    pullRequests: {
+      $: { where: { id: prNodeId }, limit: 1 },
+    },
+  })
 
+  const inserted = insertedResult.pullRequests || []
   console.log(`Auto-tracked PR #${pr.number as number} for repo ${repoRecord.fullName}`)
 
-  return inserted[0] ?? null
+  return (inserted[0] as PRRecord) ?? null
 }

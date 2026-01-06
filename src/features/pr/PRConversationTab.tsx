@@ -1,5 +1,9 @@
 import { Markdown } from "@/components/Markdown"
-import type { GithubPrReview, GithubPrComment } from "@/db/schema"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
+
+type GithubPrReview = InstaQLEntity<AppSchema, "prReviews">
+type GithubPrComment = InstaQLEntity<AppSchema, "prComments">
 import styles from "./PRConversationTab.module.css"
 import { Avatar } from "@/components/Avatar"
 

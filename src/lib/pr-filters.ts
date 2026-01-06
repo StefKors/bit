@@ -1,4 +1,7 @@
-import type { GithubPullRequest } from "@/db/schema"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
+
+type GithubPullRequest = InstaQLEntity<AppSchema, "pullRequests">
 
 // Filter types
 export type PRStatus = "all" | "open" | "closed" | "merged"

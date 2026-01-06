@@ -1,11 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Pool } from "pg"
-import { auth } from "@/lib/auth-server"
 import { createGitHubClient } from "@/lib/github-client"
-
-const pool = new Pool({
-  connectionString: process.env.ZERO_UPSTREAM_DB,
-})
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -17,8 +11,11 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo")({
   server: {
     handlers: {
       POST: async ({ request, params }) => {
-        const session = await auth.api.getSession({ headers: request.headers })
-        if (!session) {
+        // Get user from request headers
+        const authHeader = request.headers.get("Authorization")
+        const userId = authHeader?.replace("Bearer ", "") || ""
+
+        if (!userId) {
           return jsonResponse({ error: "Unauthorized" }, 401)
         }
 
@@ -26,7 +23,7 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo")({
         const url = new URL(request.url)
         const state = (url.searchParams.get("state") as "open" | "closed" | "all") || "all"
 
-        const client = await createGitHubClient(session.user.id, pool)
+        const client = await createGitHubClient(userId)
         if (!client) {
           return jsonResponse({ error: "GitHub account not connected" }, 400)
         }

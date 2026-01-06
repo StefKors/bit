@@ -30,7 +30,7 @@ function RepoPullsPage() {
     <RepoLayout activeTab="pulls">
       {(repoData) => (
         <RepoPullsTab
-          prs={repoData.githubPullRequest}
+          prs={repoData.pullRequests}
           fullName={fullName}
           filters={filters}
           onFiltersChange={handleFiltersChange}

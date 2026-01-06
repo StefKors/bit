@@ -1,5 +1,3 @@
-import { eq } from "drizzle-orm"
-import * as dbSchema from "../../../schema"
 import type { WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
 
@@ -23,10 +21,13 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
   const prNodeId = pr.node_id as string
 
   // Find users who have this repo synced
-  let repoRecords = await db
-    .select()
-    .from(dbSchema.githubRepo)
-    .where(eq(dbSchema.githubRepo.fullName, repoFullName))
+  const reposResult = await db.query({
+    repos: {
+      $: { where: { fullName: repoFullName } },
+    },
+  })
+
+  let repoRecords = reposResult.repos || []
 
   // If no users tracking, try to auto-track for the webhook sender
   if (repoRecords.length === 0 && sender) {
@@ -45,7 +46,7 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
   }
 
   for (const repoRecord of repoRecords) {
-    const now = new Date()
+    const now = Date.now()
     const prData = {
       id: prNodeId,
       githubId: pr.id as number,
@@ -78,10 +79,10 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
           color: l.color,
         })),
       ),
-      githubCreatedAt: new Date(pr.created_at as string),
-      githubUpdatedAt: new Date(pr.updated_at as string),
-      closedAt: pr.closed_at ? new Date(pr.closed_at as string) : null,
-      mergedAt: pr.merged_at ? new Date(pr.merged_at as string) : null,
+      githubCreatedAt: new Date(pr.created_at as string).getTime(),
+      githubUpdatedAt: new Date(pr.updated_at as string).getTime(),
+      closedAt: pr.closed_at ? new Date(pr.closed_at as string).getTime() : null,
+      mergedAt: pr.merged_at ? new Date(pr.merged_at as string).getTime() : null,
       userId: repoRecord.userId,
       syncedAt: now,
       createdAt: now,
@@ -90,37 +91,10 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
 
     if (action === "closed" && pr.merged) {
       prData.merged = true
-      prData.mergedAt = pr.merged_at ? new Date(pr.merged_at as string) : new Date()
+      prData.mergedAt = pr.merged_at ? new Date(pr.merged_at as string).getTime() : Date.now()
     }
 
-    await db
-      .insert(dbSchema.githubPullRequest)
-      .values(prData)
-      .onConflictDoUpdate({
-        target: dbSchema.githubPullRequest.id,
-        set: {
-          title: prData.title,
-          body: prData.body,
-          state: prData.state,
-          draft: prData.draft,
-          merged: prData.merged,
-          mergeable: prData.mergeable,
-          mergeableState: prData.mergeableState,
-          headSha: prData.headSha,
-          additions: prData.additions,
-          deletions: prData.deletions,
-          changedFiles: prData.changedFiles,
-          commits: prData.commits,
-          comments: prData.comments,
-          reviewComments: prData.reviewComments,
-          labels: prData.labels,
-          githubUpdatedAt: prData.githubUpdatedAt,
-          closedAt: prData.closedAt,
-          mergedAt: prData.mergedAt,
-          syncedAt: new Date(),
-          updatedAt: new Date(),
-        },
-      })
+    await db.transact(db.tx.pullRequests[prNodeId].update(prData))
   }
 
   console.log(`Processed pull_request.${action} for ${repoFullName}#${pr.number as number}`)

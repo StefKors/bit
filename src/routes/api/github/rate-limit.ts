@@ -1,11 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Pool } from "pg"
-import { auth } from "@/lib/auth-server"
+import { adminDb } from "@/lib/instantAdmin"
 import { createGitHubClient } from "@/lib/github-client"
-
-const pool = new Pool({
-  connectionString: process.env.ZERO_UPSTREAM_DB,
-})
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -17,12 +12,12 @@ export const Route = createFileRoute("/api/github/rate-limit")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const session = await auth.api.getSession({ headers: request.headers })
-        if (!session) {
+        const user = await adminDb.auth.getUser({ headers: request.headers })
+        if (!user) {
           return jsonResponse({ error: "Unauthorized" }, 401)
         }
 
-        const client = await createGitHubClient(session.user.id, pool)
+        const client = await createGitHubClient(user.id, adminDb)
         if (!client) {
           return jsonResponse({ error: "GitHub account not connected" }, 400)
         }

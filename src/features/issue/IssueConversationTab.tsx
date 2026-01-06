@@ -1,5 +1,8 @@
 import { Markdown } from "@/components/Markdown"
-import type { GithubIssueComment } from "@/db/schema"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
+
+type GithubIssueComment = InstaQLEntity<AppSchema, "issueComments">
 import styles from "./IssueConversationTab.module.css"
 import { Avatar } from "@/components/Avatar"
 

@@ -1,10 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useState, useMemo } from "react"
-import { useQuery } from "@rocicorp/zero/react"
 import { ClockIcon, SyncIcon, SignOutIcon } from "@primer/octicons-react"
-import { authClient } from "@/lib/auth"
+import { db } from "@/lib/instantDb"
 import { Button } from "@/components/Button"
-import { queries } from "@/db/queries"
 import { RepoSection } from "@/features/repo/RepoSection"
 import { PRListItem } from "@/features/pr/PRListItem"
 import styles from "@/pages/OverviewPage.module.css"
@@ -17,17 +15,34 @@ interface RateLimitInfo {
 }
 
 function OverviewPage() {
-  const { data: session } = authClient.useSession()
+  const { user } = db.useAuth()
   const [syncing, setSyncing] = useState(false)
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const [repos] = useQuery(queries.overview())
+  // Query repos with organizations using InstantDB
+  const { data: reposData } = db.useQuery({
+    repos: {
+      organization: {},
+    },
+  })
+  const repos = reposData?.repos ?? []
 
-  // Dashboard PR queries
-  const currentUserLogin = session?.user?.name ?? ""
-  const [authoredPRs] = useQuery(queries.dashboardAuthored(currentUserLogin))
-  const [allOpenPRs] = useQuery(queries.dashboardAllOpen())
+  // Query all open PRs with their repos
+  const currentUserLogin = user?.email?.split("@")[0] ?? ""
+  const { data: prsData } = db.useQuery({
+    pullRequests: {
+      $: { where: { state: "open" } },
+      repo: {},
+    },
+  })
+  const allOpenPRs = prsData?.pullRequests ?? []
+
+  // Filter authored PRs client-side
+  const authoredPRs = useMemo(() => {
+    if (!currentUserLogin) return []
+    return allOpenPRs.filter((pr) => pr.authorLogin === currentUserLogin)
+  }, [allOpenPRs, currentUserLogin])
 
   // Filter review-requested PRs: check if current user is in reviewRequestedBy JSON array
   const reviewRequestedPRs = useMemo(() => {
@@ -44,7 +59,7 @@ function OverviewPage() {
   }, [allOpenPRs, currentUserLogin])
 
   const orgs = repos
-    .map((repo) => repo.githubOrganization)
+    .map((repo) => repo.organization)
     .filter((org): org is NonNullable<typeof org> => org !== null && org !== undefined)
     .filter((org, index, self) => self.findIndex((o) => o.id === org.id) === index)
 
@@ -81,12 +96,11 @@ function OverviewPage() {
     }
   }
 
-  const handleSignOut = async () => {
-    await authClient.signOut()
-    window.location.reload()
+  const handleSignOut = () => {
+    db.auth.signOut()
   }
 
-  if (!session) {
+  if (!user) {
     return <div>Loading...</div>
   }
 
@@ -96,8 +110,8 @@ function OverviewPage() {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <Avatar src={session.user.image} name={session.user.name} size={48} />
-          <h1 className={styles.title}>{session.user.name}'s Pull Requests</h1>
+          <Avatar src={user.image} name={user.email} size={48} />
+          <h1 className={styles.title}>{user.email}'s Pull Requests</h1>
         </div>
 
         <div className={styles.headerActions}>
@@ -117,11 +131,7 @@ function OverviewPage() {
             {syncing ? "Syncing..." : "Sync GitHub"}
           </Button>
 
-          <Button
-            variant="danger"
-            leadingIcon={<SignOutIcon size={16} />}
-            onClick={() => void handleSignOut()}
-          >
+          <Button variant="danger" leadingIcon={<SignOutIcon size={16} />} onClick={handleSignOut}>
             Sign out
           </Button>
         </div>
@@ -167,7 +177,7 @@ function OverviewPage() {
                       githubCreatedAt: pr.githubCreatedAt,
                       githubUpdatedAt: pr.githubUpdatedAt,
                     }}
-                    repoFullName={pr.githubRepo?.fullName ?? ""}
+                    repoFullName={pr.repo?.fullName ?? ""}
                     isApproved={pr.merged === true}
                   />
                 ))
@@ -199,7 +209,7 @@ function OverviewPage() {
                       githubCreatedAt: pr.githubCreatedAt,
                       githubUpdatedAt: pr.githubUpdatedAt,
                     }}
-                    repoFullName={pr.githubRepo?.fullName ?? ""}
+                    repoFullName={pr.repo?.fullName ?? ""}
                     isApproved={pr.merged === true}
                   />
                 ))

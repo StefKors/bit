@@ -1,4 +1,9 @@
-import type { GithubPrEvent, GithubPrReview, GithubPrComment } from "@/db/schema"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
+
+type GithubPrEvent = InstaQLEntity<AppSchema, "prEvents">
+type GithubPrReview = InstaQLEntity<AppSchema, "prReviews">
+type GithubPrComment = InstaQLEntity<AppSchema, "prComments">
 import { Avatar } from "@/components/Avatar"
 import { Markdown } from "@/components/Markdown"
 import {

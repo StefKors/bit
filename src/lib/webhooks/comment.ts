@@ -1,5 +1,3 @@
-import { eq } from "drizzle-orm"
-import * as dbSchema from "../../../schema"
 import type { WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./utils"
 
@@ -33,18 +31,24 @@ export async function handleCommentWebhook(
   const repoFullName = repo.full_name as string
 
   // Find the PR in our database
-  const prRecords = await db
-    .select()
-    .from(dbSchema.githubPullRequest)
-    .where(eq(dbSchema.githubPullRequest.id, prNodeId))
+  const prResult = await db.query({
+    pullRequests: {
+      $: { where: { id: prNodeId } },
+    },
+  })
+
+  let prRecords = prResult.pullRequests || []
 
   // If PR not found and we have PR data, try to auto-create it
   if (prRecords.length === 0 && pr) {
     // First check if any user is tracking this repo
-    const repoRecords = await db
-      .select()
-      .from(dbSchema.githubRepo)
-      .where(eq(dbSchema.githubRepo.fullName, repoFullName))
+    const reposResult = await db.query({
+      repos: {
+        $: { where: { fullName: repoFullName } },
+      },
+    })
+
+    let repoRecords = reposResult.repos || []
 
     // If no users tracking repo, try to auto-track for sender
     if (repoRecords.length === 0 && sender) {
@@ -52,7 +56,7 @@ export async function handleCommentWebhook(
       if (userId) {
         const newRepo = await ensureRepoFromWebhook(db, repo, userId)
         if (newRepo) {
-          repoRecords.push(newRepo)
+          repoRecords = [newRepo]
         }
       }
     }
@@ -67,9 +71,10 @@ export async function handleCommentWebhook(
   }
 
   for (const prRecord of prRecords) {
-    const now = new Date()
+    const now = Date.now()
+    const commentId = comment.node_id as string
     const commentData = {
-      id: comment.node_id as string,
+      id: commentId,
       githubId: comment.id as number,
       pullRequestId: prRecord.id,
       reviewId: (comment.pull_request_review_id as string) || null,
@@ -82,24 +87,14 @@ export async function handleCommentWebhook(
       line: (comment.line as number) ?? (comment.original_line as number) ?? null,
       side: (comment.side as string) || null,
       diffHunk: (comment.diff_hunk as string) || null,
-      githubCreatedAt: new Date(comment.created_at as string),
-      githubUpdatedAt: new Date(comment.updated_at as string),
+      githubCreatedAt: new Date(comment.created_at as string).getTime(),
+      githubUpdatedAt: new Date(comment.updated_at as string).getTime(),
       userId: prRecord.userId,
       createdAt: now,
       updatedAt: now,
     }
 
-    await db
-      .insert(dbSchema.githubPrComment)
-      .values(commentData)
-      .onConflictDoUpdate({
-        target: dbSchema.githubPrComment.id,
-        set: {
-          body: commentData.body,
-          githubUpdatedAt: commentData.githubUpdatedAt,
-          updatedAt: new Date(),
-        },
-      })
+    await db.transact(db.tx.prComments[commentId].update(commentData))
   }
 
   console.log(`Processed ${eventType} for PR`)

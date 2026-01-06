@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react"
-import { useQuery } from "@rocicorp/zero/react"
 import { FileDirectoryIcon } from "@primer/octicons-react"
-import { queries } from "@/db/queries"
+import { db } from "@/lib/instantDb"
 import { Markdown } from "@/components/Markdown"
 import { FileTree, type TreeEntry } from "./FileTree"
 import styles from "./RepoCodeTab.module.css"
@@ -21,7 +20,14 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProp
   const [readmeLoading, setReadmeLoading] = useState(false)
 
   // Query the tree entries
-  const [treeEntries] = useQuery(queries.repoTree({ repoId, ref: branch }))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: treeData } = db.useQuery({
+    repoTrees: {
+      $: { where: { repoId, ref: branch }, orderBy: { path: "asc" } },
+    },
+  } as any)
+
+  const treeEntries = treeData?.repoTrees || []
 
   const handleSync = async () => {
     setSyncing(true)
@@ -93,7 +99,7 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProp
         name: entry.name,
         type: entry.type as "file" | "dir",
         sha: entry.sha,
-        size: entry.size,
+        size: entry.size ?? null,
       }))
     : []
 

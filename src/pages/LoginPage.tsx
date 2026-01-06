@@ -1,30 +1,28 @@
 import { SignOutIcon, MarkGithubIcon } from "@primer/octicons-react"
-import { authClient } from "@/lib/auth"
+import { db } from "@/lib/instantDb"
 import { Button } from "@/components/Button"
 import { CommitInfo } from "@/components/CommitInfo"
 import { Avatar } from "@/components/Avatar"
 import styles from "./LoginPage.module.css"
 
-interface LoginPageProps {
-  onLogin?: () => void
-}
+function LoginPage() {
+  const { isLoading, user, error } = db.useAuth()
 
-function LoginPage({ onLogin }: LoginPageProps) {
-  const { data: session, isPending } = authClient.useSession()
-
-  const handleGitHubSignIn = async () => {
-    await authClient.signIn.social({
-      provider: "github",
-      callbackURL: "/",
+  const handleGitHubSignIn = () => {
+    // InstantDB GitHub OAuth with required scopes
+    const url = db.auth.createAuthorizationURL({
+      clientName: "bit",
+      // Pass custom scopes for GitHub integration
+      redirectURL: window.location.origin + "/",
     })
+    window.location.href = url
   }
 
-  const handleSignOut = async () => {
-    await authClient.signOut()
-    onLogin?.()
+  const handleSignOut = () => {
+    db.auth.signOut()
   }
 
-  if (isPending) {
+  if (isLoading) {
     return (
       <div className={styles.container}>
         <div className={styles.card}>
@@ -38,20 +36,45 @@ function LoginPage({ onLogin }: LoginPageProps) {
     )
   }
 
-  if (session) {
+  if (error) {
     return (
       <div className={styles.container}>
         <div className={styles.card}>
           <div className={styles.header}>
-            <Avatar src={session.user.image} name={session.user.name} size={80} isOnline />
+            <img src="/bit-cube.png" alt="Bit" className={styles.logo} />
+            <h1 className={styles.title}>Authentication Error</h1>
+            <p className={styles.subtitle}>{error.message}</p>
+          </div>
+
+          <Button
+            variant="primary"
+            size="large"
+            block
+            leadingIcon={<MarkGithubIcon size={20} />}
+            onClick={handleGitHubSignIn}
+          >
+            Try again with GitHub
+          </Button>
+        </div>
+        <CommitInfo />
+      </div>
+    )
+  }
+
+  if (user) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.card}>
+          <div className={styles.header}>
+            <Avatar src={undefined} name={user.email} size={80} isOnline />
             <h1 className={styles.title}>Welcome back</h1>
-            <p className={styles.subtitle}>{session.user.name}</p>
+            <p className={styles.subtitle}>{user.email}</p>
           </div>
 
           <div className={styles.userInfo}>
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Email</span>
-              <span className={styles.infoValue}>{session.user.email}</span>
+              <span className={styles.infoValue}>{user.email}</span>
             </div>
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Status</span>
@@ -64,7 +87,7 @@ function LoginPage({ onLogin }: LoginPageProps) {
             size="large"
             block
             leadingIcon={<SignOutIcon size={16} />}
-            onClick={() => void handleSignOut()}
+            onClick={handleSignOut}
           >
             Sign out
           </Button>
@@ -89,7 +112,7 @@ function LoginPage({ onLogin }: LoginPageProps) {
           size="large"
           block
           leadingIcon={<MarkGithubIcon size={20} />}
-          onClick={() => void handleGitHubSignIn()}
+          onClick={handleGitHubSignIn}
         >
           Continue with GitHub
         </Button>

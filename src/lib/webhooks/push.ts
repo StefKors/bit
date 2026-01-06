@@ -1,5 +1,3 @@
-import { eq, and } from "drizzle-orm"
-import * as dbSchema from "../../../schema"
 import type { WebhookDB, WebhookPayload, PushEvent, RepoRecord } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
 
@@ -24,13 +22,16 @@ export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) 
 
   const repoFullName = repo.full_name as string
   const ref = pushPayload.ref
-  const pushedAt = new Date()
+  const pushedAt = Date.now()
 
   // Find users who have this repo synced
-  let repoRecords = await db
-    .select()
-    .from(dbSchema.githubRepo)
-    .where(eq(dbSchema.githubRepo.fullName, repoFullName))
+  const reposResult = await db.query({
+    repos: {
+      $: { where: { fullName: repoFullName } },
+    },
+  })
+
+  let repoRecords = (reposResult.repos || []) as RepoRecord[]
 
   // If no users tracking, try to auto-track for the webhook sender
   if (repoRecords.length === 0 && sender) {
@@ -50,14 +51,13 @@ export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) 
 
   // Update githubPushedAt for all tracked instances of this repo
   for (const repoRecord of repoRecords) {
-    await db
-      .update(dbSchema.githubRepo)
-      .set({
+    await db.transact(
+      db.tx.repos[repoRecord.id].update({
         githubPushedAt: pushedAt,
         syncedAt: pushedAt,
         updatedAt: pushedAt,
-      })
-      .where(eq(dbSchema.githubRepo.id, repoRecord.id))
+      }),
+    )
   }
 
   // Extract branch name from ref (e.g., "refs/heads/main" -> "main")
@@ -82,14 +82,20 @@ export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) 
  */
 async function invalidateTreeCache(db: WebhookDB, repoRecords: RepoRecord[], branch: string) {
   for (const repoRecord of repoRecords) {
-    await db
-      .delete(dbSchema.githubRepoTree)
-      .where(
-        and(
-          eq(dbSchema.githubRepoTree.repoId, repoRecord.id),
-          eq(dbSchema.githubRepoTree.ref, branch),
-        ),
-      )
+    // Query tree entries for this repo and branch
+    const treeResult = await db.query({
+      repoTrees: {
+        $: { where: { repoId: repoRecord.id, ref: branch } },
+      },
+    })
+
+    const treeEntries = treeResult.repoTrees || []
+
+    // Delete each tree entry
+    if (treeEntries.length > 0) {
+      const deleteTxs = treeEntries.map((entry) => db.tx.repoTrees[entry.id].delete())
+      await db.transact(deleteTxs)
+    }
   }
 }
 
@@ -105,24 +111,22 @@ async function syncCommitsToPRs(
 ) {
   for (const repoRecord of repoRecords) {
     // Find all PRs in this repo where headRef matches the pushed branch
-    const matchingPRs = await db
-      .select()
-      .from(dbSchema.githubPullRequest)
-      .where(
-        and(
-          eq(dbSchema.githubPullRequest.repoId, repoRecord.id),
-          eq(dbSchema.githubPullRequest.headRef, branch),
-        ),
-      )
+    const prResult = await db.query({
+      pullRequests: {
+        $: { where: { repoId: repoRecord.id, headRef: branch } },
+      },
+    })
 
+    const matchingPRs = prResult.pullRequests || []
     if (matchingPRs.length === 0) continue
 
     // Insert commits for each matching PR
     for (const pr of matchingPRs) {
       for (const commit of commits) {
-        const now = new Date()
+        const now = Date.now()
+        const commitId = `${pr.id}:${commit.id}`
         const commitData = {
-          id: `${pr.id}:${commit.id}`,
+          id: commitId,
           pullRequestId: pr.id,
           sha: commit.id,
           message: commit.message,
@@ -135,46 +139,31 @@ async function syncCommitsToPRs(
           committerName: commit.committer?.name || null,
           committerEmail: commit.committer?.email || null,
           htmlUrl: commit.url,
-          committedAt: commit.timestamp ? new Date(commit.timestamp) : null,
+          committedAt: commit.timestamp ? new Date(commit.timestamp).getTime() : null,
           userId: repoRecord.userId,
           createdAt: now,
           updatedAt: now,
         }
 
-        await db
-          .insert(dbSchema.githubPrCommit)
-          .values(commitData)
-          .onConflictDoUpdate({
-            target: dbSchema.githubPrCommit.id,
-            set: {
-              message: commitData.message,
-              authorLogin: commitData.authorLogin,
-              authorName: commitData.authorName,
-              authorEmail: commitData.authorEmail,
-              committerLogin: commitData.committerLogin,
-              committerName: commitData.committerName,
-              committerEmail: commitData.committerEmail,
-              htmlUrl: commitData.htmlUrl,
-              committedAt: commitData.committedAt,
-              updatedAt: new Date(),
-            },
-          })
+        await db.transact(db.tx.prCommits[commitId].update(commitData))
       }
 
       // Update the PR's commit count
-      const commitCount = await db
-        .select()
-        .from(dbSchema.githubPrCommit)
-        .where(eq(dbSchema.githubPrCommit.pullRequestId, pr.id))
+      const commitCountResult = await db.query({
+        prCommits: {
+          $: { where: { pullRequestId: pr.id } },
+        },
+      })
 
-      await db
-        .update(dbSchema.githubPullRequest)
-        .set({
-          commits: commitCount.length,
+      const commitCount = (commitCountResult.prCommits || []).length
+
+      await db.transact(
+        db.tx.pullRequests[pr.id].update({
+          commits: commitCount,
           headSha: commits[commits.length - 1]?.id || pr.headSha,
-          updatedAt: new Date(),
-        })
-        .where(eq(dbSchema.githubPullRequest.id, pr.id))
+          updatedAt: Date.now(),
+        }),
+      )
 
       console.log(`Synced ${commits.length} commit(s) to PR #${pr.number} on branch ${branch}`)
     }

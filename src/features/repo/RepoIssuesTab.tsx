@@ -1,6 +1,9 @@
 import { useState, useMemo } from "react"
 import { IssueOpenedIcon } from "@primer/octicons-react"
-import type { GithubIssue } from "@/db/schema"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
+
+type GithubIssue = InstaQLEntity<AppSchema, "issues">
 import { IssueListItem } from "@/features/issue/IssueListItem"
 import { IssueFiltersBar } from "@/features/issue/IssueFiltersBar"
 import {

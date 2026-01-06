@@ -1,5 +1,3 @@
-import { eq } from "drizzle-orm"
-import * as dbSchema from "../../../schema"
 import type { WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
 import { ensureIssueFromWebhook } from "./issue"
@@ -35,18 +33,24 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
   const issueNodeId = issue.node_id as string
 
   // Find the issue in our database
-  const issueRecords = await db
-    .select()
-    .from(dbSchema.githubIssue)
-    .where(eq(dbSchema.githubIssue.id, issueNodeId))
+  const issuesResult = await db.query({
+    issues: {
+      $: { where: { id: issueNodeId } },
+    },
+  })
+
+  let issueRecords = issuesResult.issues || []
 
   // If issue not found, try to auto-create it
   if (issueRecords.length === 0) {
     // First check if any user is tracking this repo
-    let repoRecords = await db
-      .select()
-      .from(dbSchema.githubRepo)
-      .where(eq(dbSchema.githubRepo.fullName, repoFullName))
+    const reposResult = await db.query({
+      repos: {
+        $: { where: { fullName: repoFullName } },
+      },
+    })
+
+    let repoRecords = reposResult.repos || []
 
     // If no users tracking repo, try to auto-track for sender
     if (repoRecords.length === 0 && sender) {
@@ -76,41 +80,30 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
   // Handle delete action
   if (action === "deleted") {
     const commentNodeId = comment.node_id as string
-    await db
-      .delete(dbSchema.githubIssueComment)
-      .where(eq(dbSchema.githubIssueComment.id, commentNodeId))
+    await db.transact(db.tx.issueComments[commentNodeId].delete())
     console.log(`Deleted issue comment for ${repoFullName}#${issue.number as number}`)
     return
   }
 
   for (const issueRecord of issueRecords) {
-    const now = new Date()
+    const now = Date.now()
+    const commentId = comment.node_id as string
     const commentData = {
-      id: comment.node_id as string,
+      id: commentId,
       githubId: comment.id as number,
       issueId: issueRecord.id,
       body: (comment.body as string) || null,
       authorLogin: ((comment.user as Record<string, unknown>)?.login as string) || null,
       authorAvatarUrl: ((comment.user as Record<string, unknown>)?.avatar_url as string) || null,
       htmlUrl: comment.html_url as string,
-      githubCreatedAt: new Date(comment.created_at as string),
-      githubUpdatedAt: new Date(comment.updated_at as string),
+      githubCreatedAt: new Date(comment.created_at as string).getTime(),
+      githubUpdatedAt: new Date(comment.updated_at as string).getTime(),
       userId: issueRecord.userId,
       createdAt: now,
       updatedAt: now,
     }
 
-    await db
-      .insert(dbSchema.githubIssueComment)
-      .values(commentData)
-      .onConflictDoUpdate({
-        target: dbSchema.githubIssueComment.id,
-        set: {
-          body: commentData.body,
-          githubUpdatedAt: commentData.githubUpdatedAt,
-          updatedAt: new Date(),
-        },
-      })
+    await db.transact(db.tx.issueComments[commentId].update(commentData))
   }
 
   console.log(

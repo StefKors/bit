@@ -1,6 +1,9 @@
 import { useMemo } from "react"
 import { GitPullRequestIcon } from "@primer/octicons-react"
-import type { GithubPullRequest } from "@/db/schema"
+import type { InstaQLEntity } from "@instantdb/core"
+import type { AppSchema } from "@/instant.schema"
+
+type GithubPullRequest = InstaQLEntity<AppSchema, "pullRequests">
 import { PRListItem } from "@/features/pr/PRListItem"
 import { PRFiltersBar } from "@/features/pr/PRFiltersBar"
 import {

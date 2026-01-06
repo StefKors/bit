@@ -4,43 +4,43 @@ overview: Complete migration from Zero/Drizzle/Better Auth/PostgreSQL to Instant
 todos:
   - id: install-deps
     content: Install @instantdb/react and @instantdb/admin packages
-    status: pending
+    status: completed
   - id: create-schema
     content: Create instant.schema.ts with entities and links matching current data model
-    status: pending
+    status: completed
   - id: create-perms
     content: Create instant.perms.ts with row-level security rules
-    status: pending
+    status: completed
   - id: push-schema
     content: Push schema and permissions to InstantDB cloud
-    status: pending
+    status: completed
   - id: client-setup
     content: Create src/lib/instantDb.ts and src/lib/instantAdmin.ts
-    status: pending
+    status: completed
   - id: auth-migration
     content: Replace Better Auth with InstantDB OAuth in root and LoginPage
-    status: pending
+    status: completed
     dependencies:
       - client-setup
   - id: query-migration
     content: Replace Zero useQuery calls with InstantDB useQuery in all components
-    status: pending
+    status: completed
     dependencies:
       - client-setup
       - push-schema
   - id: sync-migration
     content: Update sync endpoints to use InstantDB admin SDK
-    status: pending
+    status: completed
     dependencies:
       - client-setup
   - id: webhook-migration
     content: Update webhook handlers to use InstantDB admin SDK
-    status: pending
+    status: completed
     dependencies:
       - client-setup
   - id: cleanup
     content: Remove Zero, Drizzle, Better Auth, PostgreSQL files and dependencies
-    status: pending
+    status: completed
     dependencies:
       - auth-migration
       - query-migration
@@ -61,17 +61,17 @@ graph TB
         useQuery["useQuery (Zero)"]
         authClient[Better Auth Client]
     end
-    
+
     subgraph server [Server]
         BetterAuth[Better Auth]
         Drizzle[Drizzle ORM]
         ZeroCache[zero-cache]
     end
-    
+
     subgraph data [Data]
         PG[(PostgreSQL)]
     end
-    
+
     ZP --> ZeroCache
     ZeroCache --> PG
     useQuery --> ZP
@@ -79,8 +79,6 @@ graph TB
     BetterAuth --> Drizzle
     Drizzle --> PG
 ```
-
-
 
 ## Target Architecture
 
@@ -91,15 +89,15 @@ graph TB
         useQueryI["useQuery (Instant)"]
         useAuth[db.useAuth]
     end
-    
+
     subgraph server [Server]
         AdminSDK[InstantDB Admin SDK]
     end
-    
+
     subgraph cloud [InstantDB Cloud]
         InstantCloud[(InstantDB)]
     end
-    
+
     IDB --> InstantCloud
     useQueryI --> IDB
     useAuth --> InstantCloud
@@ -145,8 +143,6 @@ export default {
 }
 ```
 
-
-
 ### 1.4 Push Schema & Permissions
 
 ```bash
@@ -170,8 +166,6 @@ export const db = init({
 })
 ```
 
-
-
 ### 2.2 Create Admin DB - `src/lib/instantAdmin.ts`
 
 ```typescript
@@ -184,8 +178,6 @@ export const adminDb = init({
   schema,
 })
 ```
-
-
 
 ### 2.3 Configure Environment Variables
 
@@ -288,8 +280,6 @@ Update all handlers in [`src/lib/webhooks/`](src/lib/webhooks/):
 bun remove @rocicorp/zero drizzle-orm drizzle-kit drizzle-zero better-auth pg @types/pg
 ```
 
-
-
 ### 6.3 Update Scripts in package.json
 
 Remove:
@@ -300,5 +290,3 @@ Remove:
 - `dev:clean`
 - `db:*` scripts
 - `generate-zero-schema`
-
-Simplify `dev` script to just run Vite.

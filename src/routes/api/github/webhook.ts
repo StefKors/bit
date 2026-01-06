@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Pool } from "pg"
 import { createHmac, timingSafeEqual } from "crypto"
-import { drizzle } from "drizzle-orm/node-postgres"
-import * as dbSchema from "../../../../schema"
+import { adminDb } from "@/lib/instantAdmin"
 import {
   handlePullRequestWebhook,
   handlePullRequestReviewWebhook,
@@ -19,10 +17,6 @@ import {
   handleIssueCommentWebhook,
 } from "@/lib/webhooks"
 import type { WebhookEventName } from "@/lib/webhooks"
-
-const pool = new Pool({
-  connectionString: process.env.ZERO_UPSTREAM_DB,
-})
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -91,8 +85,6 @@ export const Route = createFileRoute("/api/github/webhook")({
           return jsonResponse({ error: "Invalid JSON payload" }, 400)
         }
 
-        const db = drizzle(pool, { schema: dbSchema })
-
         try {
           switch (event) {
             // =================================================================
@@ -101,27 +93,27 @@ export const Route = createFileRoute("/api/github/webhook")({
 
             case "push": {
               // Implemented: Updates repo's githubPushedAt timestamp
-              await handlePushWebhook(db, payload)
+              await handlePushWebhook(adminDb, payload)
               break
             }
 
             case "create": {
               // Implemented: Triggered when a branch or tag is created
               // Updates repo syncedAt and tracks new refs
-              await handleCreateWebhook(db, payload)
+              await handleCreateWebhook(adminDb, payload)
               break
             }
 
             case "delete": {
               // Implemented: Triggered when a branch or tag is deleted
               // Cleans up cached tree data for deleted refs
-              await handleDeleteWebhook(db, payload)
+              await handleDeleteWebhook(adminDb, payload)
               break
             }
 
             case "fork": {
               // Implemented: Updates fork count, auto-tracks forked repo for sender
-              await handleForkWebhook(db, payload)
+              await handleForkWebhook(adminDb, payload)
               break
             }
 
@@ -133,7 +125,7 @@ export const Route = createFileRoute("/api/github/webhook")({
 
             case "repository": {
               // Implemented: Syncs repo metadata updates (name, description, visibility, etc.)
-              await handleRepositoryWebhook(db, payload)
+              await handleRepositoryWebhook(adminDb, payload)
               break
             }
 
@@ -155,21 +147,21 @@ export const Route = createFileRoute("/api/github/webhook")({
 
             case "pull_request": {
               // Implemented: Full PR syncing
-              await handlePullRequestWebhook(db, payload)
+              await handlePullRequestWebhook(adminDb, payload)
               // Also create event records for tracked event types
-              await handlePullRequestEventWebhook(db, payload)
+              await handlePullRequestEventWebhook(adminDb, payload)
               break
             }
 
             case "pull_request_review": {
               // Implemented: PR review syncing
-              await handlePullRequestReviewWebhook(db, payload)
+              await handlePullRequestReviewWebhook(adminDb, payload)
               break
             }
 
             case "pull_request_review_comment": {
               // Implemented: Inline review comments on diffs
-              await handleCommentWebhook(db, payload, event)
+              await handleCommentWebhook(adminDb, payload, event)
               break
             }
 
@@ -186,7 +178,7 @@ export const Route = createFileRoute("/api/github/webhook")({
 
             case "issues": {
               // Implemented: Full issue syncing
-              await handleIssueWebhook(db, payload)
+              await handleIssueWebhook(adminDb, payload)
               break
             }
 
@@ -197,9 +189,9 @@ export const Route = createFileRoute("/api/github/webhook")({
               // handleIssueCommentWebhook handles actual issue comments
               const issue = payload.issue as Record<string, unknown> | undefined
               if (issue?.pull_request) {
-                await handleCommentWebhook(db, payload, event)
+                await handleCommentWebhook(adminDb, payload, event)
               } else {
-                await handleIssueCommentWebhook(db, payload)
+                await handleIssueCommentWebhook(adminDb, payload)
               }
               break
             }
@@ -341,7 +333,7 @@ export const Route = createFileRoute("/api/github/webhook")({
 
             case "organization": {
               // Implemented: Syncs org metadata updates (name, description, etc.)
-              await handleOrganizationWebhook(db, payload)
+              await handleOrganizationWebhook(adminDb, payload)
               break
             }
 
@@ -480,7 +472,7 @@ export const Route = createFileRoute("/api/github/webhook")({
 
             case "star": {
               // Implemented: Updates stargazers count on repos
-              await handleStarWebhook(db, payload)
+              await handleStarWebhook(adminDb, payload)
               break
             }
 
