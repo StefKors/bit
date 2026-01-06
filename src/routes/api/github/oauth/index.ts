@@ -33,12 +33,9 @@ export const Route = createFileRoute("/api/github/oauth/")({
           })
         }
 
-        // Get the origin from the request to build the callback URL
-        const origin = url.origin
-
         const params = new URLSearchParams({
           client_id: GITHUB_CLIENT_ID,
-          redirect_uri: `${origin}/api/github/oauth/callback`,
+          redirect_uri: `${process.env.BASE_URL}/api/github/oauth/callback`,
           scope: SCOPES,
           state: userId, // Pass the user ID as state to link the GitHub account
           allow_signup: "true",
