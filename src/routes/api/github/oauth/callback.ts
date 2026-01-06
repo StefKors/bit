@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { createHash } from "crypto"
 import { adminDb } from "@/lib/instantAdmin"
+import { GitHubClient } from "@/lib/github-client"
 
 // Generate a deterministic UUID-like ID from a string key
 // InstantDB requires valid UUIDs for entity IDs
@@ -193,6 +194,18 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           )
 
           console.log(`GitHub connected for user ${userId} (${githubUser.login})`)
+
+          // Perform initial sync in the background (don't block the redirect)
+          // We use the access token directly since the sync state was just created
+          const githubClient = new GitHubClient(accessToken, userId)
+          githubClient
+            .performInitialSync()
+            .then((result) => {
+              console.log(`Initial sync completed for user ${userId}:`, result)
+            })
+            .catch((err) => {
+              console.error(`Initial sync failed for user ${userId}:`, err)
+            })
 
           // Redirect back to the app
           return new Response(null, {

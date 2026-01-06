@@ -6,6 +6,8 @@ import {
   SignOutIcon,
   MarkGithubIcon,
   CheckCircleIcon,
+  CheckCircleFillIcon,
+  CircleIcon,
 } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { Button } from "@/components/Button"
@@ -18,6 +20,132 @@ interface RateLimitInfo {
   remaining: number
   limit: number
   reset: Date
+}
+
+interface InitialSyncProgress {
+  step: "orgs" | "repos" | "webhooks" | "pullRequests" | "completed"
+  orgs?: { total: number }
+  repos?: { total: number }
+  webhooks?: { completed: number; total: number }
+  pullRequests?: { completed: number; total: number; prsFound: number }
+  error?: string
+}
+
+type SyncStepStatus = "completed" | "active" | "pending"
+
+const SyncStepItem = ({
+  label,
+  status,
+  count,
+}: {
+  label: string
+  status: SyncStepStatus
+  count?: string
+}) => {
+  const iconClass =
+    status === "completed"
+      ? styles.syncStepIconCompleted
+      : status === "active"
+        ? styles.syncStepIconActive
+        : styles.syncStepIconPending
+
+  const labelClass =
+    status === "active"
+      ? styles.syncStepLabelActive
+      : status === "pending"
+        ? styles.syncStepLabelPending
+        : styles.syncStepLabel
+
+  return (
+    <div className={styles.syncStep}>
+      <div className={`${styles.syncStepIcon} ${iconClass}`}>
+        {status === "completed" ? (
+          <CheckCircleFillIcon size={16} />
+        ) : status === "active" ? (
+          <SyncIcon size={16} />
+        ) : (
+          <CircleIcon size={16} />
+        )}
+      </div>
+      <span className={labelClass}>{label}</span>
+      {count && <span className={styles.syncStepCount}>{count}</span>}
+    </div>
+  )
+}
+
+const InitialSyncProgressCard = ({ progress }: { progress: InitialSyncProgress | null }) => {
+  const steps = ["orgs", "repos", "webhooks", "pullRequests"] as const
+  const stepIndex = progress ? steps.indexOf(progress.step as (typeof steps)[number]) : 0
+  const totalSteps = steps.length
+  const progressPercent =
+    progress?.step === "completed" ? 100 : ((stepIndex + 0.5) / totalSteps) * 100
+
+  const getStepStatus = (step: string): SyncStepStatus => {
+    if (!progress) return step === "orgs" ? "active" : "pending"
+    if (progress.step === "completed") return "completed"
+    const currentIndex = steps.indexOf(progress.step)
+    const stepIdx = steps.indexOf(step as (typeof steps)[number])
+    if (stepIdx < currentIndex) return "completed"
+    if (stepIdx === currentIndex) return "active"
+    return "pending"
+  }
+
+  const getStepCount = (step: string): string | undefined => {
+    if (!progress) return undefined
+    switch (step) {
+      case "orgs":
+        return progress.orgs ? `${progress.orgs.total} found` : undefined
+      case "repos":
+        return progress.repos ? `${progress.repos.total} found` : undefined
+      case "webhooks":
+        return progress.webhooks
+          ? `${progress.webhooks.completed}/${progress.webhooks.total}`
+          : undefined
+      case "pullRequests":
+        return progress.pullRequests
+          ? `${progress.pullRequests.completed}/${progress.pullRequests.total} repos · ${progress.pullRequests.prsFound} PRs`
+          : undefined
+      default:
+        return undefined
+    }
+  }
+
+  return (
+    <div className={styles.initialSyncCard}>
+      <div className={styles.initialSyncHeader}>
+        <SyncIcon size={20} className={styles.initialSyncSpinner} />
+        <h2 className={styles.initialSyncTitle}>Setting up your workspace</h2>
+      </div>
+      <p className={styles.initialSyncDescription}>
+        We're syncing your GitHub data. This only happens once.
+      </p>
+      <div className={styles.progressBarContainer}>
+        <div className={styles.progressBar} style={{ width: `${progressPercent}%` }} />
+      </div>
+      <div className={styles.syncSteps}>
+        <SyncStepItem
+          label="Syncing organizations"
+          status={getStepStatus("orgs")}
+          count={getStepCount("orgs")}
+        />
+        <SyncStepItem
+          label="Syncing repositories"
+          status={getStepStatus("repos")}
+          count={getStepCount("repos")}
+        />
+        <SyncStepItem
+          label="Registering webhooks"
+          status={getStepStatus("webhooks")}
+          count={getStepCount("webhooks")}
+        />
+        <SyncStepItem
+          label="Syncing open pull requests"
+          status={getStepStatus("pullRequests")}
+          count={getStepCount("pullRequests")}
+        />
+      </div>
+    </div>
+  )
 }
 
 function OverviewPage() {
@@ -33,6 +161,19 @@ function OverviewPage() {
 
   // Check if user has GitHub connected by looking at their login field
   const isGitHubConnected = Boolean((user as { login?: string } | undefined)?.login)
+
+  // Query initial sync state
+  const { data: syncData } = db.useQuery({
+    syncStates: {
+      $: { where: { resourceType: "initial_sync" } },
+    },
+  })
+  const initialSyncState = syncData?.syncStates?.[0]
+  const initialSyncProgress = initialSyncState?.lastEtag
+    ? (JSON.parse(initialSyncState.lastEtag) as InitialSyncProgress)
+    : null
+  const isInitialSyncComplete = initialSyncState?.syncStatus === "completed"
+  const isInitialSyncing = isGitHubConnected && !isInitialSyncComplete
 
   // Query repos with organizations using InstantDB
   const { data: reposData } = db.useQuery({
@@ -200,6 +341,8 @@ function OverviewPage() {
           </Button>
         </div>
       )}
+
+      {isInitialSyncing && <InitialSyncProgressCard progress={initialSyncProgress} />}
 
       <section className={styles.prDashboard}>
         <div className={styles.prColumns}>

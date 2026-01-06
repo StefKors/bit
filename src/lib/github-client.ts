@@ -154,6 +154,7 @@ export class GitHubClient {
             ? new Date(repoData.updated_at).getTime()
             : undefined,
           githubPushedAt: repoData.pushed_at ? new Date(repoData.pushed_at).getTime() : undefined,
+          userId: this.userId, // Required attribute
           syncedAt: now,
           createdAt: now,
           updatedAt: now,
@@ -248,6 +249,7 @@ export class GitHubClient {
         adminDb.tx.repos[repo.id]
           .update({
             ...repo,
+            userId: this.userId, // Required attribute
             syncedAt: now,
             createdAt: now,
             updatedAt: now,
@@ -311,6 +313,8 @@ export class GitHubClient {
         adminDb.tx.pullRequests[pr.id]
           .update({
             ...pr,
+            repoId: repoRecord.id, // Required attribute
+            userId: this.userId, // Required attribute
             syncedAt: now,
             createdAt: now,
             updatedAt: now,
@@ -381,6 +385,8 @@ export class GitHubClient {
           githubUpdatedAt: prData.updated_at ? new Date(prData.updated_at).getTime() : undefined,
           closedAt: prData.closed_at ? new Date(prData.closed_at).getTime() : undefined,
           mergedAt: prData.merged_at ? new Date(prData.merged_at).getTime() : undefined,
+          repoId: repoRecord.id, // Required attribute
+          userId: this.userId, // Required attribute
           syncedAt: now,
           createdAt: now,
           updatedAt: now,
@@ -414,6 +420,7 @@ export class GitHubClient {
             blobUrl: file.blob_url,
             rawUrl: file.raw_url,
             contentsUrl: file.contents_url,
+            pullRequestId: prId, // Required attribute
             createdAt: now,
             updatedAt: now,
           })
@@ -445,6 +452,7 @@ export class GitHubClient {
             authorAvatarUrl: review.user?.avatar_url || undefined,
             htmlUrl: review.html_url,
             submittedAt: review.submitted_at ? new Date(review.submitted_at).getTime() : undefined,
+            pullRequestId: prId, // Required attribute
             createdAt: now,
             updatedAt: now,
           })
@@ -480,6 +488,7 @@ export class GitHubClient {
             githubUpdatedAt: comment.updated_at
               ? new Date(comment.updated_at).getTime()
               : undefined,
+            pullRequestId: prId, // Required attribute
             createdAt: now,
             updatedAt: now,
           })
@@ -518,6 +527,7 @@ export class GitHubClient {
           diffHunk: comment.diff_hunk || undefined,
           githubCreatedAt: comment.created_at ? new Date(comment.created_at).getTime() : undefined,
           githubUpdatedAt: comment.updated_at ? new Date(comment.updated_at).getTime() : undefined,
+          pullRequestId: prId, // Required attribute
           createdAt: now,
           updatedAt: now,
         })
@@ -559,6 +569,7 @@ export class GitHubClient {
             committedAt: commit.commit.committer?.date
               ? new Date(commit.commit.committer.date).getTime()
               : undefined,
+            pullRequestId: prId, // Required attribute
             createdAt: now,
             updatedAt: now,
           })
@@ -617,6 +628,7 @@ export class GitHubClient {
             size: item.size || undefined,
             url: item.url || undefined,
             htmlUrl: `https://github.com/${owner}/${repo}/${item.type === "tree" ? "tree" : "blob"}/${branch}/${item.path}`,
+            repoId: repoRecord.id, // Required attribute
             createdAt: now,
             updatedAt: now,
           })
@@ -628,6 +640,192 @@ export class GitHubClient {
     await this.updateSyncState("tree", `${owner}/${repo}:${branch}`, rateLimit)
 
     return { count: response.data.tree.length, rateLimit }
+  }
+
+  // Register webhooks for a repository
+  async registerRepoWebhook(owner: string, repo: string): Promise<boolean> {
+    const webhookUrl = process.env.BASE_URL ? `${process.env.BASE_URL}/api/github/webhook` : null
+    const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET
+
+    if (!webhookUrl || !webhookSecret) {
+      console.log(
+        `Skipping webhook registration for ${owner}/${repo}: BASE_URL or GITHUB_WEBHOOK_SECRET not configured`,
+      )
+      return false
+    }
+
+    try {
+      // Check if webhook already exists
+      const existingHooks = await this.octokit.rest.repos.listWebhooks({
+        owner,
+        repo,
+        per_page: 100,
+      })
+
+      const existingHook = existingHooks.data.find((hook) => hook.config.url === webhookUrl)
+
+      if (existingHook) {
+        console.log(`Webhook already exists for ${owner}/${repo}`)
+        return true
+      }
+
+      // Create webhook
+      await this.octokit.rest.repos.createWebhook({
+        owner,
+        repo,
+        config: {
+          url: webhookUrl,
+          content_type: "json",
+          secret: webhookSecret,
+          insecure_ssl: "0",
+        },
+        events: [
+          "push",
+          "pull_request",
+          "pull_request_review",
+          "pull_request_review_comment",
+          "issue_comment",
+          "issues",
+          "create",
+          "delete",
+          "fork",
+          "star",
+          "repository",
+        ],
+        active: true,
+      })
+
+      console.log(`Webhook registered for ${owner}/${repo}`)
+      return true
+    } catch (err) {
+      // 404 or 403 means we don't have permission - that's expected for repos we don't own
+      const error = err as { status?: number; message?: string }
+      if (error.status === 404 || error.status === 403) {
+        console.log(`Cannot register webhook for ${owner}/${repo}: no admin access`)
+        return false
+      }
+      console.error(`Error registering webhook for ${owner}/${repo}:`, err)
+      return false
+    }
+  }
+
+  // Update initial sync progress in database
+  private async updateInitialSyncProgress(progress: {
+    step: "orgs" | "repos" | "webhooks" | "pullRequests" | "completed"
+    orgs?: { total: number }
+    repos?: { total: number }
+    webhooks?: { completed: number; total: number }
+    pullRequests?: { completed: number; total: number; prsFound: number }
+    error?: string
+  }) {
+    const stateId = generateSyncStateId(`${this.userId}:initial_sync`)
+    const now = Date.now()
+
+    await adminDb.transact(
+      adminDb.tx.syncStates[stateId]
+        .update({
+          resourceType: "initial_sync",
+          syncStatus: progress.step === "completed" ? "completed" : "syncing",
+          lastEtag: JSON.stringify(progress), // Store progress as JSON
+          syncError: progress.error,
+          userId: this.userId,
+          lastSyncedAt: progress.step === "completed" ? now : undefined,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .link({ user: this.userId }),
+    )
+  }
+
+  // Perform initial sync after OAuth: orgs, repos, and webhooks
+  async performInitialSync(): Promise<{
+    orgs: number
+    repos: number
+    webhooks: number
+    openPRs: number
+  }> {
+    console.log(`Starting initial sync for user ${this.userId}`)
+
+    try {
+      // 1. Sync organizations
+      await this.updateInitialSyncProgress({ step: "orgs" })
+      const orgsResult = await this.fetchOrganizations()
+      console.log(`Synced ${orgsResult.data.length} organizations`)
+
+      // 2. Sync repositories
+      await this.updateInitialSyncProgress({
+        step: "repos",
+        orgs: { total: orgsResult.data.length },
+      })
+      const reposResult = await this.fetchRepositories()
+      console.log(`Synced ${reposResult.data.length} repositories`)
+
+      // 3. Register webhooks for repos we can admin
+      let webhooksRegistered = 0
+      const totalRepos = reposResult.data.length
+      for (let i = 0; i < reposResult.data.length; i++) {
+        const repo = reposResult.data[i]
+        await this.updateInitialSyncProgress({
+          step: "webhooks",
+          orgs: { total: orgsResult.data.length },
+          repos: { total: reposResult.data.length },
+          webhooks: { completed: i, total: totalRepos },
+        })
+        const [owner, repoName] = repo.fullName.split("/")
+        const registered = await this.registerRepoWebhook(owner, repoName)
+        if (registered) webhooksRegistered++
+      }
+      console.log(`Registered webhooks for ${webhooksRegistered} repositories`)
+
+      // 4. Sync open PRs for all repos (limit to first 10 repos to avoid rate limiting)
+      let totalOpenPRs = 0
+      const reposToSync = reposResult.data.slice(0, 10) // Limit to avoid rate limiting
+      for (let i = 0; i < reposToSync.length; i++) {
+        const repo = reposToSync[i]
+        await this.updateInitialSyncProgress({
+          step: "pullRequests",
+          orgs: { total: orgsResult.data.length },
+          repos: { total: reposResult.data.length },
+          webhooks: { completed: totalRepos, total: totalRepos },
+          pullRequests: { completed: i, total: reposToSync.length, prsFound: totalOpenPRs },
+        })
+        try {
+          const [owner, repoName] = repo.fullName.split("/")
+          const prsResult = await this.fetchPullRequests(owner, repoName, "open")
+          totalOpenPRs += prsResult.data.length
+        } catch (err) {
+          console.error(`Error syncing PRs for ${repo.fullName}:`, err)
+        }
+      }
+      console.log(`Synced ${totalOpenPRs} open PRs from ${reposToSync.length} repositories`)
+
+      // Mark as completed
+      await this.updateInitialSyncProgress({
+        step: "completed",
+        orgs: { total: orgsResult.data.length },
+        repos: { total: reposResult.data.length },
+        webhooks: { completed: webhooksRegistered, total: totalRepos },
+        pullRequests: {
+          completed: reposToSync.length,
+          total: reposToSync.length,
+          prsFound: totalOpenPRs,
+        },
+      })
+
+      return {
+        orgs: orgsResult.data.length,
+        repos: reposResult.data.length,
+        webhooks: webhooksRegistered,
+        openPRs: totalOpenPRs,
+      }
+    } catch (err) {
+      // Update with error status
+      await this.updateInitialSyncProgress({
+        step: "orgs",
+        error: err instanceof Error ? err.message : "Initial sync failed",
+      })
+      throw err
+    }
   }
 }
 
