@@ -17,7 +17,9 @@ import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhoo
 import { Route as ApiGithubRateLimitRouteImport } from './routes/api/github/rate-limit'
 import { Route as OwnerRepoPullsRouteImport } from './routes/$owner/$repo/pulls'
 import { Route as OwnerRepoIssuesRouteImport } from './routes/$owner/$repo/issues'
+import { Route as ApiGithubOauthIndexRouteImport } from './routes/api/github/oauth/index'
 import { Route as ApiGithubSyncOverviewRouteImport } from './routes/api/github/sync/overview'
+import { Route as ApiGithubOauthCallbackRouteImport } from './routes/api/github/oauth/callback'
 import { Route as OwnerRepoPullNumberRouteImport } from './routes/$owner/$repo/pull.$number'
 import { Route as OwnerRepoIssuesNumberRouteImport } from './routes/$owner/$repo/issues.$number'
 import { Route as ApiGithubSyncOwnerRepoRouteImport } from './routes/api/github/sync/$owner.$repo'
@@ -65,9 +67,19 @@ const OwnerRepoIssuesRoute = OwnerRepoIssuesRouteImport.update({
   path: '/$owner/$repo/issues',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGithubOauthIndexRoute = ApiGithubOauthIndexRouteImport.update({
+  id: '/api/github/oauth/',
+  path: '/api/github/oauth/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGithubSyncOverviewRoute = ApiGithubSyncOverviewRouteImport.update({
   id: '/api/github/sync/overview',
   path: '/api/github/sync/overview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubOauthCallbackRoute = ApiGithubOauthCallbackRouteImport.update({
+  id: '/api/github/oauth/callback',
+  path: '/api/github/oauth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OwnerRepoPullNumberRoute = OwnerRepoPullNumberRouteImport.update({
@@ -115,7 +127,9 @@ export interface FileRoutesByFullPath {
   '/$owner/$repo': typeof OwnerRepoIndexRoute
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
+  '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
+  '/api/github/oauth': typeof ApiGithubOauthIndexRoute
   '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
   '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
@@ -132,7 +146,9 @@ export interface FileRoutesByTo {
   '/$owner/$repo': typeof OwnerRepoIndexRoute
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
+  '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
+  '/api/github/oauth': typeof ApiGithubOauthIndexRoute
   '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
   '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
@@ -150,7 +166,9 @@ export interface FileRoutesById {
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
+  '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
+  '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
   '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
   '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
@@ -169,7 +187,9 @@ export interface FileRouteTypes {
     | '/$owner/$repo'
     | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
+    | '/api/github/oauth/callback'
     | '/api/github/sync/overview'
+    | '/api/github/oauth'
     | '/$owner/$repo/blob/$branch/$'
     | '/$owner/$repo/tree/$branch/$'
     | '/api/github/sync/$owner/$repo'
@@ -186,7 +206,9 @@ export interface FileRouteTypes {
     | '/$owner/$repo'
     | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
+    | '/api/github/oauth/callback'
     | '/api/github/sync/overview'
+    | '/api/github/oauth'
     | '/$owner/$repo/blob/$branch/$'
     | '/$owner/$repo/tree/$branch/$'
     | '/api/github/sync/$owner/$repo'
@@ -203,7 +225,9 @@ export interface FileRouteTypes {
     | '/$owner/$repo/'
     | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
+    | '/api/github/oauth/callback'
     | '/api/github/sync/overview'
+    | '/api/github/oauth/'
     | '/$owner/$repo/blob/$branch/$'
     | '/$owner/$repo/tree/$branch/$'
     | '/api/github/sync/$owner/$repo'
@@ -220,7 +244,9 @@ export interface RootRouteChildren {
   ApiGithubWebhookRoute: typeof ApiGithubWebhookRoute
   OwnerRepoIndexRoute: typeof OwnerRepoIndexRoute
   OwnerRepoPullNumberRoute: typeof OwnerRepoPullNumberRoute
+  ApiGithubOauthCallbackRoute: typeof ApiGithubOauthCallbackRoute
   ApiGithubSyncOverviewRoute: typeof ApiGithubSyncOverviewRoute
+  ApiGithubOauthIndexRoute: typeof ApiGithubOauthIndexRoute
   OwnerRepoBlobBranchSplatRoute: typeof OwnerRepoBlobBranchSplatRoute
   OwnerRepoTreeBranchSplatRoute: typeof OwnerRepoTreeBranchSplatRoute
   ApiGithubSyncOwnerRepoRoute: typeof ApiGithubSyncOwnerRepoRouteWithChildren
@@ -284,11 +310,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OwnerRepoIssuesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/github/oauth/': {
+      id: '/api/github/oauth/'
+      path: '/api/github/oauth'
+      fullPath: '/api/github/oauth'
+      preLoaderRoute: typeof ApiGithubOauthIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/github/sync/overview': {
       id: '/api/github/sync/overview'
       path: '/api/github/sync/overview'
       fullPath: '/api/github/sync/overview'
       preLoaderRoute: typeof ApiGithubSyncOverviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/oauth/callback': {
+      id: '/api/github/oauth/callback'
+      path: '/api/github/oauth/callback'
+      fullPath: '/api/github/oauth/callback'
+      preLoaderRoute: typeof ApiGithubOauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$owner/$repo/pull/$number': {
@@ -373,7 +413,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGithubWebhookRoute: ApiGithubWebhookRoute,
   OwnerRepoIndexRoute: OwnerRepoIndexRoute,
   OwnerRepoPullNumberRoute: OwnerRepoPullNumberRoute,
+  ApiGithubOauthCallbackRoute: ApiGithubOauthCallbackRoute,
   ApiGithubSyncOverviewRoute: ApiGithubSyncOverviewRoute,
+  ApiGithubOauthIndexRoute: ApiGithubOauthIndexRoute,
   OwnerRepoBlobBranchSplatRoute: OwnerRepoBlobBranchSplatRoute,
   OwnerRepoTreeBranchSplatRoute: OwnerRepoTreeBranchSplatRoute,
   ApiGithubSyncOwnerRepoRoute: ApiGithubSyncOwnerRepoRouteWithChildren,

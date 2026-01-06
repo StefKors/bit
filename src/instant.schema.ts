@@ -12,13 +12,32 @@ const _schema = i.schema({
   entities: {
     // Built-in user entity - maps to auth_user
     // Note: $users is system-managed, so name must be optional
+    // Fields from GitHub User interface (@octokit/webhooks-types)
     $users: i.entity({
       email: i.string().unique().indexed(),
       name: i.string().optional(),
       emailVerified: i.boolean().optional(),
-      image: i.string().optional(),
       createdAt: i.number().optional(),
       updatedAt: i.number().optional(),
+      // GitHub User fields
+      login: i.string().unique().indexed().optional(),
+      githubId: i.number().unique().indexed().optional(),
+      nodeId: i.string().optional(),
+      avatarUrl: i.string().optional(),
+      gravatarId: i.string().optional(),
+      url: i.string().optional(),
+      htmlUrl: i.string().optional(),
+      followersUrl: i.string().optional(),
+      followingUrl: i.string().optional(),
+      gistsUrl: i.string().optional(),
+      starredUrl: i.string().optional(),
+      subscriptionsUrl: i.string().optional(),
+      organizationsUrl: i.string().optional(),
+      reposUrl: i.string().optional(),
+      eventsUrl: i.string().optional(),
+      receivedEventsUrl: i.string().optional(),
+      type: i.string().optional(), // "Bot" | "User" | "Organization"
+      siteAdmin: i.boolean().optional(),
     }),
 
     // GitHub Organizations

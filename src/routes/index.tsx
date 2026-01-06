@@ -1,6 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useSearch } from "@tanstack/react-router"
 import { useState, useMemo } from "react"
-import { ClockIcon, SyncIcon, SignOutIcon } from "@primer/octicons-react"
+import {
+  ClockIcon,
+  SyncIcon,
+  SignOutIcon,
+  MarkGithubIcon,
+  CheckCircleIcon,
+} from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { Button } from "@/components/Button"
 import { RepoSection } from "@/features/repo/RepoSection"
@@ -16,9 +22,17 @@ interface RateLimitInfo {
 
 function OverviewPage() {
   const { user } = db.useAuth()
+  const search = useSearch({ from: "/" })
   const [syncing, setSyncing] = useState(false)
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // Check if GitHub was just connected
+  const githubJustConnected = search.github === "connected"
+  const oauthError = search.error
+
+  // Check if user has GitHub connected by looking at their login field
+  const isGitHubConnected = Boolean((user as { login?: string } | undefined)?.login)
 
   // Query repos with organizations using InstantDB
   const { data: reposData } = db.useQuery({
@@ -97,7 +111,12 @@ function OverviewPage() {
   }
 
   const handleSignOut = () => {
-    db.auth.signOut()
+    void db.auth.signOut()
+  }
+
+  const handleConnectGitHub = () => {
+    if (!user?.id) return
+    window.location.href = `/api/github/oauth?userId=${user.id}`
   }
 
   if (!user) {
@@ -110,8 +129,13 @@ function OverviewPage() {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <Avatar src={user.image} name={user.email} size={48} />
-          <h1 className={styles.title}>{user.email}'s Pull Requests</h1>
+          <Avatar src={(user as { avatarUrl?: string }).avatarUrl} name={user.email} size={48} />
+          <h1 className={styles.title}>
+            {isGitHubConnected
+              ? `@${(user as { login?: string }).login}'s`
+              : user.email?.split("@")[0] + "'s"}{" "}
+            Pull Requests
+          </h1>
         </div>
 
         <div className={styles.headerActions}>
@@ -122,14 +146,24 @@ function OverviewPage() {
             </div>
           )}
 
-          <Button
-            variant="success"
-            leadingIcon={<SyncIcon size={16} />}
-            loading={syncing}
-            onClick={() => void handleSync()}
-          >
-            {syncing ? "Syncing..." : "Sync GitHub"}
-          </Button>
+          {isGitHubConnected ? (
+            <Button
+              variant="success"
+              leadingIcon={<SyncIcon size={16} />}
+              loading={syncing}
+              onClick={() => void handleSync()}
+            >
+              {syncing ? "Syncing..." : "Sync GitHub"}
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              leadingIcon={<MarkGithubIcon size={16} />}
+              onClick={handleConnectGitHub}
+            >
+              Connect GitHub
+            </Button>
+          )}
 
           <Button variant="danger" leadingIcon={<SignOutIcon size={16} />} onClick={handleSignOut}>
             Sign out
@@ -137,17 +171,33 @@ function OverviewPage() {
         </div>
       </header>
 
-      {error && (
-        <div
-          style={{
-            color: "#f85149",
-            marginBottom: "1rem",
-            padding: "1rem",
-            background: "rgba(248, 81, 73, 0.1)",
-            borderRadius: "8px",
-          }}
-        >
-          {error}
+      {githubJustConnected && (
+        <div className={styles.successMessage}>
+          <CheckCircleIcon size={16} />
+          GitHub connected successfully! You can now sync your repositories.
+        </div>
+      )}
+
+      {oauthError && <div className={styles.errorMessage}>{oauthError}</div>}
+
+      {error && <div className={styles.errorMessage}>{error}</div>}
+
+      {!isGitHubConnected && (
+        <div className={styles.connectGitHubCard}>
+          <MarkGithubIcon size={48} />
+          <h2 className={styles.connectGitHubTitle}>Connect your GitHub account</h2>
+          <p className={styles.connectGitHubDescription}>
+            Connect your GitHub account to sync your repositories, pull requests, and receive
+            real-time webhook updates.
+          </p>
+          <Button
+            variant="primary"
+            size="large"
+            leadingIcon={<MarkGithubIcon size={20} />}
+            onClick={handleConnectGitHub}
+          >
+            Connect GitHub
+          </Button>
         </div>
       )}
 
@@ -226,4 +276,8 @@ function OverviewPage() {
 
 export const Route = createFileRoute("/")({
   component: OverviewPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    github: search.github as string | undefined,
+    error: search.error as string | undefined,
+  }),
 })

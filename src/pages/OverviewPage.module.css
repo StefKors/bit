@@ -239,3 +239,51 @@
   margin: 0;
   font-size: 0.9rem;
 }
+
+.successMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: rgba(var(--bit-rgb-accent-green), 0.1);
+  border: 1px solid rgba(var(--bit-rgb-accent-green), 0.2);
+  border-radius: var(--bit-radius-lg);
+  color: var(--bit-color-accent-green);
+  font-size: 0.9rem;
+}
+
+.errorMessage {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: rgba(var(--bit-rgb-accent-red), 0.1);
+  border: 1px solid rgba(var(--bit-rgb-accent-red), 0.2);
+  border-radius: var(--bit-radius-lg);
+  color: var(--bit-color-accent-red);
+  font-size: 0.9rem;
+}
+
+.connectGitHubCard {
+  background: var(--bit-gradient-surface);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  border-radius: var(--bit-radius-xl);
+  padding: 2rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.connectGitHubTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--bit-color-heading);
+  margin: 0 0 0.5rem;
+}
+
+.connectGitHubDescription {
+  font-size: 0.9rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+  margin: 0 0 1.5rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}

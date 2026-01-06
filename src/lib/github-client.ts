@@ -152,7 +152,7 @@ export class GitHubClient {
     await this.updateSyncState("repo", fullName, rateLimit)
 
     // Return with our string ID (node_id) for InstantDB
-    return { ...repoData, id: repoId as string, defaultBranch: repoData.default_branch || "main" }
+    return { ...repoData, id: repoId, defaultBranch: repoData.default_branch || "main" }
   }
 
   // Fetch user's organizations
@@ -621,15 +621,45 @@ export class GitHubClient {
 
 // Factory function to create a GitHub client from session
 export async function createGitHubClient(userId: string): Promise<GitHubClient | null> {
-  // For InstantDB, we need to get the access token from the user's linked accounts
-  // This would typically be stored when the user authenticates with GitHub
-  // For now, we'll use an environment variable as a fallback
-  const accessToken = process.env.GITHUB_ACCESS_TOKEN
+  // Try to get the user's stored GitHub access token
+  const tokenStateId = `${userId}:github:token`
 
-  if (!accessToken) {
-    console.error("No GitHub access token available")
+  try {
+    const { syncStates } = await adminDb.query({
+      syncStates: {
+        $: {
+          where: {
+            id: tokenStateId,
+          },
+        },
+      },
+    })
+
+    const tokenState = syncStates?.[0]
+    const accessToken = tokenState?.lastEtag // Token stored in lastEtag field
+
+    if (accessToken) {
+      return new GitHubClient(accessToken, userId)
+    }
+
+    // Fall back to environment variable for backward compatibility or global token
+    const globalToken = process.env.GITHUB_ACCESS_TOKEN
+    if (globalToken) {
+      console.log("Using global GitHub access token (user token not found)")
+      return new GitHubClient(globalToken, userId)
+    }
+
+    console.error("No GitHub access token available for user:", userId)
+    return null
+  } catch (err) {
+    console.error("Error fetching GitHub token for user:", userId, err)
+
+    // Fall back to environment variable
+    const globalToken = process.env.GITHUB_ACCESS_TOKEN
+    if (globalToken) {
+      return new GitHubClient(globalToken, userId)
+    }
+
     return null
   }
-
-  return new GitHubClient(accessToken, userId)
 }
