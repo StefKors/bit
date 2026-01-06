@@ -44,7 +44,7 @@
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
   border-radius: var(--bit-radius-xl);
   padding: 16px;
-  box-shadow: var(--bit-shadow-elevated);
+  box-shadow: var(--bit-shadow-md);
   backdrop-filter: blur(20px);
   animation: slideUp 0.15s ease-out;
 }

@@ -29,7 +29,7 @@
   border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   border-radius: var(--bit-radius-2xl);
   padding: 2.5rem;
-  box-shadow: var(--bit-shadow-elevated);
+  box-shadow: var(--bit-shadow-md);
   position: relative;
   z-index: 1;
   backdrop-filter: blur(20px);
