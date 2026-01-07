@@ -1,6 +1,6 @@
 import { InstaQLEntity } from "@instantdb/react"
 import type { AppSchema } from "@/instant.schema"
-import { db } from "./instantDb"
+import { db } from "../instantDb"
 
 // Type derived from schema $users entity
 export type User = InstaQLEntity<AppSchema, "$users">

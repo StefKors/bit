@@ -10,7 +10,7 @@ import {
   CircleIcon,
 } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
-import { useAuth } from "@/lib/useAuth"
+import { useAuth } from "@/lib/hooks/useAuth"
 import { Button } from "@/components/Button"
 import { RepoSection } from "@/features/repo/RepoSection"
 import { PRListItem } from "@/features/pr/PRListItem"
