@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { FileDirectoryIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
+import { useAuth } from "@/lib/hooks/useAuth"
 import { Markdown } from "@/components/Markdown"
 import { FileTree, type TreeEntry } from "./FileTree"
 import styles from "./RepoCodeTab.module.css"
@@ -21,6 +22,7 @@ interface TreeEntryData {
 }
 
 export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProps) {
+  const { user } = useAuth()
   const [owner, repo] = fullName.split("/")
   const branch = defaultBranch || "main"
 
@@ -48,6 +50,9 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProp
       const response = await fetch(`/api/github/sync/${owner}/${repo}/tree?ref=${branch}`, {
         method: "POST",
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${user?.id}`,
+        },
       })
 
       if (!response.ok) {
@@ -80,6 +85,9 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProp
 
     fetch(`/api/github/readme/${owner}/${repo}?ref=${branch}`, {
       credentials: "include",
+      headers: {
+        Authorization: `Bearer ${user?.id}`,
+      },
     })
       .then((res) => res.json())
       .then((data: { content: string | null }) => {

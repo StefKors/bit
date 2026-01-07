@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react"
 import { Link, useParams } from "@tanstack/react-router"
 import { FileDirectoryIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
+import { useAuth } from "@/lib/hooks/useAuth"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoHeader } from "./RepoHeader"
 import { RepoTabs } from "./RepoTabs"
@@ -63,6 +64,7 @@ interface RepoLayoutProps {
 }
 
 export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
+  const { user } = useAuth()
   const params = useParams({ strict: false })
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -91,6 +93,9 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
       const response = await fetch(`/api/github/sync/${owner}/${repoName}`, {
         method: "POST",
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${user?.id}`,
+        },
       })
 
       const data = (await response.json()) as { error?: string }

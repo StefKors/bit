@@ -5,6 +5,7 @@ import { Breadcrumb } from "@/components/Breadcrumb"
 import { Button } from "@/components/Button"
 import { IssueConversationTab } from "@/features/issue/IssueConversationTab"
 import { db } from "@/lib/instantDb"
+import { useAuth } from "@/lib/hooks/useAuth"
 import { parseLabels } from "@/lib/issue-filters"
 import styles from "@/pages/IssueDetailPage.module.css"
 
@@ -25,6 +26,7 @@ const formatTimeAgo = (date: Date | number | null | undefined): string => {
 }
 
 const IssueDetailPage = () => {
+  const { user } = useAuth()
   const { owner, repo, number } = Route.useParams()
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -55,6 +57,9 @@ const IssueDetailPage = () => {
       const response = await fetch(`/api/github/sync/${owner}/${repoName}/issue/${issueNumber}`, {
         method: "POST",
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${user?.id}`,
+        },
       })
 
       const data = (await response.json()) as { error?: string }
@@ -67,7 +72,7 @@ const IssueDetailPage = () => {
     } finally {
       setSyncing(false)
     }
-  }, [owner, repoName, issueNumber])
+  }, [owner, repoName, issueNumber, user?.id])
 
   if (issue === undefined) {
     return (

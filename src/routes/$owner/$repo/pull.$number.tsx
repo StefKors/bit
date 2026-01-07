@@ -16,6 +16,7 @@ import { PRFilesTab } from "@/features/pr/PRFilesTab"
 import { PRCommitsTab } from "@/features/pr/PRCommitsTab"
 import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
 import { db } from "@/lib/instantDb"
+import { useAuth } from "@/lib/hooks/useAuth"
 import styles from "@/pages/PRDetailPage.module.css"
 
 type TabType = "conversation" | "commits" | "files"
@@ -46,6 +47,7 @@ function formatTimeAgo(date: Date | number | null | undefined): string {
 }
 
 function PRDetailPage() {
+  const { user } = useAuth()
   const { owner, repo, number } = Route.useParams()
   const [activeTab, setActiveTab] = useState<TabType>("conversation")
   const [syncing, setSyncing] = useState(false)
@@ -82,6 +84,9 @@ function PRDetailPage() {
       const response = await fetch(`/api/github/sync/${owner}/${repoName}/pull/${prNumber}`, {
         method: "POST",
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${user?.id}`,
+        },
       })
 
       const data = (await response.json()) as { error?: string }

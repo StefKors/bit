@@ -2,6 +2,7 @@ import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { FileIcon, FileDirectoryIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
+import { useAuth } from "@/lib/hooks/useAuth"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoHeader } from "@/features/repo/RepoHeader"
 import { FileTree, type TreeEntry } from "@/features/repo/FileTree"
@@ -9,6 +10,7 @@ import styles from "@/features/repo/FileViewerPage.module.css"
 import layoutStyles from "@/features/repo/RepoLayout.module.css"
 
 function TreePage() {
+  const { user } = useAuth()
   const { owner, repo, branch, _splat: path } = Route.useParams()
   const fullName = `${owner}/${repo}`
 
@@ -36,6 +38,9 @@ function TreePage() {
       await fetch(`/api/github/sync/${owner}/${repo}/tree?ref=${branch}`, {
         method: "POST",
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${user?.id}`,
+        },
       })
     } catch (err) {
       console.error("Error syncing:", err)

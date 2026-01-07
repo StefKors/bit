@@ -111,6 +111,9 @@ function OverviewPage() {
       const response = await fetch("/api/github/sync/overview", {
         method: "POST",
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${user?.id}`,
+        },
       })
 
       const data = (await response.json()) as {
