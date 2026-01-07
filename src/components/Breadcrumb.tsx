@@ -13,11 +13,17 @@ export interface BreadcrumbItem {
 interface BreadcrumbProps {
   /** Array of breadcrumb items */
   items: BreadcrumbItem[]
+  /** Additional class name for custom styling */
+  className?: string
+  /** Compact variant for use in headers */
+  variant?: "default" | "compact"
 }
 
-export function Breadcrumb({ items }: BreadcrumbProps) {
+export const Breadcrumb = ({ items, className, variant = "default" }: BreadcrumbProps) => {
+  const isCompact = variant === "compact"
+
   return (
-    <nav className={styles.breadcrumb}>
+    <nav className={`${styles.breadcrumb} ${isCompact ? styles.compact : ""} ${className ?? ""}`}>
       {items.map((item, index) => (
         <span key={index} className={styles.breadcrumbItem}>
           {item.to ? (
@@ -25,7 +31,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
               {item.label}
             </Link>
           ) : (
-            <span>{item.label}</span>
+            <span className={styles.breadcrumbCurrent}>{item.label}</span>
           )}
           {index < items.length - 1 && <span className={styles.breadcrumbSeparator}>/</span>}
         </span>

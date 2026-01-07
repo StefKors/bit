@@ -25,3 +25,37 @@
 .breadcrumbSeparator {
   color: rgba(var(--bit-rgb-fg), 0.4);
 }
+
+.breadcrumbCurrent {
+  color: var(--bit-color-text);
+}
+
+/* Compact variant for headers */
+.compact {
+  margin-bottom: 0;
+  font-size: 13px;
+  gap: 0;
+}
+
+.compact .breadcrumbItem {
+  gap: 0;
+}
+
+.compact .breadcrumbLink {
+  color: rgba(var(--bit-rgb-fg), 0.6);
+  transition: color 0.1s ease;
+}
+
+.compact .breadcrumbLink:hover {
+  color: var(--bit-color-text);
+  text-decoration: none;
+}
+
+.compact .breadcrumbSeparator {
+  margin: 0 6px;
+  color: rgba(var(--bit-rgb-fg), 0.3);
+}
+
+.compact .breadcrumbCurrent {
+  font-weight: 500;
+}

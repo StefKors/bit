@@ -8,7 +8,11 @@ type ConnectGitHubCardProps = {
   message?: string
 }
 
-export const ConnectGitHubCard = ({ onConnect, justInstalled, message }: ConnectGitHubCardProps) => (
+export const ConnectGitHubCard = ({
+  onConnect,
+  justInstalled,
+  message,
+}: ConnectGitHubCardProps) => (
   <div className={styles.card}>
     <MarkGithubIcon size={48} />
     {justInstalled ? (

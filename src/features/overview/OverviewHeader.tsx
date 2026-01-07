@@ -1,13 +1,5 @@
-import {
-  ClockIcon,
-  SyncIcon,
-  SignOutIcon,
-  MarkGithubIcon,
-  CheckCircleIcon,
-} from "@primer/octicons-react"
-import { db } from "@/lib/instantDb"
+import { ClockIcon, SyncIcon, MarkGithubIcon, CheckCircleIcon } from "@primer/octicons-react"
 import { Button } from "@/components/Button"
-import { Avatar } from "@/components/Avatar"
 import styles from "./OverviewHeader.module.css"
 
 type RateLimitInfo = {
@@ -16,15 +8,7 @@ type RateLimitInfo = {
   reset: Date
 }
 
-type User = {
-  id: string
-  email: string
-  login?: string
-  avatarUrl?: string
-}
-
 type OverviewHeaderProps = {
-  user: User
   isGitHubConnected: boolean
   isSyncing: boolean
   rateLimit: RateLimitInfo | null
@@ -54,7 +38,6 @@ const formatLastSynced = (timestamp: number) => {
 }
 
 export const OverviewHeader = ({
-  user,
   isGitHubConnected,
   isSyncing,
   rateLimit,
@@ -71,19 +54,11 @@ export const OverviewHeader = ({
 }: OverviewHeaderProps) => {
   const rateLimitLow = rateLimit && rateLimit.remaining < 100
 
-  const handleSignOut = () => {
-    void db.auth.signOut()
-  }
-
   return (
     <>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <Avatar src={user.avatarUrl} name={user.email} size={48} />
-          <h1 className={styles.title}>
-            {isGitHubConnected ? `@${user.login}'s` : user.email?.split("@")[0] + "'s"} Pull
-            Requests
-          </h1>
+          <h1 className={styles.title}>Pull Requests</h1>
         </div>
 
         <div className={styles.headerActions}>
@@ -120,10 +95,6 @@ export const OverviewHeader = ({
               Connect GitHub
             </Button>
           )}
-
-          <Button variant="danger" leadingIcon={<SignOutIcon size={16} />} onClick={handleSignOut}>
-            Sign out
-          </Button>
         </div>
       </header>
 

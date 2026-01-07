@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useRef, useState, useImperativeHandle, forwardRef } from "react"
 import { Command } from "cmdk"
 import { useNavigate } from "@tanstack/react-router"
 import {
@@ -17,12 +17,25 @@ import styles from "./CommandMenu.module.css"
 
 type Page = "home" | { type: "repo"; repoId: string; fullName: string }
 
-export const CommandMenu = () => {
+export type CommandMenuHandle = {
+  open: () => void
+  close: () => void
+  toggle: () => void
+}
+
+export const CommandMenu = forwardRef<CommandMenuHandle>(function CommandMenu(_, ref) {
   const { user } = useAuth()
   const navigate = useNavigate()
   const inputRef = useRef<HTMLInputElement>(null)
 
   const [open, setOpen] = useState(false)
+
+  // Expose methods to parent
+  useImperativeHandle(ref, () => ({
+    open: () => setOpen(true),
+    close: () => setOpen(false),
+    toggle: () => setOpen((prev) => !prev),
+  }))
   const [search, setSearch] = useState("")
   const [pages, setPages] = useState<Page[]>(["home"])
   const activePage = pages[pages.length - 1]
@@ -176,7 +189,12 @@ export const CommandMenu = () => {
                     value={repo.fullName}
                     className={styles.item}
                     data-repo-id={repo.id}
-                    onSelect={() => selectRepo(repo)}
+                    onSelect={() =>
+                      navigateTo("/$owner/$repo", {
+                        owner: repo.owner,
+                        repo: repo.name,
+                      })
+                    }
                     keywords={[repo.name, repo.owner, repo.description ?? ""]}
                   >
                     <RepoIcon size={16} className={styles.itemIcon} />
@@ -382,22 +400,22 @@ export const CommandMenu = () => {
 
       <div className={styles.footer}>
         <span className={styles.footerHint}>
-          <kbd>↵</kbd> to select
+          <kbd>↵</kbd> go to
         </span>
         {activePage === "home" && (
           <span className={styles.footerHint}>
-            <kbd>tab</kbd> to drill down
+            <kbd>tab</kbd> filter
           </span>
         )}
         <span className={styles.footerHint}>
-          <kbd>↑↓</kbd> to navigate
+          <kbd>↑↓</kbd> navigate
         </span>
         {pages.length > 1 && (
           <span className={styles.footerHint}>
-            <kbd>backspace</kbd> to go back
+            <kbd>⌫</kbd> back
           </span>
         )}
       </div>
     </Command.Dialog>
   )
-}
+})
