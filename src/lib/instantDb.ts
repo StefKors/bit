@@ -1,5 +1,5 @@
 import { init } from "@instantdb/react"
-import schema from "@/instant.schema"
+import { schema } from "@/instant.schema"
 
 // Initialize InstantDB client
 export const db = init({

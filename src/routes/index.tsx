@@ -10,6 +10,7 @@ import {
   CircleIcon,
 } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
+import { useAuth } from "@/lib/useAuth"
 import { Button } from "@/components/Button"
 import { RepoSection } from "@/features/repo/RepoSection"
 import { PRListItem } from "@/features/pr/PRListItem"
@@ -149,7 +150,7 @@ const InitialSyncProgressCard = ({ progress }: { progress: InitialSyncProgress |
 }
 
 function OverviewPage() {
-  const { user } = db.useAuth()
+  const { user } = useAuth()
   const search = useSearch({ from: "/" })
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -201,7 +202,7 @@ function OverviewPage() {
   const repos = reposData?.repos ?? []
 
   // Query all open PRs with their repos
-  const currentUserLogin = user?.email?.split("@")[0] ?? ""
+  const currentUserLogin = user?.login ?? user?.email?.split("@")[0] ?? ""
   const { data: prsData } = db.useQuery({
     pullRequests: {
       $: { where: { state: "open" } },

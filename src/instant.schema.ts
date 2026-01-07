@@ -8,7 +8,7 @@ import { i } from "@instantdb/react"
 // database defaults like Drizzle/PostgreSQL.
 // =============================================================================
 
-const _schema = i.schema({
+export const schema = i.schema({
   entities: {
     // Built-in user entity - maps to auth_user
     // Note: $users is system-managed, so name must be optional
@@ -678,10 +678,4 @@ const _schema = i.schema({
   },
 })
 
-type _AppSchema = typeof _schema
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface AppSchema extends _AppSchema {}
-const schema: AppSchema = _schema
-
-export type { AppSchema }
-export default schema
+export type AppSchema = typeof schema

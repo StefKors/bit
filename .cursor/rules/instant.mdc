@@ -214,14 +214,16 @@ type PostsWithProfile = InstaQLEntity<
 >; // post from clientDb.useQuery({ posts: { author: { avatar: {} } } })
 ```
 
-## Use `db.useAuth` or `db.subscribeAuth` for auth state
+## Use `useAuth` hook for auth state
+
+CRITICAL: Always use the `useAuth` hook from `@/lib/useAuth` instead of `db.useAuth()` to get fully typed user objects.
 
 ```tsx
-import { clientDb } from '@/lib/clientDb';
+import { useAuth } from '@/lib/useAuth';
 
-// For react/react-native apps use db.useAuth
+// For react/react-native apps use useAuth
 function App() {
-  const { isLoading, user, error } = clientDb.useAuth();
+  const { isLoading, user, error } = useAuth();
   if (isLoading) { return null; }
   if (error) { return <Error message={error.message /}></div>; }
   if (user) { return <Main />; }

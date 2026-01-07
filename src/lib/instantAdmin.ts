@@ -1,5 +1,5 @@
 import { init } from "@instantdb/admin"
-import schema from "@/instant.schema"
+import { schema } from "@/instant.schema"
 
 // Initialize InstantDB Admin SDK for server-side operations
 export const adminDb = init({
