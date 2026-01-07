@@ -252,6 +252,7 @@ export class GitHubClient {
       name: repo.name,
       fullName: repo.full_name,
       owner: repo.owner.login,
+      ownerType: repo.owner.type, // "User" or "Organization"
       description: repo.description || undefined,
       url: repo.url,
       htmlUrl: repo.html_url,
@@ -267,6 +268,21 @@ export class GitHubClient {
       githubPushedAt: repo.pushed_at ? new Date(repo.pushed_at).getTime() : undefined,
     }))
 
+    // Build a map of org logins to their record IDs for linking
+    const orgLogins = [...new Set(repos.filter((r) => r.ownerType === "Organization").map((r) => r.owner))]
+    const orgMap = new Map<string, string>()
+
+    for (const login of orgLogins) {
+      const { organizations } = await adminDb.query({
+        organizations: {
+          $: { where: { login }, limit: 1 },
+        },
+      })
+      if (organizations?.[0]) {
+        orgMap.set(login, organizations[0].id)
+      }
+    }
+
     // Upsert repositories - check if exists first, then update or create
     for (const repo of repos) {
       const { repos: existing } = await adminDb.query({
@@ -277,16 +293,26 @@ export class GitHubClient {
 
       const repoId = existing?.[0]?.id || id()
 
+      // Prepare links - always link to user, optionally link to org
+      const links: { user: string; organization?: string } = { user: this.userId }
+      const orgId = orgMap.get(repo.owner)
+      if (orgId) {
+        links.organization = orgId
+      }
+
+      // Remove ownerType from saved data (not in schema)
+      const { ownerType: _, ...repoData } = repo
+
       await adminDb.transact(
         adminDb.tx.repos[repoId]
           .update({
-            ...repo,
+            ...repoData,
             userId: this.userId, // Required attribute
             syncedAt: now,
             createdAt: now,
             updatedAt: now,
           })
-          .link({ user: this.userId }),
+          .link(links),
       )
     }
 
@@ -782,7 +808,11 @@ export class GitHubClient {
       await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.INSTALLED)
       return { success: true, status: GitHubClient.WEBHOOK_STATUS.INSTALLED }
     } catch (err) {
-      const error = err as { status?: number; message?: string; response?: { data?: { message?: string; errors?: Array<{ message?: string }> } } }
+      const error = err as {
+        status?: number
+        message?: string
+        response?: { data?: { message?: string; errors?: Array<{ message?: string }> } }
+      }
       const errorMessage = error.response?.data?.message || error.message || "unknown error"
 
       // 422 with "Hook already exists" means webhook is already installed (possibly with different config)
@@ -794,9 +824,15 @@ export class GitHubClient {
 
       // 404 or 403 means we don't have permission - that's expected for repos we don't own
       if (error.status === 404 || error.status === 403) {
-        console.log(`Cannot register webhook for ${fullName}: ${errorMessage} (status: ${error.status})`)
+        console.log(
+          `Cannot register webhook for ${fullName}: ${errorMessage} (status: ${error.status})`,
+        )
         await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.NO_ACCESS, errorMessage)
-        return { success: false, status: GitHubClient.WEBHOOK_STATUS.NO_ACCESS, error: errorMessage }
+        return {
+          success: false,
+          status: GitHubClient.WEBHOOK_STATUS.NO_ACCESS,
+          error: errorMessage,
+        }
       }
 
       console.error(`Error registering webhook for ${fullName}:`, errorMessage, err)
@@ -819,7 +855,8 @@ export class GitHubClient {
       repos: { $: { where: { userId: this.userId } } },
     })
 
-    const results: Array<{ fullName: string; status: string; error?: string; skipped?: boolean }> = []
+    const results: Array<{ fullName: string; status: string; error?: string; skipped?: boolean }> =
+      []
     let installed = 0
     let skipped = 0
     let noAccess = 0

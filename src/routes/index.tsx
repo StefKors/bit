@@ -61,13 +61,13 @@ function OverviewPage() {
   const syncError = overviewSyncState?.syncError
   const lastSyncedAt = overviewSyncState?.lastSyncedAt
 
-  // Query repos with organizations using InstantDB
+  // Query repos and organizations separately (org relation isn't linked during sync)
   const { data: reposData } = db.useQuery({
-    repos: {
-      organization: {},
-    },
+    repos: {},
+    organizations: {},
   })
   const repos = reposData?.repos ?? []
+  const organizations = reposData?.organizations ?? []
 
   // Query all open PRs with their repos
   const currentUserLogin = user?.login ?? user?.email?.split("@")[0] ?? ""
@@ -100,10 +100,10 @@ function OverviewPage() {
     })
   }, [prsData?.pullRequests, currentUserLogin])
 
-  const orgs = repos
-    .map((repo) => repo.organization)
-    .filter((org): org is NonNullable<typeof org> => org !== null && org !== undefined)
-    .filter((org, index, self) => self.findIndex((o) => o.id === org.id) === index)
+  // Use directly queried organizations (deduplicated by login)
+  const orgs = organizations.filter(
+    (org, index, self) => self.findIndex((o) => o.login === org.login) === index,
+  )
 
   const hasSyncErrors = syncStates.some((state) => state.syncStatus === "error" || state.syncError)
 
@@ -236,7 +236,12 @@ function OverviewPage() {
 
       <PRDashboard authoredPRs={authoredPRs} reviewRequestedPRs={reviewRequestedPRs} />
 
-      <RepoSection repos={repos} orgs={orgs} currentUserLogin={currentUserLogin || undefined} />
+      <RepoSection
+        repos={repos}
+        orgs={orgs}
+        currentUserLogin={currentUserLogin || undefined}
+        currentUserAvatarUrl={(user as { avatarUrl?: string }).avatarUrl}
+      />
     </div>
   )
 }
