@@ -36,8 +36,9 @@ export const SORT_OPTIONS: { value: RepoSortBy; label: string }[] = [
 export type FilterableRepo = {
   id: string
   name: string
-  fullName: string
-  fork: boolean
+  fullName?: string
+  owner: string
+  fork?: boolean | null
   language?: string | null
   stargazersCount?: number | null
   forksCount?: number | null
@@ -66,15 +67,15 @@ export const applyFiltersAndSort = <T extends FilterableRepo>(
     result = result.filter(
       (repo) =>
         repo.name.toLowerCase().includes(searchLower) ||
-        repo.fullName.toLowerCase().includes(searchLower),
+        repo.fullName?.toLowerCase().includes(searchLower),
     )
   }
 
   // Apply type filter
   if (filters.type === "source") {
-    result = result.filter((repo) => !repo.fork)
+    result = result.filter((repo) => repo.fork !== true)
   } else if (filters.type === "fork") {
-    result = result.filter((repo) => repo.fork)
+    result = result.filter((repo) => repo.fork === true)
   }
 
   // Apply language filter

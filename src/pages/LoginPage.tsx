@@ -15,8 +15,8 @@ function LoginPage() {
   const [sentTo, setSentTo] = useState("")
   const [authError, setAuthError] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
-  const emailInputRef = useRef<HTMLInputElement>(undefined)
-  const codeInputRef = useRef<HTMLInputElement>(undefined)
+  const emailInputRef = useRef<HTMLInputElement>(null)
+  const codeInputRef = useRef<HTMLInputElement>(null)
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault()

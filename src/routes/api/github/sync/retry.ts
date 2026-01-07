@@ -12,11 +12,11 @@ export const Route = createFileRoute("/api/github/sync/retry")({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const body = await request.json()
-          const { resourceType, resourceId } = body as {
+          const body = (await request.json()) as {
             resourceType: string
             resourceId?: string
           }
+          const { resourceType, resourceId } = body
 
           if (!resourceType) {
             return jsonResponse({ error: "resourceType is required" }, 400)

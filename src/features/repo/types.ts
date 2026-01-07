@@ -8,6 +8,7 @@ export interface Repo {
   owner: string
   description?: string | null | undefined
   private?: boolean | null | undefined
+  fork?: boolean | null | undefined
   language?: string | null | undefined
   stargazersCount?: number | null | undefined
   forksCount?: number | null | undefined

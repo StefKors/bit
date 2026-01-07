@@ -88,10 +88,10 @@ export function SyncManagement({ syncStates, onResetSync, onRetrySync }: SyncMan
     return name
   }
 
-  const parseETag = (etag?: string) => {
+  const parseETag = (etag?: string): unknown => {
     if (!etag) return null
     try {
-      return JSON.parse(etag)
+      return JSON.parse(etag) as unknown
     } catch {
       return null
     }

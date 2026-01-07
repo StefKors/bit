@@ -104,7 +104,7 @@ export const CommandMenu = forwardRef<CommandMenuHandle>(function CommandMenu(_,
         url = url.replace(`$${key}`, value)
       }
     }
-    navigate({ to: url })
+    void navigate({ to: url })
   }
 
   const handleCommandKeyDown = (e: React.KeyboardEvent) => {

@@ -303,7 +303,8 @@ export class GitHubClient {
       }
 
       // Remove ownerType from saved data (not in schema)
-      const { ownerType: _, ...repoData } = repo
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { ownerType, ...repoData } = repo
 
       await adminDb.transact(
         adminDb.tx.repos[repoId]

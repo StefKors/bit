@@ -25,7 +25,7 @@ export const AppHeader = ({ onOpenCommandMenu }: AppHeaderProps) => {
   const breadcrumbItems = buildBreadcrumbFromMatches(matches)
 
   const handleSignOut = () => {
-    db.auth.signOut()
+    void db.auth.signOut()
     setUserMenuOpen(false)
   }
 
@@ -120,44 +120,48 @@ const buildBreadcrumbFromMatches = (matches: ReturnType<typeof useMatches>): Bre
   const items: BreadcrumbItem[] = []
 
   for (const match of matches) {
-    const routeId = match.routeId
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const routeId: string = match.routeId
 
     // Skip root and index routes
     if (routeId === "__root__" || routeId === "/") continue
 
-    const params = match.params as Record<string, string>
+    const params = (match.params ?? {}) as Record<string, string | undefined>
+    const owner = params.owner ?? ""
+    const repo = params.repo ?? ""
+    const number = params.number ?? ""
 
     // Handle dynamic routes
-    if (routeId === "/$owner") {
+    if (routeId === "/$owner" && owner) {
       items.push({
-        label: params.owner,
+        label: owner,
         to: "/$owner",
-        params: { owner: params.owner },
+        params: { owner },
       })
-    } else if (routeId === "/$owner/$repo") {
+    } else if (routeId === "/$owner/$repo" && owner && repo) {
       items.push({
-        label: params.repo,
+        label: repo,
         to: "/$owner/$repo",
-        params: { owner: params.owner, repo: params.repo },
+        params: { owner, repo },
       })
     } else if (routeId === "/$owner/$repo/pulls") {
       items.push({ label: "Pull Requests" })
-    } else if (routeId === "/$owner/$repo/pull/$number") {
+    } else if (routeId === "/$owner/$repo/pull/$number" && owner && repo) {
       items.push({
         label: "Pull Requests",
         to: "/$owner/$repo/pulls",
-        params: { owner: params.owner, repo: params.repo },
+        params: { owner, repo },
       })
-      items.push({ label: `#${params.number}` })
+      items.push({ label: `#${number}` })
     } else if (routeId === "/$owner/$repo/issues") {
       items.push({ label: "Issues" })
-    } else if (routeId === "/$owner/$repo/issues/$number") {
+    } else if (routeId === "/$owner/$repo/issues/$number" && owner && repo) {
       items.push({
         label: "Issues",
         to: "/$owner/$repo/issues",
-        params: { owner: params.owner, repo: params.repo },
+        params: { owner, repo },
       })
-      items.push({ label: `#${params.number}` })
+      items.push({ label: `#${number}` })
     }
   }
 

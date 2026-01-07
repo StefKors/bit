@@ -101,7 +101,6 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
                   ),
                 ),
                 comments: issueData.comments,
-                locked: issueData.locked,
                 githubCreatedAt: issueData.created_at
                   ? new Date(issueData.created_at).getTime()
                   : undefined,

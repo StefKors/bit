@@ -110,7 +110,7 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProp
     return () => {
       cancelled = true
     }
-  }, [treeEntries, owner, repo, branch])
+  }, [treeEntries, owner, repo, branch, user?.id])
 
   // Convert query result to TreeEntry array
   const entries: TreeEntry[] = treeEntries.map((entry) => ({

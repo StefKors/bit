@@ -57,7 +57,7 @@ function TreePage() {
           <h3 className={layoutStyles.emptyTitle}>Repository not found</h3>
           <p className={layoutStyles.emptyText}>
             This repository hasn't been synced yet.{" "}
-            <Link to="/" search={{ github: undefined, error: undefined }}>
+            <Link to="/" search={{ github: undefined, error: undefined, message: undefined }}>
               Go back to overview
             </Link>
           </p>

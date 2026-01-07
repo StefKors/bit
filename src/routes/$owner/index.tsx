@@ -58,7 +58,7 @@ const OwnerPage = () => {
       organization: {},
     },
   })
-  const repos = reposData?.repos ?? []
+  const repos = useMemo(() => reposData?.repos ?? [], [reposData?.repos])
 
   // Derive languages and filtered repos
   const languages = useMemo(() => extractLanguages(repos), [repos])
