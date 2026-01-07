@@ -130,13 +130,28 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
         },
       })
 
+      // Handle non-JSON responses gracefully
+      const contentType = response.headers.get("content-type")
+      if (!contentType?.includes("application/json")) {
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status} ${response.statusText}`)
+        }
+        return
+      }
+
       const data = (await response.json()) as { error?: string }
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to register webhooks")
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to register webhooks")
+      const message = err instanceof Error ? err.message : "Failed to register webhooks"
+      // Don't show JSON parse errors to user
+      if (message.includes("JSON.parse") || message.includes("Unexpected token")) {
+        setError("Server returned an invalid response. Please try again.")
+      } else {
+        setError(message)
+      }
     } finally {
       setIsRegistering(false)
     }

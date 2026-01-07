@@ -809,21 +809,34 @@ export class GitHubClient {
   async registerAllWebhooks(): Promise<{
     total: number
     installed: number
+    skipped: number
     noAccess: number
     errors: number
-    results: Array<{ fullName: string; status: string; error?: string }>
+    results: Array<{ fullName: string; status: string; error?: string; skipped?: boolean }>
   }> {
     // Get all repos for this user
     const { repos } = await adminDb.query({
       repos: { $: { where: { userId: this.userId } } },
     })
 
-    const results: Array<{ fullName: string; status: string; error?: string }> = []
+    const results: Array<{ fullName: string; status: string; error?: string; skipped?: boolean }> = []
     let installed = 0
+    let skipped = 0
     let noAccess = 0
     let errors = 0
 
     for (const repo of repos || []) {
+      // Skip repos that already have webhooks installed
+      if (repo.webhookStatus === GitHubClient.WEBHOOK_STATUS.INSTALLED) {
+        results.push({
+          fullName: repo.fullName,
+          status: GitHubClient.WEBHOOK_STATUS.INSTALLED,
+          skipped: true,
+        })
+        skipped++
+        continue
+      }
+
       const [owner, repoName] = repo.fullName.split("/")
       const result = await this.registerRepoWebhook(owner, repoName)
       results.push({ fullName: repo.fullName, status: result.status, error: result.error })
@@ -840,6 +853,7 @@ export class GitHubClient {
     return {
       total: repos?.length || 0,
       installed,
+      skipped,
       noAccess,
       errors,
       results,
