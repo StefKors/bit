@@ -1,0 +1,260 @@
+---
+globs: "**/*.ts,**/*.tsx"
+alwaysApply: false
+---
+
+# InstantDB Patterns & Tips
+
+This file documents common patterns for working with InstantDB in this codebase.
+
+## Imports
+
+```tsx
+// Client-side queries
+import { db } from "@/lib/instantDb"
+
+// Auth hook (ALWAYS use this, not db.useAuth())
+import { useAuth } from "@/lib/hooks/useAuth"
+
+// Type utilities
+import { InstaQLEntity } from "@instantdb/react"
+import type { AppSchema } from "@/instant.schema"
+
+// Generate IDs for new entities
+import { id } from "@instantdb/react"
+```
+
+## Authentication
+
+**CRITICAL**: Always use the `useAuth` hook from `@/lib/hooks/useAuth` instead of `db.useAuth()` directly. This provides fully typed user objects.
+
+```tsx
+import { useAuth } from "@/lib/hooks/useAuth"
+
+const MyComponent = () => {
+  const { user, isLoading, error, signOut } = useAuth()
+
+  if (isLoading) return <LoadingCube />
+  if (error) return <Error message={error.message} />
+  if (!user) return <LoginPage />
+
+  // user is now typed with all fields from $users schema
+  return <div>Welcome, {user.login ?? user.email}</div>
+}
+```
+
+## Querying Data
+
+### Basic Query with Relations
+
+Use `db.useQuery()` to fetch data with nested relations. Prefer **one query per page** and expand all needed data via nested relations.
+
+```tsx
+const { data: reposData } = db.useQuery({
+  repos: {
+    $: { where: { fullName: "owner/repo" } },
+    organization: {},     // Include related org
+    pullRequests: {},     // Include all PRs
+    issues: {},           // Include all issues
+  },
+})
+
+// Extract data with fallbacks
+const repo = reposData?.repos?.[0] ?? null
+const prs = repo?.pullRequests ?? []
+const issues = repo?.issues ?? []
+```
+
+### Nested Filtering
+
+Apply `where` clauses to nested relations:
+
+```tsx
+const { data: reposData } = db.useQuery({
+  repos: {
+    $: { where: { fullName } },
+    pullRequests: {
+      $: { where: { number: prNumber } },  // Filter to specific PR
+      prFiles: {},       // All files for this PR
+      prReviews: {},     // All reviews
+      prComments: {},    // All comments
+      prCommits: {},     // All commits
+      prEvents: {},      // All events
+    },
+  },
+})
+
+const repo = reposData?.repos?.[0] ?? null
+const pr = repo?.pullRequests?.[0] ?? null
+const files = pr?.prFiles ?? []
+```
+
+### Multiple Where Conditions
+
+Filter with multiple conditions on the same entity:
+
+```tsx
+const { data } = db.useQuery({
+  pullRequests: {
+    $: { where: { state: "open" } },
+    repo: {},
+  },
+})
+```
+
+### Ordering Results
+
+**IMPORTANT**: You can only order by indexed fields. Check the schema to ensure the field is indexed.
+
+```tsx
+const { data } = db.useQuery({
+  repos: {
+    $: { order: { githubUpdatedAt: "desc" } },
+  },
+})
+```
+
+## Data Extraction Pattern
+
+Always use optional chaining and nullish coalescing when extracting query results:
+
+```tsx
+// ✅ GOOD - Safe extraction with fallbacks
+const repo = reposData?.repos?.[0] ?? null
+const prs = repo?.pullRequests ?? []
+const firstPR = prs[0] ?? null
+
+// ❌ BAD - Unsafe, will throw on undefined
+const repo = reposData.repos[0]  // 💥 Error if repos undefined
+```
+
+## Type Utilities
+
+### Typing Entity Results
+
+Use `InstaQLEntity` to type query results:
+
+```tsx
+import { InstaQLEntity } from "@instantdb/react"
+import type { AppSchema } from "@/instant.schema"
+
+// Simple entity
+type Repo = InstaQLEntity<AppSchema, "repos">
+
+// Entity with relations included
+type RepoWithPRs = InstaQLEntity<AppSchema, "repos", { pullRequests: {} }>
+
+// Deeply nested
+type PRWithFullData = InstaQLEntity<
+  AppSchema,
+  "pullRequests",
+  {
+    repo: {}
+    prFiles: {}
+    prReviews: {}
+    prComments: {}
+  }
+>
+```
+
+### User Type
+
+```tsx
+import { InstaQLEntity } from "@instantdb/react"
+import type { AppSchema } from "@/instant.schema"
+
+type User = InstaQLEntity<AppSchema, "$users">
+```
+
+## Common Patterns
+
+### Finding a Single Entity
+
+```tsx
+const { data } = db.useQuery({
+  repos: {
+    $: { where: { fullName: "owner/repo" } },
+  },
+})
+
+// First result or null
+const repo = data?.repos?.[0] ?? null
+
+if (!repo) {
+  return <NotFound message="Repository not found" />
+}
+```
+
+### Client-Side Filtering
+
+When you need complex filtering that InstantDB doesn't support, filter after the query:
+
+```tsx
+const { data } = db.useQuery({
+  pullRequests: {
+    $: { where: { state: "open" } },
+    repo: {},
+  },
+})
+
+const allOpenPRs = data?.pullRequests ?? []
+
+// Client-side filter by author
+const authoredPRs = useMemo(() => {
+  return allOpenPRs.filter((pr) => pr.authorLogin === currentUserLogin)
+}, [allOpenPRs, currentUserLogin])
+```
+
+### JSON Fields
+
+Some fields store JSON as strings. Parse them when needed:
+
+```tsx
+// labels field is stored as JSON string
+const labels = pr.labels ? JSON.parse(pr.labels) : []
+
+// reviewRequestedBy is a JSON array of logins
+const reviewers = pr.reviewRequestedBy 
+  ? JSON.parse(pr.reviewRequestedBy) as string[]
+  : []
+```
+
+## Mutations
+
+### Creating Entities
+
+```tsx
+import { id } from "@instantdb/react"
+import { db } from "@/lib/instantDb"
+
+// Create with generated ID
+db.transact(
+  db.tx.repos[id()].update({
+    name: "my-repo",
+    fullName: "owner/my-repo",
+    // ... other fields
+  })
+)
+```
+
+### Linking Entities
+
+```tsx
+// Create and link in one transaction
+db.transact(
+  db.tx.pullRequests[prId]
+    .update({ title: "PR Title", /* ... */ })
+    .link({ repo: repoId, user: userId })
+)
+```
+
+## Query Limitations
+
+**CRITICAL**: Remember these InstantDB limitations:
+
+1. **Pagination only at top level** - `limit`, `offset`, `first`, `after` only work on top-level namespaces, NOT nested relations
+2. **Fields must be indexed** to use in `where` or `order` clauses
+3. **No `$exists`, `$nin`, or `$regex`** - use `$like`/`$ilike` for pattern matching
+4. **Cannot order by nested attributes** - e.g., can't order by `owner.name`
+
+See the full operator reference in the `instant.mdc` rules file.
