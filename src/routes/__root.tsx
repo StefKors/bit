@@ -3,6 +3,7 @@ import { useEffect, type ReactNode } from "react"
 import { createRootRoute, Outlet, HeadContent, Scripts } from "@tanstack/react-router"
 import { Layout } from "@/layout"
 import { LoadingCube } from "@/components/LoadingCube"
+import { CommandMenu } from "@/components/CommandMenu"
 import LoginPage from "@/pages/LoginPage"
 import { db } from "@/lib/instantDb"
 import "@/theme.css"
@@ -91,6 +92,7 @@ function AppContent() {
 
   return (
     <Layout>
+      <CommandMenu />
       <Outlet />
     </Layout>
   )

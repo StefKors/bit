@@ -1,0 +1,321 @@
+/* Command Menu Dialog */
+.dialog {
+  position: fixed;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 640px;
+  background: var(--bit-gradient-surface);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-xl);
+  box-shadow:
+    0 24px 60px rgba(var(--bit-rgb-shadow), 0.35),
+    0 12px 28px rgba(var(--bit-rgb-shadow), 0.25),
+    0 0 1px rgba(var(--bit-rgb-fg), 0.15);
+  overflow: hidden;
+  z-index: 9999;
+  animation: dialogEnter 0.15s ease-out;
+}
+
+@keyframes dialogEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+/* Backdrop */
+.dialog::backdrop {
+  background: rgba(var(--bit-rgb-bg), 0.7);
+  backdrop-filter: blur(4px);
+  animation: backdropFade 0.15s ease-out;
+}
+
+@keyframes backdropFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-md);
+  color: var(--bit-color-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.backButton:hover {
+  background: rgba(var(--bit-rgb-fg), 0.1);
+  border-color: rgba(var(--bit-rgb-fg), 0.15);
+}
+
+.inputWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.searchIcon {
+  color: var(--bit-color-muted);
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  font-family: var(--bit-font);
+  color: var(--bit-color-text);
+}
+
+.input::placeholder {
+  color: var(--bit-color-muted);
+}
+
+.kbd {
+  font-family: var(--bit-font-mono);
+  font-size: 11px;
+  padding: 3px 6px;
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-sm);
+  color: var(--bit-color-muted);
+  text-transform: uppercase;
+}
+
+/* List */
+.list {
+  max-height: 420px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
+}
+
+.list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.list::-webkit-scrollbar-thumb {
+  background: rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: 4px;
+}
+
+.list::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--bit-rgb-fg), 0.15);
+}
+
+/* Empty state */
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--bit-color-muted);
+  font-size: 14px;
+}
+
+/* Group */
+.group {
+  margin-bottom: 8px;
+}
+
+.group:last-child {
+  margin-bottom: 0;
+}
+
+.group [cmdk-group-heading] {
+  padding: 8px 10px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bit-color-muted);
+}
+
+/* Item */
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--bit-radius-md);
+  cursor: pointer;
+  transition: background 0.1s ease;
+  color: var(--bit-color-text);
+  font-size: 14px;
+}
+
+.item[data-selected="true"] {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+}
+
+.item:active {
+  background: rgba(var(--bit-rgb-fg), 0.12);
+}
+
+.itemIcon {
+  color: var(--bit-color-muted);
+  flex-shrink: 0;
+}
+
+.itemIconGreen {
+  color: var(--bit-color-accent-green);
+  flex-shrink: 0;
+}
+
+.itemIconRed {
+  color: var(--bit-color-accent-red);
+  flex-shrink: 0;
+}
+
+.itemIconPurple {
+  color: var(--bit-color-accent-purple);
+  flex-shrink: 0;
+}
+
+.itemIconMuted {
+  color: var(--bit-color-muted);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.itemContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemDescription {
+  font-size: 12px;
+  color: var(--bit-color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prNumber {
+  color: var(--bit-color-muted);
+  font-family: var(--bit-font-mono);
+  font-size: 12px;
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--bit-color-muted);
+  padding: 2px 6px;
+  background: rgba(var(--bit-rgb-fg), 0.05);
+  border-radius: var(--bit-radius-sm);
+}
+
+.count {
+  font-size: 12px;
+  color: var(--bit-color-muted);
+  margin-left: auto;
+}
+
+.tabHint {
+  font-family: var(--bit-font-mono);
+  font-size: 10px;
+  padding: 2px 5px;
+  background: rgba(var(--bit-rgb-accent-blue), 0.1);
+  border: 1px solid rgba(var(--bit-rgb-accent-blue), 0.2);
+  border-radius: var(--bit-radius-sm);
+  color: var(--bit-color-accent-blue);
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.item[data-selected="true"] .tabHint {
+  opacity: 1;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  background: rgba(var(--bit-rgb-fg), 0.02);
+}
+
+.footerHint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--bit-color-muted);
+}
+
+.footerHint kbd {
+  font-family: var(--bit-font-mono);
+  font-size: 10px;
+  padding: 2px 5px;
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-sm);
+}
+
+/* Light mode adjustments */
+@media (prefers-color-scheme: light) {
+  .dialog {
+    box-shadow:
+      0 24px 60px rgba(var(--bit-rgb-shadow), 0.18),
+      0 12px 28px rgba(var(--bit-rgb-shadow), 0.12),
+      0 0 1px rgba(var(--bit-rgb-shadow), 0.2);
+  }
+
+  .dialog::backdrop {
+    background: rgba(var(--bit-rgb-fg), 0.25);
+  }
+
+  .item[data-selected="true"] {
+    background: rgba(var(--bit-rgb-fg), 0.06);
+  }
+}
