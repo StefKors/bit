@@ -68,6 +68,17 @@ export class GitHubClient {
     }
   }
 
+  // Check what OAuth scopes the token has
+  async getTokenScopes(): Promise<string[]> {
+    // Make a simple API call and check the x-oauth-scopes header
+    const response = await this.octokit.rest.users.getAuthenticated()
+    const scopes = response.headers["x-oauth-scopes"]
+    if (typeof scopes === "string") {
+      return scopes.split(",").map((s) => s.trim())
+    }
+    return []
+  }
+
   // Update sync state in database
   async updateSyncState(
     resourceType: string,
@@ -686,15 +697,43 @@ export class GitHubClient {
   }
 
   // Register webhooks for a repository
-  async registerRepoWebhook(owner: string, repo: string): Promise<boolean> {
+  // Webhook status type for tracking
+  static readonly WEBHOOK_STATUS = {
+    INSTALLED: "installed",
+    ERROR: "error",
+    NOT_INSTALLED: "not_installed",
+    NO_ACCESS: "no_access",
+  } as const
+
+  async registerRepoWebhook(
+    owner: string,
+    repo: string,
+  ): Promise<{ success: boolean; status: string; error?: string }> {
     const webhookUrl = process.env.BASE_URL ? `${process.env.BASE_URL}/api/github/webhook` : null
     const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET
+    const fullName = `${owner}/${repo}`
+
+    // Helper to update webhook status in database
+    const updateWebhookStatus = async (status: string, error?: string) => {
+      const { repos } = await adminDb.query({
+        repos: { $: { where: { fullName } } },
+      })
+      if (repos?.[0]) {
+        await adminDb.transact(
+          adminDb.tx.repos[repos[0].id].update({
+            webhookStatus: status,
+            webhookError: error,
+            updatedAt: Date.now(),
+          }),
+        )
+      }
+    }
 
     if (!webhookUrl || !webhookSecret) {
-      console.log(
-        `Skipping webhook registration for ${owner}/${repo}: BASE_URL or GITHUB_WEBHOOK_SECRET not configured`,
-      )
-      return false
+      const error = "BASE_URL or GITHUB_WEBHOOK_SECRET not configured"
+      console.log(`Skipping webhook registration for ${fullName}: ${error}`)
+      await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.NOT_INSTALLED, error)
+      return { success: false, status: GitHubClient.WEBHOOK_STATUS.NOT_INSTALLED, error }
     }
 
     try {
@@ -708,8 +747,9 @@ export class GitHubClient {
       const existingHook = existingHooks.find((hook) => hook.config.url === webhookUrl)
 
       if (existingHook) {
-        console.log(`Webhook already exists for ${owner}/${repo}`)
-        return true
+        console.log(`Webhook already exists for ${fullName}`)
+        await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.INSTALLED)
+        return { success: true, status: GitHubClient.WEBHOOK_STATUS.INSTALLED }
       }
 
       // Create webhook
@@ -738,17 +778,64 @@ export class GitHubClient {
         active: true,
       })
 
-      console.log(`Webhook registered for ${owner}/${repo}`)
-      return true
+      console.log(`Webhook registered for ${fullName}`)
+      await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.INSTALLED)
+      return { success: true, status: GitHubClient.WEBHOOK_STATUS.INSTALLED }
     } catch (err) {
+      const error = err as { status?: number; message?: string; response?: { data?: { message?: string } } }
+      const errorMessage = error.response?.data?.message || error.message || "unknown error"
+
       // 404 or 403 means we don't have permission - that's expected for repos we don't own
-      const error = err as { status?: number; message?: string }
       if (error.status === 404 || error.status === 403) {
-        console.log(`Cannot register webhook for ${owner}/${repo}: no admin access`)
-        return false
+        console.log(`Cannot register webhook for ${fullName}: ${errorMessage} (status: ${error.status})`)
+        await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.NO_ACCESS, errorMessage)
+        return { success: false, status: GitHubClient.WEBHOOK_STATUS.NO_ACCESS, error: errorMessage }
       }
-      console.error(`Error registering webhook for ${owner}/${repo}:`, err)
-      return false
+
+      console.error(`Error registering webhook for ${fullName}:`, errorMessage, err)
+      await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.ERROR, errorMessage)
+      return { success: false, status: GitHubClient.WEBHOOK_STATUS.ERROR, error: errorMessage }
+    }
+  }
+
+  // Register webhooks for all repos belonging to this user
+  async registerAllWebhooks(): Promise<{
+    total: number
+    installed: number
+    noAccess: number
+    errors: number
+    results: Array<{ fullName: string; status: string; error?: string }>
+  }> {
+    // Get all repos for this user
+    const { repos } = await adminDb.query({
+      repos: { $: { where: { userId: this.userId } } },
+    })
+
+    const results: Array<{ fullName: string; status: string; error?: string }> = []
+    let installed = 0
+    let noAccess = 0
+    let errors = 0
+
+    for (const repo of repos || []) {
+      const [owner, repoName] = repo.fullName.split("/")
+      const result = await this.registerRepoWebhook(owner, repoName)
+      results.push({ fullName: repo.fullName, status: result.status, error: result.error })
+
+      if (result.status === GitHubClient.WEBHOOK_STATUS.INSTALLED) {
+        installed++
+      } else if (result.status === GitHubClient.WEBHOOK_STATUS.NO_ACCESS) {
+        noAccess++
+      } else {
+        errors++
+      }
+    }
+
+    return {
+      total: repos?.length || 0,
+      installed,
+      noAccess,
+      errors,
+      results,
     }
   }
 
@@ -790,6 +877,10 @@ export class GitHubClient {
     console.log(`Starting initial sync for user ${this.userId}`)
 
     try {
+      // Log token scopes for debugging
+      const scopes = await this.getTokenScopes()
+      console.log(`Token scopes: ${scopes.join(", ") || "(none)"}`)
+
       // 1. Sync organizations
       await this.updateInitialSyncProgress({ step: "orgs" })
       const orgsResult = await this.fetchOrganizations()
@@ -815,8 +906,8 @@ export class GitHubClient {
           webhooks: { completed: i, total: totalRepos },
         })
         const [owner, repoName] = repo.fullName.split("/")
-        const registered = await this.registerRepoWebhook(owner, repoName)
-        if (registered) webhooksRegistered++
+        const result = await this.registerRepoWebhook(owner, repoName)
+        if (result.success) webhooksRegistered++
       }
       console.log(`Registered webhooks for ${webhooksRegistered} repositories`)
 

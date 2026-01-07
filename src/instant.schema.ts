@@ -75,6 +75,9 @@ export const schema = i.schema({
       githubCreatedAt: i.number().optional(),
       githubUpdatedAt: i.number().optional().indexed(),
       githubPushedAt: i.number().optional().indexed(),
+      // Webhook status tracking
+      webhookStatus: i.string().optional().indexed(), // "installed" | "error" | "not_installed" | "no_access"
+      webhookError: i.string().optional(), // Error message if webhook registration failed
       // Internal timestamps
       syncedAt: i.number(),
       createdAt: i.number(),
@@ -679,3 +682,4 @@ export const schema = i.schema({
 })
 
 export type AppSchema = typeof schema
+export default schema

@@ -1,0 +1,274 @@
+.card {
+  background: var(--bit-gradient-surface);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-xl);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.headerIcon {
+  color: var(--bit-color-accent-purple);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.headerText {
+  flex: 1;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--bit-color-heading);
+  margin: 0 0 0.25rem;
+}
+
+.description {
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+  margin: 0;
+}
+
+/* Stats summary */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgba(var(--bit-rgb-fg), 0.03);
+  border-radius: var(--bit-radius-lg);
+}
+
+@media (max-width: 600px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.statValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.statValueInstalled {
+  color: var(--bit-color-accent-green);
+}
+
+.statValueNoAccess {
+  color: var(--bit-color-accent-orange);
+}
+
+.statValueError {
+  color: var(--bit-color-accent-red);
+}
+
+.statValuePending {
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+.statLabel {
+  font-size: 0.7rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Repos list */
+.reposList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.reposListCollapsed {
+  max-height: 200px;
+}
+
+.repoRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--bit-radius-md);
+  font-size: 0.8rem;
+  background: rgba(var(--bit-rgb-fg), 0.02);
+}
+
+.repoRow:hover {
+  background: rgba(var(--bit-rgb-fg), 0.05);
+}
+
+.repoIcon {
+  flex-shrink: 0;
+}
+
+.repoIconInstalled {
+  color: var(--bit-color-accent-green);
+}
+
+.repoIconNoAccess {
+  color: var(--bit-color-accent-orange);
+}
+
+.repoIconError {
+  color: var(--bit-color-accent-red);
+}
+
+.repoIconPending {
+  color: rgba(var(--bit-rgb-fg), 0.3);
+}
+
+.repoName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(var(--bit-rgb-fg), 0.9);
+}
+
+.repoError {
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.repoStatus {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--bit-radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.statusInstalled {
+  background: rgba(var(--bit-rgb-accent-green), 0.15);
+  color: var(--bit-color-accent-green);
+}
+
+.statusNoAccess {
+  background: rgba(var(--bit-rgb-accent-orange), 0.15);
+  color: var(--bit-color-accent-orange);
+}
+
+.statusError {
+  background: rgba(var(--bit-rgb-accent-red), 0.15);
+  color: var(--bit-color-accent-red);
+}
+
+.statusPending {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+/* Toggle section */
+.toggleSection {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+}
+
+.toggleButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem;
+  margin: -0.5rem;
+  background: none;
+  border: none;
+  border-radius: var(--bit-radius-md);
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  transition: background 0.15s ease;
+}
+
+.toggleButton:hover {
+  background: rgba(var(--bit-rgb-fg), 0.05);
+}
+
+.toggleCount {
+  flex: 1;
+  text-align: left;
+  font-weight: 500;
+}
+
+/* Filter tabs */
+.filterTabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.filterTab {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  border: none;
+  background: rgba(var(--bit-rgb-fg), 0.05);
+  border-radius: var(--bit-radius-pill);
+  cursor: pointer;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  transition: all 0.15s ease;
+}
+
+.filterTab:hover {
+  background: rgba(var(--bit-rgb-fg), 0.1);
+}
+
+.filterTabActive {
+  background: var(--bit-color-accent-purple);
+  color: white;
+}
+
+/* Spinner */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty state */
+.emptyState {
+  padding: 1.5rem;
+  text-align: center;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  font-size: 0.85rem;
+}
+

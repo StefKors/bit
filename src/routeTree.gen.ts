@@ -18,6 +18,7 @@ import { Route as ApiGithubRateLimitRouteImport } from './routes/api/github/rate
 import { Route as OwnerRepoPullsRouteImport } from './routes/$owner/$repo/pulls'
 import { Route as OwnerRepoIssuesRouteImport } from './routes/$owner/$repo/issues'
 import { Route as ApiGithubOauthIndexRouteImport } from './routes/api/github/oauth/index'
+import { Route as ApiGithubSyncWebhooksRouteImport } from './routes/api/github/sync/webhooks'
 import { Route as ApiGithubSyncRetryRouteImport } from './routes/api/github/sync/retry'
 import { Route as ApiGithubSyncResetRouteImport } from './routes/api/github/sync/reset'
 import { Route as ApiGithubSyncOverviewRouteImport } from './routes/api/github/sync/overview'
@@ -76,6 +77,11 @@ const OwnerRepoIssuesRoute = OwnerRepoIssuesRouteImport.update({
 const ApiGithubOauthIndexRoute = ApiGithubOauthIndexRouteImport.update({
   id: '/api/github/oauth/',
   path: '/api/github/oauth/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubSyncWebhooksRoute = ApiGithubSyncWebhooksRouteImport.update({
+  id: '/api/github/sync/webhooks',
+  path: '/api/github/sync/webhooks',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubSyncRetryRoute = ApiGithubSyncRetryRouteImport.update({
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
   '/api/github/sync/reset': typeof ApiGithubSyncResetRoute
   '/api/github/sync/retry': typeof ApiGithubSyncRetryRoute
+  '/api/github/sync/webhooks': typeof ApiGithubSyncWebhooksRoute
   '/api/github/oauth': typeof ApiGithubOauthIndexRoute
   '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
   '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByTo {
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
   '/api/github/sync/reset': typeof ApiGithubSyncResetRoute
   '/api/github/sync/retry': typeof ApiGithubSyncRetryRoute
+  '/api/github/sync/webhooks': typeof ApiGithubSyncWebhooksRoute
   '/api/github/oauth': typeof ApiGithubOauthIndexRoute
   '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
   '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
@@ -222,6 +230,7 @@ export interface FileRoutesById {
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
   '/api/github/sync/reset': typeof ApiGithubSyncResetRoute
   '/api/github/sync/retry': typeof ApiGithubSyncRetryRoute
+  '/api/github/sync/webhooks': typeof ApiGithubSyncWebhooksRoute
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
   '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
   '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
@@ -249,6 +258,7 @@ export interface FileRouteTypes {
     | '/api/github/sync/overview'
     | '/api/github/sync/reset'
     | '/api/github/sync/retry'
+    | '/api/github/sync/webhooks'
     | '/api/github/oauth'
     | '/$owner/$repo/blob/$branch/$'
     | '/$owner/$repo/tree/$branch/$'
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
     | '/api/github/sync/overview'
     | '/api/github/sync/reset'
     | '/api/github/sync/retry'
+    | '/api/github/sync/webhooks'
     | '/api/github/oauth'
     | '/$owner/$repo/blob/$branch/$'
     | '/$owner/$repo/tree/$branch/$'
@@ -299,6 +310,7 @@ export interface FileRouteTypes {
     | '/api/github/sync/overview'
     | '/api/github/sync/reset'
     | '/api/github/sync/retry'
+    | '/api/github/sync/webhooks'
     | '/api/github/oauth/'
     | '/$owner/$repo/blob/$branch/$'
     | '/$owner/$repo/tree/$branch/$'
@@ -324,6 +336,7 @@ export interface RootRouteChildren {
   ApiGithubSyncOverviewRoute: typeof ApiGithubSyncOverviewRoute
   ApiGithubSyncResetRoute: typeof ApiGithubSyncResetRoute
   ApiGithubSyncRetryRoute: typeof ApiGithubSyncRetryRoute
+  ApiGithubSyncWebhooksRoute: typeof ApiGithubSyncWebhooksRoute
   ApiGithubOauthIndexRoute: typeof ApiGithubOauthIndexRoute
   OwnerRepoBlobBranchSplatRoute: typeof OwnerRepoBlobBranchSplatRoute
   OwnerRepoTreeBranchSplatRoute: typeof OwnerRepoTreeBranchSplatRoute
@@ -395,6 +408,13 @@ declare module '@tanstack/react-router' {
       path: '/api/github/oauth'
       fullPath: '/api/github/oauth'
       preLoaderRoute: typeof ApiGithubOauthIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/sync/webhooks': {
+      id: '/api/github/sync/webhooks'
+      path: '/api/github/sync/webhooks'
+      fullPath: '/api/github/sync/webhooks'
+      preLoaderRoute: typeof ApiGithubSyncWebhooksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/sync/retry': {
@@ -544,6 +564,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGithubSyncOverviewRoute: ApiGithubSyncOverviewRoute,
   ApiGithubSyncResetRoute: ApiGithubSyncResetRoute,
   ApiGithubSyncRetryRoute: ApiGithubSyncRetryRoute,
+  ApiGithubSyncWebhooksRoute: ApiGithubSyncWebhooksRoute,
   ApiGithubOauthIndexRoute: ApiGithubOauthIndexRoute,
   OwnerRepoBlobBranchSplatRoute: OwnerRepoBlobBranchSplatRoute,
   OwnerRepoTreeBranchSplatRoute: OwnerRepoTreeBranchSplatRoute,

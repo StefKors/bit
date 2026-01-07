@@ -8,6 +8,7 @@ import {
   OverviewHeader,
   PRDashboard,
   ConnectGitHubCard,
+  WebhookManagement,
 } from "@/features/overview"
 import styles from "@/pages/OverviewPage.module.css"
 
@@ -219,6 +220,10 @@ function OverviewPage() {
           onResetSync={(type, id) => void handleResetSync(type, id)}
           onRetrySync={(type, id) => void handleRetrySync(type, id)}
         />
+      )}
+
+      {isGitHubConnected && isInitialSyncComplete && showSyncManagement && (
+        <WebhookManagement repos={repos} userId={user.id} />
       )}
 
       <PRDashboard authoredPRs={authoredPRs} reviewRequestedPRs={reviewRequestedPRs} />
