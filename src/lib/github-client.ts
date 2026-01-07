@@ -782,8 +782,15 @@ export class GitHubClient {
       await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.INSTALLED)
       return { success: true, status: GitHubClient.WEBHOOK_STATUS.INSTALLED }
     } catch (err) {
-      const error = err as { status?: number; message?: string; response?: { data?: { message?: string } } }
+      const error = err as { status?: number; message?: string; response?: { data?: { message?: string; errors?: Array<{ message?: string }> } } }
       const errorMessage = error.response?.data?.message || error.message || "unknown error"
+
+      // 422 with "Hook already exists" means webhook is already installed (possibly with different config)
+      if (error.status === 422 && errorMessage.includes("Hook already exists")) {
+        console.log(`Webhook already exists for ${fullName} (different config)`)
+        await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.INSTALLED)
+        return { success: true, status: GitHubClient.WEBHOOK_STATUS.INSTALLED }
+      }
 
       // 404 or 403 means we don't have permission - that's expected for repos we don't own
       if (error.status === 404 || error.status === 403) {
