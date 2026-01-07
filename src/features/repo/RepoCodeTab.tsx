@@ -33,7 +33,7 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProp
   // Query the tree entries (uses type assertion because repoTrees has dynamic schema fields)
   const treeQuery = {
     repoTrees: {
-      $: { where: { repoId, ref: branch }, orderBy: { path: "asc" } },
+      $: { where: { repoId, ref: branch }, order: { path: "asc" } },
     },
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
