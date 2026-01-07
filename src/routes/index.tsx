@@ -151,7 +151,6 @@ const InitialSyncProgressCard = ({ progress }: { progress: InitialSyncProgress |
 function OverviewPage() {
   const { user } = db.useAuth()
   const search = useSearch({ from: "/" })
-  const [syncing, setSyncing] = useState(false)
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -162,18 +161,36 @@ function OverviewPage() {
   // Check if user has GitHub connected by looking at their login field
   const isGitHubConnected = Boolean((user as { login?: string } | undefined)?.login)
 
-  // Query initial sync state
+  // Query sync states
   const { data: syncData } = db.useQuery({
-    syncStates: {
-      $: { where: { resourceType: "initial_sync" } },
-    },
+    syncStates: {},
   })
-  const initialSyncState = syncData?.syncStates?.[0]
+  const syncStates = syncData?.syncStates ?? []
+
+  const initialSyncState = syncStates.find((s) => s.resourceType === "initial_sync")
   const initialSyncProgress = initialSyncState?.lastEtag
     ? (JSON.parse(initialSyncState.lastEtag) as InitialSyncProgress)
     : null
   const isInitialSyncComplete = initialSyncState?.syncStatus === "completed"
   const isInitialSyncing = isGitHubConnected && !isInitialSyncComplete
+
+  const formatLastSynced = (timestamp: number) => {
+    const now = Date.now()
+    const diff = now - timestamp * 1000
+    const minutes = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+
+    if (diff < 60000) return "Just now"
+    if (minutes < 60) return `${minutes}m ago`
+    if (hours < 24) return `${hours}h ago`
+    return `${days}d ago`
+  }
+
+  const overviewSyncState = syncStates.find((s) => s.resourceType === "overview")
+  const isSyncing = overviewSyncState?.syncStatus === "syncing"
+  const syncError = overviewSyncState?.syncError
+  const lastSyncedAt = overviewSyncState?.lastSyncedAt
 
   // Query repos with organizations using InstantDB
   const { data: reposData } = db.useQuery({
@@ -219,7 +236,6 @@ function OverviewPage() {
     .filter((org, index, self) => self.findIndex((o) => o.id === org.id) === index)
 
   const handleSync = async () => {
-    setSyncing(true)
     setError(null)
 
     try {
@@ -246,8 +262,6 @@ function OverviewPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sync")
-    } finally {
-      setSyncing(false)
     }
   }
 
@@ -291,10 +305,11 @@ function OverviewPage() {
             <Button
               variant="success"
               leadingIcon={<SyncIcon size={16} />}
-              loading={syncing}
+              loading={isSyncing}
+              disabled={isSyncing}
               onClick={() => void handleSync()}
             >
-              {syncing ? "Syncing..." : "Sync GitHub"}
+              {isSyncing ? "Syncing..." : "Sync GitHub"}
             </Button>
           ) : (
             <Button
@@ -322,6 +337,24 @@ function OverviewPage() {
       {oauthError && <div className={styles.errorMessage}>{oauthError}</div>}
 
       {error && <div className={styles.errorMessage}>{error}</div>}
+
+      {isGitHubConnected && !isInitialSyncing && (
+        <div className={styles.syncStatus}>
+          {isSyncing ? (
+            <div className={styles.syncStatusSyncing}>
+              <SyncIcon size={16} className={styles.syncStatusIcon} />
+              Syncing GitHub data...
+            </div>
+          ) : syncError ? (
+            <div className={styles.syncStatusError}>Sync error: {syncError}</div>
+          ) : lastSyncedAt ? (
+            <div className={styles.syncStatusInfo}>
+              <ClockIcon size={16} className={styles.syncStatusIcon} />
+              Last synced {formatLastSynced(lastSyncedAt)}
+            </div>
+          ) : null}
+        </div>
+      )}
 
       {!isGitHubConnected && (
         <div className={styles.connectGitHubCard}>

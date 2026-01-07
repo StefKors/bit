@@ -263,6 +263,47 @@
   font-size: 0.9rem;
 }
 
+.syncStatus {
+  margin-bottom: 1rem;
+}
+
+.syncStatusSyncing,
+.syncStatusError,
+.syncStatusInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--bit-radius-lg);
+  font-size: 0.9rem;
+}
+
+.syncStatusSyncing {
+  background: rgba(var(--bit-rgb-accent-blue), 0.1);
+  border: 1px solid rgba(var(--bit-rgb-accent-blue), 0.2);
+  color: var(--bit-color-accent-blue);
+}
+
+.syncStatusError {
+  background: rgba(var(--bit-rgb-accent-red), 0.1);
+  border: 1px solid rgba(var(--bit-rgb-accent-red), 0.2);
+  color: var(--bit-color-accent-red);
+}
+
+.syncStatusInfo {
+  background: rgba(var(--bit-rgb-fg), 0.05);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  color: rgba(var(--bit-rgb-fg), 0.7);
+}
+
+.syncStatusIcon {
+  flex-shrink: 0;
+}
+
+.syncStatusSyncing .syncStatusIcon {
+  animation: spin 1s linear infinite;
+}
+
 .connectGitHubCard {
   background: var(--bit-gradient-surface);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
