@@ -1,5 +1,5 @@
 import { Octokit } from "octokit"
-import { id } from "@instantdb/admin"
+import { id, lookup } from "@instantdb/admin"
 import { adminDb } from "./instantAdmin"
 import { findOrCreateSyncStateId } from "./sync-state"
 
@@ -107,14 +107,14 @@ export class GitHubClient {
     const fullName = `${owner}/${repo}`
 
     // Check if repo already exists
-    const { repos } = await adminDb.query({
+    const { repos: existingRepos } = await adminDb.query({
       repos: {
         $: { where: { fullName } },
       },
     })
 
-    if (repos && repos.length > 0) {
-      return repos[0]
+    if (existingRepos && existingRepos.length > 0) {
+      return existingRepos[0]
     }
 
     // Fetch from GitHub
@@ -123,10 +123,9 @@ export class GitHubClient {
 
     const repoData = response.data
     const now = Date.now()
-    const repoId = repoData.node_id
 
     await adminDb.transact(
-      adminDb.tx.repos[repoId]
+      adminDb.tx.repos[lookup("githubId", repoData.id)]
         .update({
           githubId: repoData.id,
           name: repoData.name,
@@ -159,12 +158,28 @@ export class GitHubClient {
 
     await this.updateSyncState("repo", fullName, rateLimit)
 
-    // Return with our string ID (node_id) for InstantDB
-    return { ...repoData, id: repoId, defaultBranch: repoData.default_branch || "main" }
+    // Get the actual InstantDB ID for the repo
+    const { repos: createdRepos } = await adminDb.query({
+      repos: {
+        $: { where: { githubId: repoData.id } },
+      },
+    })
+
+    const repoRecordWithId = createdRepos?.[0]
+    if (!repoRecordWithId) {
+      throw new Error(`Failed to create/retrieve repo record for ${fullName}`)
+    }
+
+    // Return with default branch and ID for downstream use
+    return {
+      ...repoData,
+      id: repoRecordWithId.id,
+      defaultBranch: repoData.default_branch || "main",
+    }
   }
 
   // Fetch user's organizations
-  async fetchOrganizations(): Promise<SyncResult<{ id: string; login: string }[]>> {
+  async fetchOrganizations(): Promise<SyncResult<{ githubId: number; login: string }[]>> {
     const response = await this.octokit.rest.orgs.listForAuthenticatedUser({
       per_page: 100,
     })
@@ -173,7 +188,6 @@ export class GitHubClient {
 
     const now = Date.now()
     const orgs = response.data.map((org) => ({
-      id: org.node_id,
       githubId: org.id,
       login: org.login,
       name: org.login,
@@ -182,10 +196,10 @@ export class GitHubClient {
       url: org.url,
     }))
 
-    // Upsert organizations using InstantDB
+    // Upsert organizations using InstantDB using lookup
     for (const org of orgs) {
       await adminDb.transact(
-        adminDb.tx.organizations[org.id]
+        adminDb.tx.organizations[lookup("githubId", org.githubId)]
           .update({
             githubId: org.githubId,
             login: org.login,
@@ -207,7 +221,7 @@ export class GitHubClient {
   }
 
   // Fetch user's repositories (personal and org repos)
-  async fetchRepositories(): Promise<SyncResult<{ id: string; fullName: string }[]>> {
+  async fetchRepositories(): Promise<SyncResult<{ githubId: number; fullName: string }[]>> {
     const response = await this.octokit.rest.repos.listForAuthenticatedUser({
       per_page: 100,
       sort: "updated",
@@ -218,7 +232,6 @@ export class GitHubClient {
 
     const now = Date.now()
     const repos = response.data.map((repo) => ({
-      id: repo.node_id,
       githubId: repo.id,
       name: repo.name,
       fullName: repo.full_name,
@@ -238,10 +251,10 @@ export class GitHubClient {
       githubPushedAt: repo.pushed_at ? new Date(repo.pushed_at).getTime() : undefined,
     }))
 
-    // Upsert repositories using InstantDB
+    // Upsert repositories using InstantDB using lookup
     for (const repo of repos) {
       await adminDb.transact(
-        adminDb.tx.repos[repo.id]
+        adminDb.tx.repos[lookup("githubId", repo.githubId)]
           .update({
             ...repo,
             userId: this.userId, // Required attribute
@@ -263,7 +276,7 @@ export class GitHubClient {
     owner: string,
     repo: string,
     state: "open" | "closed" | "all" = "all",
-  ): Promise<SyncResult<{ id: string; number: number }[]>> {
+  ): Promise<SyncResult<{ githubId: number; number: number }[]>> {
     const repoRecord = await this.ensureRepoRecord(owner, repo)
 
     const response = await this.octokit.rest.pulls.list({
@@ -279,7 +292,6 @@ export class GitHubClient {
 
     const now = Date.now()
     const prs = response.data.map((pr) => ({
-      id: pr.node_id,
       githubId: pr.id,
       number: pr.number,
       title: pr.title,
@@ -302,10 +314,10 @@ export class GitHubClient {
       mergedAt: pr.merged_at ? new Date(pr.merged_at).getTime() : undefined,
     }))
 
-    // Upsert pull requests using InstantDB
+    // Upsert pull requests using InstantDB using lookup
     for (const pr of prs) {
       await adminDb.transact(
-        adminDb.tx.pullRequests[pr.id]
+        adminDb.tx.pullRequests[lookup("githubId", pr.githubId)]
           .update({
             ...pr,
             repoId: repoRecord.id, // Required attribute
@@ -346,9 +358,18 @@ export class GitHubClient {
     const prData = prResponse.data
 
     const now = Date.now()
-    const prId = prData.node_id
+    const prGithubId = prData.id
 
-    // Upsert PR
+    // First, find or create the PR record and get its ID
+    const { pullRequests } = await adminDb.query({
+      pullRequests: {
+        $: { where: { githubId: prGithubId } },
+      },
+    })
+
+    const prId = pullRequests?.[0]?.id || id()
+
+    // Upsert PR using the known ID
     await adminDb.transact(
       adminDb.tx.pullRequests[prId]
         .update({
@@ -380,7 +401,6 @@ export class GitHubClient {
           githubUpdatedAt: prData.updated_at ? new Date(prData.updated_at).getTime() : undefined,
           closedAt: prData.closed_at ? new Date(prData.closed_at).getTime() : undefined,
           mergedAt: prData.merged_at ? new Date(prData.merged_at).getTime() : undefined,
-          repoId: repoRecord.id, // Required attribute
           userId: this.userId, // Required attribute
           syncedAt: now,
           createdAt: now,
@@ -435,10 +455,18 @@ export class GitHubClient {
 
     const reviewIdMap = new Map<number, string>()
     for (const review of reviewsResponse.data) {
-      reviewIdMap.set(review.id, review.node_id)
+      // Find or create review and get its ID
+      const { prReviews } = await adminDb.query({
+        prReviews: {
+          $: { where: { githubId: review.id } },
+        },
+      })
+
+      const reviewId = prReviews?.[0]?.id || id()
+      reviewIdMap.set(review.id, reviewId)
 
       await adminDb.transact(
-        adminDb.tx.prReviews[review.node_id]
+        adminDb.tx.prReviews[reviewId]
           .update({
             githubId: review.id,
             state: review.state,
@@ -468,8 +496,9 @@ export class GitHubClient {
     )
 
     for (const comment of issueCommentsResponse.data) {
+      const commentId = id()
       await adminDb.transact(
-        adminDb.tx.prComments[comment.node_id]
+        adminDb.tx.prComments[commentId]
           .update({
             githubId: comment.id,
             commentType: "issue_comment",
@@ -508,7 +537,8 @@ export class GitHubClient {
         ? reviewIdMap.get(comment.pull_request_review_id)
         : undefined
 
-      const tx = adminDb.tx.prComments[comment.node_id]
+      const commentId = id()
+      const tx = adminDb.tx.prComments[commentId]
         .update({
           githubId: comment.id,
           commentType: "review_comment",
@@ -610,7 +640,7 @@ export class GitHubClient {
 
       const pathParts = item.path.split("/")
       const name = pathParts[pathParts.length - 1]
-      const entryId = `${repoRecord.id}:${branch}:${item.path}`
+      const entryId = id()
 
       await adminDb.transact(
         adminDb.tx.repoTrees[entryId]

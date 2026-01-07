@@ -18,6 +18,8 @@ import { Route as ApiGithubRateLimitRouteImport } from './routes/api/github/rate
 import { Route as OwnerRepoPullsRouteImport } from './routes/$owner/$repo/pulls'
 import { Route as OwnerRepoIssuesRouteImport } from './routes/$owner/$repo/issues'
 import { Route as ApiGithubOauthIndexRouteImport } from './routes/api/github/oauth/index'
+import { Route as ApiGithubSyncRetryRouteImport } from './routes/api/github/sync/retry'
+import { Route as ApiGithubSyncResetRouteImport } from './routes/api/github/sync/reset'
 import { Route as ApiGithubSyncOverviewRouteImport } from './routes/api/github/sync/overview'
 import { Route as ApiGithubOauthCallbackRouteImport } from './routes/api/github/oauth/callback'
 import { Route as OwnerRepoPullNumberRouteImport } from './routes/$owner/$repo/pull.$number'
@@ -70,6 +72,16 @@ const OwnerRepoIssuesRoute = OwnerRepoIssuesRouteImport.update({
 const ApiGithubOauthIndexRoute = ApiGithubOauthIndexRouteImport.update({
   id: '/api/github/oauth/',
   path: '/api/github/oauth/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubSyncRetryRoute = ApiGithubSyncRetryRouteImport.update({
+  id: '/api/github/sync/retry',
+  path: '/api/github/sync/retry',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubSyncResetRoute = ApiGithubSyncResetRouteImport.update({
+  id: '/api/github/sync/reset',
+  path: '/api/github/sync/reset',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubSyncOverviewRoute = ApiGithubSyncOverviewRouteImport.update({
@@ -129,6 +141,8 @@ export interface FileRoutesByFullPath {
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
+  '/api/github/sync/reset': typeof ApiGithubSyncResetRoute
+  '/api/github/sync/retry': typeof ApiGithubSyncRetryRoute
   '/api/github/oauth': typeof ApiGithubOauthIndexRoute
   '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
   '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
@@ -148,6 +162,8 @@ export interface FileRoutesByTo {
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
+  '/api/github/sync/reset': typeof ApiGithubSyncResetRoute
+  '/api/github/sync/retry': typeof ApiGithubSyncRetryRoute
   '/api/github/oauth': typeof ApiGithubOauthIndexRoute
   '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
   '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
@@ -168,6 +184,8 @@ export interface FileRoutesById {
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
+  '/api/github/sync/reset': typeof ApiGithubSyncResetRoute
+  '/api/github/sync/retry': typeof ApiGithubSyncRetryRoute
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
   '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
   '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
@@ -189,6 +207,8 @@ export interface FileRouteTypes {
     | '/$owner/$repo/pull/$number'
     | '/api/github/oauth/callback'
     | '/api/github/sync/overview'
+    | '/api/github/sync/reset'
+    | '/api/github/sync/retry'
     | '/api/github/oauth'
     | '/$owner/$repo/blob/$branch/$'
     | '/$owner/$repo/tree/$branch/$'
@@ -208,6 +228,8 @@ export interface FileRouteTypes {
     | '/$owner/$repo/pull/$number'
     | '/api/github/oauth/callback'
     | '/api/github/sync/overview'
+    | '/api/github/sync/reset'
+    | '/api/github/sync/retry'
     | '/api/github/oauth'
     | '/$owner/$repo/blob/$branch/$'
     | '/$owner/$repo/tree/$branch/$'
@@ -227,6 +249,8 @@ export interface FileRouteTypes {
     | '/$owner/$repo/pull/$number'
     | '/api/github/oauth/callback'
     | '/api/github/sync/overview'
+    | '/api/github/sync/reset'
+    | '/api/github/sync/retry'
     | '/api/github/oauth/'
     | '/$owner/$repo/blob/$branch/$'
     | '/$owner/$repo/tree/$branch/$'
@@ -246,6 +270,8 @@ export interface RootRouteChildren {
   OwnerRepoPullNumberRoute: typeof OwnerRepoPullNumberRoute
   ApiGithubOauthCallbackRoute: typeof ApiGithubOauthCallbackRoute
   ApiGithubSyncOverviewRoute: typeof ApiGithubSyncOverviewRoute
+  ApiGithubSyncResetRoute: typeof ApiGithubSyncResetRoute
+  ApiGithubSyncRetryRoute: typeof ApiGithubSyncRetryRoute
   ApiGithubOauthIndexRoute: typeof ApiGithubOauthIndexRoute
   OwnerRepoBlobBranchSplatRoute: typeof OwnerRepoBlobBranchSplatRoute
   OwnerRepoTreeBranchSplatRoute: typeof OwnerRepoTreeBranchSplatRoute
@@ -315,6 +341,20 @@ declare module '@tanstack/react-router' {
       path: '/api/github/oauth'
       fullPath: '/api/github/oauth'
       preLoaderRoute: typeof ApiGithubOauthIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/sync/retry': {
+      id: '/api/github/sync/retry'
+      path: '/api/github/sync/retry'
+      fullPath: '/api/github/sync/retry'
+      preLoaderRoute: typeof ApiGithubSyncRetryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/sync/reset': {
+      id: '/api/github/sync/reset'
+      path: '/api/github/sync/reset'
+      fullPath: '/api/github/sync/reset'
+      preLoaderRoute: typeof ApiGithubSyncResetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/sync/overview': {
@@ -415,6 +455,8 @@ const rootRouteChildren: RootRouteChildren = {
   OwnerRepoPullNumberRoute: OwnerRepoPullNumberRoute,
   ApiGithubOauthCallbackRoute: ApiGithubOauthCallbackRoute,
   ApiGithubSyncOverviewRoute: ApiGithubSyncOverviewRoute,
+  ApiGithubSyncResetRoute: ApiGithubSyncResetRoute,
+  ApiGithubSyncRetryRoute: ApiGithubSyncRetryRoute,
   ApiGithubOauthIndexRoute: ApiGithubOauthIndexRoute,
   OwnerRepoBlobBranchSplatRoute: OwnerRepoBlobBranchSplatRoute,
   OwnerRepoTreeBranchSplatRoute: OwnerRepoTreeBranchSplatRoute,

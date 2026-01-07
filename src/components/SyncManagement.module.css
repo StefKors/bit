@@ -1,0 +1,208 @@
+.syncManagement {
+  margin-bottom: 2rem;
+}
+
+.syncManagementHeader {
+  margin-bottom: 1.5rem;
+}
+
+.syncManagementTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.titleIcon {
+  color: var(--color-text-secondary);
+}
+
+.titleIconError {
+  color: var(--color-error);
+}
+
+.syncManagementDescription {
+  color: var(--color-text-secondary);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.syncStatesList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.syncGroup {
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.syncGroupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface-secondary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.syncGroupTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.errorBadge {
+  background: var(--color-error);
+  color: white;
+  padding: 0.125rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.syncStateItem {
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.syncStateItem:last-child {
+  border-bottom: none;
+}
+
+.syncStateMain {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.syncStateInfo {
+  flex: 1;
+}
+
+.syncStateHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.syncStateName {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.syncStateStatus {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  text-transform: lowercase;
+}
+
+.statusIconSuccess {
+  color: var(--color-success);
+}
+
+.statusIconSyncing {
+  color: var(--color-text-secondary);
+  animation: spin 1s linear infinite;
+}
+
+.statusIconError {
+  color: var(--color-error);
+}
+
+.statusIconWarning {
+  color: var(--color-warning);
+}
+
+.syncStateMeta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.lastSynced,
+.rateLimit {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-error-container);
+  color: var(--color-error);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.syncStateActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.syncStateDetails {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.syncStateDetails h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.etagData {
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  padding: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.emptyStateIcon {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

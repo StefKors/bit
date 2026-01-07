@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/hooks/useAuth"
 import { Button } from "@/components/Button"
 import { RepoSection } from "@/features/repo/RepoSection"
 import { PRListItem } from "@/features/pr/PRListItem"
+import { SyncManagement } from "@/components/SyncManagement"
 import styles from "@/pages/OverviewPage.module.css"
 import { Avatar } from "@/components/Avatar"
 
@@ -154,6 +155,7 @@ function OverviewPage() {
   const search = useSearch({ from: "/" })
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showSyncManagement, setShowSyncManagement] = useState(false)
 
   // Check if GitHub was just connected
   const githubJustConnected = search.github === "connected"
@@ -266,6 +268,46 @@ function OverviewPage() {
     }
   }
 
+  const handleResetSync = async (resourceType: string, resourceId?: string) => {
+    try {
+      const response = await fetch("/api/github/sync/reset", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user?.id}`,
+        },
+        body: JSON.stringify({ resourceType, resourceId }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to reset sync")
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to reset sync")
+    }
+  }
+
+  const handleRetrySync = async (resourceType: string, resourceId?: string) => {
+    try {
+      const response = await fetch("/api/github/sync/retry", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user?.id}`,
+        },
+        body: JSON.stringify({ resourceType, resourceId }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to retry sync")
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to retry sync")
+    }
+  }
+
   const handleSignOut = () => {
     void db.auth.signOut()
   }
@@ -303,15 +345,22 @@ function OverviewPage() {
           )}
 
           {isGitHubConnected ? (
-            <Button
-              variant="success"
-              leadingIcon={<SyncIcon size={16} />}
-              loading={isSyncing}
-              disabled={isSyncing}
-              onClick={() => void handleSync()}
-            >
-              {isSyncing ? "Syncing..." : "Sync GitHub"}
-            </Button>
+            <>
+              {syncStates.some((state) => state.syncStatus === "error" || state.syncError) && (
+                <Button variant="danger" onClick={() => setShowSyncManagement(!showSyncManagement)}>
+                  {showSyncManagement ? "Hide Sync Issues" : "Show Sync Issues"}
+                </Button>
+              )}
+              <Button
+                variant="success"
+                leadingIcon={<SyncIcon size={16} />}
+                loading={isSyncing}
+                disabled={isSyncing}
+                onClick={() => void handleSync()}
+              >
+                {isSyncing ? "Syncing..." : "Sync GitHub"}
+              </Button>
+            </>
           ) : (
             <Button
               variant="primary"
@@ -377,6 +426,16 @@ function OverviewPage() {
       )}
 
       {isInitialSyncing && <InitialSyncProgressCard progress={initialSyncProgress} />}
+
+      {/* Show sync management when there are sync errors */}
+      {(syncStates.some((state) => state.syncStatus === "error" || state.syncError) ||
+        showSyncManagement) && (
+        <SyncManagement
+          syncStates={syncStates}
+          onResetSync={handleResetSync}
+          onRetrySync={handleRetrySync}
+        />
+      )}
 
       <section className={styles.prDashboard}>
         <div className={styles.prColumns}>
