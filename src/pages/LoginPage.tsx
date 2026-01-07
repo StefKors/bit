@@ -2,7 +2,6 @@ import { useState, useRef } from "react"
 import { SignOutIcon, MailIcon, ArrowLeftIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { Button } from "@/components/Button"
-import { CommitInfo } from "@/components/CommitInfo"
 import { Avatar } from "@/components/Avatar"
 import styles from "./LoginPage.module.css"
 
@@ -16,8 +15,8 @@ function LoginPage() {
   const [sentTo, setSentTo] = useState("")
   const [authError, setAuthError] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
-  const emailInputRef = useRef<HTMLInputElement>(null)
-  const codeInputRef = useRef<HTMLInputElement>(null)
+  const emailInputRef = useRef<HTMLInputElement>(undefined)
+  const codeInputRef = useRef<HTMLInputElement>(undefined)
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,7 +78,6 @@ function LoginPage() {
             <span>Loading...</span>
           </div>
         </div>
-        <CommitInfo />
       </div>
     )
   }
@@ -98,7 +96,6 @@ function LoginPage() {
             Try again
           </Button>
         </div>
-        <CommitInfo />
       </div>
     )
   }
@@ -145,7 +142,6 @@ function LoginPage() {
             Sign out
           </Button>
         </div>
-        <CommitInfo />
       </div>
     )
   }
@@ -199,7 +195,6 @@ function LoginPage() {
             <p className={styles.footerText}>We'll send you a magic code to sign in</p>
           </div>
         </div>
-        <CommitInfo />
       </div>
     )
   }
@@ -253,7 +248,6 @@ function LoginPage() {
           </button>
         </div>
       </div>
-      <CommitInfo />
     </div>
   )
 }
