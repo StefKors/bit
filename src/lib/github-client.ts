@@ -269,7 +269,9 @@ export class GitHubClient {
     }))
 
     // Build a map of org logins to their record IDs for linking
-    const orgLogins = [...new Set(repos.filter((r) => r.ownerType === "Organization").map((r) => r.owner))]
+    const orgLogins = [
+      ...new Set(repos.filter((r) => r.ownerType === "Organization").map((r) => r.owner)),
+    ]
     const orgMap = new Map<string, string>()
 
     for (const login of orgLogins) {

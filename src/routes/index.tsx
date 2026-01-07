@@ -192,12 +192,6 @@ function OverviewPage() {
   return (
     <div className={styles.container}>
       <OverviewHeader
-        user={{
-          id: user.id,
-          email: user.email,
-          login: (user as { login?: string }).login,
-          avatarUrl: (user as { avatarUrl?: string }).avatarUrl,
-        }}
         isGitHubConnected={isGitHubConnected}
         isSyncing={isSyncing}
         rateLimit={rateLimit}
