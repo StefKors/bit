@@ -34,9 +34,11 @@ function OverviewPage() {
   const [error, setError] = useState<string | null>(null)
   const [showSyncManagement, setShowSyncManagement] = useState(false)
 
-  // Check if GitHub was just connected
+  // Check if GitHub was just connected or installed
   const githubJustConnected = search.github === "connected"
+  const githubJustInstalled = search.github === "installed"
   const oauthError = search.error
+  const oauthMessage = search.message
 
   // Check if user has GitHub connected by looking at their login field
   const isGitHubConnected = Boolean((user as { login?: string } | undefined)?.login)
@@ -211,7 +213,13 @@ function OverviewPage() {
         hasSyncErrors={hasSyncErrors && !isInitialSyncing}
       />
 
-      {!isGitHubConnected && <ConnectGitHubCard onConnect={handleConnectGitHub} />}
+      {!isGitHubConnected && (
+        <ConnectGitHubCard
+          onConnect={handleConnectGitHub}
+          justInstalled={githubJustInstalled}
+          message={oauthMessage}
+        />
+      )}
 
       {isInitialSyncing && (
         <InitialSyncCard
@@ -238,5 +246,6 @@ export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>) => ({
     github: search.github as string | undefined,
     error: search.error as string | undefined,
+    message: search.message as string | undefined,
   }),
 })

@@ -7,6 +7,19 @@
   margin-bottom: 2rem;
 }
 
+.installedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.35rem 0.75rem;
+  background: rgba(var(--bit-rgb-accent-green), 0.15);
+  color: var(--bit-color-accent-green);
+  border-radius: var(--bit-radius-pill);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
 .title {
   font-size: 1.25rem;
   font-weight: 700;

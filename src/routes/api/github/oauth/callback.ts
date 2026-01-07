@@ -50,6 +50,10 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
         const state = url.searchParams.get("state") // Contains the InstantDB user ID
         const error = url.searchParams.get("error")
         const errorDescription = url.searchParams.get("error_description")
+        
+        // GitHub App installation parameters
+        const installationId = url.searchParams.get("installation_id")
+        const setupAction = url.searchParams.get("setup_action")
 
         // Handle OAuth errors
         if (error) {
@@ -58,6 +62,20 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
             status: 302,
             headers: {
               Location: `/?error=${encodeURIComponent(errorDescription || error)}`,
+            },
+          })
+        }
+
+        // Handle GitHub App installation callback (no code, has installation_id)
+        // This happens when user installs the app from GitHub directly
+        // We need to redirect them to complete OAuth authorization
+        if (installationId && !code) {
+          console.log(`GitHub App installed (installation_id: ${installationId}, setup_action: ${setupAction})`)
+          // Redirect to home with a message to complete setup
+          return new Response(null, {
+            status: 302,
+            headers: {
+              Location: "/?github=installed&message=App+installed!+Click+Connect+GitHub+to+complete+setup",
             },
           })
         }
