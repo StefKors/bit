@@ -219,7 +219,7 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
           </button>
 
           {showRepos && (
-            <>
+            <div className={styles.reposContent}>
               <div className={styles.filterTabs}>
                 <button
                   className={`${styles.filterTab} ${filter === "all" ? styles.filterTabActive : ""}`}
@@ -264,7 +264,7 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
                   <div className={styles.emptyState}>No repositories match this filter</div>
                 )}
               </div>
-            </>
+            </div>
           )}
         </div>
       )}
