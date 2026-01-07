@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import {
   FileDirectoryIcon,
@@ -11,6 +12,14 @@ import {
 } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { Breadcrumb } from "@/components/Breadcrumb"
+import { RepoFiltersBar } from "@/features/repo/RepoFiltersBar"
+import {
+  type RepoFilters,
+  DEFAULT_REPO_FILTERS,
+  extractLanguages,
+  applyFiltersAndSort,
+  checkActiveFilters,
+} from "@/lib/repo-filters"
 import styles from "@/pages/OwnerPage.module.css"
 
 // Language colors for common languages
@@ -38,6 +47,7 @@ const languageColors: Record<string, string> = {
 const OwnerPage = () => {
   const params: { owner?: string } = Route.useParams()
   const { user } = db.useAuth()
+  const [filters, setFilters] = useState<RepoFilters>(DEFAULT_REPO_FILTERS)
 
   const owner = params?.owner ?? ""
 
@@ -49,6 +59,11 @@ const OwnerPage = () => {
     },
   })
   const repos = reposData?.repos ?? []
+
+  // Derive languages and filtered repos
+  const languages = useMemo(() => extractLanguages(repos), [repos])
+  const filteredRepos = useMemo(() => applyFiltersAndSort(repos, filters), [repos, filters])
+  const hasActiveFilters = checkActiveFilters(filters)
 
   // Get org from first repo's related data (all repos share same org if it exists)
   const org = repos[0]?.organization ?? null
@@ -183,11 +198,29 @@ const OwnerPage = () => {
             </button>
           </nav>
 
+          {/* Repository filters */}
+          <RepoFiltersBar
+            filters={filters}
+            onFiltersChange={setFilters}
+            languages={languages}
+            hasActiveFilters={hasActiveFilters}
+            totalCount={repos.length}
+            filteredCount={filteredRepos.length}
+          />
+
           {/* Repository list */}
           <div className={styles.repoList}>
-            {repos.map((repo) => (
-              <RepoListItem key={repo.id} repo={repo} />
-            ))}
+            {filteredRepos.length > 0 ? (
+              filteredRepos.map((repo) => <RepoListItem key={repo.id} repo={repo} />)
+            ) : (
+              <div className={styles.emptyState}>
+                <FileDirectoryIcon className={styles.emptyIcon} size={48} />
+                <h3 className={styles.emptyTitle}>No matching repositories</h3>
+                <p className={styles.emptyText}>
+                  Try adjusting your filters to find what you&apos;re looking for.
+                </p>
+              </div>
+            )}
           </div>
         </main>
       </div>

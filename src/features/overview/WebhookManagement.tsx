@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo, useRef } from "react"
 import {
   WebhookIcon,
   CheckCircleFillIcon,
@@ -9,6 +9,7 @@ import {
   ChevronUpIcon,
   SyncIcon,
   RepoIcon,
+  SearchIcon,
 } from "@primer/octicons-react"
 import { Button } from "@/components/Button"
 import styles from "./WebhookManagement.module.css"
@@ -93,6 +94,8 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
   const [showRepos, setShowRepos] = useState(false)
   const [filter, setFilter] = useState<FilterType>("all")
   const [error, setError] = useState<string | null>(null)
+  const [search, setSearch] = useState("")
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   // Calculate stats
   const stats = repos.reduce(
@@ -107,15 +110,23 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
     { installed: 0, noAccess: 0, error: 0, pending: 0 },
   )
 
-  // Filter repos based on selected filter
-  const filteredRepos = repos.filter((repo) => {
-    if (filter === "all") return true
-    if (filter === "installed") return repo.webhookStatus === "installed"
-    if (filter === "no_access") return repo.webhookStatus === "no_access"
-    if (filter === "error") return repo.webhookStatus === "error"
-    if (filter === "pending") return !repo.webhookStatus || repo.webhookStatus === "not_installed"
-    return true
-  })
+  // Filter repos based on selected filter and search
+  const filteredRepos = useMemo(() => {
+    return repos.filter((repo) => {
+      // Apply status filter
+      const matchesFilter =
+        filter === "all" ||
+        (filter === "installed" && repo.webhookStatus === "installed") ||
+        (filter === "no_access" && repo.webhookStatus === "no_access") ||
+        (filter === "error" && repo.webhookStatus === "error") ||
+        (filter === "pending" && (!repo.webhookStatus || repo.webhookStatus === "not_installed"))
+
+      // Apply search filter
+      const matchesSearch = !search || repo.fullName.toLowerCase().includes(search.toLowerCase())
+
+      return matchesFilter && matchesSearch
+    })
+  }, [repos, filter, search])
 
   const handleRegisterWebhooks = async () => {
     setIsRegistering(true)
@@ -235,6 +246,18 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
 
           {showRepos && (
             <div className={styles.reposContent}>
+              <div className={styles.searchWrapper}>
+                <SearchIcon size={14} className={styles.searchIcon} />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Filter repositories..."
+                  defaultValue={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className={styles.searchInput}
+                />
+              </div>
+
               <div className={styles.filterTabs}>
                 <button
                   className={`${styles.filterTab} ${filter === "all" ? styles.filterTabActive : ""}`}
