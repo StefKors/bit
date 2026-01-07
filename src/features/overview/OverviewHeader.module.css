@@ -1,0 +1,120 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--bit-color-heading);
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.rateLimit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(var(--bit-rgb-fg), 0.05);
+  border-radius: var(--bit-radius-lg);
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+}
+
+.rateLimitLow {
+  background: var(--bit-color-danger-bg);
+  color: var(--bit-color-accent-red);
+}
+
+.buttonIcon {
+  flex-shrink: 0;
+}
+
+.successMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: rgba(var(--bit-rgb-accent-green), 0.1);
+  border: 1px solid rgba(var(--bit-rgb-accent-green), 0.2);
+  border-radius: var(--bit-radius-lg);
+  color: var(--bit-color-accent-green);
+  font-size: 0.9rem;
+}
+
+.errorMessage {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: rgba(var(--bit-rgb-accent-red), 0.1);
+  border: 1px solid rgba(var(--bit-rgb-accent-red), 0.2);
+  border-radius: var(--bit-radius-lg);
+  color: var(--bit-color-accent-red);
+  font-size: 0.9rem;
+}
+
+.syncStatus {
+  margin-bottom: 1rem;
+}
+
+.syncStatusSyncing,
+.syncStatusError,
+.syncStatusInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--bit-radius-lg);
+  font-size: 0.9rem;
+}
+
+.syncStatusSyncing {
+  background: rgba(var(--bit-rgb-accent-blue), 0.1);
+  border: 1px solid rgba(var(--bit-rgb-accent-blue), 0.2);
+  color: var(--bit-color-accent-blue);
+}
+
+.syncStatusError {
+  background: rgba(var(--bit-rgb-accent-red), 0.1);
+  border: 1px solid rgba(var(--bit-rgb-accent-red), 0.2);
+  color: var(--bit-color-accent-red);
+}
+
+.syncStatusInfo {
+  background: rgba(var(--bit-rgb-fg), 0.05);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  color: rgba(var(--bit-rgb-fg), 0.7);
+}
+
+.syncStatusIcon {
+  flex-shrink: 0;
+}
+
+.syncStatusSyncing .syncStatusIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

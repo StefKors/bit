@@ -1,5 +1,5 @@
 import { Octokit } from "octokit"
-import { id, lookup } from "@instantdb/admin"
+import { id } from "@instantdb/admin"
 import { adminDb } from "./instantAdmin"
 import { findOrCreateSyncStateId } from "./sync-state"
 
@@ -124,8 +124,9 @@ export class GitHubClient {
     const repoData = response.data
     const now = Date.now()
 
+    const newRepoId = id()
     await adminDb.transact(
-      adminDb.tx.repos[lookup("githubId", repoData.id)]
+      adminDb.tx.repos[newRepoId]
         .update({
           githubId: repoData.id,
           name: repoData.name,
@@ -158,22 +159,10 @@ export class GitHubClient {
 
     await this.updateSyncState("repo", fullName, rateLimit)
 
-    // Get the actual InstantDB ID for the repo
-    const { repos: createdRepos } = await adminDb.query({
-      repos: {
-        $: { where: { githubId: repoData.id } },
-      },
-    })
-
-    const repoRecordWithId = createdRepos?.[0]
-    if (!repoRecordWithId) {
-      throw new Error(`Failed to create/retrieve repo record for ${fullName}`)
-    }
-
     // Return with default branch and ID for downstream use
     return {
       ...repoData,
-      id: repoRecordWithId.id,
+      id: newRepoId,
       defaultBranch: repoData.default_branch || "main",
     }
   }
@@ -196,10 +185,18 @@ export class GitHubClient {
       url: org.url,
     }))
 
-    // Upsert organizations using InstantDB using lookup
+    // Upsert organizations - check if exists first, then update or create
     for (const org of orgs) {
+      const { organizations: existing } = await adminDb.query({
+        organizations: {
+          $: { where: { githubId: org.githubId } },
+        },
+      })
+
+      const orgId = existing?.[0]?.id || id()
+
       await adminDb.transact(
-        adminDb.tx.organizations[lookup("githubId", org.githubId)]
+        adminDb.tx.organizations[orgId]
           .update({
             githubId: org.githubId,
             login: org.login,
@@ -251,10 +248,18 @@ export class GitHubClient {
       githubPushedAt: repo.pushed_at ? new Date(repo.pushed_at).getTime() : undefined,
     }))
 
-    // Upsert repositories using InstantDB using lookup
+    // Upsert repositories - check if exists first, then update or create
     for (const repo of repos) {
+      const { repos: existing } = await adminDb.query({
+        repos: {
+          $: { where: { githubId: repo.githubId } },
+        },
+      })
+
+      const repoId = existing?.[0]?.id || id()
+
       await adminDb.transact(
-        adminDb.tx.repos[lookup("githubId", repo.githubId)]
+        adminDb.tx.repos[repoId]
           .update({
             ...repo,
             userId: this.userId, // Required attribute
@@ -314,10 +319,18 @@ export class GitHubClient {
       mergedAt: pr.merged_at ? new Date(pr.merged_at).getTime() : undefined,
     }))
 
-    // Upsert pull requests using InstantDB using lookup
+    // Upsert pull requests - check if exists first, then update or create
     for (const pr of prs) {
+      const { pullRequests: existing } = await adminDb.query({
+        pullRequests: {
+          $: { where: { githubId: pr.githubId } },
+        },
+      })
+
+      const prId = existing?.[0]?.id || id()
+
       await adminDb.transact(
-        adminDb.tx.pullRequests[lookup("githubId", pr.githubId)]
+        adminDb.tx.pullRequests[prId]
           .update({
             ...pr,
             repoId: repoRecord.id, // Required attribute

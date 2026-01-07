@@ -1,0 +1,214 @@
+.card {
+  background: var(--bit-gradient-surface);
+  border: 1px solid rgba(var(--bit-rgb-accent-blue), 0.2);
+  border-radius: var(--bit-radius-xl);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: var(--bit-color-accent-blue);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.headerText {
+  flex: 1;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--bit-color-heading);
+  margin: 0 0 0.25rem;
+}
+
+.description {
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+  margin: 0;
+}
+
+.progressBarContainer {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+  border-radius: var(--bit-radius-full);
+  height: 6px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progressBar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--bit-color-accent-blue), var(--bit-color-accent-purple));
+  border-radius: var(--bit-radius-full);
+  transition: width 0.3s ease;
+}
+
+.stepsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.25rem 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .stepsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.syncStep {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  font-size: 0.85rem;
+}
+
+.syncStepIcon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.syncStepIconCompleted {
+  color: var(--bit-color-accent-green);
+}
+
+.syncStepIconActive {
+  color: var(--bit-color-accent-blue);
+  animation: spin 1s linear infinite;
+}
+
+.syncStepIconPending {
+  color: rgba(var(--bit-rgb-fg), 0.3);
+}
+
+.syncStepLabel {
+  flex: 1;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+}
+
+.syncStepLabelActive {
+  flex: 1;
+  color: var(--bit-color-fg);
+  font-weight: 500;
+}
+
+.syncStepLabelPending {
+  flex: 1;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+}
+
+.syncStepCount {
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Errors Section */
+.errorsSection {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+}
+
+.errorsToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem;
+  margin: -0.5rem;
+  background: none;
+  border: none;
+  border-radius: var(--bit-radius-md);
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  transition: background 0.15s ease;
+}
+
+.errorsToggle:hover {
+  background: rgba(var(--bit-rgb-fg), 0.05);
+}
+
+.alertIcon {
+  color: var(--bit-color-accent-orange);
+}
+
+.errorsCount {
+  flex: 1;
+  text-align: left;
+  color: var(--bit-color-accent-orange);
+  font-weight: 500;
+}
+
+.errorsList {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.errorRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(var(--bit-rgb-accent-red), 0.06);
+  border-radius: var(--bit-radius-md);
+  font-size: 0.8rem;
+}
+
+.errorInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.errorIcon {
+  color: var(--bit-color-accent-red);
+  flex-shrink: 0;
+}
+
+.errorName {
+  font-weight: 500;
+  color: rgba(var(--bit-rgb-fg), 0.9);
+  white-space: nowrap;
+}
+
+.errorText {
+  color: rgba(var(--bit-rgb-fg), 0.6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.errorActions {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
