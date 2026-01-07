@@ -376,7 +376,7 @@ export class GitHubClient {
       pull_number: pullNumber,
     })
 
-    let rateLimit = this.extractRateLimit(prResponse.headers as Record<string, string | undefined>)
+    this.extractRateLimit(prResponse.headers as Record<string, string | undefined>)
     const prData = prResponse.data
 
     const now = Date.now()
@@ -432,16 +432,15 @@ export class GitHubClient {
         .link({ repo: repoRecord.id }),
     )
 
-    // Fetch files
-    const filesResponse = await this.octokit.rest.pulls.listFiles({
+    // Fetch files (with pagination)
+    const allFiles = await this.octokit.paginate(this.octokit.rest.pulls.listFiles, {
       owner,
       repo,
       pull_number: pullNumber,
       per_page: 100,
     })
-    rateLimit = this.extractRateLimit(filesResponse.headers as Record<string, string | undefined>)
 
-    for (const file of filesResponse.data) {
+    for (const file of allFiles) {
       const fileId = id()
       await adminDb.transact(
         adminDb.tx.prFiles[fileId]
@@ -466,17 +465,16 @@ export class GitHubClient {
       )
     }
 
-    // Fetch reviews
-    const reviewsResponse = await this.octokit.rest.pulls.listReviews({
+    // Fetch reviews (with pagination)
+    const allReviews = await this.octokit.paginate(this.octokit.rest.pulls.listReviews, {
       owner,
       repo,
       pull_number: pullNumber,
       per_page: 100,
     })
-    rateLimit = this.extractRateLimit(reviewsResponse.headers as Record<string, string | undefined>)
 
     const reviewIdMap = new Map<number, string>()
-    for (const review of reviewsResponse.data) {
+    for (const review of allReviews) {
       // Find or create review and get its ID
       const { prReviews } = await adminDb.query({
         prReviews: {
@@ -506,18 +504,15 @@ export class GitHubClient {
       )
     }
 
-    // Fetch issue comments
-    const issueCommentsResponse = await this.octokit.rest.issues.listComments({
+    // Fetch issue comments (with pagination)
+    const allIssueComments = await this.octokit.paginate(this.octokit.rest.issues.listComments, {
       owner,
       repo,
       issue_number: pullNumber,
       per_page: 100,
     })
-    rateLimit = this.extractRateLimit(
-      issueCommentsResponse.headers as Record<string, string | undefined>,
-    )
 
-    for (const comment of issueCommentsResponse.data) {
+    for (const comment of allIssueComments) {
       const commentId = id()
       await adminDb.transact(
         adminDb.tx.prComments[commentId]
@@ -543,18 +538,18 @@ export class GitHubClient {
       )
     }
 
-    // Fetch review comments
-    const reviewCommentsResponse = await this.octokit.rest.pulls.listReviewComments({
-      owner,
-      repo,
-      pull_number: pullNumber,
-      per_page: 100,
-    })
-    rateLimit = this.extractRateLimit(
-      reviewCommentsResponse.headers as Record<string, string | undefined>,
+    // Fetch review comments (with pagination)
+    const allReviewComments = await this.octokit.paginate(
+      this.octokit.rest.pulls.listReviewComments,
+      {
+        owner,
+        repo,
+        pull_number: pullNumber,
+        per_page: 100,
+      },
     )
 
-    for (const comment of reviewCommentsResponse.data) {
+    for (const comment of allReviewComments) {
       const reviewId = comment.pull_request_review_id
         ? reviewIdMap.get(comment.pull_request_review_id)
         : undefined
@@ -588,16 +583,15 @@ export class GitHubClient {
       }
     }
 
-    // Fetch commits
-    const commitsResponse = await this.octokit.rest.pulls.listCommits({
+    // Fetch commits (with pagination)
+    const allCommits = await this.octokit.paginate(this.octokit.rest.pulls.listCommits, {
       owner,
       repo,
       pull_number: pullNumber,
-      per_page: 250,
+      per_page: 100,
     })
-    rateLimit = this.extractRateLimit(commitsResponse.headers as Record<string, string | undefined>)
 
-    for (const commit of commitsResponse.data) {
+    for (const commit of allCommits) {
       const commitId = `${prId}:${commit.sha}`
       await adminDb.transact(
         adminDb.tx.prCommits[commitId]
@@ -625,6 +619,8 @@ export class GitHubClient {
       )
     }
 
+    // Get final rate limit status
+    const rateLimit = await this.getRateLimit()
     await this.updateSyncState("pr-detail", `${owner}/${repo}/${pullNumber}`, rateLimit)
 
     return { prId, rateLimit }
@@ -702,14 +698,14 @@ export class GitHubClient {
     }
 
     try {
-      // Check if webhook already exists
-      const existingHooks = await this.octokit.rest.repos.listWebhooks({
+      // Check if webhook already exists (with pagination)
+      const existingHooks = await this.octokit.paginate(this.octokit.rest.repos.listWebhooks, {
         owner,
         repo,
         per_page: 100,
       })
 
-      const existingHook = existingHooks.data.find((hook) => hook.config.url === webhookUrl)
+      const existingHook = existingHooks.find((hook) => hook.config.url === webhookUrl)
 
       if (existingHook) {
         console.log(`Webhook already exists for ${owner}/${repo}`)
