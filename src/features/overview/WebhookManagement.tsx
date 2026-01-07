@@ -75,8 +75,14 @@ const RepoRow = ({ repo }: { repo: Repo }) => {
     <div className={styles.repoRow}>
       <RepoIcon size={14} className={styles.repoIcon} />
       <span className={styles.repoName}>{repo.fullName}</span>
-      {repo.webhookError && <span className={styles.repoError} title={repo.webhookError}>{repo.webhookError}</span>}
-      <span className={`${styles.repoStatus} ${getStatusClass(status)}`}>{getStatusLabel(status)}</span>
+      {repo.webhookError && (
+        <span className={styles.repoError} title={repo.webhookError}>
+          {repo.webhookError}
+        </span>
+      )}
+      <span className={`${styles.repoStatus} ${getStatusClass(status)}`}>
+        {getStatusLabel(status)}
+      </span>
       {getStatusIcon(status)}
     </div>
   )
@@ -157,32 +163,42 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
           disabled={isRegistering}
         >
           {isRegistering ? (
-            <>
+            <span className={styles.buttonContent}>
               <SyncIcon size={14} className={styles.spinner} />
               Registering...
-            </>
+            </span>
           ) : (
-            <>
+            <span className={styles.buttonContent}>
               <SyncIcon size={14} />
               Register Webhooks
-            </>
+            </span>
           )}
         </Button>
       </div>
 
       {error && (
-        <div style={{ color: "var(--bit-color-accent-red)", fontSize: "0.85rem", marginBottom: "1rem" }}>
+        <div
+          style={{
+            color: "var(--bit-color-accent-red)",
+            fontSize: "0.85rem",
+            marginBottom: "1rem",
+          }}
+        >
           {error}
         </div>
       )}
 
       <div className={styles.statsGrid}>
         <div className={styles.statItem}>
-          <span className={`${styles.statValue} ${styles.statValueInstalled}`}>{stats.installed}</span>
+          <span className={`${styles.statValue} ${styles.statValueInstalled}`}>
+            {stats.installed}
+          </span>
           <span className={styles.statLabel}>Installed</span>
         </div>
         <div className={styles.statItem}>
-          <span className={`${styles.statValue} ${styles.statValueNoAccess}`}>{stats.noAccess}</span>
+          <span className={`${styles.statValue} ${styles.statValueNoAccess}`}>
+            {stats.noAccess}
+          </span>
           <span className={styles.statLabel}>No Access</span>
         </div>
         <div className={styles.statItem}>
@@ -255,4 +271,3 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
     </div>
   )
 }
-

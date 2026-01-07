@@ -250,6 +250,13 @@
   color: white;
 }
 
+/* Button content */
+.buttonContent {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
 /* Spinner */
 .spinner {
   animation: spin 1s linear infinite;
