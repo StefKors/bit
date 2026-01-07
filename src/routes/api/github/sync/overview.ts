@@ -12,7 +12,6 @@ export const Route = createFileRoute("/api/github/sync/overview")({
     handlers: {
       POST: async ({ request }) => {
         // Get user from InstantDB auth
-        // For now, we'll extract the user from request headers or session
         const authHeader = request.headers.get("Authorization")
         const userId = authHeader?.replace("Bearer ", "") || ""
 
@@ -25,28 +24,17 @@ export const Route = createFileRoute("/api/github/sync/overview")({
           return jsonResponse({ error: "GitHub account not connected" }, 400)
         }
 
-        try {
-          // Fetch organizations
-          const orgsResult = await client.fetchOrganizations()
+        // Kick off the full sync in the background (fire-and-forget)
+        // Don't await - let it run asynchronously
+        client.performInitialSync().catch((error) => {
+          console.error("Background sync error:", error)
+        })
 
-          // Fetch repositories
-          const reposResult = await client.fetchRepositories()
-
-          return jsonResponse({
-            organizations: orgsResult.data.length,
-            repositories: reposResult.data.length,
-            rateLimit: reposResult.rateLimit,
-          })
-        } catch (error) {
-          console.error("Error syncing overview:", error)
-          return jsonResponse(
-            {
-              error: "Failed to sync overview",
-              details: error instanceof Error ? error.message : "Unknown error",
-            },
-            500,
-          )
-        }
+        // Return immediately so the UI can show progress
+        return jsonResponse({
+          status: "started",
+          message: "Sync started in background",
+        })
       },
     },
   },
