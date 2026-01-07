@@ -167,16 +167,19 @@ export class GitHubClient {
     }
   }
 
-  // Fetch user's organizations
+  // Fetch user's organizations (with pagination)
   async fetchOrganizations(): Promise<SyncResult<{ githubId: number; login: string }[]>> {
-    const response = await this.octokit.rest.orgs.listForAuthenticatedUser({
-      per_page: 100,
-    })
+    // Use paginate to fetch all organizations
+    const allOrgsData = await this.octokit.paginate(
+      this.octokit.rest.orgs.listForAuthenticatedUser,
+      { per_page: 100 },
+    )
 
-    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
+    // Get rate limit from a simple request (paginate doesn't expose headers easily)
+    const rateLimit = await this.getRateLimit()
 
     const now = Date.now()
-    const orgs = response.data.map((org) => ({
+    const orgs = allOrgsData.map((org) => ({
       githubId: org.id,
       login: org.login,
       name: org.login,
@@ -217,18 +220,23 @@ export class GitHubClient {
     return { data: orgs, rateLimit, fromCache: false }
   }
 
-  // Fetch user's repositories (personal and org repos)
+  // Fetch user's repositories (personal and org repos) with pagination
   async fetchRepositories(): Promise<SyncResult<{ githubId: number; fullName: string }[]>> {
-    const response = await this.octokit.rest.repos.listForAuthenticatedUser({
-      per_page: 100,
-      sort: "updated",
-      affiliation: "owner,collaborator,organization_member",
-    })
+    // Use paginate to fetch all repositories
+    const allReposData = await this.octokit.paginate(
+      this.octokit.rest.repos.listForAuthenticatedUser,
+      {
+        per_page: 100,
+        sort: "updated",
+        affiliation: "owner,collaborator,organization_member",
+      },
+    )
 
-    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
+    // Get rate limit from a simple request
+    const rateLimit = await this.getRateLimit()
 
     const now = Date.now()
-    const repos = response.data.map((repo) => ({
+    const repos = allReposData.map((repo) => ({
       githubId: repo.id,
       name: repo.name,
       fullName: repo.full_name,
@@ -276,7 +284,7 @@ export class GitHubClient {
     return { data: repos, rateLimit, fromCache: false }
   }
 
-  // Fetch pull requests for a repository
+  // Fetch pull requests for a repository (with pagination)
   async fetchPullRequests(
     owner: string,
     repo: string,
@@ -284,7 +292,8 @@ export class GitHubClient {
   ): Promise<SyncResult<{ githubId: number; number: number }[]>> {
     const repoRecord = await this.ensureRepoRecord(owner, repo)
 
-    const response = await this.octokit.rest.pulls.list({
+    // Use paginate to fetch all pull requests
+    const allPrsData = await this.octokit.paginate(this.octokit.rest.pulls.list, {
       owner,
       repo,
       state,
@@ -293,10 +302,10 @@ export class GitHubClient {
       direction: "desc",
     })
 
-    const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
+    const rateLimit = await this.getRateLimit()
 
     const now = Date.now()
-    const prs = response.data.map((pr) => ({
+    const prs = allPrsData.map((pr) => ({
       githubId: pr.id,
       number: pr.number,
       title: pr.title,
