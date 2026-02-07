@@ -1,3 +1,4 @@
+import { id } from "@instantdb/admin"
 import type { WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./utils"
 
@@ -42,7 +43,6 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
   if (!pr || !repo || !isTrackedEvent(action)) return
 
   const repoFullName = repo.full_name as string
-  const prNodeId = pr.node_id as string
 
   // Find users who have this repo synced
   const reposResult = await db.query({
@@ -74,13 +74,12 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
     const prRecord = await ensurePRFromWebhook(db, pr, repoRecord)
     if (!prRecord) continue
 
-    // Build the event data
-    const eventId = `${prNodeId}:${action}:${Date.now()}`
+    // Generate a UUID for the event
+    const eventId = id()
 
     const now = Date.now()
     const baseEventData: Record<string, unknown> = {
-      id: eventId,
-      pullRequestId: prNodeId,
+      pullRequestId: prRecord.id, // Use the actual PR record ID
       eventType: action,
       actorLogin: (sender?.login as string) || null,
       actorAvatarUrl: (sender?.avatar_url as string) || null,

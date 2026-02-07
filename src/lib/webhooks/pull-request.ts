@@ -1,3 +1,4 @@
+import { id } from "@instantdb/admin"
 import type { WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
 
@@ -18,7 +19,7 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
   if (!pr || !repo) return
 
   const repoFullName = repo.full_name as string
-  const prNodeId = pr.node_id as string
+  const githubId = pr.id as number
 
   // Find users who have this repo synced
   const reposResult = await db.query({
@@ -46,10 +47,17 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
   }
 
   for (const repoRecord of repoRecords) {
+    // Find existing PR by githubId to get its UUID, or generate new one
+    const existingResult = await db.query({
+      pullRequests: {
+        $: { where: { githubId }, limit: 1 },
+      },
+    })
+    const prId = existingResult.pullRequests?.[0]?.id || id()
+
     const now = Date.now()
     const prData = {
-      id: prNodeId,
-      githubId: pr.id as number,
+      githubId,
       number: pr.number as number,
       repoId: repoRecord.id,
       title: pr.title as string,
@@ -94,7 +102,7 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
       prData.mergedAt = pr.merged_at ? new Date(pr.merged_at as string).getTime() : Date.now()
     }
 
-    await db.transact(db.tx.pullRequests[prNodeId].update(prData))
+    await db.transact(db.tx.pullRequests[prId].update(prData))
   }
 
   console.log(`Processed pull_request.${action} for ${repoFullName}#${pr.number as number}`)

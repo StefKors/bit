@@ -1,3 +1,4 @@
+import { id } from "@instantdb/admin"
 import type { WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./utils"
 
@@ -18,14 +19,14 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
 
   if (!review || !pr || !repo) return
 
-  const prNodeId = pr.node_id as string
-  const reviewNodeId = review.node_id as string
+  const prGithubId = pr.id as number
+  const reviewGithubId = review.id as number
   const repoFullName = repo.full_name as string
 
-  // Find the PR in our database
+  // Find the PR in our database by githubId
   const prResult = await db.query({
     pullRequests: {
-      $: { where: { id: prNodeId } },
+      $: { where: { githubId: prGithubId } },
     },
   })
 
@@ -63,10 +64,17 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
   }
 
   for (const prRecord of prRecords) {
+    // Find existing review by githubId to get its UUID, or generate new one
+    const existingReviewResult = await db.query({
+      prReviews: {
+        $: { where: { githubId: reviewGithubId }, limit: 1 },
+      },
+    })
+    const reviewId = existingReviewResult.prReviews?.[0]?.id || id()
+
     const now = Date.now()
     const reviewData = {
-      id: reviewNodeId,
-      githubId: review.id as number,
+      githubId: reviewGithubId,
       pullRequestId: prRecord.id,
       state: review.state as string,
       body: (review.body as string) || null,
@@ -79,7 +87,7 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
       updatedAt: now,
     }
 
-    await db.transact(db.tx.prReviews[reviewNodeId].update(reviewData))
+    await db.transact(db.tx.prReviews[reviewId].update(reviewData))
   }
 
   console.log(`Processed pull_request_review for PR #${pr.number as number}`)

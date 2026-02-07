@@ -1,3 +1,4 @@
+import { id } from "@instantdb/admin"
 import type { WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./utils"
 
@@ -23,17 +24,20 @@ export async function handleCommentWebhook(
 
   if (!comment || !repo) return
 
-  // For issue_comment on PRs, check if it's a PR
-  const prNodeId =
-    (pr?.node_id as string) || ((issue?.pull_request ? issue.node_id : null) as string | null)
-  if (!prNodeId) return
+  // For issue_comment on PRs, get the PR github ID
+  // pr.id is available for pull_request_review_comment
+  // For issue_comment on PRs, issue.id is used (PRs are also issues)
+  const prGithubId =
+    (pr?.id as number) || ((issue?.pull_request ? issue.id : null) as number | null)
+  if (!prGithubId) return
 
   const repoFullName = repo.full_name as string
 
-  // Find the PR in our database
+  // Find the PR in our database by number (more reliable than githubId for issue_comments)
+  const prNumber = (pr?.number as number) || (issue?.number as number)
   const prResult = await db.query({
     pullRequests: {
-      $: { where: { id: prNodeId } },
+      $: { where: { githubId: prGithubId } },
     },
   })
 
@@ -71,11 +75,19 @@ export async function handleCommentWebhook(
   }
 
   for (const prRecord of prRecords) {
+    const commentGithubId = comment.id as number
+
+    // Find existing comment by githubId to get its UUID, or generate new one
+    const existingCommentResult = await db.query({
+      prComments: {
+        $: { where: { githubId: commentGithubId }, limit: 1 },
+      },
+    })
+    const commentId = existingCommentResult.prComments?.[0]?.id || id()
+
     const now = Date.now()
-    const commentId = comment.node_id as string
     const commentData = {
-      id: commentId,
-      githubId: comment.id as number,
+      githubId: commentGithubId,
       pullRequestId: prRecord.id,
       reviewId: (comment.pull_request_review_id as string) || null,
       commentType: eventType === "pull_request_review_comment" ? "review_comment" : "issue_comment",
@@ -97,5 +109,5 @@ export async function handleCommentWebhook(
     await db.transact(db.tx.prComments[commentId].update(commentData))
   }
 
-  console.log(`Processed ${eventType} for PR`)
+  console.log(`Processed ${eventType} for PR #${prNumber}`)
 }

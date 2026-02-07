@@ -1,3 +1,4 @@
+import { id } from "@instantdb/admin"
 import type { WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
 import { ensureIssueFromWebhook } from "./issue"
@@ -30,12 +31,12 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
   }
 
   const repoFullName = repo.full_name as string
-  const issueNodeId = issue.node_id as string
+  const issueGithubId = issue.id as number
 
-  // Find the issue in our database
+  // Find the issue in our database by githubId
   const issuesResult = await db.query({
     issues: {
-      $: { where: { id: issueNodeId } },
+      $: { where: { githubId: issueGithubId } },
     },
   })
 
@@ -79,18 +80,35 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
 
   // Handle delete action
   if (action === "deleted") {
-    const commentNodeId = comment.node_id as string
-    await db.transact(db.tx.issueComments[commentNodeId].delete())
+    const commentGithubId = comment.id as number
+    // Find existing comment by githubId
+    const existingResult = await db.query({
+      issueComments: {
+        $: { where: { githubId: commentGithubId }, limit: 1 },
+      },
+    })
+    const existingComment = existingResult.issueComments?.[0]
+    if (existingComment) {
+      await db.transact(db.tx.issueComments[existingComment.id].delete())
+    }
     console.log(`Deleted issue comment for ${repoFullName}#${issue.number as number}`)
     return
   }
 
   for (const issueRecord of issueRecords) {
+    const commentGithubId = comment.id as number
+
+    // Find existing comment by githubId to get its UUID, or generate new one
+    const existingResult = await db.query({
+      issueComments: {
+        $: { where: { githubId: commentGithubId }, limit: 1 },
+      },
+    })
+    const commentId = existingResult.issueComments?.[0]?.id || id()
+
     const now = Date.now()
-    const commentId = comment.node_id as string
     const commentData = {
-      id: commentId,
-      githubId: comment.id as number,
+      githubId: commentGithubId,
       issueId: issueRecord.id,
       body: (comment.body as string) || null,
       authorLogin: ((comment.user as Record<string, unknown>)?.login as string) || null,
