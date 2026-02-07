@@ -13,6 +13,8 @@
 - **Webhook Support**: Real-time updates via GitHub webhooks
 - Diff viewer component from [pierre](https://diffs.com)
 
+<img src="Screenshot.png">
+
 ## Setup
 
 ### Environment Variables

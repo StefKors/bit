@@ -1,3 +1,4 @@
+import { id } from "@instantdb/admin"
 import type { WebhookDB, WebhookPayload, OrganizationEvent } from "./types"
 import { findUserBySender } from "./utils"
 
@@ -90,13 +91,13 @@ export async function ensureOrgFromWebhook(
   org: Record<string, unknown>,
   userId: string,
 ) {
-  const nodeId = org.node_id as string
+  const githubId = org.id as number
   const login = org.login as string
 
-  // Check if org already exists for this user
+  // Check if org already exists by githubId
   const existingResult = await db.query({
     organizations: {
-      $: { where: { login }, limit: 1 },
+      $: { where: { githubId }, limit: 1 },
     },
   })
 
@@ -105,10 +106,12 @@ export async function ensureOrgFromWebhook(
     return existing[0]
   }
 
+  // Generate a UUID for this org
+  const orgId = id()
+
   const now = Date.now()
   const orgData = {
-    id: nodeId,
-    githubId: org.id as number,
+    githubId,
     login,
     name: (org.name as string) || null,
     description: (org.description as string) || null,
@@ -120,12 +123,12 @@ export async function ensureOrgFromWebhook(
     updatedAt: now,
   }
 
-  await db.transact(db.tx.organizations[nodeId].update(orgData))
+  await db.transact(db.tx.organizations[orgId].update(orgData))
 
   // Fetch the inserted record
   const insertedResult = await db.query({
     organizations: {
-      $: { where: { login }, limit: 1 },
+      $: { where: { id: orgId }, limit: 1 },
     },
   })
 

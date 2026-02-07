@@ -1,3 +1,4 @@
+import { id } from "@instantdb/admin"
 import type { WebhookDB, WebhookPayload, RepoRecord, IssueRecord } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
 
@@ -24,7 +25,7 @@ export const handleIssueWebhook = async (db: WebhookDB, payload: WebhookPayload)
   }
 
   const repoFullName = repo.full_name as string
-  const issueNodeId = issue.node_id as string
+  const githubId = issue.id as number
 
   // Find users who have this repo synced
   const reposResult = await db.query({
@@ -52,10 +53,17 @@ export const handleIssueWebhook = async (db: WebhookDB, payload: WebhookPayload)
   }
 
   for (const repoRecord of repoRecords) {
+    // Find existing issue by githubId to get its UUID, or generate new one
+    const existingResult = await db.query({
+      issues: {
+        $: { where: { githubId }, limit: 1 },
+      },
+    })
+    const issueId = existingResult.issues?.[0]?.id || id()
+
     const now = Date.now()
     const issueData = {
-      id: issueNodeId,
-      githubId: issue.id as number,
+      githubId,
       number: issue.number as number,
       repoId: repoRecord.id,
       title: issue.title as string,
@@ -93,7 +101,7 @@ export const handleIssueWebhook = async (db: WebhookDB, payload: WebhookPayload)
       updatedAt: now,
     }
 
-    await db.transact(db.tx.issues[issueNodeId].update(issueData))
+    await db.transact(db.tx.issues[issueId].update(issueData))
   }
 
   console.log(`Processed issues.${action} for ${repoFullName}#${issue.number as number}`)
@@ -108,12 +116,12 @@ export const ensureIssueFromWebhook = async (
   issue: Record<string, unknown>,
   repoRecord: RepoRecord,
 ): Promise<IssueRecord | null> => {
-  const issueNodeId = issue.node_id as string
+  const githubId = issue.id as number
 
-  // Check if issue already exists
+  // Check if issue already exists by githubId
   const existingResult = await db.query({
     issues: {
-      $: { where: { id: issueNodeId }, limit: 1 },
+      $: { where: { githubId }, limit: 1 },
     },
   })
 
@@ -122,10 +130,12 @@ export const ensureIssueFromWebhook = async (
     return existing[0] as IssueRecord
   }
 
+  // Generate a new UUID for this issue
+  const issueId = id()
+
   const now = Date.now()
   const issueData = {
-    id: issueNodeId,
-    githubId: issue.id as number,
+    githubId,
     number: issue.number as number,
     repoId: repoRecord.id,
     title: issue.title as string,
@@ -163,12 +173,12 @@ export const ensureIssueFromWebhook = async (
     updatedAt: now,
   }
 
-  await db.transact(db.tx.issues[issueNodeId].update(issueData))
+  await db.transact(db.tx.issues[issueId].update(issueData))
 
   // Fetch the inserted record
   const insertedResult = await db.query({
     issues: {
-      $: { where: { id: issueNodeId }, limit: 1 },
+      $: { where: { id: issueId }, limit: 1 },
     },
   })
 

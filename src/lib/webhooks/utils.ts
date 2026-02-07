@@ -1,3 +1,4 @@
+import { id } from "@instantdb/admin"
 import type { WebhookDB, RepoRecord, PRRecord } from "./types"
 
 /**
@@ -26,13 +27,13 @@ export async function ensureRepoFromWebhook(
   repo: Record<string, unknown>,
   userId: string,
 ): Promise<RepoRecord | null> {
-  const nodeId = repo.node_id as string
+  const githubId = repo.id as number
   const fullName = repo.full_name as string
 
-  // Check if repo already exists for this user
+  // Check if repo already exists for this user by githubId
   const existingResult = await db.query({
     repos: {
-      $: { where: { fullName, userId }, limit: 1 },
+      $: { where: { githubId }, limit: 1 },
     },
   })
 
@@ -41,12 +42,14 @@ export async function ensureRepoFromWebhook(
     return existing[0] as RepoRecord
   }
 
+  // Generate a new UUID for this repo
+  const repoId = id()
+
   const owner = repo.owner as Record<string, unknown>
   const now = Date.now()
 
   const repoData = {
-    id: nodeId,
-    githubId: repo.id as number,
+    githubId,
     name: repo.name as string,
     fullName,
     owner: owner.login as string,
@@ -70,12 +73,12 @@ export async function ensureRepoFromWebhook(
     updatedAt: now,
   }
 
-  await db.transact(db.tx.repos[nodeId].update(repoData))
+  await db.transact(db.tx.repos[repoId].update(repoData))
 
   // Fetch the inserted record
   const insertedResult = await db.query({
     repos: {
-      $: { where: { fullName, userId }, limit: 1 },
+      $: { where: { id: repoId }, limit: 1 },
     },
   })
 
@@ -94,12 +97,12 @@ export async function ensurePRFromWebhook(
   pr: Record<string, unknown>,
   repoRecord: RepoRecord,
 ): Promise<PRRecord | null> {
-  const prNodeId = pr.node_id as string
+  const githubId = pr.id as number
 
-  // Check if PR already exists
+  // Check if PR already exists by githubId
   const existingResult = await db.query({
     pullRequests: {
-      $: { where: { id: prNodeId }, limit: 1 },
+      $: { where: { githubId }, limit: 1 },
     },
   })
 
@@ -108,10 +111,12 @@ export async function ensurePRFromWebhook(
     return existing[0] as PRRecord
   }
 
+  // Generate a new UUID for this PR
+  const prId = id()
+
   const now = Date.now()
   const prData = {
-    id: prNodeId,
-    githubId: pr.id as number,
+    githubId,
     number: pr.number as number,
     repoId: repoRecord.id,
     title: pr.title as string,
@@ -151,12 +156,12 @@ export async function ensurePRFromWebhook(
     updatedAt: now,
   }
 
-  await db.transact(db.tx.pullRequests[prNodeId].update(prData))
+  await db.transact(db.tx.pullRequests[prId].update(prData))
 
   // Fetch the inserted record
   const insertedResult = await db.query({
     pullRequests: {
-      $: { where: { id: prNodeId }, limit: 1 },
+      $: { where: { id: prId }, limit: 1 },
     },
   })
 
