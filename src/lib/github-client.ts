@@ -4,6 +4,7 @@ import { adminDb } from "./instantAdmin"
 import { findOrCreateSyncStateId } from "./sync-state"
 import { buildTreeEntries, computeStaleEntries, type GitHubTreeItem } from "./sync-trees"
 import { buildCommitEntries, computeStaleCommits, type GitHubCommit } from "./sync-commits"
+import { log } from "./logger"
 
 export interface RateLimitInfo {
   remaining: number
@@ -98,7 +99,7 @@ async function withRateLimitRetry<T>(fn: () => Promise<T>): Promise<T> {
       }
       const delay =
         getRateLimitRetryDelay(error as RequestError) * Math.pow(2, attempt) + Math.random() * 1000
-      console.log(`Rate limited, retrying in ${Math.round(delay / 1000)}s (attempt ${attempt + 1})`)
+      log.warn("Rate limited, retrying", { delayMs: Math.round(delay), attempt: attempt + 1 })
       await new Promise((resolve) => setTimeout(resolve, delay))
     }
   }
@@ -969,7 +970,7 @@ export class GitHubClient {
 
     if (!webhookUrl || !webhookSecret) {
       const error = "BASE_URL or GITHUB_WEBHOOK_SECRET not configured"
-      console.log(`Skipping webhook registration for ${fullName}: ${error}`)
+      log.warn("Skipping webhook registration: not configured", { repo: fullName })
       await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.NOT_INSTALLED, error)
       return { success: false, status: GitHubClient.WEBHOOK_STATUS.NOT_INSTALLED, error }
     }
@@ -985,7 +986,7 @@ export class GitHubClient {
       const existingHook = existingHooks.find((hook) => hook.config.url === webhookUrl)
 
       if (existingHook) {
-        console.log(`Webhook already exists for ${fullName}`)
+        log.info("Webhook already exists", { repo: fullName })
         await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.INSTALLED)
         return { success: true, status: GitHubClient.WEBHOOK_STATUS.INSTALLED }
       }
@@ -1016,7 +1017,7 @@ export class GitHubClient {
         active: true,
       })
 
-      console.log(`Webhook registered for ${fullName}`)
+      log.info("Webhook registered", { repo: fullName })
       await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.INSTALLED)
       return { success: true, status: GitHubClient.WEBHOOK_STATUS.INSTALLED }
     } catch (err) {
@@ -1029,16 +1030,18 @@ export class GitHubClient {
 
       // 422 with "Hook already exists" means webhook is already installed (possibly with different config)
       if (error.status === 422 && errorMessage.includes("Hook already exists")) {
-        console.log(`Webhook already exists for ${fullName} (different config)`)
+        log.info("Webhook already exists (different config)", { repo: fullName })
         await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.INSTALLED)
         return { success: true, status: GitHubClient.WEBHOOK_STATUS.INSTALLED }
       }
 
       // 404 or 403 means we don't have permission - that's expected for repos we don't own
       if (error.status === 404 || error.status === 403) {
-        console.log(
-          `Cannot register webhook for ${fullName}: ${errorMessage} (status: ${error.status})`,
-        )
+        log.info("No webhook access (expected for non-owned repos)", {
+          repo: fullName,
+          status: error.status,
+          reason: errorMessage,
+        })
         await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.NO_ACCESS, errorMessage)
         return {
           success: false,
@@ -1047,7 +1050,7 @@ export class GitHubClient {
         }
       }
 
-      console.error(`Error registering webhook for ${fullName}:`, errorMessage, err)
+      log.error("Webhook registration failed", err, { repo: fullName, reason: errorMessage })
       await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.ERROR, errorMessage)
       return { success: false, status: GitHubClient.WEBHOOK_STATUS.ERROR, error: errorMessage }
     }
@@ -1143,7 +1146,7 @@ export class GitHubClient {
     webhooks: number
     openPRs: number
   }> {
-    console.log(`Starting initial sync for user ${this.userId}`)
+    log.info("Starting initial sync", { userId: this.userId })
 
     let orgsCount = 0
     let reposCount = 0
@@ -1173,7 +1176,7 @@ export class GitHubClient {
       await updateProgress("orgs")
       const orgsResult = await this.fetchOrganizations()
       orgsCount = orgsResult.data.length
-      console.log(`Synced ${orgsCount} organizations`)
+      log.info("Synced organizations", { count: orgsCount, userId: this.userId })
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to sync organizations"
       await updateProgress("orgs", { error: msg })
@@ -1186,7 +1189,7 @@ export class GitHubClient {
       const reposResult = await this.fetchRepositories()
       reposCount = reposResult.data.length
       reposData = reposResult.data as typeof reposData
-      console.log(`Synced ${reposCount} repositories`)
+      log.info("Synced repositories", { count: reposCount, userId: this.userId })
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to sync repositories"
       await updateProgress("repos", { error: msg })
@@ -1202,7 +1205,7 @@ export class GitHubClient {
         const result = await this.registerRepoWebhook(owner, repoName)
         if (result.success) webhooksRegistered++
       }
-      console.log(`Registered webhooks for ${webhooksRegistered} repositories`)
+      log.info("Registered webhooks", { count: webhooksRegistered, userId: this.userId })
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to register webhooks"
       await updateProgress("webhooks", { error: msg })
@@ -1229,17 +1232,26 @@ export class GitHubClient {
         totalOpenPRs += prsResult.data.length
       } catch (err) {
         prErrors++
-        console.error(`Error syncing PRs for ${repo.fullName}:`, err)
+        log.error("PR sync failed during initial sync", err, {
+          repo: repo.fullName,
+          userId: this.userId,
+        })
         if (isRateLimitError(err)) {
-          console.log(`Rate limited during PR sync at repo ${i + 1}/${sortedRepos.length}, pausing`)
+          log.warn("Rate limited during PR sync, pausing", {
+            repoIndex: i + 1,
+            total: sortedRepos.length,
+          })
           const delay = err instanceof RequestError ? getRateLimitRetryDelay(err) : 60_000
           await new Promise((resolve) => setTimeout(resolve, delay))
         }
       }
     }
-    console.log(
-      `Synced ${totalOpenPRs} open PRs from ${sortedRepos.length} repos (${prErrors} errors)`,
-    )
+    log.info("Initial PR sync complete", {
+      openPRs: totalOpenPRs,
+      repos: sortedRepos.length,
+      errors: prErrors,
+      userId: this.userId,
+    })
 
     await updateProgress("completed")
 
@@ -1268,7 +1280,7 @@ export async function createGitHubClient(userId: string): Promise<GitHubClient |
     const tokenState = syncStates?.[0]
 
     if (tokenState?.syncStatus === "auth_invalid") {
-      console.error("GitHub token is known-invalid for user:", userId)
+      log.warn("GitHub token is known-invalid", { userId })
       return null
     }
 
@@ -1280,14 +1292,14 @@ export async function createGitHubClient(userId: string): Promise<GitHubClient |
 
     const globalToken = process.env.GITHUB_ACCESS_TOKEN
     if (globalToken) {
-      console.log("Using global GitHub access token (user token not found)")
+      log.info("Using global GitHub access token (user token not found)", { userId })
       return new GitHubClient(globalToken, userId)
     }
 
-    console.error("No GitHub access token available for user:", userId)
+    log.warn("No GitHub access token available", { userId })
     return null
   } catch (err) {
-    console.error("Error fetching GitHub token for user:", userId, err)
+    log.error("Failed to fetch GitHub token", err, { userId })
 
     // Fall back to environment variable
     const globalToken = process.env.GITHUB_ACCESS_TOKEN

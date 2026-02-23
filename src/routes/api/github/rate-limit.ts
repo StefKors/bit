@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { createGitHubClient } from "@/lib/github-client"
+import { log } from "@/lib/logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/api/github/rate-limit")({
           const rateLimit = await client.getRateLimit()
           return jsonResponse({ rateLimit })
         } catch (error) {
-          console.error("Error fetching rate limit:", error)
+          log.error("Failed to fetch rate limit", error, { op: "rate-limit", userId })
           return jsonResponse({ error: "Failed to fetch rate limit" }, 500)
         }
       },

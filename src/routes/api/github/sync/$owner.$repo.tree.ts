@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { createGitHubClient, isGitHubAuthError, handleGitHubAuthError } from "@/lib/github-client"
+import { log } from "@/lib/logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -11,7 +12,6 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/tree")({
   server: {
     handlers: {
       POST: async ({ request, params }) => {
-        // Get user from request headers
         const authHeader = request.headers.get("Authorization")
         const userId = authHeader?.replace("Bearer ", "") || ""
 
@@ -22,21 +22,24 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/tree")({
         const { owner, repo } = params
         const url = new URL(request.url)
         const ref = url.searchParams.get("ref") || undefined
+        const ctx = { op: "sync-tree", repo: `${owner}/${repo}`, ref, userId }
 
         const client = await createGitHubClient(userId)
         if (!client) {
+          log.warn("GitHub client not available", ctx)
           return jsonResponse({ error: "GitHub account not connected" }, 400)
         }
 
         try {
           const result = await client.fetchRepoTree(owner, repo, ref)
+          log.info("Tree sync complete", { ...ctx, count: result.count })
 
           return jsonResponse({
             count: result.count,
             rateLimit: result.rateLimit,
           })
         } catch (error) {
-          console.error("Error syncing tree:", error)
+          log.error("Tree sync failed", error, ctx)
 
           if (isGitHubAuthError(error)) {
             await handleGitHubAuthError(userId)

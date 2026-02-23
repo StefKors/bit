@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { createGitHubClient, isGitHubAuthError, handleGitHubAuthError } from "@/lib/github-client"
+import { log } from "@/lib/logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -23,20 +24,24 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo")({
         const url = new URL(request.url)
         const state = (url.searchParams.get("state") as "open" | "closed" | "all") || "all"
 
+        const ctx = { op: "sync-prs", repo: `${owner}/${repo}`, state, userId }
+
         const client = await createGitHubClient(userId)
         if (!client) {
+          log.warn("GitHub client not available", ctx)
           return jsonResponse({ error: "GitHub account not connected" }, 400)
         }
 
         try {
           const result = await client.fetchPullRequests(owner, repo, state)
+          log.info("PR sync complete", { ...ctx, count: result.data.length })
 
           return jsonResponse({
             pullRequests: result.data.length,
             rateLimit: result.rateLimit,
           })
         } catch (error) {
-          console.error("Error syncing pull requests:", error)
+          log.error("PR sync failed", error, ctx)
 
           if (isGitHubAuthError(error)) {
             await handleGitHubAuthError(userId)
