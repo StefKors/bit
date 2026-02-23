@@ -1,0 +1,23 @@
+---
+description: Run lint before committing. Apply when committing, creating commits, or saving progress.
+alwaysApply: false
+---
+
+# Commit Workflow
+
+## Lint Before Committing
+
+**Always run `bun run lint` before committing.** Fix any lint errors before staging and committing changes.
+
+```bash
+bun run lint
+```
+
+If lint fails, fix the errors, then run format and lint again before committing:
+
+```bash
+bun run format
+bun run lint
+```
+
+Only commit when lint passes with 0 errors.

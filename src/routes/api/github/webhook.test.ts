@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { createHmac } from "crypto"
+import { getRouteHandler, parseJsonResponse } from "@/lib/test-helpers"
 
 vi.mock("@instantdb/admin", () => ({
   id: vi.fn(() => "mock-id"),
@@ -58,7 +59,7 @@ describe("POST /api/github/webhook", () => {
     vi.resetModules()
 
     const { Route } = await import("./webhook")
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const payload = JSON.stringify({ action: "opened" })
@@ -72,14 +73,14 @@ describe("POST /api/github/webhook", () => {
       },
     })
     const res = await handler({ request })
-    const body = await res.json()
-    expect(res.status).toBe(500)
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(500)
     expect(body.error).toBe("Webhook not configured")
   })
 
   it("returns 401 when signature is invalid", async () => {
     const { Route } = await import("./webhook")
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const payload = JSON.stringify({ zen: "pong" })
@@ -93,14 +94,14 @@ describe("POST /api/github/webhook", () => {
       },
     })
     const res = await handler({ request })
-    const body = await res.json()
-    expect(res.status).toBe(401)
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(401)
     expect(body.error).toBe("Invalid signature")
   })
 
   it("returns 400 for invalid JSON payload", async () => {
     const { Route } = await import("./webhook")
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const payload = "not valid json"
@@ -114,14 +115,14 @@ describe("POST /api/github/webhook", () => {
       },
     })
     const res = await handler({ request })
-    const body = await res.json()
-    expect(res.status).toBe(400)
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(400)
     expect(body.error).toBe("Invalid JSON payload")
   })
 
   it("returns received true for valid ping event", async () => {
     const { Route } = await import("./webhook")
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const payload = JSON.stringify({ zen: "pong" })
@@ -135,8 +136,8 @@ describe("POST /api/github/webhook", () => {
       },
     })
     const res = await handler({ request })
-    const body = await res.json()
-    expect(res.status).toBe(200)
+    const { status, body } = await parseJsonResponse<{ received: boolean }>(res)
+    expect(status).toBe(200)
     expect(body.received).toBe(true)
   })
 })

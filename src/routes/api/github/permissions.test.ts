@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { createGitHubClient } from "@/lib/github-client"
-import { makeAuthRequest, makeRequest, parseJsonResponse } from "@/lib/test-helpers"
+import {
+  getRouteHandler,
+  makeAuthRequest,
+  makeRequest,
+  parseJsonResponse,
+} from "@/lib/test-helpers"
 import { createMockGitHubClient } from "@/lib/api/route-mocks"
 
 vi.mock("@/lib/github-client", () => ({
@@ -19,7 +24,7 @@ describe("GET /api/github/permissions", () => {
   })
 
   it("returns 401 when no auth header", async () => {
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeRequest("http://localhost/api/github/permissions")
@@ -30,7 +35,7 @@ describe("GET /api/github/permissions", () => {
   it("returns 400 when client creation fails", async () => {
     vi.mocked(createGitHubClient).mockResolvedValue(null)
 
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeAuthRequest("http://localhost/api/github/permissions", "user-1")
@@ -39,7 +44,7 @@ describe("GET /api/github/permissions", () => {
   })
 
   it("returns permission report on success", async () => {
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeAuthRequest("http://localhost/api/github/permissions", "user-1")
@@ -51,11 +56,11 @@ describe("GET /api/github/permissions", () => {
   })
 
   it("returns 500 when getTokenScopes throws", async () => {
-    vi.mocked(createGitHubClient).mockResolvedValue({
-      getTokenScopes: vi.fn().mockRejectedValue(new Error("fail")),
-    })
+    vi.mocked(createGitHubClient).mockResolvedValue(
+      createMockGitHubClient({ getTokenScopes: vi.fn().mockRejectedValue(new Error("fail")) }),
+    )
 
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeAuthRequest("http://localhost/api/github/permissions", "user-1")

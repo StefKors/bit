@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { makeAuthRequest, makeRequest, parseJsonResponse } from "@/lib/test-helpers"
+import {
+  getRouteHandler,
+  makeAuthRequest,
+  makeRequest,
+  parseJsonResponse,
+} from "@/lib/test-helpers"
 
 const mockGetContent = vi.hoisted(() => vi.fn())
 
@@ -42,7 +47,7 @@ describe("GET /api/github/file/:owner/:repo/*", () => {
   })
 
   it("returns 401 when no auth header", async () => {
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeRequest("http://localhost/api/github/file/o/r/path")
@@ -57,7 +62,7 @@ describe("GET /api/github/file/:owner/:repo/*", () => {
     const { adminDb } = await import("@/lib/instantAdmin")
     vi.mocked(adminDb.query).mockResolvedValue({ syncStates: [] })
 
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeAuthRequest("http://localhost/api/github/file/o/r/path", "user-1")
@@ -69,7 +74,7 @@ describe("GET /api/github/file/:owner/:repo/*", () => {
   })
 
   it("returns file content on success", async () => {
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeAuthRequest("http://localhost/api/github/file/o/r/src/foo.ts", "user-1")
@@ -87,7 +92,7 @@ describe("GET /api/github/file/:owner/:repo/*", () => {
   it("returns 400 when path is a directory", async () => {
     mockGetContent.mockResolvedValueOnce({ data: [] })
 
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeAuthRequest("http://localhost/api/github/file/o/r/dir", "user-1")

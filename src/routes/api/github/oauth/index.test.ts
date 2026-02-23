@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { makeRequest } from "@/lib/test-helpers"
+import { getRouteHandler, makeRequest, parseJsonResponse } from "@/lib/test-helpers"
 
 describe("GET /api/github/oauth/", () => {
   beforeEach(() => {
@@ -10,20 +10,20 @@ describe("GET /api/github/oauth/", () => {
 
   it("returns 400 when userId is missing", async () => {
     const { Route } = await import("./index")
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeRequest("http://localhost/api/github/oauth/")
     const res = await handler({ request })
-    const body = await res.json()
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
 
-    expect(res.status).toBe(400)
+    expect(status).toBe(400)
     expect(body.error).toBe("userId is required")
   })
 
   it("returns 302 redirect to GitHub when userId provided", async () => {
     const { Route } = await import("./index")
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeRequest("http://localhost/api/github/oauth/?userId=user-123")
@@ -41,14 +41,14 @@ describe("GET /api/github/oauth/", () => {
     vi.resetModules()
 
     const { Route } = await import("./index")
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeRequest("http://localhost/api/github/oauth/?userId=user-123")
     const res = await handler({ request })
-    const body = await res.json()
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
 
-    expect(res.status).toBe(500)
+    expect(status).toBe(500)
     expect(body.error).toBe("GitHub OAuth not configured")
   })
 })

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
+import { getRouteHandler } from "@/lib/test-helpers"
 
 vi.mock("@/lib/instantAdmin", () => ({
   adminDb: {
@@ -73,7 +74,7 @@ describe("GET /api/github/oauth/callback", () => {
 
   it("redirects with error when OAuth error param present", async () => {
     const { Route } = await import("./callback")
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = new Request(
@@ -87,7 +88,7 @@ describe("GET /api/github/oauth/callback", () => {
 
   it("redirects when installation_id present but no code", async () => {
     const { Route } = await import("./callback")
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = new Request(
@@ -101,7 +102,7 @@ describe("GET /api/github/oauth/callback", () => {
 
   it("redirects with error when code or state missing", async () => {
     const { Route } = await import("./callback")
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = new Request("http://localhost/api/github/oauth/callback")
@@ -113,7 +114,7 @@ describe("GET /api/github/oauth/callback", () => {
 
   it("redirects to app with github=connected on success", async () => {
     const { Route } = await import("./callback")
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = new Request(

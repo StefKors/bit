@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { makeAuthRequest, makeRequest, parseJsonResponse } from "@/lib/test-helpers"
+import {
+  getRouteHandler,
+  makeAuthRequest,
+  makeRequest,
+  parseJsonResponse,
+} from "@/lib/test-helpers"
 
 const mockGetReadme = vi.hoisted(() => vi.fn())
 
@@ -39,7 +44,7 @@ describe("GET /api/github/readme/:owner/:repo", () => {
   })
 
   it("returns 401 when no auth header", async () => {
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeRequest("http://localhost/api/github/readme/o/r")
@@ -51,7 +56,7 @@ describe("GET /api/github/readme/:owner/:repo", () => {
     const { adminDb } = await import("@/lib/instantAdmin")
     vi.mocked(adminDb.query).mockResolvedValue({ syncStates: [] })
 
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeAuthRequest("http://localhost/api/github/readme/o/r", "user-1")
@@ -60,7 +65,7 @@ describe("GET /api/github/readme/:owner/:repo", () => {
   })
 
   it("returns README content on success", async () => {
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeAuthRequest("http://localhost/api/github/readme/o/r", "user-1")
@@ -75,7 +80,7 @@ describe("GET /api/github/readme/:owner/:repo", () => {
   it("returns content null for 404", async () => {
     mockGetReadme.mockRejectedValueOnce({ status: 404 })
 
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = makeAuthRequest("http://localhost/api/github/readme/o/r", "user-1")

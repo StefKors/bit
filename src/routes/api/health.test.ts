@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest"
 import { Route } from "./health"
-import { parseJsonResponse } from "@/lib/test-helpers"
+import { getRouteHandler, parseJsonResponse } from "@/lib/test-helpers"
 
 describe("GET /api/health", () => {
   it("returns ok status with timestamp", async () => {
-    const handler = Route.options.server?.handlers?.GET
+    const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = new Request("http://localhost/api/health")

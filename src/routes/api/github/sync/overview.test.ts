@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { createGitHubClient } from "@/lib/github-client"
-import { makeAuthRequest, makeRequest, parseJsonResponse } from "@/lib/test-helpers"
+import {
+  getRouteHandler,
+  makeAuthRequest,
+  makeRequest,
+  parseJsonResponse,
+} from "@/lib/test-helpers"
 import { createMockGitHubClient } from "@/lib/api/route-mocks"
 
 vi.mock("@/lib/github-client", () => ({
@@ -21,7 +26,7 @@ describe("POST /api/github/sync/overview", () => {
   })
 
   it("returns 401 when no auth header", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeRequest("http://localhost/api/github/sync/overview", { method: "POST" })
@@ -30,7 +35,7 @@ describe("POST /api/github/sync/overview", () => {
   })
 
   it("returns started status on success", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/overview", "user-1", {

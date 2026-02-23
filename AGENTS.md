@@ -82,6 +82,7 @@ bun run instant:push
 - Run `bun run format` after making changes to ensure consistent code style
 - The project uses [oxfmt](https://oxc.rs/docs/guide/usage/formatter.html) for formatting TypeScript/JavaScript files
 - VS Code is configured to format on save via the `oxc.oxc-vscode` extension
+- **Always run `bun run lint` before committing.** Fix any lint errors before staging and committing.
 
 # react
 

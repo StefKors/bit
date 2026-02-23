@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { createGitHubClient } from "@/lib/github-client"
-import { makeAuthRequest, makeRequest, parseJsonResponse } from "@/lib/test-helpers"
+import {
+  getRouteHandler,
+  makeAuthRequest,
+  makeRequest,
+  parseJsonResponse,
+} from "@/lib/test-helpers"
 import { createMockGitHubClient, mockRateLimit } from "@/lib/api/route-mocks"
 
 vi.mock("@/lib/github-client", () => ({
@@ -46,7 +51,7 @@ describe("POST /api/github/sync/retry", () => {
   })
 
   it("returns 401 when no auth header", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeRequest("http://localhost/api/github/sync/retry", { method: "POST" })
@@ -60,7 +65,7 @@ describe("POST /api/github/sync/retry", () => {
   })
 
   it("returns 400 when resourceType is missing", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/retry", "user-1")
@@ -70,8 +75,8 @@ describe("POST /api/github/sync/retry", () => {
       headers: { ...Object.fromEntries(request.headers), "Content-Type": "application/json" },
     })
     const res = await handler({ request: req })
-    const body = await res.json()
-    expect(res.status).toBe(400)
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(400)
     expect(body.error).toBe("resourceType is required")
   })
 
@@ -82,7 +87,7 @@ describe("POST /api/github/sync/retry", () => {
       }),
     )
 
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/retry", "user-1")
@@ -105,7 +110,7 @@ describe("POST /api/github/sync/retry", () => {
       }),
     )
 
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/retry", "user-1")
@@ -122,7 +127,7 @@ describe("POST /api/github/sync/retry", () => {
   })
 
   it("returns 400 for pulls without resourceId", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/retry", "user-1")
@@ -132,8 +137,8 @@ describe("POST /api/github/sync/retry", () => {
       headers: { ...Object.fromEntries(request.headers), "Content-Type": "application/json" },
     })
     const res = await handler({ request: req })
-    const body = await res.json()
-    expect(res.status).toBe(400)
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(400)
     expect(body.error).toBe("resourceId required for pull requests")
   })
 
@@ -143,7 +148,7 @@ describe("POST /api/github/sync/retry", () => {
       webhookDeliveries: [{ id: "d1", event: "push", payload: JSON.stringify({}) }],
     })
 
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/retry", "user-1")
@@ -161,7 +166,7 @@ describe("POST /api/github/sync/retry", () => {
   })
 
   it("returns 400 for unsupported resource type", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/retry", "user-1")
@@ -171,8 +176,8 @@ describe("POST /api/github/sync/retry", () => {
       headers: { ...Object.fromEntries(request.headers), "Content-Type": "application/json" },
     })
     const res = await handler({ request: req })
-    const body = await res.json()
-    expect(res.status).toBe(400)
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(400)
     expect(body.error).toBe("Unsupported resource type")
   })
 })

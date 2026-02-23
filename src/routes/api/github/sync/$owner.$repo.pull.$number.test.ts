@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { createGitHubClient } from "@/lib/github-client"
-import { makeAuthRequest, makeRequest, parseJsonResponse } from "@/lib/test-helpers"
+import {
+  getRouteHandler,
+  makeAuthRequest,
+  makeRequest,
+  parseJsonResponse,
+} from "@/lib/test-helpers"
 import { createMockGitHubClient, mockRateLimit } from "@/lib/api/route-mocks"
 
 vi.mock("@/lib/github-client", () => ({
@@ -24,7 +29,7 @@ describe("POST /api/github/sync/:owner/:repo/pull/:number", () => {
   })
 
   it("returns 401 when no auth header", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeRequest("http://localhost/api/github/sync/o/r/pull/1", { method: "POST" })
@@ -36,7 +41,7 @@ describe("POST /api/github/sync/:owner/:repo/pull/:number", () => {
   })
 
   it("returns 400 for invalid pull number", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/o/r/pull/abc", "user-1", {
@@ -46,13 +51,13 @@ describe("POST /api/github/sync/:owner/:repo/pull/:number", () => {
       request,
       params: { owner: "o", repo: "r", number: "abc" },
     })
-    const body = await res.json()
-    expect(res.status).toBe(400)
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(400)
     expect(body.error).toBe("Invalid pull request number")
   })
 
   it("returns prId on success", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/o/r/pull/42", "user-1", {

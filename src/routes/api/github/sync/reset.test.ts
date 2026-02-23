@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { makeAuthRequest, makeRequest, parseJsonResponse } from "@/lib/test-helpers"
+import {
+  getRouteHandler,
+  makeAuthRequest,
+  makeRequest,
+  parseJsonResponse,
+} from "@/lib/test-helpers"
 
 vi.mock("@/lib/instantAdmin", () => ({
   adminDb: {
@@ -34,7 +39,7 @@ describe("POST /api/github/sync/reset", () => {
   })
 
   it("returns 400 when resourceType is missing", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/reset", "user-1")
@@ -44,13 +49,13 @@ describe("POST /api/github/sync/reset", () => {
       headers: { ...Object.fromEntries(request.headers), "Content-Type": "application/json" },
     })
     const res = await handler({ request: req })
-    const body = await res.json()
-    expect(res.status).toBe(400)
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(400)
     expect(body.error).toBe("resourceType is required")
   })
 
   it("returns 401 when no auth header", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeRequest("http://localhost/api/github/sync/reset", { method: "POST" })
@@ -67,7 +72,7 @@ describe("POST /api/github/sync/reset", () => {
     const { adminDb } = await import("@/lib/instantAdmin")
     vi.mocked(adminDb.query).mockResolvedValue({ syncStates: [] })
 
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/reset", "user-1")
@@ -77,13 +82,13 @@ describe("POST /api/github/sync/reset", () => {
       headers: { ...Object.fromEntries(request.headers), "Content-Type": "application/json" },
     })
     const res = await handler({ request: req })
-    const body = await res.json()
-    expect(res.status).toBe(404)
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(404)
     expect(body.error).toBe("Sync state not found")
   })
 
   it("returns success when reset completes", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/reset", "user-1")
@@ -109,7 +114,7 @@ describe("DELETE /api/github/sync/reset", () => {
   })
 
   it("returns 401 when no auth header", async () => {
-    const handler = Route.options.server?.handlers?.DELETE
+    const handler = getRouteHandler(Route, "DELETE")
     if (!handler) throw new Error("No DELETE handler")
 
     const request = new Request("http://localhost/api/github/sync/reset", { method: "DELETE" })
@@ -118,7 +123,7 @@ describe("DELETE /api/github/sync/reset", () => {
   })
 
   it("returns deleted count on success", async () => {
-    const handler = Route.options.server?.handlers?.DELETE
+    const handler = getRouteHandler(Route, "DELETE")
     if (!handler) throw new Error("No DELETE handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/reset", "user-1")

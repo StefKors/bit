@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { makeAuthRequest, makeRequest, parseJsonResponse } from "@/lib/test-helpers"
+import {
+  getRouteHandler,
+  makeAuthRequest,
+  makeRequest,
+  parseJsonResponse,
+} from "@/lib/test-helpers"
 
 const linkResult = vi.hoisted(() => {
   const r = { link: vi.fn() }
@@ -57,12 +62,12 @@ const { Route } = await import("./$owner.$repo.issue.$number")
 describe("POST /api/github/sync/:owner/:repo/issue/:number", () => {
   beforeEach(async () => {
     const { adminDb } = await import("@/lib/instantAdmin")
-    vi.mocked(adminDb.query).mockImplementation(async (q: Record<string, unknown>) => {
-      if (q.syncStates) return { syncStates: [{ lastEtag: "token" }] }
-      if (q.repos) return { repos: [{ id: "repo-1", fullName: "o/r" }] }
-      if (q.issues) return { issues: [] }
-      if (q.issueComments) return { issueComments: [] }
-      return {}
+    vi.mocked(adminDb.query).mockImplementation((q: Record<string, unknown>) => {
+      if (q.syncStates) return Promise.resolve({ syncStates: [{ lastEtag: "token" }] })
+      if (q.repos) return Promise.resolve({ repos: [{ id: "repo-1", fullName: "o/r" }] })
+      if (q.issues) return Promise.resolve({ issues: [] })
+      if (q.issueComments) return Promise.resolve({ issueComments: [] })
+      return Promise.resolve({})
     })
     mockIssuesGet.mockResolvedValue({
       data: {
@@ -84,7 +89,7 @@ describe("POST /api/github/sync/:owner/:repo/issue/:number", () => {
   })
 
   it("returns 401 when no auth header", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeRequest("http://localhost/api/github/sync/o/r/issue/1", { method: "POST" })
@@ -96,7 +101,7 @@ describe("POST /api/github/sync/:owner/:repo/issue/:number", () => {
   })
 
   it("returns 400 for invalid issue number", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/o/r/issue/abc", "user-1", {
@@ -106,8 +111,8 @@ describe("POST /api/github/sync/:owner/:repo/issue/:number", () => {
       request,
       params: { owner: "o", repo: "r", number: "abc" },
     })
-    const body = await res.json()
-    expect(res.status).toBe(400)
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(400)
     expect(body.error).toBe("Invalid issue number")
   })
 
@@ -115,7 +120,7 @@ describe("POST /api/github/sync/:owner/:repo/issue/:number", () => {
     const { adminDb } = await import("@/lib/instantAdmin")
     vi.mocked(adminDb.query).mockResolvedValueOnce({ syncStates: [] })
 
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/o/r/issue/1", "user-1", {
@@ -130,13 +135,13 @@ describe("POST /api/github/sync/:owner/:repo/issue/:number", () => {
 
   it("returns 404 when repo not in database", async () => {
     const { adminDb } = await import("@/lib/instantAdmin")
-    vi.mocked(adminDb.query).mockImplementation(async (q: Record<string, unknown>) => {
-      if (q.syncStates) return { syncStates: [{ lastEtag: "token" }] }
-      if (q.repos) return { repos: [] }
-      return {}
+    vi.mocked(adminDb.query).mockImplementation((q: Record<string, unknown>) => {
+      if (q.syncStates) return Promise.resolve({ syncStates: [{ lastEtag: "token" }] })
+      if (q.repos) return Promise.resolve({ repos: [] })
+      return Promise.resolve({})
     })
 
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/o/r/issue/1", "user-1", {
@@ -146,13 +151,13 @@ describe("POST /api/github/sync/:owner/:repo/issue/:number", () => {
       request,
       params: { owner: "o", repo: "r", number: "1" },
     })
-    const body = await res.json()
-    expect(res.status).toBe(404)
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(404)
     expect(body.error).toBe("Repository not found in database")
   })
 
   it("returns issueId on success", async () => {
-    const handler = Route.options.server?.handlers?.POST
+    const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
     const request = makeAuthRequest("http://localhost/api/github/sync/o/r/issue/42", "user-1", {
