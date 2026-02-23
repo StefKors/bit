@@ -152,17 +152,15 @@ export const makeRequest = (
     headers: new Headers(opts.headers ?? {}),
   })
 
-export const makeAuthRequest = (
-  url: string,
-  userId: string,
-  opts: { method?: string } = {},
-) =>
+export const makeAuthRequest = (url: string, userId: string, opts: { method?: string } = {}) =>
   makeRequest(url, {
     method: opts.method,
     headers: { Authorization: `Bearer ${userId}` },
   })
 
-export const parseJsonResponse = async <T = unknown>(response: Response): Promise<{ status: number; body: T }> => {
+export const parseJsonResponse = async <T = unknown>(
+  response: Response,
+): Promise<{ status: number; body: T }> => {
   const body = (await response.json()) as T
   return { status: response.status, body }
 }

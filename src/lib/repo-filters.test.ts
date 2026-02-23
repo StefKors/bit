@@ -110,10 +110,7 @@ describe("applyFiltersAndSort", () => {
   })
 
   it("sorts by updated descending", () => {
-    const repos = [
-      makeRepo({ githubUpdatedAt: 100 }),
-      makeRepo({ githubUpdatedAt: 300 }),
-    ]
+    const repos = [makeRepo({ githubUpdatedAt: 100 }), makeRepo({ githubUpdatedAt: 300 })]
     const result = applyFiltersAndSort(repos, DEFAULT_REPO_FILTERS)
     expect(result[0].githubUpdatedAt).toBe(300)
   })

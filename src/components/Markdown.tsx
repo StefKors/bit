@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { fromAsyncCodeToHtml } from "@shikijs/markdown-it/async"
 import MarkdownItAsync from "markdown-it-async"
 import { codeToHtml } from "shiki"
+import { rewriteImageUrl, type RepoContext } from "@/lib/markdown-images"
 import styles from "./Markdown.module.css"
 
 // Initialize MarkdownIt instance with markdown-it-async
@@ -22,14 +23,17 @@ md.renderer.rules.image = function (tokens, idx, options, env, self) {
   const token = tokens[idx]
   const src = token.attrGet("src") || ""
 
-  // Check if it's a GitHub user-attachments URL (these require auth)
   if (src.includes("github.com/user-attachments/")) {
-    // These URLs can't be loaded cross-origin, show a placeholder link instead
     const alt = token.content || "Image"
     return `<a href="${src}" target="_blank" rel="noopener noreferrer" class="${styles.imageLink}">📎 ${alt}</a>`
   }
 
-  // Add loading="lazy" and error handling for other images
+  const repoCtx = env as RepoContext | undefined
+  const rewritten = rewriteImageUrl(src, repoCtx)
+  if (rewritten !== src) {
+    token.attrSet("src", rewritten)
+  }
+
   token.attrSet("loading", "lazy")
   token.attrSet("onerror", "this.style.display='none'")
 
@@ -50,9 +54,10 @@ md.use(
 interface MarkdownProps {
   content: string
   className?: string
+  repoContext?: RepoContext
 }
 
-export function Markdown({ content, className }: MarkdownProps) {
+export function Markdown({ content, className, repoContext }: MarkdownProps) {
   const [html, setHtml] = useState<string>("")
   const [loading, setLoading] = useState(true)
 
@@ -62,7 +67,7 @@ export function Markdown({ content, className }: MarkdownProps) {
     async function render() {
       setLoading(true)
       try {
-        const rendered = await md.renderAsync(content)
+        const rendered = await md.renderAsync(content, repoContext)
         if (!cancelled) {
           setHtml(rendered)
         }

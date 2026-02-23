@@ -18,11 +18,7 @@ export const extractUserId = (request: Request): string => {
 }
 
 // Shared error mapping for GitHub API errors
-export const mapGitHubError = (
-  error: unknown,
-  context: string,
-  ownerRepo?: string,
-): Response => {
+export const mapGitHubError = (error: unknown, context: string, ownerRepo?: string): Response => {
   if (error && typeof error === "object" && "status" in error) {
     const status = (error as { status: number }).status
     if (status === 404) {
@@ -98,10 +94,12 @@ export const handleRateLimit = async (request: Request, deps: RateLimitDeps): Pr
 // ── Sync handler (generic for tree/commits) ──
 
 export interface SyncDeps {
-  createClient: (
-    userId: string,
-  ) => Promise<{
-    [method: string]: (owner: string, repo: string, ref?: string) => Promise<{ count: number; rateLimit: RateLimitInfo }>
+  createClient: (userId: string) => Promise<{
+    [method: string]: (
+      owner: string,
+      repo: string,
+      ref?: string,
+    ) => Promise<{ count: number; rateLimit: RateLimitInfo }>
   } | null>
   isAuthError: (error: unknown) => boolean
   handleAuthError: (userId: string) => Promise<void>
@@ -131,6 +129,10 @@ export const handleSync = async (
       await deps.handleAuthError(userId)
       return authExpiredResponse()
     }
-    return mapGitHubError(error, `sync ${syncMethod.replace("fetch", "").toLowerCase()}`, `${owner}/${repo}`)
+    return mapGitHubError(
+      error,
+      `sync ${syncMethod.replace("fetch", "").toLowerCase()}`,
+      `${owner}/${repo}`,
+    )
   }
 }

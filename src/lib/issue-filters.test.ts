@@ -60,10 +60,7 @@ describe("extractAuthors", () => {
 
 describe("extractLabels", () => {
   it("extracts unique labels sorted", () => {
-    const issues = [
-      makeIssue({ labels: '["bug","docs"]' }),
-      makeIssue({ labels: '["bug"]' }),
-    ]
+    const issues = [makeIssue({ labels: '["bug","docs"]' }), makeIssue({ labels: '["bug"]' })]
     expect(extractLabels(issues)).toEqual(["bug", "docs"])
   })
 
@@ -131,10 +128,7 @@ describe("filterByLabels", () => {
 
 describe("sortIssues", () => {
   it("sorts by updated descending", () => {
-    const issues = [
-      makeIssue({ githubUpdatedAt: 100 }),
-      makeIssue({ githubUpdatedAt: 300 }),
-    ]
+    const issues = [makeIssue({ githubUpdatedAt: 100 }), makeIssue({ githubUpdatedAt: 300 })]
     const sorted = sortIssues(issues, "updated", "desc")
     expect(sorted[0].githubUpdatedAt).toBe(300)
   })

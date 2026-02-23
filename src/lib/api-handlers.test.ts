@@ -191,11 +191,9 @@ describe("handleSync", () => {
 
   it("passes ref query param to sync method", async () => {
     const fetchRepoTree = vi.fn().mockResolvedValue(mockResult)
-    const req = makeAuthRequest(
-      "http://localhost/api/github/sync/o/r/tree?ref=develop",
-      "user-1",
-      { method: "POST" },
-    )
+    const req = makeAuthRequest("http://localhost/api/github/sync/o/r/tree?ref=develop", "user-1", {
+      method: "POST",
+    })
     const deps = makeDeps({
       createClient: vi.fn().mockResolvedValue({ fetchRepoTree }),
     })

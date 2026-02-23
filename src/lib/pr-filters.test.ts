@@ -77,10 +77,7 @@ describe("extractAuthors", () => {
 
 describe("extractLabels", () => {
   it("extracts unique labels sorted", () => {
-    const prs = [
-      makePR({ labels: '["bug","feature"]' }),
-      makePR({ labels: '["bug","docs"]' }),
-    ]
+    const prs = [makePR({ labels: '["bug","feature"]' }), makePR({ labels: '["bug","docs"]' })]
     expect(extractLabels(prs)).toEqual(["bug", "docs", "feature"])
   })
 
