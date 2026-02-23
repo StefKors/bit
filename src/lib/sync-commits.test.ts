@@ -11,6 +11,8 @@ const REPO_ID = "repo-abc-123"
 const BRANCH = "main"
 const NOW = 1700000000000
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+
 const makeCommit = (overrides: Partial<GitHubCommit> = {}): GitHubCommit => ({
   sha: "abc123def456",
   html_url: "https://github.com/StefKors/bit/commit/abc123def456",
@@ -25,9 +27,9 @@ const makeCommit = (overrides: Partial<GitHubCommit> = {}): GitHubCommit => ({
 })
 
 describe("buildCommitEntryId", () => {
-  it("produces a deterministic ID from repoId, branch, and sha", () => {
+  it("produces a valid UUID", () => {
     const id = buildCommitEntryId(REPO_ID, BRANCH, "abc123")
-    expect(id).toBe("repo-abc-123:main:abc123")
+    expect(id).toMatch(UUID_RE)
   })
 
   it("returns the same ID for the same inputs", () => {
@@ -54,7 +56,7 @@ describe("buildCommitEntry", () => {
     const commit = makeCommit()
     const entry = buildCommitEntry(commit, REPO_ID, BRANCH, NOW)
 
-    expect(entry.id).toBe(`${REPO_ID}:${BRANCH}:${commit.sha}`)
+    expect(entry.id).toMatch(UUID_RE)
     expect(entry.sha).toBe(commit.sha)
     expect(entry.message).toBe("Initial commit")
     expect(entry.authorLogin).toBe("StefKors")

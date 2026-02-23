@@ -3,6 +3,8 @@
  * Extracted from GitHubClient for testability.
  */
 
+import { deterministicId } from "./deterministic-id"
+
 export interface GitHubTreeItem {
   path?: string
   type?: string
@@ -32,7 +34,7 @@ export interface ExistingEntry {
 }
 
 export function buildTreeEntryId(repoId: string, branch: string, path: string): string {
-  return `${repoId}:${branch}:${path}`
+  return deterministicId("repoTree", repoId, branch, path)
 }
 
 export function buildTreeEntry(

@@ -13,10 +13,12 @@ const OWNER = "StefKors"
 const REPO = "bit"
 const NOW = 1700000000000
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+
 describe("buildTreeEntryId", () => {
-  it("produces a deterministic ID from repoId, branch, and path", () => {
+  it("produces a valid UUID", () => {
     const id = buildTreeEntryId(REPO_ID, BRANCH, "src/index.ts")
-    expect(id).toBe("repo-abc-123:main:src/index.ts")
+    expect(id).toMatch(UUID_RE)
   })
 
   it("returns the same ID for the same inputs", () => {
@@ -57,7 +59,7 @@ describe("buildTreeEntry", () => {
     const entry = buildTreeEntry(item, REPO_ID, BRANCH, OWNER, REPO, NOW)
 
     expect(entry).not.toBeNull()
-    expect(entry!.id).toBe(`${REPO_ID}:${BRANCH}:src/index.ts`)
+    expect(entry!.id).toMatch(UUID_RE)
     expect(entry!.ref).toBe(BRANCH)
     expect(entry!.path).toBe("src/index.ts")
     expect(entry!.name).toBe("index.ts")

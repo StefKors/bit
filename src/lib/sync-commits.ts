@@ -3,6 +3,8 @@
  * Extracted from GitHubClient for testability.
  */
 
+import { deterministicId } from "./deterministic-id"
+
 export interface GitHubCommit {
   sha: string
   html_url: string
@@ -40,7 +42,7 @@ export interface ExistingCommit {
 }
 
 export function buildCommitEntryId(repoId: string, branch: string, sha: string): string {
-  return `${repoId}:${branch}:${sha}`
+  return deterministicId("repoCommit", repoId, branch, sha)
 }
 
 export function buildCommitEntry(
