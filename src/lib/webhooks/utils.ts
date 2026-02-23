@@ -3,19 +3,32 @@ import type { WebhookDB, RepoRecord, PRRecord } from "./types"
 
 /**
  * Find a user who has a GitHub account connected matching the webhook sender.
- * Used for auto-tracking repos when webhooks arrive from registered users.
- *
- * Note: InstantDB doesn't expose OAuth accounts table, so this currently
- * returns null. To enable auto-tracking, we'd need to add a custom accounts
- * table or store GitHub user IDs on the user entity.
+ * Looks up the $users table by githubId to enable auto-tracking of repos
+ * when webhooks arrive from registered users.
  */
-export function findUserBySender(
-  _db: WebhookDB,
+export async function findUserBySender(
+  db: WebhookDB,
   sender: Record<string, unknown>,
 ): Promise<string | null> {
-  // TODO: Implement user lookup by GitHub account ID when accounts table is added
-  console.log(`findUserBySender: Cannot look up user for GitHub sender ${String(sender.id)}`)
-  return Promise.resolve(null)
+  const senderGithubId = sender.id as number | undefined
+  if (!senderGithubId) {
+    console.log("findUserBySender: No sender ID in webhook payload")
+    return null
+  }
+
+  const result = await db.query({
+    $users: {
+      $: { where: { githubId: senderGithubId }, limit: 1 },
+    },
+  })
+
+  const users = (result as Record<string, Array<{ id: string }>>).$users || []
+  if (users[0]) {
+    return users[0].id
+  }
+
+  console.log(`findUserBySender: No registered user for GitHub ID ${senderGithubId}`)
+  return null
 }
 
 /**

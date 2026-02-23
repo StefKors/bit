@@ -481,7 +481,13 @@ export class GitHubClient {
     })
 
     for (const file of allFiles) {
-      const fileId = id()
+      const { prFiles: existingFiles } = await adminDb.query({
+        prFiles: {
+          $: { where: { sha: file.sha ?? "", filename: file.filename, pullRequestId: prId } },
+        },
+      })
+
+      const fileId = existingFiles?.[0]?.id || id()
       await adminDb.transact(
         adminDb.tx.prFiles[fileId]
           .update({
@@ -496,7 +502,7 @@ export class GitHubClient {
             blobUrl: file.blob_url,
             rawUrl: file.raw_url,
             contentsUrl: file.contents_url,
-            pullRequestId: prId, // Required attribute
+            pullRequestId: prId,
             createdAt: now,
             updatedAt: now,
           })
@@ -553,7 +559,13 @@ export class GitHubClient {
     })
 
     for (const comment of allIssueComments) {
-      const commentId = id()
+      const { prComments: existingComments } = await adminDb.query({
+        prComments: {
+          $: { where: { githubId: comment.id } },
+        },
+      })
+
+      const commentId = existingComments?.[0]?.id || id()
       await adminDb.transact(
         adminDb.tx.prComments[commentId]
           .update({
@@ -569,7 +581,7 @@ export class GitHubClient {
             githubUpdatedAt: comment.updated_at
               ? new Date(comment.updated_at).getTime()
               : undefined,
-            pullRequestId: prId, // Required attribute
+            pullRequestId: prId,
             createdAt: now,
             updatedAt: now,
           })
@@ -594,7 +606,13 @@ export class GitHubClient {
         ? reviewIdMap.get(comment.pull_request_review_id)
         : undefined
 
-      const commentId = id()
+      const { prComments: existingReviewComments } = await adminDb.query({
+        prComments: {
+          $: { where: { githubId: comment.id } },
+        },
+      })
+
+      const commentId = existingReviewComments?.[0]?.id || id()
       const tx = adminDb.tx.prComments[commentId]
         .update({
           githubId: comment.id,
@@ -609,7 +627,7 @@ export class GitHubClient {
           diffHunk: comment.diff_hunk || undefined,
           githubCreatedAt: comment.created_at ? new Date(comment.created_at).getTime() : undefined,
           githubUpdatedAt: comment.updated_at ? new Date(comment.updated_at).getTime() : undefined,
-          pullRequestId: prId, // Required attribute
+          pullRequestId: prId,
           createdAt: now,
           updatedAt: now,
         })
@@ -693,12 +711,22 @@ export class GitHubClient {
     const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
     const now = Date.now()
 
+    const incomingPaths = new Set<string>()
+
     for (const item of response.data.tree) {
       if (!item.path) continue
+      incomingPaths.add(item.path)
 
       const pathParts = item.path.split("/")
       const name = pathParts[pathParts.length - 1]
-      const entryId = id()
+
+      const { repoTrees: existingEntries } = await adminDb.query({
+        repoTrees: {
+          $: { where: { ref: branch, path: item.path, repoId: repoRecord.id } },
+        },
+      })
+
+      const entryId = existingEntries?.[0]?.id || id()
 
       await adminDb.transact(
         adminDb.tx.repoTrees[entryId]
@@ -711,13 +739,25 @@ export class GitHubClient {
             size: item.size || undefined,
             url: item.url || undefined,
             htmlUrl: `https://github.com/${owner}/${repo}/${item.type === "tree" ? "tree" : "blob"}/${branch}/${item.path}`,
-            repoId: repoRecord.id, // Required attribute
+            repoId: repoRecord.id,
             createdAt: now,
             updatedAt: now,
           })
           .link({ user: this.userId })
           .link({ repo: repoRecord.id }),
       )
+    }
+
+    // Remove stale entries that no longer exist in the tree
+    const { repoTrees: allExisting } = await adminDb.query({
+      repoTrees: {
+        $: { where: { ref: branch, repoId: repoRecord.id } },
+      },
+    })
+    for (const entry of allExisting || []) {
+      if (!incomingPaths.has(entry.path)) {
+        await adminDb.transact(adminDb.tx.repoTrees[entry.id].delete())
+      }
     }
 
     await this.updateSyncState("tree", `${owner}/${repo}:${branch}`, rateLimit)
