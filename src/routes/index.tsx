@@ -2,6 +2,7 @@ import { createFileRoute, useSearch } from "@tanstack/react-router"
 import { useState, useMemo } from "react"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { resolveUserAvatarUrl } from "@/lib/avatar"
 import { RepoSection } from "@/features/repo/RepoSection"
 import {
   InitialSyncCard,
@@ -243,7 +244,7 @@ function OverviewPage() {
         repos={repos}
         orgs={orgs}
         currentUserLogin={currentUserLogin || undefined}
-        currentUserAvatarUrl={(user as { avatarUrl?: string }).avatarUrl}
+        currentUserAvatarUrl={resolveUserAvatarUrl(user)}
       />
     </div>
   )

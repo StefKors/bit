@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { resolveUserAvatarUrl } from "@/lib/avatar"
 import {
   FileDirectoryIcon,
   RepoIcon,
@@ -71,11 +72,11 @@ const OwnerPage = () => {
   const totalStars = repos.reduce((acc, repo) => acc + (repo.stargazersCount ?? 0), 0)
   const totalForks = repos.reduce((acc, repo) => acc + (repo.forksCount ?? 0), 0)
 
-  // Get avatar and display name — fall back to GitHub's predictable avatar URL
+  // Get avatar and display name — fall back to GitHub's predictable avatar URL (matches profile page)
   const avatarUrl = isOrg
     ? org?.avatarUrl
     : isCurrentUser
-      ? (user as { avatarUrl?: string } | undefined)?.avatarUrl
+      ? resolveUserAvatarUrl(user as { avatarUrl?: string; login?: string; email?: string })
       : null
   const resolvedAvatarUrl = avatarUrl || `https://github.com/${owner}.png?size=128`
   const displayName = isOrg ? org?.name || owner : isCurrentUser ? user?.email : owner

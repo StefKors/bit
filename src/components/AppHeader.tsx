@@ -3,6 +3,7 @@ import { Link, useMatches, useNavigate } from "@tanstack/react-router"
 import { SearchIcon, SignOutIcon, GearIcon } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { db } from "@/lib/instantDb"
+import { resolveUserAvatarUrl } from "@/lib/avatar"
 import { Avatar } from "./Avatar"
 import { Breadcrumb, type BreadcrumbItem } from "./Breadcrumb"
 import { isDev } from "@/lib/utils/isDevelopment"
@@ -36,6 +37,8 @@ export const AppHeader = ({ onOpenCommandMenu }: AppHeaderProps) => {
   }
 
   if (!user) return null
+
+  const avatarUrl = resolveUserAvatarUrl(user)
 
   return (
     <header className={styles.header}>
@@ -76,7 +79,7 @@ export const AppHeader = ({ onOpenCommandMenu }: AppHeaderProps) => {
               aria-label="User menu"
               aria-expanded={userMenuOpen}
             >
-              <Avatar src={user.avatarUrl} name={user.name || user.login} size={24} />
+              <Avatar src={avatarUrl} name={user.name || user.login} size={24} />
             </button>
 
             {userMenuOpen && (
@@ -84,7 +87,7 @@ export const AppHeader = ({ onOpenCommandMenu }: AppHeaderProps) => {
                 <div className={styles.backdrop} onClick={handleBackdropClick} />
                 <div className={styles.userMenu}>
                   <div className={styles.userMenuHeader}>
-                    <Avatar src={user.avatarUrl} name={user.name || user.login} size={40} />
+                    <Avatar src={avatarUrl} name={user.name || user.login} size={40} />
                     <div className={styles.userInfo}>
                       {user.name && <span className={styles.userName}>{user.name}</span>}
                       {user.login && <span className={styles.userLogin}>@{user.login}</span>}
