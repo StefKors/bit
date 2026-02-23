@@ -93,10 +93,33 @@ export const Route = createFileRoute("/api/github/sync/reset")({
             },
           })
 
-          // Delete all sync states
-          for (const syncState of syncStates ?? []) {
-            await adminDb.transact(adminDb.tx.syncStates[syncState.id].delete())
-          }
+          const now = Date.now()
+          const deleteTxs = (syncStates ?? []).map((s) => adminDb.tx.syncStates[s.id].delete())
+          const clearUserTxs = [
+            adminDb.tx.$users[userId].update({
+              login: undefined,
+              githubId: undefined,
+              nodeId: undefined,
+              name: undefined,
+              avatarUrl: undefined,
+              gravatarId: undefined,
+              url: undefined,
+              htmlUrl: undefined,
+              followersUrl: undefined,
+              followingUrl: undefined,
+              gistsUrl: undefined,
+              starredUrl: undefined,
+              subscriptionsUrl: undefined,
+              organizationsUrl: undefined,
+              reposUrl: undefined,
+              eventsUrl: undefined,
+              receivedEventsUrl: undefined,
+              type: undefined,
+              siteAdmin: undefined,
+              updatedAt: now,
+            }),
+          ]
+          await adminDb.transact([...deleteTxs, ...clearUserTxs])
 
           return jsonResponse({
             success: true,

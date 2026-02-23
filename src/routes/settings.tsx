@@ -52,8 +52,15 @@ function SettingsPage() {
       })
 
       if (!response.ok) {
-        const data = (await response.json()) as { error?: string }
-        throw new Error(data.error || "Failed to disconnect")
+        let errorMessage = "Failed to disconnect"
+        try {
+          const text = await response.text()
+          const data = text ? (JSON.parse(text) as { error?: string }) : null
+          errorMessage = data?.error ?? errorMessage
+        } catch {
+          errorMessage = `Request failed (${response.status})`
+        }
+        throw new Error(errorMessage)
       }
 
       setSuccess("GitHub account disconnected. Redirecting...")
