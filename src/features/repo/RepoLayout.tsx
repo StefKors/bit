@@ -77,7 +77,7 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
   const fullName = `${owner}/${repoName}`
 
   // Query the repo with PRs and issues using InstantDB
-  const { data: reposData } = db.useQuery({
+  const { data: reposData, isLoading } = db.useQuery({
     repos: {
       $: { where: { fullName } },
       organization: {},
@@ -111,6 +111,10 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
     } finally {
       setSyncing(false)
     }
+  }
+
+  if (isLoading) {
+    return <div className={styles.container} />
   }
 
   if (!repoRaw) {
