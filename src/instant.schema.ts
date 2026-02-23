@@ -340,6 +340,75 @@ export const schema = i.schema({
       processedAt: i.number(),
     }),
 
+    // Async webhook processing queue
+    webhookQueue: i.entity({
+      deliveryId: i.string().unique().indexed(),
+      event: i.string().indexed(),
+      action: i.string().optional(),
+      payload: i.string(), // JSON-serialized webhook payload
+      status: i.string().indexed(), // pending, processing, processed, failed, dead_letter
+      attempts: i.number(),
+      maxAttempts: i.number(),
+      nextRetryAt: i.number().optional().indexed(),
+      lastError: i.string().optional(),
+      processedAt: i.number().optional(),
+      failedAt: i.number().optional(),
+      createdAt: i.number().indexed(),
+      updatedAt: i.number(),
+    }),
+
+    // CI/CD check records for PR status views
+    prChecks: i.entity({
+      githubId: i.number().indexed(),
+      name: i.string().indexed(),
+      status: i.string().indexed(), // queued, in_progress, completed
+      conclusion: i.string().optional().indexed(), // success, failure, neutral, cancelled, skipped, timed_out, action_required, stale
+      headSha: i.string().indexed(),
+      externalId: i.string().optional(),
+      detailsUrl: i.string().optional(),
+      htmlUrl: i.string().optional(),
+      // Source event type
+      sourceType: i.string().indexed(), // check_run, check_suite, status, workflow_run, workflow_job
+      // Workflow metadata (for workflow_run/workflow_job)
+      workflowName: i.string().optional(),
+      workflowPath: i.string().optional(),
+      runNumber: i.number().optional(),
+      runAttempt: i.number().optional(),
+      jobName: i.string().optional(),
+      // Denormalized IDs
+      repoId: i.string().indexed(),
+      pullRequestId: i.string().optional().indexed(),
+      // Timestamps
+      startedAt: i.number().optional(),
+      completedAt: i.number().optional(),
+      createdAt: i.number(),
+      updatedAt: i.number(),
+    }),
+
+    // Sync job queue for observable sync operations
+    syncJobs: i.entity({
+      jobType: i.string().indexed(), // repo_sync, pr_sync, overview_sync, tree_sync, etc.
+      resourceType: i.string().indexed(), // repo, pullRequest, overview
+      resourceId: i.string().optional().indexed(),
+      state: i.string().indexed(), // pending, running, completed, failed, cancelled
+      priority: i.number().indexed(), // lower = higher priority
+      nextRunAt: i.number().optional().indexed(),
+      currentStep: i.string().optional(),
+      completedSteps: i.number(),
+      totalSteps: i.number().optional(),
+      itemsFetched: i.number(),
+      attempts: i.number(),
+      maxAttempts: i.number(),
+      error: i.string().optional(),
+      // Denormalized
+      userId: i.string().indexed(),
+      // Timestamps
+      startedAt: i.number().optional(),
+      completedAt: i.number().optional(),
+      createdAt: i.number().indexed(),
+      updatedAt: i.number(),
+    }),
+
     // GitHub Sync State
     syncStates: i.entity({
       resourceType: i.string().indexed(), // overview, repo:{fullName}, pr:{repoId}:{number}
@@ -735,6 +804,48 @@ export const schema = i.schema({
         on: "$users",
         has: "many",
         label: "syncStates",
+      },
+    },
+
+    // Repo -> PR Checks (one-to-many)
+    repoPrChecks: {
+      forward: {
+        on: "prChecks",
+        has: "one",
+        label: "repo",
+      },
+      reverse: {
+        on: "repos",
+        has: "many",
+        label: "prChecks",
+      },
+    },
+
+    // Pull Request -> PR Checks (one-to-many)
+    prChecksLink: {
+      forward: {
+        on: "prChecks",
+        has: "one",
+        label: "pullRequest",
+      },
+      reverse: {
+        on: "pullRequests",
+        has: "many",
+        label: "prChecks",
+      },
+    },
+
+    // User -> Sync Jobs (one-to-many)
+    userSyncJobs: {
+      forward: {
+        on: "syncJobs",
+        has: "one",
+        label: "user",
+      },
+      reverse: {
+        on: "$users",
+        has: "many",
+        label: "syncJobs",
       },
     },
   },
