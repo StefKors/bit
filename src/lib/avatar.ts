@@ -10,3 +10,11 @@ export function resolveUserAvatarUrl(
   const owner = user.login ?? user.email?.split("@")[0]
   return owner ? `https://github.com/${owner}.png?size=128` : undefined
 }
+
+/**
+ * Resolves avatar URL for an owner (login or org name), matching the profile page.
+ * Always returns a URL when owner is provided — falls back to GitHub's predictable avatar.
+ */
+export function resolveOwnerAvatarUrl(owner: string, avatarUrl?: string | null): string {
+  return avatarUrl || `https://github.com/${owner}.png?size=128`
+}

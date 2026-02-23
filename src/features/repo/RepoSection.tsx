@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react"
 import { Link } from "@tanstack/react-router"
-import { FileDirectoryIcon, OrganizationIcon, PersonIcon } from "@primer/octicons-react"
+import { FileDirectoryIcon } from "@primer/octicons-react"
+import { resolveOwnerAvatarUrl } from "@/lib/avatar"
 import type { Repo, Organization } from "./types"
 import { RepoCard } from "./RepoCard"
 import { RepoFiltersBar } from "./RepoFiltersBar"
@@ -105,19 +106,11 @@ export function RepoSection({
         groupedRepos.map((group) => (
           <section key={group.owner} className={styles.section}>
             <Link to="/$owner" params={{ owner: group.owner }} className={styles.sectionHeader}>
-              {group.avatarUrl ? (
-                <img
-                  src={group.avatarUrl}
-                  alt={group.owner}
-                  className={`${styles.ownerAvatar} ${group.isOrg ? styles.ownerAvatarOrg : styles.ownerAvatarUser}`}
-                />
-              ) : (
-                <div
-                  className={`${styles.ownerAvatarPlaceholder} ${group.isOrg ? styles.ownerAvatarPlaceholderOrg : styles.ownerAvatarPlaceholderUser}`}
-                >
-                  {group.isOrg ? <OrganizationIcon size={16} /> : <PersonIcon size={16} />}
-                </div>
-              )}
+              <img
+                src={resolveOwnerAvatarUrl(group.owner, group.avatarUrl)}
+                alt={group.owner}
+                className={`${styles.ownerAvatar} ${group.isOrg ? styles.ownerAvatarOrg : styles.ownerAvatarUser}`}
+              />
               <h2 className={styles.sectionTitle}>
                 {group.owner}
                 {group.isCurrentUser && <span className={styles.badge}>you</span>}
