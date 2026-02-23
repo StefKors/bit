@@ -8,7 +8,7 @@ vi.mock("@instantdb/admin", () => ({
 
 vi.mock("@/lib/instantAdmin", () => ({
   adminDb: {
-    query: vi.fn().mockResolvedValue({ webhookDeliveries: [] }),
+    query: vi.fn().mockResolvedValue({ webhookDeliveries: [], webhookQueue: [] }),
     transact: vi.fn().mockResolvedValue(undefined),
     tx: new Proxy(
       {},
@@ -27,21 +27,19 @@ vi.mock("@/lib/instantAdmin", () => ({
   },
 }))
 
-vi.mock("@/lib/webhooks", () => ({
-  handlePullRequestWebhook: vi.fn().mockResolvedValue(undefined),
-  handlePullRequestReviewWebhook: vi.fn().mockResolvedValue(undefined),
-  handleCommentWebhook: vi.fn().mockResolvedValue(undefined),
-  handlePushWebhook: vi.fn().mockResolvedValue(undefined),
-  handleRepositoryWebhook: vi.fn().mockResolvedValue(undefined),
-  handleStarWebhook: vi.fn().mockResolvedValue(undefined),
-  handleForkWebhook: vi.fn().mockResolvedValue(undefined),
-  handleOrganizationWebhook: vi.fn().mockResolvedValue(undefined),
-  handleCreateWebhook: vi.fn().mockResolvedValue(undefined),
-  handleDeleteWebhook: vi.fn().mockResolvedValue(undefined),
-  handlePullRequestEventWebhook: vi.fn().mockResolvedValue(undefined),
-  handleIssueWebhook: vi.fn().mockResolvedValue(undefined),
-  handleIssueCommentWebhook: vi.fn().mockResolvedValue(undefined),
+vi.mock("@/lib/webhooks/processor", () => ({
+  enqueueWebhook: vi.fn(),
 }))
+
+vi.mock("@/lib/logger", () => ({
+  log: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}))
+
+import { enqueueWebhook } from "@/lib/webhooks/processor"
 
 const signPayload = (payload: string, secret: string) => {
   const hmac = createHmac("sha256", secret)
@@ -52,6 +50,7 @@ describe("POST /api/github/webhook", () => {
   beforeEach(() => {
     vi.stubEnv("GITHUB_WEBHOOK_SECRET", "test-secret")
     vi.resetModules()
+    vi.mocked(enqueueWebhook).mockReset()
   })
 
   it("returns 500 when GITHUB_WEBHOOK_SECRET not configured", async () => {
@@ -120,7 +119,45 @@ describe("POST /api/github/webhook", () => {
     expect(body.error).toBe("Invalid JSON payload")
   })
 
-  it("returns received true for valid ping event", async () => {
+  it("enqueues valid webhook and returns queued response", async () => {
+    vi.mocked(enqueueWebhook).mockResolvedValue({
+      queued: true,
+      duplicate: false,
+      queueItemId: "queue-123",
+    })
+
+    const { Route } = await import("./webhook")
+    const handler = getRouteHandler(Route, "POST")
+    if (!handler) throw new Error("No POST handler")
+
+    const payload = JSON.stringify({ action: "opened", pull_request: {} })
+    const request = new Request("http://localhost/api/github/webhook", {
+      method: "POST",
+      body: payload,
+      headers: {
+        "x-hub-signature-256": signPayload(payload, "test-secret"),
+        "x-github-event": "pull_request",
+        "x-github-delivery": "delivery-1",
+      },
+    })
+    const res = await handler({ request })
+    const { status, body } = await parseJsonResponse<{
+      received: boolean
+      queued: boolean
+      queueItemId: string
+    }>(res)
+    expect(status).toBe(200)
+    expect(body.received).toBe(true)
+    expect(body.queued).toBe(true)
+    expect(body.queueItemId).toBe("queue-123")
+  })
+
+  it("returns duplicate response for already-delivered webhooks", async () => {
+    vi.mocked(enqueueWebhook).mockResolvedValue({
+      queued: false,
+      duplicate: true,
+    })
+
     const { Route } = await import("./webhook")
     const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
@@ -136,8 +173,29 @@ describe("POST /api/github/webhook", () => {
       },
     })
     const res = await handler({ request })
-    const { status, body } = await parseJsonResponse<{ received: boolean }>(res)
+    const { status, body } = await parseJsonResponse<{ received: boolean; duplicate: boolean }>(res)
     expect(status).toBe(200)
     expect(body.received).toBe(true)
+    expect(body.duplicate).toBe(true)
+  })
+
+  it("returns 400 when delivery ID is missing", async () => {
+    const { Route } = await import("./webhook")
+    const handler = getRouteHandler(Route, "POST")
+    if (!handler) throw new Error("No POST handler")
+
+    const payload = JSON.stringify({ zen: "pong" })
+    const request = new Request("http://localhost/api/github/webhook", {
+      method: "POST",
+      body: payload,
+      headers: {
+        "x-hub-signature-256": signPayload(payload, "test-secret"),
+        "x-github-event": "ping",
+      },
+    })
+    const res = await handler({ request })
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(400)
+    expect(body.error).toBe("Missing delivery ID")
   })
 })
