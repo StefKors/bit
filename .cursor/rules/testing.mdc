@@ -1,0 +1,39 @@
+---
+globs: src/routes/api/**/*.ts,src/lib/**/*.ts
+alwaysApply: false
+---
+
+# Testing Requirements
+
+When implementing or modifying API routes (`src/routes/api/`) or library/utility/helper functions (`src/lib/`), you MUST add or update corresponding test coverage.
+
+## What to Test
+
+- **API route handlers**: Test the request/response logic, error handling, and auth checks.
+- **Library functions** (`src/lib/`): Test all exported functions with edge cases.
+- **Pure logic**: Extract testable pure functions from side-effectful code. Keep API calls, database writes, and other I/O in thin wrappers; put the logic in pure functions that are easy to test.
+
+## Test File Conventions
+
+- Test files live next to the module they test: `src/lib/foo.ts` → `src/lib/foo.test.ts`
+- Use `vitest` (`import { describe, it, expect } from "vitest"`)
+- Run tests with `bun run test`
+
+## Mocking
+
+- Mock external services (GitHub API, InstantDB) — never hit production APIs in tests.
+- Prefer dependency injection or extracted pure functions over complex mocks.
+- When mocking, use `vi.mock()` or pass mock objects directly.
+
+## What Good Coverage Looks Like
+
+- Happy path for each exported function
+- Error / edge cases (null inputs, empty arrays, missing fields)
+- Idempotency where relevant (same input → same output)
+- Boundary conditions (empty collections, single items, large inputs)
+
+## Do NOT Test
+
+- React components — per project rules, put logic in framework-agnostic functions and test those instead.
+- Generated files (`routeTree.gen.ts`, etc.)
+- Type-only exports
