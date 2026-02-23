@@ -117,7 +117,7 @@ function BlobPage() {
   const entries: TreeEntry[] = treeEntries.map((entry) => ({
     id: entry.id,
     path: entry.path,
-    name: entry.name,
+    name: String(entry.name ?? ""),
     type: entry.type as "file" | "dir",
     sha: entry.sha,
     size: entry.size ?? null,

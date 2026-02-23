@@ -37,7 +37,8 @@ interface CommitItemProps {
 
 const CommitItem = ({ commit, formatTimeAgo }: CommitItemProps) => {
   // Get the first line of the commit message as the title
-  const [title, ...bodyLines] = commit.message.split("\n")
+  const message = String(commit.message ?? "")
+  const [title, ...bodyLines] = message.split("\n")
   const body = bodyLines.join("\n").trim()
   const shortSha = commit.sha.slice(0, 7)
 

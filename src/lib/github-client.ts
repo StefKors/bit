@@ -400,7 +400,7 @@ export class GitHubClient {
   ): Promise<SyncResult<{ githubId: number; number: number }[]>> {
     const repoRecord = await this.ensureRepoRecord(owner, repo)
 
-    const syncedAt = "syncedAt" in repoRecord ? (repoRecord.syncedAt as number) : undefined
+    const syncedAt = "syncedAt" in repoRecord ? repoRecord.syncedAt : undefined
     if (!force && syncedAt && Date.now() - syncedAt < SYNC_FRESHNESS_MS) {
       const rateLimit = this.lastRateLimit ?? (await this.getRateLimit())
       return { data: [], rateLimit, fromCache: true }

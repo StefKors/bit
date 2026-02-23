@@ -151,7 +151,7 @@ export const sortIssues = <T extends GithubIssue>(
         comparison = (a.comments ?? 0) - (b.comments ?? 0)
         break
       case "title":
-        comparison = a.title.localeCompare(b.title)
+        comparison = String(a.title ?? "").localeCompare(String(b.title ?? ""))
         break
       case "author":
         comparison = (a.authorLogin ?? "").localeCompare(b.authorLogin ?? "")

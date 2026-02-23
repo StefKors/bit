@@ -95,7 +95,7 @@ export function Markdown({ content, className, repoContext }: MarkdownProps) {
     return () => {
       cancelled = true
     }
-  }, [content])
+  }, [content, repoContext])
 
   if (loading) {
     return (

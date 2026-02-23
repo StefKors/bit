@@ -175,7 +175,7 @@ export const sortPRs = <T extends GithubPullRequest>(
         break
       }
       case "title":
-        comparison = a.title.localeCompare(b.title)
+        comparison = String(a.title ?? "").localeCompare(String(b.title ?? ""))
         break
       case "author":
         comparison = (a.authorLogin ?? "").localeCompare(b.authorLogin ?? "")
