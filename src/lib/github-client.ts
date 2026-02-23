@@ -74,11 +74,11 @@ function getRateLimitRetryDelay(error: RequestError): number {
   if (!headers) return RATE_LIMIT_BASE_DELAY_MS
 
   const retryAfter = headers["retry-after"]
-  if (retryAfter) return parseInt(retryAfter, 10) * 1000
+  if (retryAfter) return parseInt(String(retryAfter), 10) * 1000
 
   const resetTime = headers["x-ratelimit-reset"]
   if (resetTime) {
-    const resetMs = parseInt(resetTime, 10) * 1000
+    const resetMs = parseInt(String(resetTime), 10) * 1000
     const delay = resetMs - Date.now()
     if (delay > 0) return Math.min(delay, 60_000)
   }
@@ -397,7 +397,8 @@ export class GitHubClient {
   ): Promise<SyncResult<{ githubId: number; number: number }[]>> {
     const repoRecord = await this.ensureRepoRecord(owner, repo)
 
-    if (!force && repoRecord.syncedAt && Date.now() - repoRecord.syncedAt < SYNC_FRESHNESS_MS) {
+    const syncedAt = "syncedAt" in repoRecord ? (repoRecord.syncedAt as number) : undefined
+    if (!force && syncedAt && Date.now() - syncedAt < SYNC_FRESHNESS_MS) {
       const rateLimit = this.lastRateLimit ?? (await this.getRateLimit())
       return { data: [], rateLimit, fromCache: true }
     }
