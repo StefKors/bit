@@ -1,11 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-/
-
 // Mock adminDb before importing the module under test
 const mockQuery = vi.fn()
 vi.mock("./instantAdmin", () => ({
-  adminDb: { query: (...args: unknown[]) => mockQuery(...args) },
+  adminDb: { query: (...args: unknown[]) => mockQuery(...args) as unknown },
 }))
 
 // Mock id() from @instantdb/admin

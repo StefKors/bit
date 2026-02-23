@@ -188,11 +188,14 @@ In every route under `src/routes/api/github/sync/`, add a check in the catch blo
 ```typescript
 if (isGitHubAuthError(error)) {
   await handleGitHubAuthError(userId)
-  return jsonResponse({
-    error: "GitHub authentication expired",
-    code: "auth_invalid",
-    details: "Your GitHub token is no longer valid. Please reconnect your GitHub account.",
-  }, 401)
+  return jsonResponse(
+    {
+      error: "GitHub authentication expired",
+      code: "auth_invalid",
+      details: "Your GitHub token is no longer valid. Please reconnect your GitHub account.",
+    },
+    401,
+  )
 }
 ```
 

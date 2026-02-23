@@ -86,7 +86,7 @@ export const handleRateLimit = async (request: Request, deps: RateLimitDeps): Pr
   try {
     const rateLimit = await client.getRateLimit()
     return jsonResponse({ rateLimit })
-  } catch (error) {
+  } catch {
     return jsonResponse({ error: "Failed to fetch rate limit" }, 500)
   }
 }

@@ -27,7 +27,12 @@ const formatError = (error: unknown): { message: string; status?: number; code?:
   if (error && typeof error === "object") {
     const obj = error as Record<string, unknown>
     return {
-      message: String(obj.message ?? obj.type ?? "Unknown error"),
+      message:
+        typeof obj.message === "string"
+          ? obj.message
+          : typeof obj.type === "string"
+            ? obj.type
+            : "Unknown error",
       status: typeof obj.status === "number" ? obj.status : undefined,
     }
   }

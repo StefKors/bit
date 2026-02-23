@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { createGitHubClient } from "@/lib/github-client"
-import { parseScopes, checkPermissions } from "@/lib/github-permissions"
+import { checkPermissions } from "@/lib/github-permissions"
 import { log } from "@/lib/logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>

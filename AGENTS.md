@@ -13,10 +13,7 @@
 
 - Links with dynamic parameters use the `params` prop:
   ```tsx
-  <Link
-    to="/somewhere/$somewhereId"
-    params={{ somewhereId: 'baz' }}
-  />
+  <Link to="/somewhere/$somewhereId" params={{ somewhereId: "baz" }} />
   ```
 
 # InstantDB (queries + mutations)
@@ -52,7 +49,7 @@ await adminDb.transact(
     name: repo.name,
     fullName: repo.full_name,
     // ... all fields
-  })
+  }),
 )
 ```
 

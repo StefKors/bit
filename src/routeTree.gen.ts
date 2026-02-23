@@ -16,6 +16,7 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as OwnerRepoIndexRouteImport } from './routes/$owner/$repo/index'
 import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
 import { Route as ApiGithubRateLimitRouteImport } from './routes/api/github/rate-limit'
+import { Route as ApiGithubPermissionsRouteImport } from './routes/api/github/permissions'
 import { Route as OwnerRepoPullsRouteImport } from './routes/$owner/$repo/pulls'
 import { Route as OwnerRepoIssuesRouteImport } from './routes/$owner/$repo/issues'
 import { Route as ApiGithubOauthIndexRouteImport } from './routes/api/github/oauth/index'
@@ -71,6 +72,11 @@ const ApiGithubWebhookRoute = ApiGithubWebhookRouteImport.update({
 const ApiGithubRateLimitRoute = ApiGithubRateLimitRouteImport.update({
   id: '/api/github/rate-limit',
   path: '/api/github/rate-limit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubPermissionsRoute = ApiGithubPermissionsRouteImport.update({
+  id: '/api/github/permissions',
+  path: '/api/github/permissions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OwnerRepoPullsRoute = OwnerRepoPullsRouteImport.update({
@@ -191,12 +197,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
   '/api/health': typeof ApiHealthRoute
-  '/$owner': typeof OwnerIndexRoute
+  '/$owner/': typeof OwnerIndexRoute
   '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
   '/$owner/$repo/pulls': typeof OwnerRepoPullsRoute
+  '/api/github/permissions': typeof ApiGithubPermissionsRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
-  '/$owner/$repo': typeof OwnerRepoIndexRoute
+  '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/commits/$branch': typeof OwnerRepoCommitsBranchRoute
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
@@ -206,7 +213,7 @@ export interface FileRoutesByFullPath {
   '/api/github/sync/reset': typeof ApiGithubSyncResetRoute
   '/api/github/sync/retry': typeof ApiGithubSyncRetryRoute
   '/api/github/sync/webhooks': typeof ApiGithubSyncWebhooksRoute
-  '/api/github/oauth': typeof ApiGithubOauthIndexRoute
+  '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
   '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
   '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
   '/api/github/readme/$owner/$repo': typeof ApiGithubReadmeOwnerRepoRoute
@@ -224,6 +231,7 @@ export interface FileRoutesByTo {
   '/$owner': typeof OwnerIndexRoute
   '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
   '/$owner/$repo/pulls': typeof OwnerRepoPullsRoute
+  '/api/github/permissions': typeof ApiGithubPermissionsRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/$owner/$repo': typeof OwnerRepoIndexRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/$owner/': typeof OwnerIndexRoute
   '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
   '/$owner/$repo/pulls': typeof OwnerRepoPullsRoute
+  '/api/github/permissions': typeof ApiGithubPermissionsRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
@@ -284,12 +293,13 @@ export interface FileRouteTypes {
     | '/'
     | '/settings'
     | '/api/health'
-    | '/$owner'
+    | '/$owner/'
     | '/$owner/$repo/issues'
     | '/$owner/$repo/pulls'
+    | '/api/github/permissions'
     | '/api/github/rate-limit'
     | '/api/github/webhook'
-    | '/$owner/$repo'
+    | '/$owner/$repo/'
     | '/$owner/$repo/commits/$branch'
     | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
@@ -299,7 +309,7 @@ export interface FileRouteTypes {
     | '/api/github/sync/reset'
     | '/api/github/sync/retry'
     | '/api/github/sync/webhooks'
-    | '/api/github/oauth'
+    | '/api/github/oauth/'
     | '/$owner/$repo/blob/$branch/$'
     | '/$owner/$repo/tree/$branch/$'
     | '/api/github/readme/$owner/$repo'
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/$owner'
     | '/$owner/$repo/issues'
     | '/$owner/$repo/pulls'
+    | '/api/github/permissions'
     | '/api/github/rate-limit'
     | '/api/github/webhook'
     | '/$owner/$repo'
@@ -347,6 +358,7 @@ export interface FileRouteTypes {
     | '/$owner/'
     | '/$owner/$repo/issues'
     | '/$owner/$repo/pulls'
+    | '/api/github/permissions'
     | '/api/github/rate-limit'
     | '/api/github/webhook'
     | '/$owner/$repo/'
@@ -378,6 +390,7 @@ export interface RootRouteChildren {
   OwnerIndexRoute: typeof OwnerIndexRoute
   OwnerRepoIssuesRoute: typeof OwnerRepoIssuesRouteWithChildren
   OwnerRepoPullsRoute: typeof OwnerRepoPullsRoute
+  ApiGithubPermissionsRoute: typeof ApiGithubPermissionsRoute
   ApiGithubRateLimitRoute: typeof ApiGithubRateLimitRoute
   ApiGithubWebhookRoute: typeof ApiGithubWebhookRoute
   OwnerRepoIndexRoute: typeof OwnerRepoIndexRoute
@@ -416,7 +429,7 @@ declare module '@tanstack/react-router' {
     '/$owner/': {
       id: '/$owner/'
       path: '/$owner'
-      fullPath: '/$owner'
+      fullPath: '/$owner/'
       preLoaderRoute: typeof OwnerIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -430,7 +443,7 @@ declare module '@tanstack/react-router' {
     '/$owner/$repo/': {
       id: '/$owner/$repo/'
       path: '/$owner/$repo'
-      fullPath: '/$owner/$repo'
+      fullPath: '/$owner/$repo/'
       preLoaderRoute: typeof OwnerRepoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -446,6 +459,13 @@ declare module '@tanstack/react-router' {
       path: '/api/github/rate-limit'
       fullPath: '/api/github/rate-limit'
       preLoaderRoute: typeof ApiGithubRateLimitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/permissions': {
+      id: '/api/github/permissions'
+      path: '/api/github/permissions'
+      fullPath: '/api/github/permissions'
+      preLoaderRoute: typeof ApiGithubPermissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$owner/$repo/pulls': {
@@ -465,7 +485,7 @@ declare module '@tanstack/react-router' {
     '/api/github/oauth/': {
       id: '/api/github/oauth/'
       path: '/api/github/oauth'
-      fullPath: '/api/github/oauth'
+      fullPath: '/api/github/oauth/'
       preLoaderRoute: typeof ApiGithubOauthIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -639,6 +659,7 @@ const rootRouteChildren: RootRouteChildren = {
   OwnerIndexRoute: OwnerIndexRoute,
   OwnerRepoIssuesRoute: OwnerRepoIssuesRouteWithChildren,
   OwnerRepoPullsRoute: OwnerRepoPullsRoute,
+  ApiGithubPermissionsRoute: ApiGithubPermissionsRoute,
   ApiGithubRateLimitRoute: ApiGithubRateLimitRoute,
   ApiGithubWebhookRoute: ApiGithubWebhookRoute,
   OwnerRepoIndexRoute: OwnerRepoIndexRoute,

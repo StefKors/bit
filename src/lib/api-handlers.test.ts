@@ -23,7 +23,7 @@ describe("jsonResponse", () => {
     expect(await res.json()).toEqual({ ok: true })
   })
 
-  it("returns JSON with custom status", async () => {
+  it("returns JSON with custom status", () => {
     const res = jsonResponse({ error: "nope" }, 404)
     expect(res.status).toBe(404)
   })

@@ -137,7 +137,7 @@ export default {
       create: "auth.id != null",
       update: "auth.id in data.ref('user.id')",
       delete: "auth.id in data.ref('user.id')",
-    }
+    },
   },
   // Similar for all entities...
 }
@@ -157,8 +157,8 @@ npx instant-cli push perms --app $INSTANT_APP_ID --token $INSTANT_ADMIN_TOKEN --
 ### 2.1 Create Client DB - `src/lib/instantDb.ts`
 
 ```typescript
-import { init } from '@instantdb/react'
-import schema from '../instant.schema'
+import { init } from "@instantdb/react"
+import schema from "../instant.schema"
 
 export const db = init({
   appId: import.meta.env.VITE_INSTANT_APP_ID,
@@ -169,8 +169,8 @@ export const db = init({
 ### 2.2 Create Admin DB - `src/lib/instantAdmin.ts`
 
 ```typescript
-import { init } from '@instantdb/admin'
-import schema from '../instant.schema'
+import { init } from "@instantdb/admin"
+import schema from "../instant.schema"
 
 export const adminDb = init({
   appId: process.env.INSTANT_APP_ID!,
