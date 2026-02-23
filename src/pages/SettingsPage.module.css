@@ -208,3 +208,58 @@
   color: var(--bit-color-accent-green);
   font-size: 0.9rem;
 }
+
+.addRepoRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.addRepoIcon {
+  color: rgba(var(--bit-rgb-fg), 0.35);
+  flex-shrink: 0;
+}
+
+.addRepoInput {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  background: rgba(var(--bit-rgb-fg), 0.04);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-md);
+  color: var(--bit-color-fg);
+  font-size: 0.9rem;
+  font-family: var(--bit-font-mono);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.addRepoInput::placeholder {
+  color: rgba(var(--bit-rgb-fg), 0.3);
+  font-family: var(--bit-font-sans);
+}
+
+.addRepoInput:focus {
+  border-color: var(--bit-color-accent-blue);
+}
+
+.addRepoInput:disabled {
+  opacity: 0.6;
+}
+
+.addRepoError {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--bit-color-accent-red);
+}
+
+.addRepoSuccess {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--bit-color-accent-green);
+}
+
+.addRepoHint {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+}

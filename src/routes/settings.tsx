@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import {
   MarkGithubIcon,
   CheckCircleFillIcon,
@@ -7,6 +7,8 @@ import {
   TrashIcon,
   SyncIcon,
   LinkExternalIcon,
+  PlusIcon,
+  RepoIcon,
 } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { db } from "@/lib/instantDb"
@@ -178,6 +180,13 @@ function SettingsPage() {
         )}
       </section>
 
+      {isGitHubConnected && !isAuthInvalid && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Add Repository</h2>
+          <AddRepoCard userId={user.id} />
+        </section>
+      )}
+
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Account</h2>
         <div className={styles.card}>
@@ -189,6 +198,95 @@ function SettingsPage() {
           </div>
         </div>
       </section>
+    </div>
+  )
+}
+
+function AddRepoCard({ userId }: { userId: string }) {
+  const navigate = useNavigate()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [adding, setAdding] = useState(false)
+  const [addError, setAddError] = useState<string | null>(null)
+  const [addSuccess, setAddSuccess] = useState<string | null>(null)
+
+  const handleAddRepo = async () => {
+    const url = inputRef.current?.value?.trim()
+    if (!url) return
+
+    setAdding(true)
+    setAddError(null)
+    setAddSuccess(null)
+
+    try {
+      const response = await fetch("/api/github/sync/add-repo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({ url }),
+      })
+
+      const data = (await response.json()) as {
+        error?: string
+        details?: string
+        owner?: string
+        repo?: string
+        pullRequests?: number
+        webhookStatus?: string
+      }
+
+      if (!response.ok) {
+        throw new Error(data.details || data.error || "Failed to add repository")
+      }
+
+      if (inputRef.current) inputRef.current.value = ""
+      setAddSuccess(`Added ${data.owner}/${data.repo} (${data.pullRequests} open PRs)`)
+
+      setTimeout(() => {
+        void navigate({
+          to: "/$owner/$repo",
+          params: { owner: data.owner!, repo: data.repo! },
+        })
+      }, 1200)
+    } catch (err) {
+      setAddError(err instanceof Error ? err.message : "Failed to add repository")
+    } finally {
+      setAdding(false)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") void handleAddRepo()
+  }
+
+  return (
+    <div className={styles.card}>
+      <div className={styles.addRepoRow}>
+        <RepoIcon size={16} className={styles.addRepoIcon} />
+        <input
+          ref={inputRef}
+          type="text"
+          className={styles.addRepoInput}
+          placeholder="https://github.com/owner/repo or owner/repo"
+          onKeyDown={handleKeyDown}
+          disabled={adding}
+        />
+        <Button
+          variant="primary"
+          size="small"
+          leadingIcon={<PlusIcon size={16} />}
+          loading={adding}
+          onClick={() => void handleAddRepo()}
+        >
+          Add
+        </Button>
+      </div>
+      {addError && <div className={styles.addRepoError}>{addError}</div>}
+      {addSuccess && <div className={styles.addRepoSuccess}>{addSuccess}</div>}
+      <p className={styles.addRepoHint}>
+        Paste a GitHub URL or type owner/repo to track a specific repository.
+      </p>
     </div>
   )
 }

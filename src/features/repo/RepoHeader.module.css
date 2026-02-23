@@ -65,6 +65,48 @@
   border-radius: 50%;
 }
 
+.syncRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.syncBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--bit-radius-pill);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.syncBadgeActive {
+  background: rgba(var(--bit-rgb-accent-green), 0.1);
+  color: var(--bit-color-accent-green);
+}
+
+.syncBadgeInactive {
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  color: rgba(var(--bit-rgb-fg), 0.4);
+}
+
+.syncBadgeError {
+  background: rgba(var(--bit-rgb-accent-red), 0.1);
+  color: var(--bit-color-accent-red);
+}
+
+.syncTime {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+}
+
 .headerActions {
   display: flex;
   gap: 0.75rem;
