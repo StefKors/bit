@@ -40,8 +40,8 @@
 }
 
 .avatar {
-  width: 296px;
-  height: 296px;
+  width: 128px;
+  height: 128px;
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
@@ -49,26 +49,6 @@
 
 .avatarOrg {
   border-radius: var(--bit-radius-xl);
-}
-
-.avatarPlaceholder {
-  width: 296px;
-  height: 296px;
-  border-radius: 50%;
-  background: rgba(var(--bit-rgb-fg), 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(var(--bit-rgb-fg), 0.5);
-}
-
-.avatarPlaceholderOrg {
-  border-radius: var(--bit-radius-xl);
-}
-
-.avatarPlaceholder svg {
-  width: 96px;
-  height: 96px;
 }
 
 .profileInfo {

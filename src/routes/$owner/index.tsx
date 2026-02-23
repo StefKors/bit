@@ -5,8 +5,6 @@ import {
   RepoIcon,
   StarIcon,
   RepoForkedIcon,
-  OrganizationIcon,
-  PersonIcon,
   LinkExternalIcon,
   LockIcon,
 } from "@primer/octicons-react"
@@ -73,12 +71,13 @@ const OwnerPage = () => {
   const totalStars = repos.reduce((acc, repo) => acc + (repo.stargazersCount ?? 0), 0)
   const totalForks = repos.reduce((acc, repo) => acc + (repo.forksCount ?? 0), 0)
 
-  // Get avatar and display name
+  // Get avatar and display name — fall back to GitHub's predictable avatar URL
   const avatarUrl = isOrg
     ? org?.avatarUrl
     : isCurrentUser
       ? (user as { avatarUrl?: string } | undefined)?.avatarUrl
       : null
+  const resolvedAvatarUrl = avatarUrl || `https://github.com/${owner}.png?size=128`
   const displayName = isOrg ? org?.name || owner : isCurrentUser ? user?.email : owner
   const description = isOrg ? org?.description : null
 
@@ -89,19 +88,11 @@ const OwnerPage = () => {
         <div className={styles.profileLayout}>
           <aside className={styles.sidebar}>
             <div className={styles.avatarSection}>
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={owner}
-                  className={`${styles.avatar} ${isOrg ? styles.avatarOrg : ""}`}
-                />
-              ) : (
-                <div
-                  className={`${styles.avatarPlaceholder} ${isOrg ? styles.avatarPlaceholderOrg : ""}`}
-                >
-                  {isOrg ? <OrganizationIcon /> : <PersonIcon />}
-                </div>
-              )}
+              <img
+                src={resolvedAvatarUrl}
+                alt={owner}
+                className={`${styles.avatar} ${isOrg ? styles.avatarOrg : ""}`}
+              />
               <div className={styles.profileInfo}>
                 {displayName && displayName !== owner && (
                   <h1 className={styles.displayName}>{displayName}</h1>
@@ -135,19 +126,11 @@ const OwnerPage = () => {
         {/* Sidebar */}
         <aside className={styles.sidebar}>
           <div className={styles.avatarSection}>
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt={owner}
-                className={`${styles.avatar} ${isOrg ? styles.avatarOrg : ""}`}
-              />
-            ) : (
-              <div
-                className={`${styles.avatarPlaceholder} ${isOrg ? styles.avatarPlaceholderOrg : ""}`}
-              >
-                {isOrg ? <OrganizationIcon /> : <PersonIcon />}
-              </div>
-            )}
+            <img
+              src={resolvedAvatarUrl}
+              alt={owner}
+              className={`${styles.avatar} ${isOrg ? styles.avatarOrg : ""}`}
+            />
             <div className={styles.profileInfo}>
               {displayName && displayName !== owner && (
                 <h1 className={styles.displayName}>{displayName}</h1>
