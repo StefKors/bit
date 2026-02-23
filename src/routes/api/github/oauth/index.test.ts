@@ -1,0 +1,54 @@
+import { describe, it, expect, vi, beforeEach } from "vitest"
+import { makeRequest } from "@/lib/test-helpers"
+
+describe("GET /api/github/oauth/", () => {
+  beforeEach(() => {
+    vi.stubEnv("GITHUB_CLIENT_ID", "test-client-id")
+    vi.stubEnv("BASE_URL", "https://app.example.com")
+    vi.resetModules()
+  })
+
+  it("returns 400 when userId is missing", async () => {
+    const { Route } = await import("./index")
+    const handler = Route.options.server?.handlers?.GET
+    if (!handler) throw new Error("No GET handler")
+
+    const request = makeRequest("http://localhost/api/github/oauth/")
+    const res = await handler({ request })
+    const body = await res.json()
+
+    expect(res.status).toBe(400)
+    expect(body.error).toBe("userId is required")
+  })
+
+  it("returns 302 redirect to GitHub when userId provided", async () => {
+    const { Route } = await import("./index")
+    const handler = Route.options.server?.handlers?.GET
+    if (!handler) throw new Error("No GET handler")
+
+    const request = makeRequest("http://localhost/api/github/oauth/?userId=user-123")
+    const res = await handler({ request })
+
+    expect(res.status).toBe(302)
+    const location = res.headers.get("Location")
+    expect(location).toContain("github.com/login/oauth/authorize")
+    expect(location).toContain("client_id=test-client-id")
+    expect(location).toContain("state=user-123")
+  })
+
+  it("returns 500 when GITHUB_CLIENT_ID not configured", async () => {
+    vi.stubEnv("GITHUB_CLIENT_ID", "")
+    vi.resetModules()
+
+    const { Route } = await import("./index")
+    const handler = Route.options.server?.handlers?.GET
+    if (!handler) throw new Error("No GET handler")
+
+    const request = makeRequest("http://localhost/api/github/oauth/?userId=user-123")
+    const res = await handler({ request })
+    const body = await res.json()
+
+    expect(res.status).toBe(500)
+    expect(body.error).toBe("GitHub OAuth not configured")
+  })
+})
