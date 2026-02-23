@@ -1,9 +1,8 @@
-import { Octokit } from "octokit"
+import { Octokit, RequestError } from "octokit"
 import { id } from "@instantdb/admin"
 import { adminDb } from "./instantAdmin"
 import { findOrCreateSyncStateId } from "./sync-state"
 
-// Types for rate limit info
 export interface RateLimitInfo {
   remaining: number
   limit: number
@@ -34,7 +33,75 @@ export interface PullRequestDashboardItem {
   githubUpdatedAt: Date | null
 }
 
-const SYNC_FRESHNESS_MS = 5 * 60 * 1000 // 5 minutes
+const SYNC_FRESHNESS_MS = 5 * 60 * 1000
+const RATE_LIMIT_MAX_RETRIES = 3
+const RATE_LIMIT_BASE_DELAY_MS = 1000
+
+export function isGitHubAuthError(error: unknown): boolean {
+  return error instanceof RequestError && error.status === 401
+}
+
+export async function handleGitHubAuthError(userId: string): Promise<void> {
+  const { syncStates } = await adminDb.query({
+    syncStates: {
+      $: { where: { resourceType: "github:token", userId } },
+    },
+  })
+  const tokenState = syncStates?.[0]
+  if (tokenState) {
+    await adminDb.transact(
+      adminDb.tx.syncStates[tokenState.id].update({
+        syncStatus: "auth_invalid",
+        syncError: "GitHub token is no longer valid",
+        updatedAt: Date.now(),
+      }),
+    )
+  }
+}
+
+function isRateLimitError(error: unknown): boolean {
+  if (!(error instanceof RequestError)) return false
+  if (error.status === 429) return true
+  if (error.status === 403) {
+    const remaining = error.response?.headers?.["x-ratelimit-remaining"]
+    return remaining === "0"
+  }
+  return false
+}
+
+function getRateLimitRetryDelay(error: RequestError): number {
+  const headers = error.response?.headers
+  if (!headers) return RATE_LIMIT_BASE_DELAY_MS
+
+  const retryAfter = headers["retry-after"]
+  if (retryAfter) return parseInt(retryAfter, 10) * 1000
+
+  const resetTime = headers["x-ratelimit-reset"]
+  if (resetTime) {
+    const resetMs = parseInt(resetTime, 10) * 1000
+    const delay = resetMs - Date.now()
+    if (delay > 0) return Math.min(delay, 60_000)
+  }
+
+  return RATE_LIMIT_BASE_DELAY_MS
+}
+
+async function withRateLimitRetry<T>(fn: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; attempt < RATE_LIMIT_MAX_RETRIES; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      if (!isRateLimitError(error) || attempt === RATE_LIMIT_MAX_RETRIES - 1) {
+        throw error
+      }
+      const delay =
+        getRateLimitRetryDelay(error as RequestError) * Math.pow(2, attempt) + Math.random() * 1000
+      console.log(`Rate limited, retrying in ${Math.round(delay / 1000)}s (attempt ${attempt + 1})`)
+      await new Promise((resolve) => setTimeout(resolve, delay))
+    }
+  }
+  throw new Error("Unreachable")
+}
 
 // GitHub API client with rate limit tracking
 export class GitHubClient {
@@ -182,10 +249,8 @@ export class GitHubClient {
 
   // Fetch user's organizations (with pagination)
   async fetchOrganizations(): Promise<SyncResult<{ githubId: number; login: string }[]>> {
-    // Use paginate to fetch all organizations
-    const allOrgsData = await this.octokit.paginate(
-      this.octokit.rest.orgs.listForAuthenticatedUser,
-      { per_page: 100 },
+    const allOrgsData = await withRateLimitRetry(() =>
+      this.octokit.paginate(this.octokit.rest.orgs.listForAuthenticatedUser, { per_page: 100 }),
     )
 
     // Get rate limit from a simple request (paginate doesn't expose headers easily)
@@ -235,14 +300,12 @@ export class GitHubClient {
 
   // Fetch user's repositories (personal and org repos) with pagination
   async fetchRepositories(): Promise<SyncResult<{ githubId: number; fullName: string }[]>> {
-    // Use paginate to fetch all repositories
-    const allReposData = await this.octokit.paginate(
-      this.octokit.rest.repos.listForAuthenticatedUser,
-      {
+    const allReposData = await withRateLimitRetry(() =>
+      this.octokit.paginate(this.octokit.rest.repos.listForAuthenticatedUser, {
         per_page: 100,
         sort: "updated",
         affiliation: "owner,collaborator,organization_member",
-      },
+      }),
     )
 
     // Get rate limit from a simple request
@@ -339,14 +402,16 @@ export class GitHubClient {
       return { data: [], rateLimit, fromCache: true }
     }
 
-    const allPrsData = await this.octokit.paginate(this.octokit.rest.pulls.list, {
-      owner,
-      repo,
-      state,
-      per_page: 100,
-      sort: "updated",
-      direction: "desc",
-    })
+    const allPrsData = await withRateLimitRetry(() =>
+      this.octokit.paginate(this.octokit.rest.pulls.list, {
+        owner,
+        repo,
+        state,
+        per_page: 100,
+        sort: "updated",
+        direction: "desc",
+      }),
+    )
 
     const rateLimit = await this.getRateLimit()
 
@@ -438,11 +503,9 @@ export class GitHubClient {
       }
     }
 
-    const prResponse = await this.octokit.rest.pulls.get({
-      owner,
-      repo,
-      pull_number: pullNumber,
-    })
+    const prResponse = await withRateLimitRetry(() =>
+      this.octokit.rest.pulls.get({ owner, repo, pull_number: pullNumber }),
+    )
 
     this.extractRateLimit(prResponse.headers as Record<string, string | undefined>)
     const prData = prResponse.data
@@ -500,13 +563,14 @@ export class GitHubClient {
         .link({ repo: repoRecord.id }),
     )
 
-    // Fetch files (with pagination)
-    const allFiles = await this.octokit.paginate(this.octokit.rest.pulls.listFiles, {
-      owner,
-      repo,
-      pull_number: pullNumber,
-      per_page: 100,
-    })
+    const allFiles = await withRateLimitRetry(() =>
+      this.octokit.paginate(this.octokit.rest.pulls.listFiles, {
+        owner,
+        repo,
+        pull_number: pullNumber,
+        per_page: 100,
+      }),
+    )
 
     for (const file of allFiles) {
       const { prFiles: existingFiles } = await adminDb.query({
@@ -539,13 +603,14 @@ export class GitHubClient {
       )
     }
 
-    // Fetch reviews (with pagination)
-    const allReviews = await this.octokit.paginate(this.octokit.rest.pulls.listReviews, {
-      owner,
-      repo,
-      pull_number: pullNumber,
-      per_page: 100,
-    })
+    const allReviews = await withRateLimitRetry(() =>
+      this.octokit.paginate(this.octokit.rest.pulls.listReviews, {
+        owner,
+        repo,
+        pull_number: pullNumber,
+        per_page: 100,
+      }),
+    )
 
     const reviewIdMap = new Map<number, string>()
     for (const review of allReviews) {
@@ -578,13 +643,14 @@ export class GitHubClient {
       )
     }
 
-    // Fetch issue comments (with pagination)
-    const allIssueComments = await this.octokit.paginate(this.octokit.rest.issues.listComments, {
-      owner,
-      repo,
-      issue_number: pullNumber,
-      per_page: 100,
-    })
+    const allIssueComments = await withRateLimitRetry(() =>
+      this.octokit.paginate(this.octokit.rest.issues.listComments, {
+        owner,
+        repo,
+        issue_number: pullNumber,
+        per_page: 100,
+      }),
+    )
 
     for (const comment of allIssueComments) {
       const { prComments: existingComments } = await adminDb.query({
@@ -618,15 +684,13 @@ export class GitHubClient {
       )
     }
 
-    // Fetch review comments (with pagination)
-    const allReviewComments = await this.octokit.paginate(
-      this.octokit.rest.pulls.listReviewComments,
-      {
+    const allReviewComments = await withRateLimitRetry(() =>
+      this.octokit.paginate(this.octokit.rest.pulls.listReviewComments, {
         owner,
         repo,
         pull_number: pullNumber,
         per_page: 100,
-      },
+      }),
     )
 
     for (const comment of allReviewComments) {
@@ -669,13 +733,14 @@ export class GitHubClient {
       }
     }
 
-    // Fetch commits (with pagination)
-    const allCommits = await this.octokit.paginate(this.octokit.rest.pulls.listCommits, {
-      owner,
-      repo,
-      pull_number: pullNumber,
-      per_page: 100,
-    })
+    const allCommits = await withRateLimitRetry(() =>
+      this.octokit.paginate(this.octokit.rest.pulls.listCommits, {
+        owner,
+        repo,
+        pull_number: pullNumber,
+        per_page: 100,
+      }),
+    )
 
     for (const commit of allCommits) {
       const commitId = `${prId}:${commit.sha}`
@@ -729,12 +794,9 @@ export class GitHubClient {
     const repoRecord = await this.ensureRepoRecord(owner, repo)
     const branch = ref || repoRecord.defaultBranch || "main"
 
-    const response = await this.octokit.rest.git.getTree({
-      owner,
-      repo,
-      tree_sha: branch,
-      recursive: "1",
-    })
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.git.getTree({ owner, repo, tree_sha: branch, recursive: "1" }),
+    )
 
     const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
     const now = Date.now()
