@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { createHmac, timingSafeEqual } from "crypto"
+import { id } from "@instantdb/admin"
 import { adminDb } from "@/lib/instantAdmin"
 import {
   handlePullRequestWebhook,
@@ -77,6 +78,18 @@ export const Route = createFileRoute("/api/github/webhook")({
         const delivery = request.headers.get("x-github-delivery")
 
         console.log(`Received GitHub webhook: ${event} (${delivery})`)
+
+        if (delivery) {
+          const { webhookDeliveries: existing } = await adminDb.query({
+            webhookDeliveries: {
+              $: { where: { deliveryId: delivery }, limit: 1 },
+            },
+          })
+          if (existing?.[0]) {
+            console.log(`Duplicate webhook delivery ${delivery}, skipping`)
+            return jsonResponse({ received: true, duplicate: true })
+          }
+        }
 
         let payload: Record<string, unknown>
         try {
@@ -569,9 +582,36 @@ export const Route = createFileRoute("/api/github/webhook")({
             }
           }
 
+          if (delivery) {
+            await adminDb.transact(
+              adminDb.tx.webhookDeliveries[id()].update({
+                deliveryId: delivery,
+                event: event || "unknown",
+                action: (payload.action as string) || undefined,
+                status: "processed",
+                processedAt: Date.now(),
+              }),
+            )
+          }
+
           return jsonResponse({ received: true })
         } catch (error) {
           console.error("Error processing webhook:", error)
+
+          if (delivery) {
+            await adminDb.transact(
+              adminDb.tx.webhookDeliveries[id()].update({
+                deliveryId: delivery,
+                event: event || "unknown",
+                action: (payload.action as string) || undefined,
+                status: "failed",
+                error: error instanceof Error ? error.message : "Unknown error",
+                payload: rawBody,
+                processedAt: Date.now(),
+              }),
+            )
+          }
+
           return jsonResponse({ error: "Failed to process webhook" }, 500)
         }
       },

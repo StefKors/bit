@@ -309,6 +309,17 @@ export const schema = i.schema({
       updatedAt: i.number(),
     }),
 
+    // Webhook delivery tracking for deduplication and error recovery
+    webhookDeliveries: i.entity({
+      deliveryId: i.string().unique().indexed(),
+      event: i.string().indexed(),
+      action: i.string().optional(),
+      status: i.string().indexed(), // processed, failed
+      error: i.string().optional(),
+      payload: i.string().optional(), // JSON payload stored for failed deliveries
+      processedAt: i.number(),
+    }),
+
     // GitHub Sync State
     syncStates: i.entity({
       resourceType: i.string().indexed(), // overview, repo:{fullName}, pr:{repoId}:{number}
