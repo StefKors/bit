@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Octokit } from "octokit"
 import { id } from "@instantdb/admin"
 import { adminDb } from "@/lib/instantAdmin"
+import { isGitHubAuthError, handleGitHubAuthError } from "@/lib/github-client"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -13,7 +14,6 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
   server: {
     handlers: {
       POST: async ({ request, params }) => {
-        // Get user from request headers
         const authHeader = request.headers.get("Authorization")
         const userId = authHeader?.replace("Bearer ", "") || ""
 
@@ -28,7 +28,6 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
           return jsonResponse({ error: "Invalid issue number" }, 400)
         }
 
-        // Get user's GitHub token
         const { syncStates } = await adminDb.query({
           syncStates: {
             $: {
@@ -51,7 +50,6 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
         const fullName = `${owner}/${repo}`
 
         try {
-          // Get repo record
           const { repos } = await adminDb.query({
             repos: {
               $: { where: { fullName } },
@@ -63,7 +61,6 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
             return jsonResponse({ error: "Repository not found in database" }, 404)
           }
 
-          // Fetch issue details
           const issueResponse = await octokit.rest.issues.get({
             owner,
             repo,
@@ -73,7 +70,6 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
           const issueData = issueResponse.data
           const now = Date.now()
 
-          // Find or create issue record
           const { issues: existingIssues } = await adminDb.query({
             issues: {
               $: { where: { githubId: issueData.id } },
@@ -82,7 +78,6 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
 
           const issueId = existingIssues?.[0]?.id || id()
 
-          // Upsert issue
           await adminDb.transact(
             adminDb.tx.issues[issueId]
               .update({
@@ -118,7 +113,6 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
               .link({ repo: repoRecord.id }),
           )
 
-          // Fetch and sync comments (with pagination)
           const allComments = await octokit.paginate(octokit.rest.issues.listComments, {
             owner,
             repo,
@@ -127,7 +121,6 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
           })
 
           for (const comment of allComments) {
-            // Find or create comment record
             const { issueComments: existingComments } = await adminDb.query({
               issueComments: {
                 $: { where: { githubId: comment.id } },
@@ -165,6 +158,19 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
           })
         } catch (error) {
           console.error("Error syncing issue:", error)
+
+          if (isGitHubAuthError(error)) {
+            await handleGitHubAuthError(userId)
+            return jsonResponse(
+              {
+                error: "GitHub authentication expired",
+                code: "auth_invalid",
+                details:
+                  "Your GitHub token is no longer valid. Please reconnect your GitHub account.",
+              },
+              401,
+            )
+          }
 
           if (error && typeof error === "object" && "status" in error) {
             const status = (error as { status: number }).status

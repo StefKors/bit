@@ -1058,7 +1058,6 @@ export class GitHubClient {
     )
   }
 
-  // Perform initial sync after OAuth: orgs, repos, and webhooks
   async performInitialSync(): Promise<{
     orgs: number
     repos: number
@@ -1067,97 +1066,115 @@ export class GitHubClient {
   }> {
     console.log(`Starting initial sync for user ${this.userId}`)
 
-    try {
-      // Log token scopes for debugging
-      const scopes = await this.getTokenScopes()
-      console.log(`Token scopes: ${scopes.join(", ") || "(none)"}`)
+    let orgsCount = 0
+    let reposCount = 0
+    let webhooksRegistered = 0
+    let totalOpenPRs = 0
+    let reposData: { githubId: number; fullName: string; githubPushedAt?: number }[] = []
 
-      // 1. Sync organizations
-      await this.updateInitialSyncProgress({ step: "orgs" })
-      const orgsResult = await this.fetchOrganizations()
-      console.log(`Synced ${orgsResult.data.length} organizations`)
-
-      // 2. Sync repositories
-      await this.updateInitialSyncProgress({
-        step: "repos",
-        orgs: { total: orgsResult.data.length },
+    const updateProgress = (
+      step: "orgs" | "repos" | "webhooks" | "pullRequests" | "completed",
+      extra?: { error?: string; prCompleted?: number; prTotal?: number },
+    ) =>
+      this.updateInitialSyncProgress({
+        step,
+        orgs: { total: orgsCount },
+        repos: { total: reposCount },
+        webhooks: { completed: webhooksRegistered, total: reposCount },
+        pullRequests: {
+          completed: extra?.prCompleted ?? 0,
+          total: extra?.prTotal ?? reposCount,
+          prsFound: totalOpenPRs,
+        },
+        error: extra?.error,
       })
-      const reposResult = await this.fetchRepositories()
-      console.log(`Synced ${reposResult.data.length} repositories`)
 
-      // 3. Register webhooks for repos we can admin
-      let webhooksRegistered = 0
-      const totalRepos = reposResult.data.length
-      for (let i = 0; i < reposResult.data.length; i++) {
-        const repo = reposResult.data[i]
-        await this.updateInitialSyncProgress({
-          step: "webhooks",
-          orgs: { total: orgsResult.data.length },
-          repos: { total: reposResult.data.length },
-          webhooks: { completed: i, total: totalRepos },
-        })
+    // Step 1: Organizations
+    try {
+      await updateProgress("orgs")
+      const orgsResult = await this.fetchOrganizations()
+      orgsCount = orgsResult.data.length
+      console.log(`Synced ${orgsCount} organizations`)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to sync organizations"
+      await updateProgress("orgs", { error: msg })
+      throw err
+    }
+
+    // Step 2: Repositories
+    try {
+      await updateProgress("repos")
+      const reposResult = await this.fetchRepositories()
+      reposCount = reposResult.data.length
+      reposData = reposResult.data as typeof reposData
+      console.log(`Synced ${reposCount} repositories`)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to sync repositories"
+      await updateProgress("repos", { error: msg })
+      throw err
+    }
+
+    // Step 3: Webhooks
+    try {
+      await updateProgress("webhooks")
+      for (let i = 0; i < reposData.length; i++) {
+        const repo = reposData[i]
         const [owner, repoName] = repo.fullName.split("/")
         const result = await this.registerRepoWebhook(owner, repoName)
         if (result.success) webhooksRegistered++
       }
       console.log(`Registered webhooks for ${webhooksRegistered} repositories`)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to register webhooks"
+      await updateProgress("webhooks", { error: msg })
+      throw err
+    }
 
-      // 4. Sync open PRs for all repos (limit to first 10 repos to avoid rate limiting)
-      let totalOpenPRs = 0
-      const reposToSync = reposResult.data.slice(0, 10) // Limit to avoid rate limiting
-      for (let i = 0; i < reposToSync.length; i++) {
-        const repo = reposToSync[i]
-        await this.updateInitialSyncProgress({
-          step: "pullRequests",
-          orgs: { total: orgsResult.data.length },
-          repos: { total: reposResult.data.length },
-          webhooks: { completed: totalRepos, total: totalRepos },
-          pullRequests: { completed: i, total: reposToSync.length, prsFound: totalOpenPRs },
-        })
-        try {
-          const [owner, repoName] = repo.fullName.split("/")
-          const prsResult = await this.fetchPullRequests(owner, repoName, "open")
-          totalOpenPRs += prsResult.data.length
-        } catch (err) {
-          console.error(`Error syncing PRs for ${repo.fullName}:`, err)
+    // Step 4: Sync open PRs for all repos, sorted by most recently active
+    const sortedRepos = [...reposData].sort((a, b) => {
+      const aTime = a.githubPushedAt ?? 0
+      const bTime = b.githubPushedAt ?? 0
+      return bTime - aTime
+    })
+
+    let prErrors = 0
+    for (let i = 0; i < sortedRepos.length; i++) {
+      const repo = sortedRepos[i]
+      await updateProgress("pullRequests", {
+        prCompleted: i,
+        prTotal: sortedRepos.length,
+      })
+      try {
+        const [owner, repoName] = repo.fullName.split("/")
+        const prsResult = await this.fetchPullRequests(owner, repoName, "open")
+        totalOpenPRs += prsResult.data.length
+      } catch (err) {
+        prErrors++
+        console.error(`Error syncing PRs for ${repo.fullName}:`, err)
+        if (isRateLimitError(err)) {
+          console.log(`Rate limited during PR sync at repo ${i + 1}/${sortedRepos.length}, pausing`)
+          const delay = err instanceof RequestError ? getRateLimitRetryDelay(err) : 60_000
+          await new Promise((resolve) => setTimeout(resolve, delay))
         }
       }
-      console.log(`Synced ${totalOpenPRs} open PRs from ${reposToSync.length} repositories`)
+    }
+    console.log(
+      `Synced ${totalOpenPRs} open PRs from ${sortedRepos.length} repos (${prErrors} errors)`,
+    )
 
-      // Mark as completed
-      await this.updateInitialSyncProgress({
-        step: "completed",
-        orgs: { total: orgsResult.data.length },
-        repos: { total: reposResult.data.length },
-        webhooks: { completed: webhooksRegistered, total: totalRepos },
-        pullRequests: {
-          completed: reposToSync.length,
-          total: reposToSync.length,
-          prsFound: totalOpenPRs,
-        },
-      })
+    await updateProgress("completed")
 
-      return {
-        orgs: orgsResult.data.length,
-        repos: reposResult.data.length,
-        webhooks: webhooksRegistered,
-        openPRs: totalOpenPRs,
-      }
-    } catch (err) {
-      // Update with error status
-      await this.updateInitialSyncProgress({
-        step: "orgs",
-        error: err instanceof Error ? err.message : "Initial sync failed",
-      })
-      throw err
+    return {
+      orgs: orgsCount,
+      repos: reposCount,
+      webhooks: webhooksRegistered,
+      openPRs: totalOpenPRs,
     }
   }
 }
 
-// Factory function to create a GitHub client from session
 export async function createGitHubClient(userId: string): Promise<GitHubClient | null> {
   try {
-    // Query for the user's stored GitHub access token by fields
     const { syncStates } = await adminDb.query({
       syncStates: {
         $: {
@@ -1170,13 +1187,18 @@ export async function createGitHubClient(userId: string): Promise<GitHubClient |
     })
 
     const tokenState = syncStates?.[0]
-    const accessToken = tokenState?.lastEtag // Token stored in lastEtag field
+
+    if (tokenState?.syncStatus === "auth_invalid") {
+      console.error("GitHub token is known-invalid for user:", userId)
+      return null
+    }
+
+    const accessToken = tokenState?.lastEtag
 
     if (accessToken) {
       return new GitHubClient(accessToken, userId)
     }
 
-    // Fall back to environment variable for backward compatibility or global token
     const globalToken = process.env.GITHUB_ACCESS_TOKEN
     if (globalToken) {
       console.log("Using global GitHub access token (user token not found)")

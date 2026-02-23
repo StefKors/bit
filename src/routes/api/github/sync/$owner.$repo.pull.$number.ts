@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { createGitHubClient } from "@/lib/github-client"
+import { createGitHubClient, isGitHubAuthError, handleGitHubAuthError } from "@/lib/github-client"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -40,6 +40,20 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/pull/$number
           })
         } catch (error) {
           console.error("Error syncing PR details:", error)
+
+          if (isGitHubAuthError(error)) {
+            await handleGitHubAuthError(userId)
+            return jsonResponse(
+              {
+                error: "GitHub authentication expired",
+                code: "auth_invalid",
+                details:
+                  "Your GitHub token is no longer valid. Please reconnect your GitHub account.",
+              },
+              401,
+            )
+          }
+
           return jsonResponse(
             {
               error: "Failed to sync PR details",
