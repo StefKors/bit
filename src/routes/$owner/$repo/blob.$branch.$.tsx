@@ -21,7 +21,7 @@ function BlobPage() {
   const [fileError, setFileError] = useState<string | null>(null)
 
   // Query the repo with InstantDB
-  const { data: reposData } = db.useQuery({
+  const { data: reposData, isLoading } = db.useQuery({
     repos: {
       $: { where: { fullName } },
       organization: {},
@@ -94,6 +94,14 @@ function BlobPage() {
     } finally {
       setSyncing(false)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className={layoutStyles.container}>
+        <div className={styles.loading}>Loading...</div>
+      </div>
+    )
   }
 
   if (!repoData) {

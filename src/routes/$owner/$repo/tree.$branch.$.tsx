@@ -17,7 +17,7 @@ function TreePage() {
   const [syncing, setSyncing] = useState(false)
 
   // Query the repo with InstantDB
-  const { data: reposData } = db.useQuery({
+  const { data: reposData, isLoading } = db.useQuery({
     repos: {
       $: { where: { fullName } },
       organization: {},
@@ -47,6 +47,14 @@ function TreePage() {
     } finally {
       setSyncing(false)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className={layoutStyles.container}>
+        <div className={styles.loading}>Loading...</div>
+      </div>
+    )
   }
 
   if (!repoData) {

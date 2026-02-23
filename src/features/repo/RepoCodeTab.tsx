@@ -39,7 +39,7 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: 
     },
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-  const { data: treeData } = db.useQuery(treeQuery as any)
+  const { data: treeData, isLoading: treeLoading } = db.useQuery(treeQuery as any)
 
   const treeEntries = useMemo<TreeEntryData[]>(() => {
     const data = (treeData as { repoTrees?: TreeEntryData[] } | undefined)?.repoTrees
@@ -141,6 +141,7 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: 
         branch={branch}
         onSync={() => void handleSync()}
         syncing={syncing}
+        isLoading={treeLoading}
       />
 
       {Boolean(readme) && (

@@ -26,6 +26,8 @@ interface FileTreeProps {
   onSync?: () => void
   syncing?: boolean
   variant?: "default" | "sidebar"
+  /** When true and entries are empty, show loading state instead of "No files synced yet" */
+  isLoading?: boolean
 }
 
 // Build tree structure from flat entries
@@ -96,6 +98,7 @@ export function FileTree({
   onSync,
   syncing,
   variant = "default",
+  isLoading = false,
 }: FileTreeProps) {
   if (entries.length === 0) {
     return (
@@ -105,12 +108,18 @@ export function FileTree({
           <span className={styles.branchName}>{branch}</span>
         </div>
         <div className={styles.emptyState}>
-          <FileDirectoryIcon className={styles.emptyIcon} size={32} />
-          <p className={styles.emptyText}>No files synced yet</p>
-          {onSync && (
-            <button className={styles.syncButton} onClick={onSync} disabled={syncing}>
-              {syncing ? "Syncing..." : "Sync Files"}
-            </button>
+          {isLoading ? (
+            <p className={styles.emptyText}>Loading files...</p>
+          ) : (
+            <>
+              <FileDirectoryIcon className={styles.emptyIcon} size={32} />
+              <p className={styles.emptyText}>No files synced yet</p>
+              {onSync && (
+                <button className={styles.syncButton} onClick={onSync} disabled={syncing}>
+                  {syncing ? "Syncing..." : "Sync Files"}
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
