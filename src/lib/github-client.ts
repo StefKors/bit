@@ -34,6 +34,8 @@ export interface PullRequestDashboardItem {
   githubUpdatedAt: Date | null
 }
 
+const SYNC_FRESHNESS_MS = 5 * 60 * 1000 // 5 minutes
+
 // GitHub API client with rate limit tracking
 export class GitHubClient {
   private octokit: Octokit
@@ -324,15 +326,19 @@ export class GitHubClient {
     return { data: repos, rateLimit, fromCache: false }
   }
 
-  // Fetch pull requests for a repository (with pagination)
   async fetchPullRequests(
     owner: string,
     repo: string,
     state: "open" | "closed" | "all" = "all",
+    force = false,
   ): Promise<SyncResult<{ githubId: number; number: number }[]>> {
     const repoRecord = await this.ensureRepoRecord(owner, repo)
 
-    // Use paginate to fetch all pull requests
+    if (!force && repoRecord.syncedAt && Date.now() - repoRecord.syncedAt < SYNC_FRESHNESS_MS) {
+      const rateLimit = this.lastRateLimit ?? (await this.getRateLimit())
+      return { data: [], rateLimit, fromCache: true }
+    }
+
     const allPrsData = await this.octokit.paginate(this.octokit.rest.pulls.list, {
       owner,
       repo,
@@ -368,7 +374,6 @@ export class GitHubClient {
       mergedAt: pr.merged_at ? new Date(pr.merged_at).getTime() : undefined,
     }))
 
-    // Upsert pull requests - check if exists first, then update or create
     for (const pr of prs) {
       const { pullRequests: existing } = await adminDb.query({
         pullRequests: {
@@ -376,14 +381,24 @@ export class GitHubClient {
         },
       })
 
-      const prId = existing?.[0]?.id || id()
+      const existingRecord = existing?.[0]
+      const prId = existingRecord?.id || id()
+
+      // Skip if the existing record was updated more recently (e.g. by a webhook)
+      if (
+        existingRecord?.githubUpdatedAt &&
+        pr.githubUpdatedAt &&
+        existingRecord.githubUpdatedAt >= pr.githubUpdatedAt
+      ) {
+        continue
+      }
 
       await adminDb.transact(
         adminDb.tx.pullRequests[prId]
           .update({
             ...pr,
-            repoId: repoRecord.id, // Required attribute
-            userId: this.userId, // Required attribute
+            repoId: repoRecord.id,
+            userId: this.userId,
             syncedAt: now,
             createdAt: now,
             updatedAt: now,
@@ -398,18 +413,31 @@ export class GitHubClient {
     return { data: prs, rateLimit, fromCache: false }
   }
 
-  // Fetch detailed PR info including files, comments, reviews, commits, and events
   async fetchPullRequestDetails(
     owner: string,
     repo: string,
     pullNumber: number,
+    force = false,
   ): Promise<{
     prId: string
     rateLimit: RateLimitInfo
+    skipped?: boolean
   }> {
     const repoRecord = await this.ensureRepoRecord(owner, repo)
 
-    // Fetch PR details
+    if (!force) {
+      const { pullRequests: cached } = await adminDb.query({
+        pullRequests: {
+          $: { where: { number: pullNumber, repoId: repoRecord.id } },
+        },
+      })
+      const cachedPr = cached?.[0]
+      if (cachedPr?.syncedAt && Date.now() - cachedPr.syncedAt < SYNC_FRESHNESS_MS) {
+        const rateLimit = this.lastRateLimit ?? (await this.getRateLimit())
+        return { prId: cachedPr.id, rateLimit, skipped: true }
+      }
+    }
+
     const prResponse = await this.octokit.rest.pulls.get({
       owner,
       repo,
