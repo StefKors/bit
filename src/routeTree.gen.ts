@@ -15,6 +15,8 @@ import { Route as OwnerIndexRouteImport } from './routes/$owner/index'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as OwnerRepoIndexRouteImport } from './routes/$owner/$repo/index'
 import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
+import { Route as ApiGithubWebhookHealthRouteImport } from './routes/api/github/webhook-health'
+import { Route as ApiGithubWebhookProcessRouteImport } from './routes/api/github/webhook-process'
 import { Route as ApiGithubRateLimitRouteImport } from './routes/api/github/rate-limit'
 import { Route as ApiGithubPermissionsRouteImport } from './routes/api/github/permissions'
 import { Route as OwnerRepoPullsRouteImport } from './routes/$owner/$repo/pulls'
@@ -67,6 +69,16 @@ const OwnerRepoIndexRoute = OwnerRepoIndexRouteImport.update({
 const ApiGithubWebhookRoute = ApiGithubWebhookRouteImport.update({
   id: '/api/github/webhook',
   path: '/api/github/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubWebhookHealthRoute = ApiGithubWebhookHealthRouteImport.update({
+  id: '/api/github/webhook-health',
+  path: '/api/github/webhook-health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubWebhookProcessRoute = ApiGithubWebhookProcessRouteImport.update({
+  id: '/api/github/webhook-process',
+  path: '/api/github/webhook-process',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubRateLimitRoute = ApiGithubRateLimitRouteImport.update({
@@ -203,6 +215,8 @@ export interface FileRoutesByFullPath {
   '/api/github/permissions': typeof ApiGithubPermissionsRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
+  '/api/github/webhook-health': typeof ApiGithubWebhookHealthRoute
+  '/api/github/webhook-process': typeof ApiGithubWebhookProcessRoute
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/commits/$branch': typeof OwnerRepoCommitsBranchRoute
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
@@ -234,6 +248,8 @@ export interface FileRoutesByTo {
   '/api/github/permissions': typeof ApiGithubPermissionsRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
+  '/api/github/webhook-health': typeof ApiGithubWebhookHealthRoute
+  '/api/github/webhook-process': typeof ApiGithubWebhookProcessRoute
   '/$owner/$repo': typeof OwnerRepoIndexRoute
   '/$owner/$repo/commits/$branch': typeof OwnerRepoCommitsBranchRoute
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
@@ -266,6 +282,8 @@ export interface FileRoutesById {
   '/api/github/permissions': typeof ApiGithubPermissionsRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
+  '/api/github/webhook-health': typeof ApiGithubWebhookHealthRoute
+  '/api/github/webhook-process': typeof ApiGithubWebhookProcessRoute
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/commits/$branch': typeof OwnerRepoCommitsBranchRoute
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
@@ -299,6 +317,8 @@ export interface FileRouteTypes {
     | '/api/github/permissions'
     | '/api/github/rate-limit'
     | '/api/github/webhook'
+    | '/api/github/webhook-health'
+    | '/api/github/webhook-process'
     | '/$owner/$repo/'
     | '/$owner/$repo/commits/$branch'
     | '/$owner/$repo/issues/$number'
@@ -330,6 +350,8 @@ export interface FileRouteTypes {
     | '/api/github/permissions'
     | '/api/github/rate-limit'
     | '/api/github/webhook'
+    | '/api/github/webhook-health'
+    | '/api/github/webhook-process'
     | '/$owner/$repo'
     | '/$owner/$repo/commits/$branch'
     | '/$owner/$repo/issues/$number'
@@ -361,6 +383,8 @@ export interface FileRouteTypes {
     | '/api/github/permissions'
     | '/api/github/rate-limit'
     | '/api/github/webhook'
+    | '/api/github/webhook-health'
+    | '/api/github/webhook-process'
     | '/$owner/$repo/'
     | '/$owner/$repo/commits/$branch'
     | '/$owner/$repo/issues/$number'
@@ -393,6 +417,8 @@ export interface RootRouteChildren {
   ApiGithubPermissionsRoute: typeof ApiGithubPermissionsRoute
   ApiGithubRateLimitRoute: typeof ApiGithubRateLimitRoute
   ApiGithubWebhookRoute: typeof ApiGithubWebhookRoute
+  ApiGithubWebhookHealthRoute: typeof ApiGithubWebhookHealthRoute
+  ApiGithubWebhookProcessRoute: typeof ApiGithubWebhookProcessRoute
   OwnerRepoIndexRoute: typeof OwnerRepoIndexRoute
   OwnerRepoCommitsBranchRoute: typeof OwnerRepoCommitsBranchRoute
   OwnerRepoPullNumberRoute: typeof OwnerRepoPullNumberRoute
@@ -452,6 +478,20 @@ declare module '@tanstack/react-router' {
       path: '/api/github/webhook'
       fullPath: '/api/github/webhook'
       preLoaderRoute: typeof ApiGithubWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/webhook-health': {
+      id: '/api/github/webhook-health'
+      path: '/api/github/webhook-health'
+      fullPath: '/api/github/webhook-health'
+      preLoaderRoute: typeof ApiGithubWebhookHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/webhook-process': {
+      id: '/api/github/webhook-process'
+      path: '/api/github/webhook-process'
+      fullPath: '/api/github/webhook-process'
+      preLoaderRoute: typeof ApiGithubWebhookProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/rate-limit': {
@@ -662,6 +702,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGithubPermissionsRoute: ApiGithubPermissionsRoute,
   ApiGithubRateLimitRoute: ApiGithubRateLimitRoute,
   ApiGithubWebhookRoute: ApiGithubWebhookRoute,
+  ApiGithubWebhookHealthRoute: ApiGithubWebhookHealthRoute,
+  ApiGithubWebhookProcessRoute: ApiGithubWebhookProcessRoute,
   OwnerRepoIndexRoute: OwnerRepoIndexRoute,
   OwnerRepoCommitsBranchRoute: OwnerRepoCommitsBranchRoute,
   OwnerRepoPullNumberRoute: OwnerRepoPullNumberRoute,
