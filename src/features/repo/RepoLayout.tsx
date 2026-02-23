@@ -56,6 +56,9 @@ export interface RepoData {
   organization?: Organization | null
   pullRequests: readonly PullRequest[]
   issues: readonly Issue[]
+  webhookStatus?: string | null
+  webhookError?: string | null
+  syncedAt?: number | null
 }
 
 interface RepoLayoutProps {
@@ -142,6 +145,9 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
     organization: repoRaw.organization ?? null,
     pullRequests: repoRaw.pullRequests ?? [],
     issues: repoRaw.issues ?? [],
+    webhookStatus: repoRaw.webhookStatus,
+    webhookError: repoRaw.webhookError,
+    syncedAt: repoRaw.syncedAt,
   }
 
   return (

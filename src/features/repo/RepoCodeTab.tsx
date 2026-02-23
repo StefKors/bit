@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { FileDirectoryIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
@@ -10,6 +10,7 @@ interface RepoCodeTabProps {
   fullName: string
   repoId: string
   defaultBranch: string
+  webhookStatus?: string | null
 }
 
 interface TreeEntryData {
@@ -21,7 +22,7 @@ interface TreeEntryData {
   size?: number
 }
 
-export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProps) {
+export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: RepoCodeTabProps) {
   const { user } = useAuth()
   const [owner, repo] = fullName.split("/")
   const branch = defaultBranch || "main"
@@ -29,6 +30,7 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProp
   const [syncing, setSyncing] = useState(false)
   const [readme, setReadme] = useState<string | null>(null)
   const [readmeLoading, setReadmeLoading] = useState(false)
+  const initialSyncTriggered = useRef(false)
 
   // Query the tree entries (uses type assertion because repoTrees has dynamic schema fields)
   const treeQuery = {
@@ -64,6 +66,14 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProp
     } finally {
       setSyncing(false)
     }
+  }
+
+  // Auto-sync files on first visit when webhooks are installed but tree is empty
+  const hasWebhooks = webhookStatus === "installed"
+  const treeIsEmpty = treeData !== undefined && treeEntries.length === 0
+  if (hasWebhooks && treeIsEmpty && user?.id && !initialSyncTriggered.current && !syncing) {
+    initialSyncTriggered.current = true
+    void handleSync()
   }
 
   // Fetch README when tree is loaded
