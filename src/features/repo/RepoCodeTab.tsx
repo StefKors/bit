@@ -153,7 +153,7 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: 
             {readmeLoading ? (
               <div className={styles.readmeLoading}>Loading README...</div>
             ) : (
-              <Markdown content={readme || ""} />
+              <Markdown content={readme || ""} repoContext={{ owner, repo, branch }} />
             )}
           </div>
         </div>
