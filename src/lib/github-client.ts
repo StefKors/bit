@@ -856,6 +856,90 @@ export class GitHubClient {
     return { count: response.data.tree.length, rateLimit }
   }
 
+  // Fetch repository commit history for a branch
+  async fetchRepoCommits(
+    owner: string,
+    repo: string,
+    ref?: string,
+  ): Promise<{
+    count: number
+    rateLimit: RateLimitInfo
+  }> {
+    const repoRecord = await this.ensureRepoRecord(owner, repo)
+    const branch = ref || repoRecord.defaultBranch || "main"
+
+    const allCommits = await withRateLimitRetry(() =>
+      this.octokit.paginate(
+        this.octokit.rest.repos.listCommits,
+        { owner, repo, sha: branch, per_page: 100 },
+        (response) => {
+          const rateLimit = this.extractRateLimit(
+            response.headers as unknown as Record<string, string | undefined>,
+          )
+          this.lastRateLimit = rateLimit
+          return response.data
+        },
+      ),
+    )
+
+    const rateLimit = this.lastRateLimit || {
+      remaining: 0,
+      limit: 5000,
+      reset: new Date(),
+      used: 0,
+    }
+    const now = Date.now()
+
+    const incomingShas = new Set<string>()
+
+    for (const commit of allCommits) {
+      incomingShas.add(commit.sha)
+
+      const entryId = `${repoRecord.id}:${branch}:${commit.sha}`
+
+      await adminDb.transact(
+        adminDb.tx.repoCommits[entryId]
+          .update({
+            sha: commit.sha,
+            message: commit.commit.message,
+            authorLogin: commit.author?.login || undefined,
+            authorAvatarUrl: commit.author?.avatar_url || undefined,
+            authorName: commit.commit.author?.name || undefined,
+            authorEmail: commit.commit.author?.email || undefined,
+            committerLogin: commit.committer?.login || undefined,
+            committerName: commit.commit.committer?.name || undefined,
+            committerEmail: commit.commit.committer?.email || undefined,
+            htmlUrl: commit.html_url,
+            ref: branch,
+            repoId: repoRecord.id,
+            committedAt: commit.commit.committer?.date
+              ? new Date(commit.commit.committer.date).getTime()
+              : undefined,
+            createdAt: now,
+            updatedAt: now,
+          })
+          .link({ user: this.userId })
+          .link({ repo: repoRecord.id }),
+      )
+    }
+
+    // Remove stale commits no longer in the branch history
+    const { repoCommits: allExisting } = await adminDb.query({
+      repoCommits: {
+        $: { where: { ref: branch, repoId: repoRecord.id } },
+      },
+    })
+    for (const entry of allExisting || []) {
+      if (!incomingShas.has(entry.sha)) {
+        await adminDb.transact(adminDb.tx.repoCommits[entry.id].delete())
+      }
+    }
+
+    await this.updateSyncState("commits", `${owner}/${repo}:${branch}`, rateLimit)
+
+    return { count: allCommits.length, rateLimit }
+  }
+
   // Register webhooks for a repository
   // Webhook status type for tracking
   static readonly WEBHOOK_STATUS = {

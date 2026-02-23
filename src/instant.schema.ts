@@ -309,6 +309,26 @@ export const schema = i.schema({
       updatedAt: i.number(),
     }),
 
+    // GitHub Repository Commits (branch-level commit history)
+    repoCommits: i.entity({
+      sha: i.string().indexed(),
+      message: i.string(),
+      authorLogin: i.string().optional().indexed(),
+      authorAvatarUrl: i.string().optional(),
+      authorName: i.string().optional(),
+      authorEmail: i.string().optional(),
+      committerLogin: i.string().optional(),
+      committerName: i.string().optional(),
+      committerEmail: i.string().optional(),
+      htmlUrl: i.string().optional(),
+      ref: i.string().indexed(), // branch name
+      // Denormalized ID for efficient filtering
+      repoId: i.string().indexed(),
+      committedAt: i.number().optional().indexed(),
+      createdAt: i.number(),
+      updatedAt: i.number(),
+    }),
+
     // Webhook delivery tracking for deduplication and error recovery
     webhookDeliveries: i.entity({
       deliveryId: i.string().unique().indexed(),
@@ -673,6 +693,34 @@ export const schema = i.schema({
         on: "$users",
         has: "many",
         label: "repoBlobs",
+      },
+    },
+
+    // Repo -> Commits (one-to-many)
+    repoCommitsLink: {
+      forward: {
+        on: "repoCommits",
+        has: "one",
+        label: "repo",
+      },
+      reverse: {
+        on: "repos",
+        has: "many",
+        label: "repoCommits",
+      },
+    },
+
+    // User -> Repo Commits (one-to-many)
+    userRepoCommits: {
+      forward: {
+        on: "repoCommits",
+        has: "one",
+        label: "user",
+      },
+      reverse: {
+        on: "$users",
+        has: "many",
+        label: "repoCommits",
       },
     },
 

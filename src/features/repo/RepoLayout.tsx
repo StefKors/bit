@@ -8,7 +8,7 @@ import { RepoHeader } from "./RepoHeader"
 import { RepoTabs } from "./RepoTabs"
 import styles from "./RepoLayout.module.css"
 
-type TabType = "code" | "pulls" | "issues"
+type TabType = "code" | "pulls" | "issues" | "commits"
 
 // Define types for InstantDB data
 interface Organization {
@@ -169,6 +169,7 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
         issues={repo.issues as Parameters<typeof RepoTabs>[0]["issues"]}
         fullName={fullName}
         activeTab={activeTab}
+        defaultBranch={repo.defaultBranch ?? undefined}
       />
 
       <div className={styles.content}>
