@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OwnerIndexRouteImport } from './routes/$owner/index'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
@@ -34,6 +35,11 @@ import { Route as ApiGithubFileOwnerRepoSplatRouteImport } from './routes/api/gi
 import { Route as ApiGithubSyncOwnerRepoPullNumberRouteImport } from './routes/api/github/sync/$owner.$repo.pull.$number'
 import { Route as ApiGithubSyncOwnerRepoIssueNumberRouteImport } from './routes/api/github/sync/$owner.$repo.issue.$number'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -164,6 +170,7 @@ const ApiGithubSyncOwnerRepoIssueNumberRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/api/health': typeof ApiHealthRoute
   '/$owner': typeof OwnerIndexRoute
   '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
@@ -190,6 +197,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/api/health': typeof ApiHealthRoute
   '/$owner': typeof OwnerIndexRoute
   '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
@@ -217,6 +225,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/api/health': typeof ApiHealthRoute
   '/$owner/': typeof OwnerIndexRoute
   '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
@@ -245,6 +254,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/settings'
     | '/api/health'
     | '/$owner'
     | '/$owner/$repo/issues'
@@ -271,6 +281,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/settings'
     | '/api/health'
     | '/$owner'
     | '/$owner/$repo/issues'
@@ -297,6 +308,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/settings'
     | '/api/health'
     | '/$owner/'
     | '/$owner/$repo/issues'
@@ -324,6 +336,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SettingsRoute: typeof SettingsRoute
   ApiHealthRoute: typeof ApiHealthRoute
   OwnerIndexRoute: typeof OwnerIndexRoute
   OwnerRepoIssuesRoute: typeof OwnerRepoIssuesRouteWithChildren
@@ -347,6 +360,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -552,6 +572,7 @@ const ApiGithubSyncOwnerRepoRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SettingsRoute: SettingsRoute,
   ApiHealthRoute: ApiHealthRoute,
   OwnerIndexRoute: OwnerIndexRoute,
   OwnerRepoIssuesRoute: OwnerRepoIssuesRouteWithChildren,

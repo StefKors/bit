@@ -1,0 +1,212 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { useState } from "react"
+import {
+  MarkGithubIcon,
+  CheckCircleFillIcon,
+  AlertIcon,
+  TrashIcon,
+  SyncIcon,
+  LinkExternalIcon,
+} from "@primer/octicons-react"
+import { useAuth } from "@/lib/hooks/useAuth"
+import { db } from "@/lib/instantDb"
+import { Button } from "@/components/Button"
+import { Avatar } from "@/components/Avatar"
+import styles from "@/pages/SettingsPage.module.css"
+
+function SettingsPage() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const [disconnecting, setDisconnecting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  const isGitHubConnected = Boolean(user?.login)
+
+  const { data: syncData } = db.useQuery({ syncStates: {} })
+  const syncStates = syncData?.syncStates ?? []
+
+  const tokenState = syncStates.find((s) => s.resourceType === "github:token")
+  const isAuthInvalid = tokenState?.syncStatus === "auth_invalid"
+
+  const initialSyncState = syncStates.find((s) => s.resourceType === "initial_sync")
+  const lastSyncedAt = initialSyncState?.lastSyncedAt
+
+  const handleConnectGitHub = () => {
+    if (!user?.id) return
+    window.location.href = `/api/github/oauth?userId=${user.id}`
+  }
+
+  const handleDisconnect = async () => {
+    if (!user?.id) return
+    setDisconnecting(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const response = await fetch("/api/github/sync/reset", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${user.id}` },
+      })
+
+      if (!response.ok) {
+        const data = (await response.json()) as { error?: string }
+        throw new Error(data.error || "Failed to disconnect")
+      }
+
+      setSuccess("GitHub account disconnected. Redirecting...")
+      setTimeout(() => {
+        void navigate({
+          to: "/",
+          search: { github: undefined, error: undefined, message: undefined },
+        })
+      }, 1500)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to disconnect")
+    } finally {
+      setDisconnecting(false)
+    }
+  }
+
+  if (!user) return null
+
+  return (
+    <div className={styles.container}>
+      <h1 className={styles.pageTitle}>Settings</h1>
+
+      {error && <div className={styles.errorBanner}>{error}</div>}
+      {success && <div className={styles.successBanner}>{success}</div>}
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>GitHub Connection</h2>
+
+        {isGitHubConnected ? (
+          <div className={styles.card}>
+            <div className={styles.connectionHeader}>
+              <div className={styles.connectionInfo}>
+                <Avatar src={user.avatarUrl} name={user.name || user.login} size={48} />
+                <div className={styles.connectionDetails}>
+                  <span className={styles.connectionName}>{user.name || user.login}</span>
+                  <span className={styles.connectionLogin}>@{user.login}</span>
+                </div>
+              </div>
+
+              {isAuthInvalid ? (
+                <div className={styles.statusBadgeDanger}>
+                  <AlertIcon size={14} />
+                  Expired
+                </div>
+              ) : (
+                <div className={styles.statusBadgeSuccess}>
+                  <CheckCircleFillIcon size={14} />
+                  Connected
+                </div>
+              )}
+            </div>
+
+            {isAuthInvalid && (
+              <div className={styles.warningBanner}>
+                <AlertIcon size={16} />
+                <div>
+                  <strong>Connection expired</strong>
+                  <p>
+                    Your GitHub token is no longer valid. Reconnect to resume syncing repositories
+                    and pull requests.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {Boolean(lastSyncedAt) && !isAuthInvalid && (
+              <div className={styles.metaRow}>
+                <SyncIcon size={14} />
+                Last synced {formatTimeAgo(lastSyncedAt!)}
+              </div>
+            )}
+
+            {user.htmlUrl && (
+              <div className={styles.metaRow}>
+                <LinkExternalIcon size={14} />
+                <a
+                  href={user.htmlUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.link}
+                >
+                  {user.htmlUrl}
+                </a>
+              </div>
+            )}
+
+            <div className={styles.cardActions}>
+              <Button
+                variant={isAuthInvalid ? "primary" : "default"}
+                leadingIcon={<MarkGithubIcon size={16} />}
+                onClick={handleConnectGitHub}
+              >
+                {isAuthInvalid ? "Reconnect GitHub" : "Reconnect"}
+              </Button>
+              <Button
+                variant="danger"
+                leadingIcon={<TrashIcon size={16} />}
+                loading={disconnecting}
+                onClick={() => void handleDisconnect()}
+              >
+                Disconnect
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className={styles.card}>
+            <div className={styles.emptyConnection}>
+              <MarkGithubIcon size={40} className={styles.emptyIcon} />
+              <h3 className={styles.emptyTitle}>No GitHub account connected</h3>
+              <p className={styles.emptyDescription}>
+                Connect your GitHub account to sync repositories, pull requests, and receive
+                real-time updates.
+              </p>
+              <Button
+                variant="primary"
+                size="large"
+                leadingIcon={<MarkGithubIcon size={20} />}
+                onClick={handleConnectGitHub}
+              >
+                Connect GitHub
+              </Button>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Account</h2>
+        <div className={styles.card}>
+          <div className={styles.accountRow}>
+            <div>
+              <span className={styles.accountLabel}>Email</span>
+              <span className={styles.accountValue}>{user.email}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+const formatTimeAgo = (timestamp: number): string => {
+  const now = Date.now()
+  const diff = now - timestamp
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
+  if (minutes < 1) return "just now"
+  if (minutes < 60) return `${minutes}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days < 30) return `${days}d ago`
+  return new Date(timestamp).toLocaleDateString()
+}
+
+export const Route = createFileRoute("/settings")({
+  component: SettingsPage,
+})

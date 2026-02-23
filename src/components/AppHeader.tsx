@@ -1,5 +1,5 @@
 import { useState, useRef } from "react"
-import { Link, useMatches } from "@tanstack/react-router"
+import { Link, useMatches, useNavigate } from "@tanstack/react-router"
 import { SearchIcon, SignOutIcon, GearIcon, PersonIcon } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { db } from "@/lib/instantDb"
@@ -17,6 +17,7 @@ interface AppHeaderProps {
 
 export const AppHeader = ({ onOpenCommandMenu }: AppHeaderProps) => {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const matches = useMatches()
@@ -95,7 +96,14 @@ export const AppHeader = ({ onOpenCommandMenu }: AppHeaderProps) => {
                       <PersonIcon size={16} />
                       <span>Profile</span>
                     </button>
-                    <button type="button" className={styles.userMenuItem}>
+                    <button
+                      type="button"
+                      className={styles.userMenuItem}
+                      onClick={() => {
+                        setUserMenuOpen(false)
+                        void navigate({ to: "/settings" })
+                      }}
+                    >
                       <GearIcon size={16} />
                       <span>Settings</span>
                     </button>
@@ -131,8 +139,9 @@ const buildBreadcrumbFromMatches = (matches: ReturnType<typeof useMatches>): Bre
     const repo = params.repo ?? ""
     const number = params.number ?? ""
 
-    // Handle dynamic routes
-    if (routeId === "/$owner" && owner) {
+    if (routeId === "/settings") {
+      items.push({ label: "Settings" })
+    } else if (routeId === "/$owner" && owner) {
       items.push({
         label: owner,
         to: "/$owner",
