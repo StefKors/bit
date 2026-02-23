@@ -40,6 +40,7 @@ export { handleDeleteWebhook } from "./delete"
 export { handlePullRequestEventWebhook } from "./pr-event"
 export { handleIssueWebhook, ensureIssueFromWebhook } from "./issue"
 export { handleIssueCommentWebhook } from "./issue-comment"
+export { handleExtendedWebhook } from "./extended"
 export {
   handleCheckRunWebhook,
   handleCheckSuiteWebhook,

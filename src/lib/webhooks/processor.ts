@@ -14,6 +14,7 @@ import {
   handlePullRequestEventWebhook,
   handleIssueWebhook,
   handleIssueCommentWebhook,
+  handleExtendedWebhook,
 } from "./index"
 import { handleCheckRunWebhook, handleCheckSuiteWebhook } from "./ci-cd"
 import { handleStatusWebhook } from "./ci-cd"
@@ -162,11 +163,64 @@ export const dispatchWebhookEvent = async (
     case "workflow_job":
       await handleWorkflowJobWebhook(db, payload)
       break
+    case "public":
+    case "repository_import":
+    case "repository_dispatch":
+    case "pull_request_review_thread":
+    case "deployment":
+    case "deployment_status":
+    case "deployment_protection_rule":
+    case "deployment_review":
+    case "workflow_dispatch":
+    case "code_scanning_alert":
+    case "dependabot_alert":
+    case "secret_scanning_alert":
+    case "secret_scanning_alert_location":
+    case "security_advisory":
+    case "repository_vulnerability_alert":
+    case "security_and_analysis":
+    case "member":
+    case "membership":
+    case "org_block":
+    case "team":
+    case "team_add":
+    case "installation":
+    case "installation_repositories":
+    case "installation_target":
+    case "github_app_authorization":
+    case "discussion":
+    case "discussion_comment":
+    case "project":
+    case "project_card":
+    case "project_column":
+    case "projects_v2_item":
+    case "branch_protection_rule":
+    case "branch_protection_configuration":
+    case "merge_group":
+    case "deploy_key":
+    case "release":
+    case "watch":
+    case "label":
+    case "milestone":
+    case "meta":
+    case "page_build":
+    case "commit_comment":
+    case "gollum":
+    case "package":
+    case "registry_package":
+    case "sponsorship":
+    case "marketplace_purchase":
+    case "custom_property":
+    case "custom_property_values":
+      await handleExtendedWebhook(db, payload, event)
+      break
     case "ping":
       log.info("Received ping webhook - webhook is configured correctly")
       break
-    default:
-      log.info(`Unhandled webhook event: ${event}`)
+    default: {
+      const unhandledEvent = String(event)
+      log.info(`Unhandled webhook event: ${unhandledEvent}`)
+    }
   }
 }
 

@@ -41,6 +41,7 @@ vi.mock("@/lib/webhooks/index", () => ({
   handlePullRequestEventWebhook: vi.fn().mockResolvedValue(undefined),
   handleIssueWebhook: vi.fn().mockResolvedValue(undefined),
   handleIssueCommentWebhook: vi.fn().mockResolvedValue(undefined),
+  handleExtendedWebhook: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock("@/lib/webhooks/ci-cd", () => ({
@@ -67,8 +68,64 @@ import {
   calculateBackoff,
   type WebhookQueueItem,
 } from "./processor"
-import { handlePushWebhook, handlePullRequestWebhook } from "@/lib/webhooks/index"
+import {
+  handlePushWebhook,
+  handlePullRequestWebhook,
+  handleExtendedWebhook,
+} from "@/lib/webhooks/index"
 import { handleCheckRunWebhook } from "@/lib/webhooks/ci-cd"
+
+const extendedEventNames: WebhookEventName[] = [
+  "public",
+  "repository_import",
+  "repository_dispatch",
+  "pull_request_review_thread",
+  "deployment",
+  "deployment_status",
+  "deployment_protection_rule",
+  "deployment_review",
+  "workflow_dispatch",
+  "code_scanning_alert",
+  "dependabot_alert",
+  "secret_scanning_alert",
+  "secret_scanning_alert_location",
+  "security_advisory",
+  "repository_vulnerability_alert",
+  "security_and_analysis",
+  "member",
+  "membership",
+  "org_block",
+  "team",
+  "team_add",
+  "installation",
+  "installation_repositories",
+  "installation_target",
+  "github_app_authorization",
+  "discussion",
+  "discussion_comment",
+  "project",
+  "project_card",
+  "project_column",
+  "projects_v2_item",
+  "branch_protection_rule",
+  "branch_protection_configuration",
+  "merge_group",
+  "deploy_key",
+  "release",
+  "watch",
+  "label",
+  "milestone",
+  "meta",
+  "page_build",
+  "commit_comment",
+  "gollum",
+  "package",
+  "registry_package",
+  "sponsorship",
+  "marketplace_purchase",
+  "custom_property",
+  "custom_property_values",
+]
 
 describe("calculateBackoff", () => {
   it("increases exponentially with attempt number", () => {
@@ -146,6 +203,12 @@ describe("dispatchWebhookEvent", () => {
     const payload = { action: "completed", check_run: {} }
     await dispatchWebhookEvent(mockDb, "check_run", payload)
     expect(handleCheckRunWebhook).toHaveBeenCalledWith(mockDb, payload)
+  })
+
+  it.each(extendedEventNames)("dispatches %s event to extended handler", async (eventName) => {
+    const payload = { action: "updated", repository: { full_name: "owner/repo" } }
+    await dispatchWebhookEvent(mockDb, eventName, payload)
+    expect(handleExtendedWebhook).toHaveBeenCalledWith(mockDb, payload, eventName)
   })
 
   it("handles unknown events without throwing", async () => {

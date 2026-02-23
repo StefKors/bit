@@ -29,6 +29,7 @@ vi.mock("@/lib/webhooks/index", () => ({
   handlePullRequestEventWebhook: vi.fn().mockResolvedValue(undefined),
   handleIssueWebhook: vi.fn().mockResolvedValue(undefined),
   handleIssueCommentWebhook: vi.fn().mockResolvedValue(undefined),
+  handleExtendedWebhook: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock("@/lib/webhooks/ci-cd", () => ({
