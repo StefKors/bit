@@ -2,6 +2,8 @@ import { Octokit, RequestError } from "octokit"
 import { id } from "@instantdb/admin"
 import { adminDb } from "./instantAdmin"
 import { findOrCreateSyncStateId } from "./sync-state"
+import { buildTreeEntries, computeStaleEntries, type GitHubTreeItem } from "./sync-trees"
+import { buildCommitEntries, computeStaleCommits, type GitHubCommit } from "./sync-commits"
 
 export interface RateLimitInfo {
   remaining: number
@@ -802,37 +804,30 @@ export class GitHubClient {
     const rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
     const now = Date.now()
 
-    const incomingPaths = new Set<string>()
+    const entries = buildTreeEntries(
+      response.data.tree as GitHubTreeItem[],
+      repoRecord.id,
+      branch,
+      owner,
+      repo,
+      now,
+    )
 
-    for (const item of response.data.tree) {
-      if (!item.path) continue
-      incomingPaths.add(item.path)
-
-      const pathParts = item.path.split("/")
-      const name = pathParts[pathParts.length - 1]
-
-      const { repoTrees: existingEntries } = await adminDb.query({
-        repoTrees: {
-          $: { where: { ref: branch, path: item.path, repoId: repoRecord.id } },
-        },
-      })
-
-      const entryId = existingEntries?.[0]?.id || id()
-
+    for (const entry of entries) {
       await adminDb.transact(
-        adminDb.tx.repoTrees[entryId]
+        adminDb.tx.repoTrees[entry.id]
           .update({
-            ref: branch,
-            path: item.path,
-            name,
-            type: item.type === "tree" ? "dir" : "file",
-            sha: item.sha || "",
-            size: item.size || undefined,
-            url: item.url || undefined,
-            htmlUrl: `https://github.com/${owner}/${repo}/${item.type === "tree" ? "tree" : "blob"}/${branch}/${item.path}`,
-            repoId: repoRecord.id,
-            createdAt: now,
-            updatedAt: now,
+            ref: entry.ref,
+            path: entry.path,
+            name: entry.name,
+            type: entry.type,
+            sha: entry.sha,
+            size: entry.size,
+            url: entry.url,
+            htmlUrl: entry.htmlUrl,
+            repoId: entry.repoId,
+            createdAt: entry.createdAt,
+            updatedAt: entry.updatedAt,
           })
           .link({ user: this.userId })
           .link({ repo: repoRecord.id }),
@@ -845,10 +840,10 @@ export class GitHubClient {
         $: { where: { ref: branch, repoId: repoRecord.id } },
       },
     })
-    for (const entry of allExisting || []) {
-      if (!incomingPaths.has(entry.path)) {
-        await adminDb.transact(adminDb.tx.repoTrees[entry.id].delete())
-      }
+    const incomingPaths = new Set(entries.map((e) => e.path))
+    const staleIds = computeStaleEntries(allExisting || [], incomingPaths)
+    for (const staleId of staleIds) {
+      await adminDb.transact(adminDb.tx.repoTrees[staleId].delete())
     }
 
     await this.updateSyncState("tree", `${owner}/${repo}:${branch}`, rateLimit)
@@ -890,33 +885,32 @@ export class GitHubClient {
     }
     const now = Date.now()
 
-    const incomingShas = new Set<string>()
+    const commitEntries = buildCommitEntries(
+      allCommits as unknown as GitHubCommit[],
+      repoRecord.id,
+      branch,
+      now,
+    )
 
-    for (const commit of allCommits) {
-      incomingShas.add(commit.sha)
-
-      const entryId = `${repoRecord.id}:${branch}:${commit.sha}`
-
+    for (const entry of commitEntries) {
       await adminDb.transact(
-        adminDb.tx.repoCommits[entryId]
+        adminDb.tx.repoCommits[entry.id]
           .update({
-            sha: commit.sha,
-            message: commit.commit.message,
-            authorLogin: commit.author?.login || undefined,
-            authorAvatarUrl: commit.author?.avatar_url || undefined,
-            authorName: commit.commit.author?.name || undefined,
-            authorEmail: commit.commit.author?.email || undefined,
-            committerLogin: commit.committer?.login || undefined,
-            committerName: commit.commit.committer?.name || undefined,
-            committerEmail: commit.commit.committer?.email || undefined,
-            htmlUrl: commit.html_url,
-            ref: branch,
-            repoId: repoRecord.id,
-            committedAt: commit.commit.committer?.date
-              ? new Date(commit.commit.committer.date).getTime()
-              : undefined,
-            createdAt: now,
-            updatedAt: now,
+            sha: entry.sha,
+            message: entry.message,
+            authorLogin: entry.authorLogin,
+            authorAvatarUrl: entry.authorAvatarUrl,
+            authorName: entry.authorName,
+            authorEmail: entry.authorEmail,
+            committerLogin: entry.committerLogin,
+            committerName: entry.committerName,
+            committerEmail: entry.committerEmail,
+            htmlUrl: entry.htmlUrl,
+            ref: entry.ref,
+            repoId: entry.repoId,
+            committedAt: entry.committedAt,
+            createdAt: entry.createdAt,
+            updatedAt: entry.updatedAt,
           })
           .link({ user: this.userId })
           .link({ repo: repoRecord.id }),
@@ -929,10 +923,10 @@ export class GitHubClient {
         $: { where: { ref: branch, repoId: repoRecord.id } },
       },
     })
-    for (const entry of allExisting || []) {
-      if (!incomingShas.has(entry.sha)) {
-        await adminDb.transact(adminDb.tx.repoCommits[entry.id].delete())
-      }
+    const incomingShas = new Set(commitEntries.map((e) => e.sha))
+    const staleIds = computeStaleCommits(allExisting || [], incomingShas)
+    for (const staleId of staleIds) {
+      await adminDb.transact(adminDb.tx.repoCommits[staleId].delete())
     }
 
     await this.updateSyncState("commits", `${owner}/${repo}:${branch}`, rateLimit)
