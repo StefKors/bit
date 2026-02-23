@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router"
 import { adminDb } from "@/lib/instantAdmin"
 import { GitHubClient } from "@/lib/github-client"
 import { findOrCreateSyncStateId } from "@/lib/sync-state"
+import { parseScopes, checkPermissions, REQUIRED_SCOPES } from "@/lib/github-permissions"
+import { log } from "@/lib/logger"
 
 // GitHub OAuth callback handler
 // This is called after the user authorizes the GitHub App
@@ -57,7 +59,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
 
         // Handle OAuth errors
         if (error) {
-          console.error("GitHub OAuth error:", error, errorDescription)
+          log.error("GitHub OAuth error", error, { description: errorDescription })
           return new Response(null, {
             status: 302,
             headers: {
@@ -70,9 +72,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
         // This happens when user installs the app from GitHub directly
         // We need to redirect them to complete OAuth authorization
         if (installationId && !code) {
-          console.log(
-            `GitHub App installed (installation_id: ${installationId}, setup_action: ${setupAction})`,
-          )
+          log.info("GitHub App installed", { installationId, setupAction })
           // Redirect to home with a message to complete setup
           return new Response(null, {
             status: 302,
@@ -93,7 +93,10 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
         }
 
         if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
-          console.error("GitHub OAuth not configured")
+          log.error(
+            "GitHub OAuth not configured",
+            "Missing GITHUB_CLIENT_ID or GITHUB_CLIENT_SECRET",
+          )
           return new Response(null, {
             status: 302,
             headers: {
@@ -120,11 +123,10 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           const tokenData = (await tokenResponse.json()) as GitHubTokenResponse
 
           if (tokenData.error) {
-            console.error(
-              "GitHub token exchange error:",
-              tokenData.error,
-              tokenData.error_description,
-            )
+            log.error("GitHub token exchange failed", tokenData.error, {
+              description: tokenData.error_description,
+              userId: state,
+            })
             return new Response(null, {
               status: 302,
               headers: {
@@ -134,6 +136,23 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           }
 
           const accessToken = tokenData.access_token
+
+          // Validate granted scopes
+          const grantedScopes = parseScopes(tokenData.scope)
+          const permReport = checkPermissions(grantedScopes)
+          if (!permReport.allGranted) {
+            log.warn("OAuth token granted with missing scopes", {
+              userId: state,
+              granted: grantedScopes.join(", ") || "(none)",
+              missing: permReport.missingScopes.join(", "),
+              required: REQUIRED_SCOPES.join(", "),
+            })
+          } else {
+            log.info("OAuth token granted with all required scopes", {
+              userId: state,
+              scopes: grantedScopes.join(", "),
+            })
+          }
 
           // Fetch GitHub user info
           const userResponse = await fetch("https://api.github.com/user", {
@@ -145,7 +164,9 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           })
 
           if (!userResponse.ok) {
-            console.error("Failed to fetch GitHub user:", userResponse.status)
+            log.error("Failed to fetch GitHub user", `HTTP ${userResponse.status}`, {
+              userId: state,
+            })
             return new Response(null, {
               status: 302,
               headers: {
@@ -206,7 +227,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
               .link({ user: userId }),
           )
 
-          console.log(`GitHub connected for user ${userId} (${githubUser.login})`)
+          log.info("GitHub connected", { userId, login: githubUser.login })
 
           // Perform initial sync in the background (don't block the redirect)
           // We use the access token directly since the sync state was just created
@@ -214,10 +235,10 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           githubClient
             .performInitialSync()
             .then((result) => {
-              console.log(`Initial sync completed for user ${userId}:`, result)
+              log.info("Initial sync completed", { userId, ...result })
             })
             .catch((err) => {
-              console.error(`Initial sync failed for user ${userId}:`, err)
+              log.error("Initial sync failed", err, { userId })
             })
 
           // Redirect back to the app
@@ -228,7 +249,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
             },
           })
         } catch (err) {
-          console.error("GitHub OAuth callback error:", err)
+          log.error("GitHub OAuth callback error", err, { userId: state })
           return new Response(null, {
             status: 302,
             headers: {
