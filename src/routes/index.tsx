@@ -56,6 +56,9 @@ function OverviewPage() {
   const isInitialSyncComplete = initialSyncState?.syncStatus === "completed"
   const isInitialSyncing = isGitHubConnected && !isInitialSyncComplete
 
+  const tokenSyncState = syncStates.find((s) => s.resourceType === "github:token")
+  const isAuthInvalid = tokenSyncState?.syncStatus === "auth_invalid"
+
   const overviewSyncState = syncStates.find((s) => s.resourceType === "overview")
   const isSyncing = overviewSyncState?.syncStatus === "syncing"
   const syncError = overviewSyncState?.syncError
@@ -121,10 +124,15 @@ function OverviewPage() {
 
       const data = (await response.json()) as {
         error?: string
+        code?: string
         rateLimit?: { remaining: number; limit: number; reset: string }
       }
 
       if (!response.ok) {
+        if (data.code === "auth_invalid") {
+          setError("Your GitHub connection has expired. Please reconnect to continue syncing.")
+          return
+        }
         throw new Error(data.error || "Failed to sync")
       }
 
@@ -193,6 +201,7 @@ function OverviewPage() {
     <div className={styles.container}>
       <OverviewHeader
         isGitHubConnected={isGitHubConnected}
+        isAuthInvalid={isAuthInvalid}
         isSyncing={isSyncing}
         rateLimit={rateLimit}
         lastSyncedAt={lastSyncedAt}

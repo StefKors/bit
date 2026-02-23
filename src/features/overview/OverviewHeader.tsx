@@ -10,6 +10,7 @@ type RateLimitInfo = {
 
 type OverviewHeaderProps = {
   isGitHubConnected: boolean
+  isAuthInvalid?: boolean
   isSyncing: boolean
   rateLimit: RateLimitInfo | null
   lastSyncedAt?: number
@@ -39,6 +40,7 @@ const formatLastSynced = (timestamp: number) => {
 
 export const OverviewHeader = ({
   isGitHubConnected,
+  isAuthInvalid,
   isSyncing,
   rateLimit,
   lastSyncedAt,
@@ -69,7 +71,15 @@ export const OverviewHeader = ({
             </div>
           )}
 
-          {isGitHubConnected ? (
+          {isGitHubConnected && isAuthInvalid ? (
+            <Button
+              variant="danger"
+              leadingIcon={<MarkGithubIcon size={16} />}
+              onClick={onConnectGitHub}
+            >
+              Reconnect GitHub
+            </Button>
+          ) : isGitHubConnected ? (
             <>
               {hasSyncErrors && (
                 <Button variant="danger" onClick={onToggleSyncManagement}>
@@ -105,9 +115,15 @@ export const OverviewHeader = ({
         </div>
       )}
 
+      {isAuthInvalid && (
+        <div className={styles.errorMessage}>
+          Your GitHub connection has expired. Please reconnect to continue syncing.
+        </div>
+      )}
+
       {oauthError && <div className={styles.errorMessage}>{oauthError}</div>}
 
-      {error && <div className={styles.errorMessage}>{error}</div>}
+      {error && !isAuthInvalid && <div className={styles.errorMessage}>{error}</div>}
 
       {isGitHubConnected && (
         <div className={styles.syncStatus}>
