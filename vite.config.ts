@@ -22,7 +22,11 @@ export default defineConfig({
     viteTsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
-    tanstackStart(),
+    tanstackStart({
+      router: {
+        routeFileIgnorePattern: "\\.(test|spec)\\.(ts|tsx)$",
+      },
+    }),
     viteReact(),
   ],
 })
