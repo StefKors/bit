@@ -168,6 +168,15 @@ function SettingsPage() {
                 Disconnect
               </Button>
             </div>
+
+            <div className={styles.permissionsHint}>
+              <AlertIcon size={14} />
+              <p>
+                Organization access can still depend on GitHub org policies. If repos or webhooks
+                are missing after reconnecting, ask an org admin to approve this OAuth app and
+                authorize the token for org SAML SSO.
+              </p>
+            </div>
           </div>
         ) : (
           <div className={styles.card}>
