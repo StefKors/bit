@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { getRouteHandler } from "@/lib/test-helpers"
 
+const mockPerformInitialSync = vi.fn().mockResolvedValue({ synced: true })
+
 vi.mock("@/lib/instantAdmin", () => ({
   adminDb: {
     query: vi.fn(),
@@ -28,7 +30,7 @@ vi.mock("@/lib/sync-state", () => ({
 
 vi.mock("@/lib/github-client", () => ({
   GitHubClient: class MockGitHubClient {
-    performInitialSync = vi.fn().mockResolvedValue({ synced: true })
+    performInitialSync = mockPerformInitialSync
   },
 }))
 
@@ -39,37 +41,43 @@ vi.mock("@/lib/logger", () => ({
 const mockFetch = vi.fn()
 vi.stubGlobal("fetch", mockFetch)
 
+const mockGitHubUserResponse = {
+  login: "testuser",
+  id: 1,
+  node_id: "node-1",
+  avatar_url: "https://avatar",
+  gravatar_id: "",
+  url: "https://api.github.com/user",
+  html_url: "https://github.com/testuser",
+  type: "User",
+  site_admin: false,
+}
+
+const mockOAuthExchange = (scope: string) => {
+  mockFetch
+    .mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          access_token: "gh-token",
+          token_type: "bearer",
+          scope,
+        }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(mockGitHubUserResponse),
+    })
+}
+
 describe("GET /api/github/oauth/callback", () => {
   beforeEach(() => {
     vi.stubEnv("GITHUB_CLIENT_ID", "client-id")
     vi.stubEnv("GITHUB_CLIENT_SECRET", "client-secret")
     vi.resetModules()
-
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            access_token: "gh-token",
-            token_type: "bearer",
-            scope: "repo,read:org,read:user,user:email",
-          }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            login: "testuser",
-            id: 1,
-            node_id: "node-1",
-            avatar_url: "https://avatar",
-            gravatar_id: "",
-            url: "https://api.github.com/user",
-            html_url: "https://github.com/testuser",
-            type: "User",
-            site_admin: false,
-          }),
-      })
+    mockFetch.mockReset()
+    mockPerformInitialSync.mockReset().mockResolvedValue({ synced: true })
+    mockOAuthExchange("repo,read:org,read:user,user:email")
   })
 
   it("redirects with error when OAuth error param present", async () => {
@@ -124,5 +132,24 @@ describe("GET /api/github/oauth/callback", () => {
 
     expect(res.status).toBe(302)
     expect(res.headers.get("Location")).toContain("github=connected")
+    expect(mockPerformInitialSync).toHaveBeenCalledTimes(1)
+  })
+
+  it("redirects with error and skips initial sync when required scopes are missing", async () => {
+    mockFetch.mockReset()
+    mockOAuthExchange("read:user,user:email")
+
+    const { Route } = await import("./callback")
+    const handler = getRouteHandler(Route, "GET")
+    if (!handler) throw new Error("No GET handler")
+
+    const request = new Request(
+      "http://localhost/api/github/oauth/callback?code=abc123&state=user-123",
+    )
+    const res = await handler({ request })
+
+    expect(res.status).toBe(302)
+    expect(res.headers.get("Location")).toContain("Missing%20GitHub%20permissions")
+    expect(mockPerformInitialSync).not.toHaveBeenCalled()
   })
 })

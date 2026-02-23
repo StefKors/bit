@@ -1,10 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { getRouteHandler, makeRequest, parseJsonResponse } from "@/lib/test-helpers"
+import { revokeGitHubGrantForUser } from "@/lib/github-connection"
+
+vi.mock("@/lib/github-connection", () => ({
+  revokeGitHubGrantForUser: vi.fn().mockResolvedValue({ attempted: true, revoked: true }),
+  isReconnectRequest: (value: string | null) => value === "1" || value?.toLowerCase() === "true",
+}))
 
 describe("GET /api/github/oauth/", () => {
   beforeEach(() => {
     vi.stubEnv("GITHUB_CLIENT_ID", "test-client-id")
     vi.stubEnv("BASE_URL", "https://app.example.com")
+    vi.mocked(revokeGitHubGrantForUser).mockResolvedValue({ attempted: true, revoked: true })
     vi.resetModules()
   })
 
@@ -34,6 +41,19 @@ describe("GET /api/github/oauth/", () => {
     expect(location).toContain("github.com/login/oauth/authorize")
     expect(location).toContain("client_id=test-client-id")
     expect(location).toContain("state=user-123")
+    expect(location).toContain("admin%3Arepo_hook")
+  })
+
+  it("revokes existing grant when reconnect is requested", async () => {
+    const { Route } = await import("./index")
+    const handler = getRouteHandler(Route, "GET")
+    if (!handler) throw new Error("No GET handler")
+
+    const request = makeRequest("http://localhost/api/github/oauth/?userId=user-123&reconnect=1")
+    const res = await handler({ request })
+
+    expect(res.status).toBe(302)
+    expect(revokeGitHubGrantForUser).toHaveBeenCalledWith("user-123")
   })
 
   it("returns 500 when GITHUB_CLIENT_ID not configured", async () => {

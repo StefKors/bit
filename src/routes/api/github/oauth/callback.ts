@@ -136,20 +136,23 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           }
 
           const accessToken = tokenData.access_token
+          const userId = state
 
           // Validate granted scopes
           const grantedScopes = parseScopes(tokenData.scope)
           const permReport = checkPermissions(grantedScopes)
+          const missingScopesSummary = permReport.missingScopes.join(", ")
+
           if (!permReport.allGranted) {
             log.warn("OAuth token granted with missing scopes", {
-              userId: state,
+              userId,
               granted: grantedScopes.join(", ") || "(none)",
-              missing: permReport.missingScopes.join(", "),
+              missing: missingScopesSummary,
               required: REQUIRED_SCOPES.join(", "),
             })
           } else {
             log.info("OAuth token granted with all required scopes", {
-              userId: state,
+              userId,
               scopes: grantedScopes.join(", "),
             })
           }
@@ -179,8 +182,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           const now = Date.now()
 
           // Update the user record with GitHub info and access token
-          // The state contains the InstantDB user ID
-          const userId = state
+          // The OAuth state contains the InstantDB user ID
           await adminDb.transact(
             adminDb.tx.$users[userId].update({
               login: githubUser.login,
@@ -219,13 +221,27 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
                 resourceType: "github:token",
                 resourceId: "access_token",
                 lastEtag: accessToken, // Using lastEtag to store the token (encrypted in production)
-                syncStatus: "idle",
+                syncStatus: permReport.allGranted ? "idle" : "auth_invalid",
+                syncError: permReport.allGranted
+                  ? undefined
+                  : `Missing required GitHub permissions: ${missingScopesSummary}`,
                 userId,
                 createdAt: now,
                 updatedAt: now,
               })
               .link({ user: userId }),
           )
+
+          if (!permReport.allGranted) {
+            return new Response(null, {
+              status: 302,
+              headers: {
+                Location: `/?error=${encodeURIComponent(
+                  `Missing GitHub permissions (${missingScopesSummary}). Please reconnect and approve all requested permissions to access organization repos and configure webhooks.`,
+                )}`,
+              },
+            })
+          }
 
           log.info("GitHub connected", { userId, login: githubUser.login })
 

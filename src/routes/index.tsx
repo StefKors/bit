@@ -191,7 +191,11 @@ function OverviewPage() {
 
   const handleConnectGitHub = () => {
     if (!user?.id) return
-    window.location.href = `/api/github/oauth?userId=${user.id}`
+    const params = new URLSearchParams({ userId: user.id })
+    if (isGitHubConnected) {
+      params.set("reconnect", "1")
+    }
+    window.location.href = `/api/github/oauth?${params.toString()}`
   }
 
   if (!user) {
