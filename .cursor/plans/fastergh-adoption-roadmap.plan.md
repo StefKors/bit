@@ -1,323 +1,304 @@
 ---
 name: fastergh-adoption-roadmap
-overview: "Unified roadmap for adopting FasterGH patterns in Bit: async webhook processing, three-layer data architecture, sync job queues, typed errors, validation, CI/CD events, and integration tests. Prioritizes reliability and user-visible gaps first."
+overview: "Repo-validated roadmap for adopting key FasterGH patterns in Bit: async webhook processing, queue retries/dead-lettering, CI/CD webhook coverage, schema-backed sync jobs, and stronger validation/error handling. Each task includes mandatory coverage + lint + format checks before commit."
 todos:
   - id: webhook-queue
-    content: Add webhook queue entity and background processor with retry/backoff/dead-letter
+    content: Add webhookQueue and async processor (ingest fast, process later)
     status: pending
-  - id: raw-webhook-events
-    content: Add rawWebhookEvents entity to store unprocessed payloads for audit/replay
+  - id: webhook-retry-dlq
+    content: Add retry/backoff/dead-letter workflow for queued webhook processing
     status: pending
-  - id: activity-feed-projection
-    content: Add activityFeed projection table for fast dashboard queries
+  - id: ci-cd-webhooks
+    content: Implement check_run/check_suite/status/workflow_job/workflow_run handlers and persistence
+    status: pending
+  - id: schema-validation-errors
+    content: Add runtime webhook validation, typed rate-limit errors, and lenient decoding
     status: pending
   - id: sync-jobs
-    content: Add syncJobs entity with priority queue and step tracking for progress visibility
+    content: Add syncJobs queue with step/progress tracking for observable sync
     status: pending
-  - id: admin-dashboard
-    content: Add admin dashboard queries (queue size, sync status, rate limits)
-    status: pending
-  - id: webhook-processor-module
-    content: Consolidate webhook handlers into unified pipeline module
-    status: pending
-  - id: pr-status-sync
-    content: Implement check_run, check_suite, status, workflow_run handlers and wire to PR UI
-    status: pending
-  - id: issue-review-parity
-    content: Complete issue/review/comment lifecycle handlers with idempotent upserts
-    status: pending
-  - id: token-lifecycle
-    content: Add token lifecycle recovery (refresh retry before marking invalid)
-    status: pending
-  - id: typed-rate-limit-errors
-    content: Add GitHubRateLimitError with retryAfterMs for client feedback
-    status: pending
-  - id: webhook-validation
-    content: Add runtime validation (Zod) for webhook payloads at handler boundaries
-    status: pending
-  - id: lenient-decoding
-    content: Add lenient parsing for list endpoints (skip invalid items, log failures)
-    status: pending
-  - id: structured-logging
-    content: Add structured JSON logger with event, deliveryId, duration, error
-    status: pending
-  - id: optimistic-writes
-    content: Add optimisticState fields to pullRequests/issues when adding write support
+  - id: ops-visibility
+    content: Add structured logging and queue health endpoints for operations
     status: pending
   - id: integration-tests
-    content: Add integration tests for webhook idempotency, ordering, retry invariants
-    status: pending
-  - id: notifications-entity
-    content: Add notifications entity for per-user GitHub notification sync (when needed)
-    status: pending
-  - id: file-read-state
-    content: Add fileReadState entity for tracking viewed files per user (when needed)
+    content: Add integration tests for idempotency, ordering, retry, and queue invariants
     status: pending
 isProject: false
 ---
 
 # FasterGH Adoption Roadmap for Bit
 
-## Executive Summary
+## Current Repo Baseline (validated)
 
-FasterGH demonstrates production-proven patterns that would significantly improve Bit's reliability, performance, and maintainability. This plan consolidates learnings from three comparisons into a single prioritized roadmap. The highest-impact changes: async webhook processing with retry, three-layer data model, and sync job queues.
-
----
-
-## Architecture: Webhook Processing
-
-```mermaid
-flowchart TB
-    subgraph fastergh [FasterGH]
-        GH1[GitHub Webhook] --> Store1[Store raw event]
-        Store1 --> Return1[Return 200 immediately]
-        Cron1[Cron every 2s] --> Process1[Process pending]
-        Process1 --> Retry1{Success?}
-        Retry1 -->|No, attempts < 5| RetryState[Mark retry + backoff]
-        Retry1 -->|No, exhausted| DL1[Dead letter]
-        Retry1 -->|Yes| Done1[Mark processed]
-    end
-
-    subgraph bit [Bit - Current]
-        GH2[GitHub Webhook] --> Process2[Process synchronously]
-        Process2 --> Return2[Return 200]
-        Process2 -->|On failure| Store2[Store in webhookDeliveries failed]
-        Manual[Manual retry endpoint] --> Retry2[Re-process failed]
-    end
-```
-
-**Bit improvements:**
-
-- Store raw payload immediately, return 200, process in background. Reduces GitHub timeout and duplicate sends.
-- Automatic retry with exponential backoff instead of manual retry only.
-- Dead-letter table after N retries for manual inspection.
+- `src/routes/api/github/webhook.ts` still processes webhooks synchronously.
+- `webhookDeliveries` already exists in `src/instant.schema.ts` with `processed|failed`, payload capture, and dedupe by `deliveryId`.
+- `issues` and `issue_comment` are now implemented; old parity gap is mostly closed.
+- CI/CD webhook events (`check_run`, `check_suite`, `status`, `workflow_job`, `workflow_run`) are still stubs.
+- Project quality commands are available and should be mandatory before each task commit:
+  - `bun run test:coverage`
+  - `bun run lint`
+  - `bun run format`
+  - `bun run format:check`
 
 ---
 
-## Three-Layer Data Architecture
+## Working Agreement for This Plan
 
-**FasterGH:** Raw Webhooks → Normalized Domain Tables → Projection Views
+Every task in this roadmap follows the same required completion gate.
 
-- Raw ingestion: Store webhook events verbatim for audit/replay.
-- Normalized domain tables: Proper foreign keys and relationships.
-- Projection views: Pre-computed read views (e.g. `view_activity_feed`) for fast queries.
+### Required Before Commit (each task)
 
-**Bit:** Direct storage into entity tables from webhooks; no separation; client-side filtering.
+1. Add/update tests for changed behavior.
+2. Run coverage: `bun run test:coverage`.
+3. Run lint: `bun run lint`.
+4. Run formatter: `bun run format`.
+5. Verify formatting clean: `bun run format:check`.
+6. Commit only after all five steps pass.
 
-**Improvements:**
-
-1. Add `rawWebhookEvents` table for unprocessed payloads.
-2. Create `activityFeed` projection table for dashboard queries.
-3. Separate sync state from entity state.
-
----
-
-## Detailed Comparison
-
-### 1. Webhook Processing
-
-| Aspect        | FasterGH                            | Bit                                  |
-| ------------- | ----------------------------------- | ------------------------------------ |
-| Processing    | Async via cron every 2s             | Synchronous in HTTP handler          |
-| Retry         | Exponential backoff, max 5 attempts | Manual retry only                    |
-| Dead-letter   | Separate table after exhaustion     | Stored in `webhookDeliveries` failed |
-| Deduplication | Delivery ID built-in                | `webhookDeliveries` by deliveryId    |
-
-### 2. Rate Limit and Error Handling
-
-**FasterGH:** Tagged errors (`GitHubApiError`, `GitHubRateLimitError` with `retryAfterMs`); callers can `catchTag`.
-
-**Bit:** `withRateLimitRetry` with backoff + jitter; errors not typed; callers cannot distinguish rate limit from other 403s.
-
-**Improvement:** Add `GitHubRateLimitError` class with `retryAfterMs` so API routes return `{ error, retryAfter }` to the client.
-
-### 3. Observability and Logging
-
-**FasterGH:** OpenTelemetry, Sentry, Axiom; structured `console.info` with counts; Effect spans.
-
-**Bit:** `console.log` / `console.error`; no structured logging, tracing, or metrics.
-
-**Improvement:** Structured JSON logger with `{ event, deliveryId, duration, error }`; log webhook outcomes (processed, failed, retried).
-
-### 4. CI/CD Event Handling
-
-**FasterGH:** `check_run`, `workflow_run`, `workflow_job` implemented; UI shows CI status on PRs.
-
-**Bit:** Stubs only; no persistence.
-
-**Improvement:** Implement handlers for `check_run` and `workflow_run`; persist and surface in PR UI.
-
-### 5. Lenient Decoding and Partial Failures
-
-**FasterGH:** `decodeLenientArray()` for paginated responses; returns `{ parsed, skipped }`; one bad item does not fail the whole sync.
-
-**Bit:** Direct parsing; single malformed item fails entire operation.
-
-**Improvement:** Lenient parsing for list endpoints; collect valid items, log/skip invalid ones.
-
-### 6. Optimistic Updates for Writes
-
-**FasterGH:** `optimisticState: "pending"` → webhook confirms → `"confirmed"`; immediate UI feedback.
-
-**Bit:** No write operations yet; no optimistic pattern.
-
-**Improvement:** When adding writes, use state machine: `optimisticState`, `optimisticCorrelationId`, `optimisticError`.
-
-### 7. Auth Token Refresh
-
-**FasterGH:** `executeWithAuthRefreshRetry`; on auth failure, refreshes token and retries.
-
-**Bit:** `handleGitHubAuthError` marks token invalid; user must reconnect.
-
-**Improvement:** Retry-on-refresh before marking token invalid (depends on InstantDB auth capabilities).
-
-### 8. Schema and Validation
-
-**FasterGH:** Effect Schema at API boundaries; `Schema.decodeUnknownEither`; coercion helpers.
-
-**Bit:** Type assertions; ad-hoc extraction; some `any` in webhook handlers.
-
-**Improvement:** Runtime validation (Zod or Effect Schema) at handler boundaries.
-
-### 9. Sync Job Architecture
-
-**FasterGH:** Job queue with priority, lock keys, step tracking (`currentStep`, `completedSteps`, `itemsFetched`), cursor-based pagination.
-
-**Bit:** Sync state per resource type; no job queue or step tracking.
-
-**Improvement:** Add `syncJobs` entity with `jobType`, `state`, `currentStep`, `priority`, `nextRunAt`.
-
-### 10. Operational Visibility
-
-**FasterGH:** `getQueueHealth`, `systemStatus`, admin dashboard.
-
-**Bit:** No admin/health view for webhook queue.
-
-**Improvement:** Admin endpoint with `webhookDeliveries` by status, failed count, last processed timestamp.
+If coverage runtime is too long locally, use scoped coverage while iterating, then run full `bun run test:coverage` before the final commit of that task.
 
 ---
 
-## What Bit Already Does Well
+## Priority Order
 
-- **Duplicate detection:** Checks `webhookDeliveries` by `deliveryId` before processing.
-- **Retry mechanism:** Manual retry for failed webhooks with stored payload.
-- **Rate limit retry:** `withRateLimitRetry` with exponential backoff and jitter.
-- **Auth error handling:** Marks token invalid and surfaces user-friendly message.
-- **Separation of concerns:** API handlers extracted for testability; webhook handlers modular.
-- **AGENTS.md:** Clear conventions for React, InstantDB, TanStack Router.
-
----
-
-## Priority Recommendations
-
-| Priority   | Improvement                               | Effort | Impact                         |
-| ---------- | ----------------------------------------- | ------ | ------------------------------ |
-| **High**   | Async webhook queue with retry            | Medium | Reliability, no dropped events |
-| **High**   | Automatic retry + dead-letter             | Medium | Avoids manual intervention     |
-| **High**   | Projection views for dashboard            | Medium | Performance, faster queries    |
-| **Medium** | Sync job queue with steps                 | Medium | Better UX, progress visibility |
-| **Medium** | Raw webhook storage                       | Low    | Audit trail, replay capability |
-| **Medium** | Typed rate limit errors                   | Low    | Client feedback on retry       |
-| **Medium** | Webhook payload validation                | Low    | Reduces runtime errors         |
-| **Medium** | CI/CD events (check_run, workflow_run)    | Medium | PR status completeness         |
-| **Medium** | Integration tests for webhooks            | Medium | Confidence in invariants       |
-| **Medium** | Structured logging                        | Low    | Operational visibility         |
-| **Medium** | Lenient decoding                          | Low    | Resilient sync                 |
-| **Low**    | Optimistic writes (when adding mutations) | High   | Better UX, offline support     |
-| **Low**    | Token lifecycle recovery                  | Medium | Fewer manual reconnects        |
-| **Low**    | Admin/queue health endpoint               | Low    | Operational visibility         |
-| **Low**    | Notification polling                      | Medium | Feature parity                 |
-| **Low**    | File read tracking                        | Low    | UX improvement                 |
+1. Async webhook queue + processor foundation
+2. Retry/backoff/dead-letter reliability
+3. CI/CD webhook feature completeness
+4. Validation + typed errors + lenient decoding
+5. Sync job queue with progress visibility
+6. Operational visibility endpoints/logging
+7. Integration coverage hardening
 
 ---
 
-## High-Impact Work Sequence
+## Task 1: Async Webhook Queue Foundation
 
-1. **Reliability foundation**
+### Goal
 
-- Add webhook job state (`pending`, `retry`, `failed`, `processed`) and retry metadata.
-- Introduce background processor with exponential backoff and jitter.
-- Keep current failed-payload storage as dead-letter fallback.
+Decouple webhook receipt from webhook processing so HTTP response is fast and processing is resilient.
 
-1. **PR status completeness**
+### Scope
 
-- Implement `check_run`, `check_suite`, `status`, `workflow_run` handling.
-- Persist status entities and wire into PR detail views.
+- Add `webhookQueue` entity in `src/instant.schema.ts`.
+- Update `src/routes/api/github/webhook.ts` to:
+  - validate signature + dedupe early,
+  - enqueue work item,
+  - return `200` quickly.
+- Create queue processor module (suggested: `src/lib/webhooks/processor.ts`) that executes existing handler routing logic.
+- Keep `webhookDeliveries` as the delivery ledger; queue item is the processing state.
 
-1. **Issue/review parity**
+### Tests to Add/Update
 
-- Complete issue/review/comment lifecycle webhook paths.
-- Ensure idempotent upserts and stale-event protection.
+- `src/routes/api/github/webhook.test.ts`
+  - enqueue-on-receive path
+  - duplicate delivery short-circuit
+  - fast 200 response behavior
+- New processor tests (suggested: `src/lib/webhooks/processor.test.ts`)
+  - dispatches to correct handler by event
+  - marks success/failure status correctly
 
-1. **Token lifecycle hardening**
+### Before Commit
 
-- Add proactive token validity checks and graceful refresh/reconnect flow.
-
-1. **Confidence via tests**
-
-- Add integration tests for out-of-order events, duplicate deliveries, and retry behavior.
+- `bun run test:coverage`
+- `bun run lint`
+- `bun run format`
+- `bun run format:check`
 
 ---
 
-## Schema Additions (Reference)
+## Task 2: Retry, Backoff, and Dead-Letter
 
-```typescript
-// Webhook queue
-webhookQueue: i.entity({
-  deliveryId: i.string().unique().indexed(),
-  event: i.string(),
-  payload: i.string(),
-  status: i.string().indexed(), // pending, processing, failed, completed
-  attempts: i.number(),
-  nextRetryAt: i.number().optional().indexed(),
-  error: i.string().optional(),
-  createdAt: i.number(),
-  processedAt: i.number().optional(),
-})
+### Goal
 
-// Sync jobs
-syncJobs: i.entity({
-  jobType: i.string(),
-  resourceType: i.string(),
-  resourceId: i.string(),
-  state: i.string().indexed(),
-  currentStep: i.string().optional(),
-  completedSteps: i.string().optional(),
-  itemsFetched: i.number().optional(),
-  attempts: i.number(),
-  priority: i.number().indexed(),
-  nextRunAt: i.number().indexed(),
-  error: i.string().optional(),
-})
+Make webhook failures self-healing and observable without manual retries for common transient issues.
 
-// Optimistic writes (when adding mutations)
-// Add to pullRequests/issues: optimisticState, optimisticCorrelationId, optimisticError
+### Scope
 
-// File read state (optional)
-fileReadState: i.entity({
-  userId: i.string().indexed(),
-  repoId: i.string().indexed(),
-  filePath: i.string().indexed(),
-  fileSha: i.string(),
-  readAt: i.number(),
-})
-```
+- Extend `webhookQueue` with retry metadata:
+  - `attempts`, `nextRetryAt`, `lastError`, `failedAt`, `processedAt`.
+- Add exponential backoff + jitter strategy.
+- Add terminal dead-letter status after max attempts.
+- Add small worker trigger path (cron/timer/endpoint) to process due queue items.
+
+### Tests to Add/Update
+
+- Processor retry behavior:
+  - retries transient failures
+  - respects `nextRetryAt`
+  - transitions to dead-letter on max attempts
+- Idempotency test:
+  - same delivery processed once even across retries
+
+### Before Commit
+
+- `bun run test:coverage`
+- `bun run lint`
+- `bun run format`
+- `bun run format:check`
+
+---
+
+## Task 3: CI/CD Webhook Completeness
+
+### Goal
+
+Replace current CI/CD webhook stubs with persisted state that can be surfaced in PR views.
+
+### Scope
+
+- Implement handlers for:
+  - `check_run`
+  - `check_suite`
+  - `status`
+  - `workflow_job`
+  - `workflow_run`
+- Add schema entity for status/check records (name to decide during implementation, e.g. `prChecks`).
+- Wire webhook switch in `src/routes/api/github/webhook.ts` to real handlers.
+- Ensure idempotent updates keyed by GitHub IDs + repo/sha context.
+
+### Tests to Add/Update
+
+- `src/routes/api/github/webhook.test.ts` event-specific cases.
+- New handler tests under `src/lib/webhooks/` for each CI/CD event type.
+- Regression test that unknown events do not break processing.
+
+### Before Commit
+
+- `bun run test:coverage`
+- `bun run lint`
+- `bun run format`
+- `bun run format:check`
+
+---
+
+## Task 4: Validation, Typed Errors, Lenient Decoding
+
+### Goal
+
+Reduce runtime crashes and improve user-facing retry behavior.
+
+### Scope
+
+- Add runtime payload validation at webhook boundaries using `zod` (already installed).
+- Introduce typed rate limit error shape (`GitHubRateLimitError` + `retryAfterMs`) in GitHub client path.
+- Add lenient list decoding helper for sync endpoints so malformed items are skipped and logged instead of failing whole sync.
+
+### Tests to Add/Update
+
+- Validation rejects malformed payloads without crashing queue worker.
+- Typed rate-limit errors include `retryAfterMs` and are distinguishable from generic errors.
+- Lenient decoding returns `{ parsed, skipped }` style behavior.
+
+### Before Commit
+
+- `bun run test:coverage`
+- `bun run lint`
+- `bun run format`
+- `bun run format:check`
+
+---
+
+## Task 5: Sync Jobs Queue and Progress Tracking
+
+### Goal
+
+Move sync execution into explicit jobs with step-level visibility for users and operators.
+
+### Scope
+
+- Add `syncJobs` entity to `src/instant.schema.ts` with:
+  - `jobType`, `resourceType`, `resourceId`, `state`, `priority`, `nextRunAt`,
+  - `currentStep`, `completedSteps`, `itemsFetched`, `attempts`, `error`.
+- Migrate key sync flows from direct execution to queued job execution.
+- Keep `syncStates` for high-level status, but source progress from jobs.
+
+### Tests to Add/Update
+
+- `src/lib/sync-state.test.ts` and related sync tests for:
+  - job lifecycle transitions
+  - progress updates
+  - retry semantics for failed steps
+
+### Before Commit
+
+- `bun run test:coverage`
+- `bun run lint`
+- `bun run format`
+- `bun run format:check`
+
+---
+
+## Task 6: Operational Visibility
+
+### Goal
+
+Expose health and queue insight for debugging and support.
+
+### Scope
+
+- Add structured logs for webhook and queue processing:
+  - `event`, `deliveryId`, `attempt`, `durationMs`, `status`, `error`.
+- Add admin/health API endpoint(s) for:
+  - queue depth by state,
+  - oldest pending age,
+  - failure/dead-letter counts,
+  - last successful processing timestamp.
+
+### Tests to Add/Update
+
+- Route tests for health endpoint response shape and access control.
+- Processor tests asserting status transitions are reflected in queryable fields.
+
+### Before Commit
+
+- `bun run test:coverage`
+- `bun run lint`
+- `bun run format`
+- `bun run format:check`
+
+---
+
+## Task 7: Integration Coverage Hardening
+
+### Goal
+
+Lock in queue + webhook invariants with durable integration coverage.
+
+### Scope
+
+- Add/expand integration tests covering:
+  - duplicate delivery idempotency,
+  - out-of-order event handling,
+  - retry with eventual success,
+  - dead-letter after max attempts,
+  - CI/CD event persistence path.
+- Prefer route-level tests for `src/routes/api/github/*.test.ts` plus focused processor unit tests.
+
+### Before Commit
+
+- `bun run test:coverage`
+- `bun run lint`
+- `bun run format`
+- `bun run format:check`
 
 ---
 
 ## First Files to Target
 
-- **Reliability/sync core:** `src/routes/api/github/webhook.ts`, `src/lib/github-client.ts`, `src/lib/sync-state.ts`
-- **Data model:** `src/instant.schema.ts`
-- **PR UI:** `src/routes/$owner/$repo/pull.$number.tsx`, PR detail components
-- **Validation/tests:** `src/lib/test-helpers.ts`, `src/lib/*.test.ts`
+- `src/routes/api/github/webhook.ts`
+- `src/lib/webhooks/index.ts`
+- `src/lib/webhooks/*.ts` (new CI/CD + processor modules)
+- `src/lib/sync-state.ts`
+- `src/instant.schema.ts`
+- `src/routes/api/github/*.test.ts`
+- `src/lib/*.test.ts`
 
 ---
 
 ## Success Criteria
 
-- PR pages show accurate live check/run status.
-- Duplicate and out-of-order webhooks no longer create stale writes.
-- Failed webhook deliveries retry automatically and are observable.
-- Token expiration creates recoverable UX, not silent sync degradation.
-- Integration tests cover core sync invariants (idempotency, ordering, retry).
+- Webhook intake is fast and no longer coupled to full processing latency.
+- Retry/backoff/dead-letter behavior is automatic and test-verified.
+- CI/CD webhook events are persisted and available for PR status views.
+- Validation and typed errors reduce crash/retry ambiguity.
+- Every task commit passes coverage, lint, formatting, and format-check gates.
