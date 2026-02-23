@@ -14,9 +14,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as OwnerIndexRouteImport } from './routes/$owner/index'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as OwnerRepoIndexRouteImport } from './routes/$owner/$repo/index'
-import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
-import { Route as ApiGithubWebhookHealthRouteImport } from './routes/api/github/webhook-health'
 import { Route as ApiGithubWebhookProcessRouteImport } from './routes/api/github/webhook-process'
+import { Route as ApiGithubWebhookHealthRouteImport } from './routes/api/github/webhook-health'
+import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
 import { Route as ApiGithubRateLimitRouteImport } from './routes/api/github/rate-limit'
 import { Route as ApiGithubPermissionsRouteImport } from './routes/api/github/permissions'
 import { Route as OwnerRepoPullsRouteImport } from './routes/$owner/$repo/pulls'
@@ -66,9 +66,9 @@ const OwnerRepoIndexRoute = OwnerRepoIndexRouteImport.update({
   path: '/$owner/$repo/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGithubWebhookRoute = ApiGithubWebhookRouteImport.update({
-  id: '/api/github/webhook',
-  path: '/api/github/webhook',
+const ApiGithubWebhookProcessRoute = ApiGithubWebhookProcessRouteImport.update({
+  id: '/api/github/webhook-process',
+  path: '/api/github/webhook-process',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubWebhookHealthRoute = ApiGithubWebhookHealthRouteImport.update({
@@ -76,9 +76,9 @@ const ApiGithubWebhookHealthRoute = ApiGithubWebhookHealthRouteImport.update({
   path: '/api/github/webhook-health',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGithubWebhookProcessRoute = ApiGithubWebhookProcessRouteImport.update({
-  id: '/api/github/webhook-process',
-  path: '/api/github/webhook-process',
+const ApiGithubWebhookRoute = ApiGithubWebhookRouteImport.update({
+  id: '/api/github/webhook',
+  path: '/api/github/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubRateLimitRoute = ApiGithubRateLimitRouteImport.update({
@@ -473,11 +473,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OwnerRepoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/github/webhook': {
-      id: '/api/github/webhook'
-      path: '/api/github/webhook'
-      fullPath: '/api/github/webhook'
-      preLoaderRoute: typeof ApiGithubWebhookRouteImport
+    '/api/github/webhook-process': {
+      id: '/api/github/webhook-process'
+      path: '/api/github/webhook-process'
+      fullPath: '/api/github/webhook-process'
+      preLoaderRoute: typeof ApiGithubWebhookProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/webhook-health': {
@@ -487,11 +487,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubWebhookHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/github/webhook-process': {
-      id: '/api/github/webhook-process'
-      path: '/api/github/webhook-process'
-      fullPath: '/api/github/webhook-process'
-      preLoaderRoute: typeof ApiGithubWebhookProcessRouteImport
+    '/api/github/webhook': {
+      id: '/api/github/webhook'
+      path: '/api/github/webhook'
+      fullPath: '/api/github/webhook'
+      preLoaderRoute: typeof ApiGithubWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/rate-limit': {
