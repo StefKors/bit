@@ -1,6 +1,6 @@
 import { useState, useRef } from "react"
 import { Link, useMatches, useNavigate } from "@tanstack/react-router"
-import { SearchIcon, SignOutIcon, GearIcon, PersonIcon } from "@primer/octicons-react"
+import { SearchIcon, SignOutIcon, GearIcon } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { db } from "@/lib/instantDb"
 import { Avatar } from "./Avatar"
@@ -92,10 +92,6 @@ export const AppHeader = ({ onOpenCommandMenu }: AppHeaderProps) => {
                   </div>
                   <div className={styles.userMenuDivider} />
                   <div className={styles.userMenuItems}>
-                    <button type="button" className={styles.userMenuItem}>
-                      <PersonIcon size={16} />
-                      <span>Profile</span>
-                    </button>
                     <button
                       type="button"
                       className={styles.userMenuItem}
