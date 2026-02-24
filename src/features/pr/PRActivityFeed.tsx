@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query"
 import type { InstaQLEntity } from "@instantdb/core"
 import type { AppSchema } from "@/instant.schema"
 
@@ -25,6 +26,8 @@ import {
   CommentIcon,
 } from "@primer/octicons-react"
 import styles from "./PRActivityFeed.module.css"
+import { CommentComposer } from "./CommentComposer"
+import { createCommentMutation } from "@/lib/mutations"
 
 interface PRAuthor {
   login: string | null | undefined
@@ -39,6 +42,11 @@ interface PRActivityFeedProps {
   commits: readonly GithubPrCommit[]
   reviews: readonly GithubPrReview[]
   comments: readonly GithubPrComment[]
+  userId?: string
+  owner?: string
+  repo?: string
+  prNumber?: number
+  onCommentCreated?: () => void
   formatTimeAgo: (date: Date | number | null | undefined) => string
 }
 
@@ -64,6 +72,11 @@ export const PRActivityFeed = ({
   commits,
   reviews,
   comments,
+  userId,
+  owner,
+  repo,
+  prNumber,
+  onCommentCreated,
   formatTimeAgo,
 }: PRActivityFeedProps) => {
   // Build unified timeline
@@ -121,6 +134,11 @@ export const PRActivityFeed = ({
   // Sort by timestamp
   timelineItems.sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0))
 
+  const canComment = Boolean(userId && owner && repo && prNumber)
+  const createComment = useMutation(
+    createCommentMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
+  )
+
   if (timelineItems.length === 0) {
     return (
       <div className={styles.emptyState}>
@@ -136,6 +154,19 @@ export const PRActivityFeed = ({
       {timelineItems.map((item) => (
         <TimelineItemRenderer key={item.id} item={item} formatTimeAgo={formatTimeAgo} />
       ))}
+      {canComment && (
+        <CommentComposer
+          isSubmitting={createComment.isPending}
+          onSubmit={(body) => {
+            createComment.mutate(
+              { body },
+              {
+                onSuccess: () => onCommentCreated?.(),
+              },
+            )
+          }}
+        />
+      )}
     </div>
   )
 }

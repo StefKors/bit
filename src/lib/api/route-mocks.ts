@@ -56,6 +56,17 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
       ref: "refs/heads/feature/test",
       sha: "abc123",
     }),
+    createIssueComment: vi.fn().mockResolvedValue({
+      id: 1,
+      body: "Test comment",
+      htmlUrl: "https://github.com/test/repo/pull/1#issuecomment-1",
+    }),
+    updateIssueComment: vi.fn().mockResolvedValue({
+      id: 1,
+      body: "Updated comment",
+      htmlUrl: "https://github.com/test/repo/pull/1#issuecomment-1",
+    }),
+    deleteIssueComment: vi.fn().mockResolvedValue({ deleted: true }),
     ...overrides,
   })
 

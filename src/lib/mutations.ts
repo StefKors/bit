@@ -305,3 +305,104 @@ export const restoreBranchMutation = (userId: string, owner: string, repo: strin
       return data
     },
   })
+
+type CommentResponse = {
+  id: number
+  body: string
+  htmlUrl: string | null
+  error?: string
+  code?: string
+}
+
+type DeleteCommentResponse = {
+  deleted: boolean
+  error?: string
+  code?: string
+}
+
+export const createCommentMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "comments", "create", owner, repo, number],
+    mutationFn: async (vars: { body: string }): Promise<CommentResponse> => {
+      const res = await fetch(`/api/github/comments/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as CommentResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to create comment")
+      }
+      return data
+    },
+  })
+
+export const updateCommentMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "comments", "update", owner, repo, number],
+    mutationFn: async (vars: { commentId: number; body: string }): Promise<CommentResponse> => {
+      const res = await fetch(`/api/github/comments/${owner}/${repo}/${number}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as CommentResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to update comment")
+      }
+      return data
+    },
+  })
+
+export const deleteCommentMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "comments", "delete", owner, repo, number],
+    mutationFn: async (vars: { commentId: number }): Promise<DeleteCommentResponse> => {
+      const res = await fetch(`/api/github/comments/${owner}/${repo}/${number}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as DeleteCommentResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to delete comment")
+      }
+      return data
+    },
+  })

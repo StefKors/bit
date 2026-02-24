@@ -383,6 +383,11 @@ function PRDetailPage() {
                 commits={prCommits}
                 reviews={prReviews}
                 comments={prComments}
+                userId={user?.id}
+                owner={owner}
+                repo={repoName}
+                prNumber={prNumber}
+                onCommentCreated={() => prSync.mutate()}
                 formatTimeAgo={formatTimeAgo}
               />
             )}

@@ -951,6 +951,73 @@ export class GitHubClient {
     }
   }
 
+  async createIssueComment(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    body: string,
+  ): Promise<{ id: number; body: string; htmlUrl: string | null }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.issues.createComment({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        body,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      id: response.data.id,
+      body: response.data.body ?? "",
+      htmlUrl: response.data.html_url ?? null,
+    }
+  }
+
+  async updateIssueComment(
+    owner: string,
+    repo: string,
+    commentId: number,
+    body: string,
+  ): Promise<{ id: number; body: string; htmlUrl: string | null }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.issues.updateComment({
+        owner,
+        repo,
+        comment_id: commentId,
+        body,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      id: response.data.id,
+      body: response.data.body ?? "",
+      htmlUrl: response.data.html_url ?? null,
+    }
+  }
+
+  async deleteIssueComment(
+    owner: string,
+    repo: string,
+    commentId: number,
+  ): Promise<{ deleted: boolean }> {
+    await withRateLimitRetry(() =>
+      this.octokit.rest.issues.deleteComment({
+        owner,
+        repo,
+        comment_id: commentId,
+      }),
+    )
+
+    const rateLimit = await this.getRateLimit()
+    this.lastRateLimit = rateLimit
+
+    return { deleted: true }
+  }
+
   // Merge a pull request
   async mergePullRequest(
     owner: string,
