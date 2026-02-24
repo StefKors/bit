@@ -174,7 +174,7 @@
 }
 
 .item[data-selected="true"] {
-  background: rgba(var(--bit-rgb-fg), 0.08);
+  background: rgba(var(--bit-rgb-fg), 0.1);
 }
 
 .item:active {

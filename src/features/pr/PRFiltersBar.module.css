@@ -158,13 +158,12 @@
 }
 
 .menuItem[data-selected] {
-  background: rgba(var(--bit-rgb-accent-blue), 0.12);
-  color: rgb(var(--bit-rgb-accent-blue));
+  background: rgba(var(--bit-rgb-fg), 0.1);
 }
 
 .menuItem[data-selected]:hover,
 .menuItem[data-selected]:focus {
-  background: rgba(var(--bit-rgb-accent-blue), 0.18);
+  background: rgba(var(--bit-rgb-fg), 0.14);
 }
 
 .menuSeparator {

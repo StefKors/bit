@@ -33,13 +33,13 @@
 }
 
 .toggleButton.active {
-  background: rgba(var(--bit-rgb-accent-blue), 0.12);
-  border-color: rgba(var(--bit-rgb-accent-blue), 0.3);
-  color: var(--bit-color-accent-blue);
+  background: rgba(var(--bit-rgb-fg), 0.1);
+  border-color: rgba(var(--bit-rgb-fg), 0.2);
+  color: rgba(var(--bit-rgb-fg), 0.9);
 }
 
 .toggleButton.active:hover {
-  background: rgba(var(--bit-rgb-accent-blue), 0.18);
+  background: rgba(var(--bit-rgb-fg), 0.14);
 }
 
 /* Segmented Control */

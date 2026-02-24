@@ -49,7 +49,7 @@
 }
 
 .itemActive {
-  background: rgba(var(--bit-rgb-accent-blue), 0.1);
+  background: rgba(var(--bit-rgb-fg), 0.08);
 }
 
 .icon {
