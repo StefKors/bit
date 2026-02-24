@@ -232,23 +232,47 @@ function PRDetailPage() {
 
   return (
     <div className={containerClassName}>
-      <Breadcrumb
-        items={[
-          { label: "Repositories", to: "/" },
-          { label: owner, to: "/$owner", params: { owner } },
-          {
-            label: repoName,
-            to: "/$owner/$repo",
-            params: { owner, repo: repoName },
-          },
-          {
-            label: "pull requests",
-            to: "/$owner/$repo/pulls",
-            params: { owner, repo: repoName },
-          },
-          { label: `#${prNumber}` },
-        ]}
-      />
+      {isFullScreenLayout ? (
+        <div className={styles.fullScreenTopNavRow}>
+          <div className={styles.fullScreenTopNav}>
+            <Breadcrumb
+              items={[
+                { label: "Repositories", to: "/" },
+                { label: owner, to: "/$owner", params: { owner } },
+                {
+                  label: repoName,
+                  to: "/$owner/$repo",
+                  params: { owner, repo: repoName },
+                },
+                {
+                  label: "pull requests",
+                  to: "/$owner/$repo/pulls",
+                  params: { owner, repo: repoName },
+                },
+                { label: `#${prNumber}` },
+              ]}
+            />
+          </div>
+        </div>
+      ) : (
+        <Breadcrumb
+          items={[
+            { label: "Repositories", to: "/" },
+            { label: owner, to: "/$owner", params: { owner } },
+            {
+              label: repoName,
+              to: "/$owner/$repo",
+              params: { owner, repo: repoName },
+            },
+            {
+              label: "pull requests",
+              to: "/$owner/$repo/pulls",
+              params: { owner, repo: repoName },
+            },
+            { label: `#${prNumber}` },
+          ]}
+        />
+      )}
 
       {error && (
         <div

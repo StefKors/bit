@@ -11,6 +11,16 @@
   gap: 1rem;
 }
 
+.topBarRow {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.95fr) minmax(0, 2.25fr) minmax(300px, 1fr);
+  gap: 1rem;
+}
+
+.topBarRow .topBar {
+  grid-column: 2;
+}
+
 .header {
   display: flex;
   flex-direction: column;
@@ -211,12 +221,24 @@
 }
 
 @media (max-width: 1500px) {
+  .topBarRow {
+    grid-template-columns: minmax(230px, 0.9fr) minmax(0, 2fr) minmax(270px, 1fr);
+  }
+
   .columns {
     grid-template-columns: minmax(230px, 0.9fr) minmax(0, 2fr) minmax(270px, 1fr);
   }
 }
 
 @media (max-width: 1240px) {
+  .topBarRow {
+    grid-template-columns: 1fr;
+  }
+
+  .topBarRow .topBar {
+    grid-column: 1;
+  }
+
   .columns {
     grid-template-columns: 1fr;
     min-height: 0;

@@ -116,57 +116,59 @@ export const PRThreeColumnLayout = ({
 
   return (
     <div className={styles.container}>
-      <div className={styles.topBar}>
-        <div className={styles.header}>
-          <div className={styles.titleRow}>
-            <PullRequestStateIcon isMerged={isMerged} isClosed={isClosed} isDraft={isDraft} />
-            <h1 className={styles.title}>
-              {pr.title}
-              <span className={styles.prNumber}> #{pr.number}</span>
-              {isDraft ? (
-                <span className={`${styles.statusBadge} ${styles.statusDraft}`}>Draft</span>
-              ) : isMerged ? (
-                <span className={`${styles.statusBadge} ${styles.statusMerged}`}>Merged</span>
-              ) : isClosed ? (
-                <span className={`${styles.statusBadge} ${styles.statusClosed}`}>Closed</span>
-              ) : (
-                <span className={`${styles.statusBadge} ${styles.statusOpen}`}>Open</span>
+      <div className={styles.topBarRow}>
+        <div className={styles.topBar}>
+          <div className={styles.header}>
+            <div className={styles.titleRow}>
+              <PullRequestStateIcon isMerged={isMerged} isClosed={isClosed} isDraft={isDraft} />
+              <h1 className={styles.title}>
+                {pr.title}
+                <span className={styles.prNumber}> #{pr.number}</span>
+                {isDraft ? (
+                  <span className={`${styles.statusBadge} ${styles.statusDraft}`}>Draft</span>
+                ) : isMerged ? (
+                  <span className={`${styles.statusBadge} ${styles.statusMerged}`}>Merged</span>
+                ) : isClosed ? (
+                  <span className={`${styles.statusBadge} ${styles.statusClosed}`}>Closed</span>
+                ) : (
+                  <span className={`${styles.statusBadge} ${styles.statusOpen}`}>Open</span>
+                )}
+              </h1>
+            </div>
+            <div className={styles.meta}>
+              {pr.authorLogin && (
+                <span className={styles.metaItem}>
+                  <strong>{pr.authorLogin}</strong>
+                </span>
               )}
-            </h1>
-          </div>
-          <div className={styles.meta}>
-            {pr.authorLogin && (
               <span className={styles.metaItem}>
-                <strong>{pr.authorLogin}</strong>
+                to
+                <span className={styles.branchInfo}>{pr.baseRef ?? "unknown"}</span>
+                from
+                <span className={styles.branchInfo}>{pr.headRef ?? "unknown"}</span>
               </span>
-            )}
-            <span className={styles.metaItem}>
-              to
-              <span className={styles.branchInfo}>{pr.baseRef ?? "unknown"}</span>
-              from
-              <span className={styles.branchInfo}>{pr.headRef ?? "unknown"}</span>
-            </span>
-            <span className={styles.metaItem}>
-              {isOpen
-                ? `opened ${formatTimeAgo(pr.githubCreatedAt)}`
-                : isMerged
-                  ? `merged ${formatTimeAgo(pr.mergedAt)}`
-                  : `closed ${formatTimeAgo(pr.closedAt)}`}
-            </span>
+              <span className={styles.metaItem}>
+                {isOpen
+                  ? `opened ${formatTimeAgo(pr.githubCreatedAt)}`
+                  : isMerged
+                    ? `merged ${formatTimeAgo(pr.mergedAt)}`
+                    : `closed ${formatTimeAgo(pr.closedAt)}`}
+              </span>
+            </div>
           </div>
+          {(needsInitialSync || syncing) && (
+            <div className={styles.actions}>
+              <Button
+                variant="success"
+                leadingIcon={<SyncIcon size={16} />}
+                loading={syncing}
+                onClick={() => onSync()}
+              >
+                {syncing ? "Syncing..." : "Sync Details"}
+              </Button>
+            </div>
+          )}
         </div>
-        {(needsInitialSync || syncing) && (
-          <div className={styles.actions}>
-            <Button
-              variant="success"
-              leadingIcon={<SyncIcon size={16} />}
-              loading={syncing}
-              onClick={() => onSync()}
-            >
-              {syncing ? "Syncing..." : "Sync Details"}
-            </Button>
-          </div>
-        )}
       </div>
 
       <div className={styles.columns}>

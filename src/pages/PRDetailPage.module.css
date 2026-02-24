@@ -13,6 +13,33 @@
   padding: 1rem;
 }
 
+.fullScreenTopNavRow {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.95fr) minmax(0, 2.25fr) minmax(300px, 1fr);
+  gap: 1rem;
+}
+
+.fullScreenTopNav {
+  grid-column: 2;
+  min-width: 0;
+}
+
+@media (max-width: 1500px) {
+  .fullScreenTopNavRow {
+    grid-template-columns: minmax(230px, 0.9fr) minmax(0, 2fr) minmax(270px, 1fr);
+  }
+}
+
+@media (max-width: 1240px) {
+  .fullScreenTopNavRow {
+    grid-template-columns: 1fr;
+  }
+
+  .fullScreenTopNav {
+    grid-column: 1;
+  }
+}
+
 .headerContainer {
   display: flex;
   justify-content: space-between;
@@ -180,6 +207,14 @@
 
   .containerFullScreen {
     padding: 0.85rem;
+  }
+
+  .fullScreenTopNavRow {
+    grid-template-columns: 1fr;
+  }
+
+  .fullScreenTopNav {
+    grid-column: 1;
   }
 
   .headerContainer {
