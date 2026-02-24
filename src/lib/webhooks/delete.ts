@@ -8,11 +8,8 @@ import type { WebhookDB, WebhookPayload, DeleteEvent } from "./types"
  */
 export async function handleDeleteWebhook(db: WebhookDB, payload: WebhookPayload) {
   const deletePayload = payload as unknown as DeleteEvent
-  const repo = payload.repository as Record<string, unknown>
-
-  if (!repo) return
-
-  const repoFullName = repo.full_name as string
+  const { repository: repo } = deletePayload
+  const repoFullName = repo.full_name
   const refType = deletePayload.ref_type // 'branch' or 'tag'
   const refName = deletePayload.ref
 

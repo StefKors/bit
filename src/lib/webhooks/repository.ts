@@ -1,6 +1,12 @@
 import type { WebhookDB, WebhookPayload, RepositoryEvent, StarEvent, ForkEvent } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
 
+const parseGithubTimestamp = (value?: string | null): number | null => {
+  if (!value) return null
+  const timestamp = Date.parse(value)
+  return Number.isFinite(timestamp) ? timestamp : null
+}
+
 /**
  * Handle repository webhook events.
  *
@@ -37,14 +43,10 @@ export async function handleRepositoryWebhook(db: WebhookDB, payload: WebhookPay
   let repoRecords = reposResult.repos || []
 
   // If no users tracking, try to auto-track for the webhook sender
-  if (repoRecords.length === 0 && sender) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
+  if (repoRecords.length === 0) {
+    const userId = await findUserBySender(db, sender)
     if (userId) {
-      const newRepo = await ensureRepoFromWebhook(
-        db,
-        repo as unknown as Record<string, unknown>,
-        userId,
-      )
+      const newRepo = await ensureRepoFromWebhook(db, repo, userId)
       if (newRepo) {
         repoRecords = [newRepo]
       }
@@ -82,7 +84,7 @@ export async function handleRepositoryWebhook(db: WebhookDB, payload: WebhookPay
         stargazersCount: repo.stargazers_count || 0,
         forksCount: repo.forks_count || 0,
         openIssuesCount: repo.open_issues_count || 0,
-        githubUpdatedAt: repo.updated_at ? new Date(repo.updated_at).getTime() : null,
+        githubUpdatedAt: parseGithubTimestamp(repo.updated_at),
         syncedAt: now,
         updatedAt: now,
       }),
@@ -123,14 +125,10 @@ export async function handleStarWebhook(db: WebhookDB, payload: WebhookPayload) 
   let repoRecords = reposResult.repos || []
 
   // If no users tracking, try to auto-track for the webhook sender
-  if (repoRecords.length === 0 && sender) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
+  if (repoRecords.length === 0) {
+    const userId = await findUserBySender(db, sender)
     if (userId) {
-      const newRepo = await ensureRepoFromWebhook(
-        db,
-        repo as unknown as Record<string, unknown>,
-        userId,
-      )
+      const newRepo = await ensureRepoFromWebhook(db, repo, userId)
       if (newRepo) {
         repoRecords = [newRepo]
       }
@@ -197,12 +195,10 @@ export async function handleForkWebhook(db: WebhookDB, payload: WebhookPayload) 
   }
 
   // Auto-track the new fork for the sender if they're a registered user
-  if (sender) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
-    if (userId) {
-      await ensureRepoFromWebhook(db, forkee as unknown as Record<string, unknown>, userId)
-      console.log(`Auto-tracked forked repo ${forkee.full_name} for user ${userId}`)
-    }
+  const userId = await findUserBySender(db, sender)
+  if (userId) {
+    await ensureRepoFromWebhook(db, forkee, userId)
+    console.log(`Auto-tracked forked repo ${forkee.full_name} for user ${userId}`)
   }
 
   console.log(`Processed fork event: ${forkee.full_name} forked from ${repoFullName}`)

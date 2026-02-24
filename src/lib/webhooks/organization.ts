@@ -1,5 +1,5 @@
 import { id } from "@instantdb/admin"
-import type { WebhookDB, WebhookPayload, OrganizationEvent } from "./types"
+import type { Organization, OrganizationEvent, WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender } from "./utils"
 
 /**
@@ -36,14 +36,10 @@ export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookP
   let orgRecords = orgsResult.organizations || []
 
   // If no users tracking, try to auto-track for the webhook sender
-  if (orgRecords.length === 0 && sender) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
+  if (orgRecords.length === 0) {
+    const userId = await findUserBySender(db, sender)
     if (userId) {
-      const newOrg = await ensureOrgFromWebhook(
-        db,
-        org as unknown as Record<string, unknown>,
-        userId,
-      )
+      const newOrg = await ensureOrgFromWebhook(db, org, userId)
       if (newOrg) {
         orgRecords = [newOrg]
       }
@@ -66,10 +62,11 @@ export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookP
 
   // Update org metadata for all tracked instances
   for (const orgRecord of orgRecords) {
+    const orgName = "name" in org && typeof org.name === "string" ? org.name : null
     await db.transact(
       db.tx.organizations[orgRecord.id].update({
         login: org.login,
-        name: (org as { name?: string | null }).name || null,
+        name: orgName,
         description: org.description || null,
         avatarUrl: org.avatar_url || null,
         url: org.url || null,
@@ -86,13 +83,9 @@ export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookP
  * Create or update an organization record from webhook payload data.
  * Used for auto-tracking orgs when webhooks arrive.
  */
-export async function ensureOrgFromWebhook(
-  db: WebhookDB,
-  org: Record<string, unknown>,
-  userId: string,
-) {
-  const githubId = org.id as number
-  const login = org.login as string
+export async function ensureOrgFromWebhook(db: WebhookDB, org: Organization, userId: string) {
+  const githubId = org.id
+  const login = org.login
 
   // Check if org already exists by githubId
   const existingResult = await db.query({
@@ -110,13 +103,14 @@ export async function ensureOrgFromWebhook(
   const orgId = id()
 
   const now = Date.now()
+  const orgName = "name" in org && typeof org.name === "string" ? org.name : null
   const orgData = {
     githubId,
     login,
-    name: (org.name as string) || null,
-    description: (org.description as string) || null,
-    avatarUrl: (org.avatar_url as string) || null,
-    url: (org.url as string) || null,
+    name: orgName,
+    description: org.description || null,
+    avatarUrl: org.avatar_url || null,
+    url: org.url || null,
     userId,
     syncedAt: now,
     createdAt: now,

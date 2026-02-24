@@ -1,5 +1,31 @@
 import { id } from "@instantdb/admin"
-import type { WebhookDB, RepoRecord, PRRecord } from "./types"
+import type { PullRequest, RepoRecord, Repository, PRRecord, User, WebhookDB } from "./types"
+
+type UnknownRecord = Record<string, unknown>
+
+const isRecord = (value: unknown): value is UnknownRecord =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+
+const toRecord = (value: unknown): UnknownRecord | null => (isRecord(value) ? value : null)
+
+const toStringOrNull = (value: unknown): string | null =>
+  typeof value === "string" && value.length > 0 ? value : null
+
+const toNumberOrNull = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null
+
+const toBooleanOrNull = (value: unknown): boolean | null =>
+  typeof value === "boolean" ? value : null
+
+const parseGithubTimestamp = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    // GitHub occasionally uses unix seconds in some payloads.
+    return value > 1_000_000_000_000 ? value : value * 1000
+  }
+  if (typeof value !== "string" || value.length === 0) return null
+  const timestamp = Date.parse(value)
+  return Number.isFinite(timestamp) ? timestamp : null
+}
 
 /**
  * Find a user who has a GitHub account connected matching the webhook sender.
@@ -8,9 +34,9 @@ import type { WebhookDB, RepoRecord, PRRecord } from "./types"
  */
 export async function findUserBySender(
   db: WebhookDB,
-  sender: Record<string, unknown>,
+  sender: Pick<User, "id"> | { id?: unknown },
 ): Promise<string | null> {
-  const senderGithubId = sender.id as number | undefined
+  const senderGithubId = toNumberOrNull((sender as UnknownRecord).id)
   if (!senderGithubId) {
     console.log("findUserBySender: No sender ID in webhook payload")
     return null
@@ -22,7 +48,7 @@ export async function findUserBySender(
     },
   })
 
-  const users = (result as Record<string, Array<{ id: string }>>).$users || []
+  const users = result.$users || []
   if (users[0]) {
     return users[0].id
   }
@@ -37,11 +63,24 @@ export async function findUserBySender(
  */
 export async function ensureRepoFromWebhook(
   db: WebhookDB,
-  repo: Record<string, unknown>,
+  repo: Repository | object,
   userId: string,
 ): Promise<RepoRecord | null> {
-  const githubId = repo.id as number
-  const fullName = repo.full_name as string
+  const rawRepo = repo as UnknownRecord
+  const githubId = toNumberOrNull(rawRepo.id)
+  const fullName = toStringOrNull(rawRepo.full_name)
+  const name = toStringOrNull(rawRepo.name)
+  const ownerLogin = toStringOrNull(toRecord(rawRepo.owner)?.login)
+
+  if (!githubId || !fullName || !name || !ownerLogin) {
+    console.log("ensureRepoFromWebhook: Missing required repository fields", {
+      hasGithubId: Boolean(githubId),
+      hasFullName: Boolean(fullName),
+      hasName: Boolean(name),
+      hasOwnerLogin: Boolean(ownerLogin),
+    })
+    return null
+  }
 
   // Check if repo already exists for this user by githubId
   const existingResult = await db.query({
@@ -58,29 +97,28 @@ export async function ensureRepoFromWebhook(
   // Generate a new UUID for this repo
   const repoId = id()
 
-  const owner = repo.owner as Record<string, unknown>
   const now = Date.now()
 
   const repoData = {
     githubId,
-    name: repo.name as string,
+    name,
     fullName,
-    owner: owner.login as string,
-    description: (repo.description as string) || null,
-    url: repo.url as string,
-    htmlUrl: repo.html_url as string,
-    private: (repo.private as boolean) || false,
-    fork: (repo.fork as boolean) || false,
-    defaultBranch: (repo.default_branch as string) || "main",
-    language: (repo.language as string) || null,
-    stargazersCount: (repo.stargazers_count as number) || 0,
-    forksCount: (repo.forks_count as number) || 0,
-    openIssuesCount: (repo.open_issues_count as number) || 0,
+    owner: ownerLogin,
+    description: toStringOrNull(rawRepo.description),
+    url: toStringOrNull(rawRepo.url) || undefined,
+    htmlUrl: toStringOrNull(rawRepo.html_url) || undefined,
+    private: toBooleanOrNull(rawRepo.private) ?? false,
+    fork: toBooleanOrNull(rawRepo.fork) ?? false,
+    defaultBranch: toStringOrNull(rawRepo.default_branch) || "main",
+    language: toStringOrNull(rawRepo.language),
+    stargazersCount: toNumberOrNull(rawRepo.stargazers_count) ?? 0,
+    forksCount: toNumberOrNull(rawRepo.forks_count) ?? 0,
+    openIssuesCount: toNumberOrNull(rawRepo.open_issues_count) ?? 0,
     organizationId: null,
     userId,
-    githubCreatedAt: repo.created_at ? new Date(repo.created_at as string).getTime() : null,
-    githubUpdatedAt: repo.updated_at ? new Date(repo.updated_at as string).getTime() : null,
-    githubPushedAt: repo.pushed_at ? new Date(repo.pushed_at as string).getTime() : null,
+    githubCreatedAt: parseGithubTimestamp(rawRepo.created_at),
+    githubUpdatedAt: parseGithubTimestamp(rawRepo.updated_at),
+    githubPushedAt: parseGithubTimestamp(rawRepo.pushed_at),
     syncedAt: now,
     createdAt: now,
     updatedAt: now,
@@ -107,10 +145,40 @@ export async function ensureRepoFromWebhook(
  */
 export async function ensurePRFromWebhook(
   db: WebhookDB,
-  pr: Record<string, unknown>,
+  pr: PullRequest | object,
   repoRecord: RepoRecord,
 ): Promise<PRRecord | null> {
-  const githubId = pr.id as number
+  const rawPr = pr as UnknownRecord
+  const githubId = toNumberOrNull(rawPr.id)
+  const prNumber = toNumberOrNull(rawPr.number)
+  const title = toStringOrNull(rawPr.title)
+  const state = toStringOrNull(rawPr.state)
+
+  if (!githubId || !prNumber || !title || !state) {
+    console.log("ensurePRFromWebhook: Missing required pull request fields", {
+      hasGithubId: Boolean(githubId),
+      hasNumber: Boolean(prNumber),
+      hasTitle: Boolean(title),
+      hasState: Boolean(state),
+    })
+    return null
+  }
+
+  const author = toRecord(rawPr.user)
+  const head = toRecord(rawPr.head)
+  const base = toRecord(rawPr.base)
+  const labelsRaw = Array.isArray(rawPr.labels) ? rawPr.labels : []
+  const labels = labelsRaw
+    .map((label) => {
+      const labelRecord = toRecord(label)
+      const name = toStringOrNull(labelRecord?.name)
+      if (!name) return null
+      return {
+        name,
+        color: toStringOrNull(labelRecord?.color),
+      }
+    })
+    .filter((label): label is { name: string; color: string | null } => label !== null)
 
   // Check if PR already exists by githubId
   const existingResult = await db.query({
@@ -130,39 +198,34 @@ export async function ensurePRFromWebhook(
   const now = Date.now()
   const prData = {
     githubId,
-    number: pr.number as number,
+    number: prNumber,
     repoId: repoRecord.id,
-    title: pr.title as string,
-    body: (pr.body as string) || null,
-    state: pr.state as string,
-    draft: (pr.draft as boolean) || false,
-    merged: (pr.merged as boolean) || false,
-    mergeable: (pr.mergeable as boolean) ?? null,
-    mergeableState: (pr.mergeable_state as string) || null,
-    authorLogin: ((pr.user as Record<string, unknown>)?.login as string) || null,
-    authorAvatarUrl: ((pr.user as Record<string, unknown>)?.avatar_url as string) || null,
-    headRef: (pr.head as Record<string, unknown>)?.ref as string,
-    headSha: (pr.head as Record<string, unknown>)?.sha as string,
-    baseRef: (pr.base as Record<string, unknown>)?.ref as string,
-    baseSha: (pr.base as Record<string, unknown>)?.sha as string,
-    htmlUrl: pr.html_url as string,
-    diffUrl: pr.diff_url as string,
-    additions: (pr.additions as number) ?? 0,
-    deletions: (pr.deletions as number) ?? 0,
-    changedFiles: (pr.changed_files as number) ?? 0,
-    commits: (pr.commits as number) ?? 0,
-    comments: (pr.comments as number) ?? 0,
-    reviewComments: (pr.review_comments as number) ?? 0,
-    labels: JSON.stringify(
-      ((pr.labels as Array<Record<string, unknown>>) || []).map((l) => ({
-        name: l.name,
-        color: l.color,
-      })),
-    ),
-    githubCreatedAt: pr.created_at ? new Date(pr.created_at as string).getTime() : null,
-    githubUpdatedAt: pr.updated_at ? new Date(pr.updated_at as string).getTime() : null,
-    closedAt: pr.closed_at ? new Date(pr.closed_at as string).getTime() : null,
-    mergedAt: pr.merged_at ? new Date(pr.merged_at as string).getTime() : null,
+    title,
+    body: toStringOrNull(rawPr.body),
+    state,
+    draft: toBooleanOrNull(rawPr.draft) ?? false,
+    merged: toBooleanOrNull(rawPr.merged) ?? false,
+    mergeable: toBooleanOrNull(rawPr.mergeable),
+    mergeableState: toStringOrNull(rawPr.mergeable_state),
+    authorLogin: toStringOrNull(author?.login),
+    authorAvatarUrl: toStringOrNull(author?.avatar_url),
+    headRef: toStringOrNull(head?.ref) || undefined,
+    headSha: toStringOrNull(head?.sha) || undefined,
+    baseRef: toStringOrNull(base?.ref) || undefined,
+    baseSha: toStringOrNull(base?.sha) || undefined,
+    htmlUrl: toStringOrNull(rawPr.html_url) || undefined,
+    diffUrl: toStringOrNull(rawPr.diff_url) || undefined,
+    additions: toNumberOrNull(rawPr.additions) ?? 0,
+    deletions: toNumberOrNull(rawPr.deletions) ?? 0,
+    changedFiles: toNumberOrNull(rawPr.changed_files) ?? 0,
+    commits: toNumberOrNull(rawPr.commits) ?? 0,
+    comments: toNumberOrNull(rawPr.comments) ?? 0,
+    reviewComments: toNumberOrNull(rawPr.review_comments) ?? 0,
+    labels: JSON.stringify(labels),
+    githubCreatedAt: parseGithubTimestamp(rawPr.created_at),
+    githubUpdatedAt: parseGithubTimestamp(rawPr.updated_at),
+    closedAt: parseGithubTimestamp(rawPr.closed_at),
+    mergedAt: parseGithubTimestamp(rawPr.merged_at),
     userId: repoRecord.userId,
     syncedAt: now,
     createdAt: now,
@@ -179,7 +242,7 @@ export async function ensurePRFromWebhook(
   })
 
   const inserted = insertedResult.pullRequests || []
-  console.log(`Auto-tracked PR #${pr.number as number} for repo ${repoRecord.fullName}`)
+  console.log(`Auto-tracked PR #${prNumber} for repo ${repoRecord.fullName}`)
 
   return (inserted[0] as PRRecord) ?? null
 }

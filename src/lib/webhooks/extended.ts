@@ -1,5 +1,13 @@
 import { id } from "@instantdb/admin"
-import type { PRRecord, RepoRecord, WebhookDB, WebhookEventName, WebhookPayload } from "./types"
+import type {
+  Issue,
+  Organization,
+  PRRecord,
+  RepoRecord,
+  WebhookDB,
+  WebhookEventName,
+  WebhookPayload,
+} from "./types"
 import { findUserBySender, ensurePRFromWebhook, ensureRepoFromWebhook } from "./utils"
 import { ensureOrgFromWebhook } from "./organization"
 import { ensureIssueFromWebhook } from "./issue"
@@ -133,7 +141,7 @@ const getTrackedOrgs = async (
   if (orgRecords.length === 0 && sender) {
     const userId = await findUserBySender(db, sender)
     if (userId) {
-      const createdOrg = await ensureOrgFromWebhook(db, organization, userId)
+      const createdOrg = await ensureOrgFromWebhook(db, organization as unknown as Organization, userId)
       if (createdOrg && isRecord(createdOrg) && typeof createdOrg.id === "string") {
         orgRecords = [createdOrg as unknown as OrganizationRecord]
       }
@@ -263,7 +271,7 @@ const ensureIssueTracking = async (
   if (issue.pull_request) return
 
   for (const repoRecord of repoRecords) {
-    await ensureIssueFromWebhook(db, issue, repoRecord)
+    await ensureIssueFromWebhook(db, issue as unknown as Issue, repoRecord)
   }
 }
 

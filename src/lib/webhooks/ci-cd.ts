@@ -87,16 +87,12 @@ export const handleCheckRunWebhook = async (
 
   let repoRecords = repos || []
   if (repoRecords.length === 0) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender)
     if (!userId) {
       log.info("check_run: sender not registered, skipping", { sender: sender.login })
       return
     }
-    const repo = await ensureRepoFromWebhook(
-      db,
-      repository as unknown as Record<string, unknown>,
-      userId,
-    )
+    const repo = await ensureRepoFromWebhook(db, repository, userId)
     if (repo) repoRecords = [repo]
   }
 
@@ -143,16 +139,12 @@ export const handleCheckSuiteWebhook = async (
 
   let repoRecords = repos || []
   if (repoRecords.length === 0) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender)
     if (!userId) {
       log.info("check_suite: sender not registered, skipping", { sender: sender.login })
       return
     }
-    const repo = await ensureRepoFromWebhook(
-      db,
-      repository as unknown as Record<string, unknown>,
-      userId,
-    )
+    const repo = await ensureRepoFromWebhook(db, repository, userId)
     if (repo) repoRecords = [repo]
   }
 
@@ -195,16 +187,12 @@ export const handleStatusWebhook = async (
 
   let repoRecords = repos || []
   if (repoRecords.length === 0) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender)
     if (!userId) {
       log.info("status: sender not registered, skipping", { sender: sender.login })
       return
     }
-    const repo = await ensureRepoFromWebhook(
-      db,
-      repository as unknown as Record<string, unknown>,
-      userId,
-    )
+    const repo = await ensureRepoFromWebhook(db, repository, userId)
     if (repo) repoRecords = [repo]
   }
 
@@ -259,16 +247,12 @@ export const handleWorkflowRunWebhook = async (
 
   let repoRecords = repos || []
   if (repoRecords.length === 0) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender)
     if (!userId) {
       log.info("workflow_run: sender not registered, skipping", { sender: sender.login })
       return
     }
-    const repo = await ensureRepoFromWebhook(
-      db,
-      repository as unknown as Record<string, unknown>,
-      userId,
-    )
+    const repo = await ensureRepoFromWebhook(db, repository, userId)
     if (repo) repoRecords = [repo]
   }
 
@@ -332,16 +316,12 @@ export const handleWorkflowJobWebhook = async (
 
   let repoRecords = repos || []
   if (repoRecords.length === 0) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender)
     if (!userId) {
       log.info("workflow_job: sender not registered, skipping", { sender: sender.login })
       return
     }
-    const repo = await ensureRepoFromWebhook(
-      db,
-      repository as unknown as Record<string, unknown>,
-      userId,
-    )
+    const repo = await ensureRepoFromWebhook(db, repository, userId)
     if (repo) repoRecords = [repo]
   }
 

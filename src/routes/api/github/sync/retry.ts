@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { z } from "zod/v4"
 import { createGitHubClient, isGitHubAuthError, handleGitHubAuthError } from "@/lib/github-client"
 import { adminDb } from "@/lib/instantAdmin"
 import {
@@ -16,7 +17,7 @@ import {
   handleIssueWebhook,
   handleIssueCommentWebhook,
 } from "@/lib/webhooks"
-import type { WebhookEventName } from "@/lib/webhooks"
+import type { IssueCommentEvent, WebhookEventName, WebhookPayload } from "@/lib/webhooks"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -24,9 +25,19 @@ const jsonResponse = <T>(data: T, status = 200) =>
     headers: { "Content-Type": "application/json" },
   })
 
+const retryRequestBodySchema = z.object({
+  resourceType: z.string().min(1),
+  resourceId: z.string().optional(),
+})
+
+const isIssueCommentPayload = (
+  payload: WebhookPayload,
+): payload is WebhookPayload & IssueCommentEvent =>
+  "issue" in payload && "comment" in payload
+
 async function processWebhookPayload(
   event: WebhookEventName,
-  payload: Record<string, unknown>,
+  payload: WebhookPayload,
 ): Promise<void> {
   switch (event) {
     case "push":
@@ -58,8 +69,7 @@ async function processWebhookPayload(
       await handleIssueWebhook(adminDb, payload)
       break
     case "issue_comment": {
-      const issue = payload.issue as Record<string, unknown> | undefined
-      if (issue?.pull_request) {
+      if (isIssueCommentPayload(payload) && payload.issue.pull_request) {
         await handleCommentWebhook(adminDb, payload, event)
       } else {
         await handleIssueCommentWebhook(adminDb, payload)
@@ -87,15 +97,11 @@ export const Route = createFileRoute("/api/github/sync/retry")({
         }
 
         try {
-          const body = (await request.json()) as {
-            resourceType: string
-            resourceId?: string
-          }
-          const { resourceType, resourceId } = body
-
-          if (!resourceType) {
+          const bodyResult = retryRequestBodySchema.safeParse(await request.json())
+          if (!bodyResult.success) {
             return jsonResponse({ error: "resourceType is required" }, 400)
           }
+          const { resourceType, resourceId } = bodyResult.data
 
           const client = await createGitHubClient(userId)
           if (!client) {
@@ -156,7 +162,7 @@ export const Route = createFileRoute("/api/github/sync/retry")({
                 if (!delivery.payload) continue
                 retried++
                 try {
-                  const payload = JSON.parse(delivery.payload) as Record<string, unknown>
+                  const payload = JSON.parse(delivery.payload) as WebhookPayload
                   await processWebhookPayload(delivery.event as WebhookEventName, payload)
                   await adminDb.transact(
                     adminDb.tx.webhookDeliveries[delivery.id].update({
@@ -171,7 +177,10 @@ export const Route = createFileRoute("/api/github/sync/retry")({
                   stillFailed++
                   await adminDb.transact(
                     adminDb.tx.webhookDeliveries[delivery.id].update({
-                      error: retryError instanceof Error ? retryError.message : "Retry failed",
+                      error:
+                        retryError instanceof Error
+                          ? retryError.message
+                          : "Retry failed with non-Error value",
                       processedAt: Date.now(),
                     }),
                   )

@@ -15,13 +15,8 @@ import { findUserBySender, ensureRepoFromWebhook } from "./utils"
  */
 export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) {
   const pushPayload = payload as unknown as PushEvent
-  const repo = payload.repository as Record<string, unknown>
-  const sender = payload.sender as Record<string, unknown>
-
-  if (!repo) return
-
-  const repoFullName = repo.full_name as string
-  const ref = pushPayload.ref
+  const { repository: repo, sender, ref } = pushPayload
+  const repoFullName = repo.full_name
   const pushedAt = Date.now()
 
   // Find users who have this repo synced
@@ -34,7 +29,7 @@ export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) 
   let repoRecords = (reposResult.repos || []) as RepoRecord[]
 
   // If no users tracking, try to auto-track for the webhook sender
-  if (repoRecords.length === 0 && sender) {
+  if (repoRecords.length === 0) {
     const userId = await findUserBySender(db, sender)
     if (userId) {
       const newRepo = await ensureRepoFromWebhook(db, repo, userId)

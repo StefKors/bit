@@ -105,6 +105,7 @@ export type {
 
 export type WebhookDB = typeof adminDb
 
+// Webhook payload enters as untrusted JSON and is narrowed per-handler.
 export type WebhookPayload = Record<string, unknown>
 
 export type RepoRecord = InstaQLEntity<AppSchema, "repos">

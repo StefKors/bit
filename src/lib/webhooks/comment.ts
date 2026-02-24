@@ -1,6 +1,17 @@
 import { id } from "@instantdb/admin"
-import type { WebhookDB, WebhookPayload } from "./types"
+import type {
+  IssueCommentEvent,
+  PullRequestReviewCommentEvent,
+  WebhookDB,
+  WebhookPayload,
+} from "./types"
 import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./utils"
+
+const parseGithubTimestamp = (value?: string | null): number | null => {
+  if (!value) return null
+  const timestamp = Date.parse(value)
+  return Number.isFinite(timestamp) ? timestamp : null
+}
 
 /**
  * Handle comment webhook events (issue_comment and pull_request_review_comment).
@@ -14,27 +25,33 @@ import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./
 export async function handleCommentWebhook(
   db: WebhookDB,
   payload: WebhookPayload,
-  eventType: string,
+  eventType: "issue_comment" | "pull_request_review_comment",
 ) {
-  const comment = payload.comment as Record<string, unknown>
-  const pr = payload.pull_request as Record<string, unknown>
-  const issue = payload.issue as Record<string, unknown>
-  const repo = payload.repository as Record<string, unknown>
-  const sender = payload.sender as Record<string, unknown>
+  const typedPayload = payload as unknown as IssueCommentEvent | PullRequestReviewCommentEvent
+  const repo = typedPayload.repository
+  const sender = typedPayload.sender
 
-  if (!comment || !repo) return
+  const comment =
+    eventType === "pull_request_review_comment"
+      ? (typedPayload as PullRequestReviewCommentEvent).comment
+      : (typedPayload as IssueCommentEvent).comment
+  const pr =
+    eventType === "pull_request_review_comment"
+      ? (typedPayload as PullRequestReviewCommentEvent).pull_request
+      : null
+  const issue =
+    eventType === "issue_comment" ? (typedPayload as IssueCommentEvent).issue : undefined
 
   // For issue_comment on PRs, get the PR github ID
   // pr.id is available for pull_request_review_comment
   // For issue_comment on PRs, issue.id is used (PRs are also issues)
-  const prGithubId =
-    (pr?.id as number) || ((issue?.pull_request ? issue.id : null) as number | null)
+  const prGithubId = pr?.id || (issue?.pull_request ? issue.id : null)
   if (!prGithubId) return
 
-  const repoFullName = repo.full_name as string
+  const repoFullName = repo.full_name
 
   // Find the PR in our database by number (more reliable than githubId for issue_comments)
-  const prNumber = (pr?.number as number) || (issue?.number as number)
+  const prNumber = pr?.number || issue?.number || 0
   const prResult = await db.query({
     pullRequests: {
       $: { where: { githubId: prGithubId } },
@@ -55,7 +72,7 @@ export async function handleCommentWebhook(
     let repoRecords = reposResult.repos || []
 
     // If no users tracking repo, try to auto-track for sender
-    if (repoRecords.length === 0 && sender) {
+    if (repoRecords.length === 0) {
       const userId = await findUserBySender(db, sender)
       if (userId) {
         const newRepo = await ensureRepoFromWebhook(db, repo, userId)
@@ -75,7 +92,7 @@ export async function handleCommentWebhook(
   }
 
   for (const prRecord of prRecords) {
-    const commentGithubId = comment.id as number
+    const commentGithubId = comment.id
 
     // Find existing comment by githubId to get its UUID, or generate new one
     const existingCommentResult = await db.query({
@@ -89,18 +106,37 @@ export async function handleCommentWebhook(
     const commentData = {
       githubId: commentGithubId,
       pullRequestId: prRecord.id,
-      reviewId: (comment.pull_request_review_id as string) || null,
+      reviewId:
+        eventType === "pull_request_review_comment"
+          ? String(
+              (comment as PullRequestReviewCommentEvent["comment"]).pull_request_review_id || "",
+            ) || null
+          : null,
       commentType: eventType === "pull_request_review_comment" ? "review_comment" : "issue_comment",
-      body: (comment.body as string) || null,
-      authorLogin: ((comment.user as Record<string, unknown>)?.login as string) || null,
-      authorAvatarUrl: ((comment.user as Record<string, unknown>)?.avatar_url as string) || null,
-      htmlUrl: comment.html_url as string,
-      path: (comment.path as string) || null,
-      line: (comment.line as number) ?? (comment.original_line as number) ?? null,
-      side: (comment.side as string) || null,
-      diffHunk: (comment.diff_hunk as string) || null,
-      githubCreatedAt: new Date(comment.created_at as string).getTime(),
-      githubUpdatedAt: new Date(comment.updated_at as string).getTime(),
+      body: comment.body || null,
+      authorLogin: comment.user?.login || null,
+      authorAvatarUrl: comment.user?.avatar_url || null,
+      htmlUrl: comment.html_url,
+      path:
+        eventType === "pull_request_review_comment"
+          ? (comment as PullRequestReviewCommentEvent["comment"]).path || null
+          : null,
+      line:
+        eventType === "pull_request_review_comment"
+          ? ((comment as PullRequestReviewCommentEvent["comment"]).line ??
+            (comment as PullRequestReviewCommentEvent["comment"]).original_line ??
+            null)
+          : null,
+      side:
+        eventType === "pull_request_review_comment"
+          ? (comment as PullRequestReviewCommentEvent["comment"]).side || null
+          : null,
+      diffHunk:
+        eventType === "pull_request_review_comment"
+          ? (comment as PullRequestReviewCommentEvent["comment"]).diff_hunk || null
+          : null,
+      githubCreatedAt: parseGithubTimestamp(comment.created_at),
+      githubUpdatedAt: parseGithubTimestamp(comment.updated_at),
       userId: prRecord.userId,
       createdAt: now,
       updatedAt: now,
