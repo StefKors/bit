@@ -1,0 +1,37 @@
+---
+description: Enforce strict InstantDB query typing in UI code.
+globs: src/features/**/*.tsx,src/routes/**/*.tsx,src/components/**/*.tsx
+alwaysApply: false
+---
+
+# Strict Instant Query Types
+
+Use schema-driven types for query results and avoid unsafe casts.
+
+## Source of Truth Types
+
+- Use `AppSchema` from `src/instant.schema.ts`.
+- Use `InstaQLEntity<AppSchema, "...">` for entity typing when possible.
+- For projected/local view models, use explicit interfaces with concrete field types.
+
+## Query Rules
+
+- Do not use `db.useQuery(query as any)`.
+- Prefer a typed root query with nested relations over ad-hoc `any` casts.
+- Access query data with safe fallbacks (`?.` and `??`) and then map to explicit UI types.
+
+## any/unknown Rules
+
+- Never introduce `any` in route/component query code.
+- Use `unknown` only for true untrusted inputs (e.g. search params, JSON parse), then narrow with guards or schemas.
+
+## Derived UI Data
+
+- Convert nullable/optional fields into deterministic render-safe values before JSX.
+- Avoid unsafe method calls on possibly unknown values (e.g. call `toLowerCase` only on proven strings).
+
+## Testability
+
+- Keep parsing/normalization logic in pure helpers when complex.
+- Add/adjust tests for parsing branches and malformed inputs when query shaping changes.
+
