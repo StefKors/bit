@@ -74,6 +74,22 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
         // This happens after successful OAuth when we redirect users to app installation.
         if (installationId && !code) {
           log.info("GitHub App installed", { installationId, setupAction })
+          if (state) {
+            const tokenStateId = await findOrCreateSyncStateId("github:token", state)
+            const now = Date.now()
+            await adminDb.transact(
+              adminDb.tx.syncStates[tokenStateId]
+                .update({
+                  resourceType: "github:token",
+                  resourceId: "access_token",
+                  syncStatus: "idle",
+                  syncError: undefined,
+                  userId: state,
+                  updatedAt: now,
+                })
+                .link({ user: state }),
+            )
+          }
           // Installation complete: route back as connected so UI can continue.
           return new Response(null, {
             status: 302,
@@ -170,6 +186,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           const grantedScopes = parseScopes(headerScopes ?? tokenData.scope)
           const permReport = checkPermissions(grantedScopes)
           const missingScopesSummary = permReport.missingScopes.join(", ")
+          const shouldMarkAuthInvalid = !permReport.allGranted && grantedScopes.length > 0
 
           if (!permReport.allGranted) {
             log.warn("OAuth token granted with missing scopes", {
@@ -226,10 +243,10 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
                 resourceType: "github:token",
                 resourceId: "access_token",
                 lastEtag: accessToken, // Using lastEtag to store the token (encrypted in production)
-                syncStatus: permReport.allGranted ? "idle" : "auth_invalid",
-                syncError: permReport.allGranted
-                  ? undefined
-                  : `Missing required GitHub permissions: ${missingScopesSummary}`,
+                syncStatus: shouldMarkAuthInvalid ? "auth_invalid" : "idle",
+                syncError: shouldMarkAuthInvalid
+                  ? `Missing required GitHub permissions: ${missingScopesSummary}`
+                  : undefined,
                 userId,
                 createdAt: now,
                 updatedAt: now,
