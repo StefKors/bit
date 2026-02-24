@@ -9,6 +9,7 @@ import {
 } from "@primer/octicons-react"
 import styles from "./PRListItem.module.css"
 import { Avatar } from "@/components/Avatar"
+import type { PRFiltersSearchParams } from "@/lib/pr-filters"
 
 export interface PullRequestLike {
   number: number
@@ -28,6 +29,7 @@ interface PRListItemProps {
   pr: PullRequestLike
   repoFullName: string
   isApproved?: boolean
+  searchParams?: PRFiltersSearchParams
 }
 
 type CIStatus = "success" | "failure" | "pending"
@@ -150,7 +152,7 @@ const StatusIcon = ({ status }: { status: PRStatus }) => {
   }
 }
 
-export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
+export function PRListItem({ pr, repoFullName, isApproved, searchParams }: PRListItemProps) {
   const totalComments = (pr.comments ?? 0) + (pr.reviewComments ?? 0)
   const ciStatus = getCIStatus(pr)
   const prStatus = getPRStatus(pr)
@@ -163,6 +165,7 @@ export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
         repo: repoFullName.split("/")[1],
         number: String(pr.number),
       }}
+      search={searchParams}
       className={styles.prItem}
       activeOptions={{ exact: true }}
       activeProps={{ className: `${styles.prItem} ${styles.prItemActive}` }}

@@ -8,7 +8,7 @@ import {
 import type { InstaQLEntity } from "@instantdb/core"
 import type { AppSchema } from "@/instant.schema"
 import { Button } from "@/components/Button"
-import type { Author, PRFilters } from "@/lib/pr-filters"
+import { filtersToSearchParams, type Author, type PRFilters } from "@/lib/pr-filters"
 import { DiffOptionsBar, type DiffOptions } from "./DiffOptionsBar"
 import { PRActivityFeed } from "./PRActivityFeed"
 import { PRFiltersBar } from "./PRFiltersBar"
@@ -107,6 +107,7 @@ export const PRThreeColumnLayout = ({
   const isOpen = pr.state === "open"
   const isDraft = pr.draft
   const repoFullName = `${owner}/${repoName}`
+  const searchParams = filtersToSearchParams(filters)
 
   const prFiles = pr.prFiles ?? []
   const prReviews = pr.prReviews ?? []
@@ -195,6 +196,7 @@ export const PRThreeColumnLayout = ({
                     pr={repoPr}
                     repoFullName={repoFullName}
                     isApproved={repoPr.merged === true}
+                    searchParams={searchParams}
                   />
                 ))}
               </div>

@@ -12,6 +12,7 @@ import {
   extractLabels,
   applyFiltersAndSort,
   hasActiveFilters as checkActiveFilters,
+  filtersToSearchParams,
 } from "@/lib/pr-filters"
 import styles from "./RepoPullsTab.module.css"
 
@@ -36,6 +37,7 @@ export const RepoPullsTab = ({
   const filteredPrs = useMemo(() => applyFiltersAndSort(prs, filters), [prs, filters])
 
   const hasActiveFilters = checkActiveFilters(filters)
+  const searchParams = filtersToSearchParams(filters)
 
   if (prs.length === 0) {
     return (
@@ -75,6 +77,7 @@ export const RepoPullsTab = ({
               pr={pr}
               repoFullName={fullName}
               isApproved={pr.merged === true}
+              searchParams={searchParams}
             />
           ))}
         </div>
