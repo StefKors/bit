@@ -140,20 +140,28 @@ export const enqueueWebhook = async (
   const queueItemId = id()
   const now = Date.now()
 
-  await db.transact(
-    db.tx.webhookQueue[queueItemId].update({
-      deliveryId,
-      event,
-      action: action || undefined,
-      payload: rawPayload,
-      status: "pending",
-      attempts: 0,
-      maxAttempts: WEBHOOK_MAX_ATTEMPTS,
-      nextRetryAt: now,
-      createdAt: now,
-      updatedAt: now,
-    }),
-  )
+  try {
+    await db.transact(
+      db.tx.webhookQueue[queueItemId].update({
+        deliveryId,
+        event,
+        action: action || undefined,
+        payload: rawPayload,
+        status: "pending",
+        attempts: 0,
+        maxAttempts: WEBHOOK_MAX_ATTEMPTS,
+        nextRetryAt: now,
+        createdAt: now,
+        updatedAt: now,
+      }),
+    )
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    if (message.includes("record-not-unique") || message.includes("unique")) {
+      return { queued: false, duplicate: true }
+    }
+    throw err
+  }
 
   return { queued: true, duplicate: false, queueItemId }
 }

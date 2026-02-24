@@ -5,6 +5,7 @@ import { findOrCreateSyncStateId } from "./sync-state"
 import { buildTreeEntries, computeStaleEntries, type GitHubTreeItem } from "./sync-trees"
 import { buildCommitEntries, computeStaleCommits, type GitHubCommit } from "./sync-commits"
 import { log } from "./logger"
+import { deterministicId } from "./deterministic-id"
 import { getWebhookRegistrationConfig } from "./github-webhook-config"
 import {
   chunkItems,
@@ -841,7 +842,7 @@ export class GitHubClient {
     )
 
     for (const commit of allCommits) {
-      const commitId = `${prId}:${commit.sha}`
+      const commitId = deterministicId("prCommit", prId, commit.sha)
       await adminDb.transact(
         adminDb.tx.prCommits[commitId]
           .update({
