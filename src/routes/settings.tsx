@@ -19,23 +19,22 @@ import styles from "@/pages/SettingsPage.module.css"
 
 function SettingsPage() {
   const { user } = useAuth()
-  const navigate = useNavigate()
   const [disconnecting, setDisconnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [prLayoutMode, setPrLayoutMode] = useState<PRLayoutMode>(() => getPRLayoutMode())
 
-  const isGitHubConnected = Boolean(user?.login)
-  const isFullScreenPRLayout = prLayoutMode === "full-screen-3-column"
-
   const { data: syncData } = db.useQuery({ syncStates: {} })
   const syncStates = syncData?.syncStates ?? []
 
   const tokenState = syncStates.find((s) => s.resourceType === "github:token")
+  const isGitHubConnected = Boolean(tokenState)
   const isAuthInvalid = tokenState?.syncStatus === "auth_invalid"
 
   const initialSyncState = syncStates.find((s) => s.resourceType === "initial_sync")
   const lastSyncedAt = initialSyncState?.lastSyncedAt
+
+  const isFullScreenPRLayout = prLayoutMode === "full-screen-3-column"
 
   const handleConnectGitHub = () => {
     if (!user?.id) return
@@ -101,13 +100,7 @@ function SettingsPage() {
         throw new Error(errorMessage)
       }
 
-      setSuccess("GitHub account disconnected. Redirecting...")
-      setTimeout(() => {
-        void navigate({
-          to: "/",
-          search: { github: undefined, error: undefined, message: undefined },
-        })
-      }, 1500)
+      setSuccess("GitHub account disconnected.")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to disconnect")
     } finally {
