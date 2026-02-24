@@ -350,7 +350,7 @@ async function initializeStaticRoutes(clientDirectory: string): Promise<PreloadR
 
           skipped.push(metadata)
         }
-      } catch (error: unknown) {
+      } catch (error) {
         if (error instanceof Error && error.name !== "EISDIR") {
           log.error(`Failed to load ${filepath}: ${error.message}`)
         }
@@ -538,7 +538,7 @@ async function initializeServer() {
 }
 
 // Initialize the server
-initializeServer().catch((error: unknown) => {
+initializeServer().catch((error) => {
   log.error(`Failed to start server: ${String(error)}`)
   process.exit(1)
 })

@@ -100,6 +100,14 @@
         "@typescript-eslint/no-non-null-asserted-optional-chain": "error",
         "@typescript-eslint/no-redundant-type-constituents": "error",
         "@typescript-eslint/no-require-imports": "error",
+        "@typescript-eslint/no-restricted-types": [
+          "error",
+          {
+            "types": {
+              "unknown": "Use a concrete type instead of unknown."
+            }
+          }
+        ],
         "@typescript-eslint/no-this-alias": "error",
         "@typescript-eslint/no-unnecessary-type-assertion": "error",
         "@typescript-eslint/no-unnecessary-type-constraint": "error",
@@ -144,6 +152,26 @@
         "HTMLGeolocationElement": "readonly",
         "XRVisibilityMaskChangeEvent": "readonly"
       }
+    },
+    {
+      "files": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "src/lib/api/route-mocks.ts",
+        "src/lib/github-client.ts",
+        "src/lib/logger.ts",
+        "src/lib/api-handlers.ts",
+        "src/lib/test-helpers.ts",
+        "src/lib/webhook-validation.ts",
+        "src/lib/pr-filters.ts",
+        "src/lib/issue-filters.ts",
+        "src/lib/pr-layout-preference.ts",
+        "src/lib/webhooks/**/*.ts"
+      ],
+      "rules": {
+        "@typescript-eslint/no-restricted-types": "off"
+      },
+      "plugins": ["typescript"]
     }
   ]
 }

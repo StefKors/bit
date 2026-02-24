@@ -42,7 +42,9 @@ function RepoPullsPage() {
 
 export const Route = createFileRoute("/$owner/$repo/pulls")({
   component: RepoPullsPage,
-  validateSearch: (search: Record<string, unknown>): PRFiltersSearchParams => {
+  validateSearch: (
+    search: Record<string, string | number | boolean | null | undefined>,
+  ): PRFiltersSearchParams => {
     return filtersToSearchParams(parseFiltersFromSearch(search))
   },
 })
