@@ -106,7 +106,7 @@ bun run instant:push
 
 - minimize number of props. do not use props if you can help it.
 
-- do not consider local state truthful when interacting with server. when interacting with the server with rpc or api calls never use state from the render function as input for the api call. this state can easily become stale or not get updated in the closure context. instead prefer using zustand `useStore.getState().stateValue`. notice that useLoaderData or useParams should be fine in this case.
+- do not consider local state truthful when interacting with server. when interacting with the server with rpc or api calls never use state from the render function as input for the api call. this state can easily become stale or not get updated in the closure context. instead prefer reading values from useLoaderData, useParams, or refs.
 
 - when using useRef with a generic type always add undefined in the call, for example `useRef<number>(undefined)`. this is required by the react types definitions
 
@@ -122,7 +122,7 @@ bun run instant:push
 
 - non component code should be put in the src/lib folder.
 
-- hooks should be put in the src/hooks.tsx file. do not create a new file for each new hook. also notice that you should never create custom hooks, only do it if asked for.
+- hooks should be put in the `src/lib/hooks/` folder. do not create a new file for each new hook. also notice that you should never create custom hooks, only do it if asked for.
 
 ## non controlled input components
 
