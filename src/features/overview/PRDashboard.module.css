@@ -21,7 +21,7 @@
   border-radius: var(--bit-radius-xl);
   padding: 1.25rem;
   box-shadow: var(--bit-shadow-md);
-  max-width: 600px;
+  width: 100%;
 }
 
 .columnTitle {

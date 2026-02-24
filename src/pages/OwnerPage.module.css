@@ -1,6 +1,8 @@
 .container {
   flex: 1;
   padding: 2rem;
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -236,7 +238,7 @@
 /* Repository grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 1rem;
 }
 
@@ -335,6 +337,65 @@
 .emptyText {
   margin: 0;
   font-size: 0.95rem;
+}
+
+@media (max-width: 900px) {
+  .container {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .profileLayout {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .avatarSection {
+    align-items: flex-start;
+  }
+
+  .displayName {
+    font-size: 1.35rem;
+  }
+
+  .username {
+    font-size: 1.05rem;
+  }
+
+  .navTabs {
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .navTab {
+    flex-shrink: 0;
+  }
+
+  .repoItemHeader {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .repoItemMeta {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .repoItem {
+    padding: 0.85rem;
+  }
+
+  .emptyState {
+    padding: 2rem 1rem;
+  }
 }
 
 /* Deprecated - keeping for backwards compat */

@@ -1,11 +1,15 @@
 .container {
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
-  width: 100vw;
+  overflow: auto;
+  width: 100%;
+  padding: 1.5rem;
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
 }
 
 .backgroundPattern {
@@ -33,6 +37,7 @@
   position: relative;
   z-index: 1;
   backdrop-filter: blur(20px);
+  margin: auto 0;
 }
 
 .header {
@@ -219,4 +224,40 @@
 .backButton:hover {
   color: var(--bit-color-fg);
   background: rgba(var(--bit-rgb-fg), 0.05);
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+    border-radius: var(--bit-radius-xl);
+  }
+
+  .header {
+    margin-bottom: 1.5rem;
+  }
+
+  .logo {
+    width: 120px;
+    height: 120px;
+  }
+
+  .title {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .logo {
+    width: 96px;
+    height: 96px;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
 }

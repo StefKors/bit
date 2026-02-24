@@ -1,6 +1,8 @@
 .container {
   flex: 1;
   padding: 2rem;
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -168,4 +170,79 @@
 .emptyText {
   margin: 0;
   font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .container {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .containerFullScreen {
+    padding: 0.85rem;
+  }
+
+  .headerContainer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .header {
+    margin-bottom: 0;
+  }
+
+  .labels,
+  .actions {
+    margin-left: 0;
+  }
+
+  .actions {
+    margin-top: 0;
+    width: 100%;
+  }
+
+  .actions :global(button) {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .titleRow {
+    gap: 0.65rem;
+  }
+
+  .prIcon {
+    width: 20px;
+    height: 20px;
+    margin-top: 0.15rem;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .statusBadge {
+    margin-left: 0.5rem;
+    margin-top: 0.35rem;
+  }
+
+  .meta {
+    gap: 0.65rem;
+    font-size: 0.85rem;
+  }
+
+  .metaItem {
+    flex-wrap: wrap;
+  }
+
+  .emptyState {
+    padding: 2rem 1rem;
+  }
 }
