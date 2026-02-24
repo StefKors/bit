@@ -55,7 +55,7 @@ todos:
     status: completed
   - id: phase-5-2
     content: "Phase 5.2: Merge Conflicts Indicator - GitHub client update for mergeable state, PRHeader warning UI, webhook updates, tests"
-    status: pending
+    status: completed
   - id: phase-5-3
     content: "Phase 5.3: Update Branch Button - API route, GitHub client function, mutation, PRActionsBar button, tests"
     status: pending

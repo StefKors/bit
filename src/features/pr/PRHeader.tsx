@@ -33,6 +33,8 @@ type PRHeaderProps = {
   githubCreatedAt?: Date | number | null
   mergedAt?: Date | number | null
   closedAt?: Date | number | null
+  mergeable?: boolean | null
+  mergeableState?: string | null
   checks?: readonly PullRequestCheck[]
   onUpdated?: () => void
   formatTimeAgo: (date: Date | number | null | undefined) => string
@@ -98,12 +100,16 @@ export const PRHeader = ({
   githubCreatedAt,
   mergedAt,
   closedAt,
+  mergeable = null,
+  mergeableState = null,
   checks = [],
   onUpdated,
   formatTimeAgo,
 }: PRHeaderProps) => {
   const canEdit = Boolean(userId && owner && repo && prNumber > 0)
   const isOpen = state === "open"
+  const hasMergeConflicts = mergeable === false
+  const isMergeabilityChecking = mergeable === null || mergeableState === "unknown"
 
   const [isEditing, setIsEditing] = useState(false)
   const [draftTitle, setDraftTitle] = useState(title)
@@ -244,6 +250,17 @@ export const PRHeader = ({
                   : `closed ${formatTimeAgo(closedAt)}`}
             </span>
           </div>
+
+          {hasMergeConflicts ? (
+            <div className={styles.mergeConflictWarning}>
+              <AlertIcon size={16} />
+              <span>This branch has merge conflicts that must be resolved</span>
+            </div>
+          ) : (
+            isMergeabilityChecking && (
+              <div className={styles.mergeabilityChecking}>Checking mergeability...</div>
+            )
+          )}
         </div>
       </div>
 

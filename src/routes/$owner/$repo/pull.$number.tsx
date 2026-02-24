@@ -328,6 +328,10 @@ function PRDetailPage() {
               githubCreatedAt={pr.githubCreatedAt}
               mergedAt={pr.mergedAt}
               closedAt={pr.closedAt}
+              mergeable={
+                typeof pr.mergeable === "boolean" || pr.mergeable === null ? pr.mergeable : null
+              }
+              mergeableState={typeof pr.mergeableState === "string" ? pr.mergeableState : null}
               checks={prChecks}
               onUpdated={() => prSync.mutate()}
               formatTimeAgo={formatTimeAgo}
