@@ -95,8 +95,15 @@ export const AppHeader = ({ onOpenCommandMenu }: AppHeaderProps) => {
 
             {userMenuOpen && (
               <>
-                <div className={styles.backdrop} onClick={handleBackdropClick} />
-                <div className={styles.userMenu}>
+                <div
+                  className={styles.backdrop}
+                  onClick={handleBackdropClick}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setUserMenuOpen(false)
+                  }}
+                  role="presentation"
+                />
+                <div className={styles.userMenu} role="menu" aria-label="User menu">
                   <div className={styles.userMenuHeader}>
                     <Avatar src={avatarUrl} name={user.name || user.login} size={40} />
                     <div className={styles.userInfo}>
@@ -108,6 +115,7 @@ export const AppHeader = ({ onOpenCommandMenu }: AppHeaderProps) => {
                   <div className={styles.userMenuItems}>
                     <button
                       type="button"
+                      role="menuitem"
                       className={styles.userMenuItem}
                       onClick={() => {
                         setUserMenuOpen(false)
@@ -118,7 +126,12 @@ export const AppHeader = ({ onOpenCommandMenu }: AppHeaderProps) => {
                       <span>Settings</span>
                     </button>
                     <div className={styles.userMenuDivider} />
-                    <button type="button" className={styles.userMenuItem} onClick={handleSignOut}>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.userMenuItem}
+                      onClick={handleSignOut}
+                    >
                       <SignOutIcon size={16} />
                       <span>Sign out</span>
                     </button>

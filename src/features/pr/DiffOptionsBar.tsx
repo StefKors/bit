@@ -43,6 +43,7 @@ const ToggleButton = ({
     className={`${styles.toggleButton} ${active ? styles.active : ""}`}
     onClick={onClick}
     title={title}
+    aria-pressed={active}
   >
     {children}
   </button>
@@ -60,11 +61,13 @@ const SegmentedControl = <T extends string>({
   onChange: (value: T) => void
   title: string
 }) => (
-  <div className={styles.segmentedControl} title={title}>
+  <div className={styles.segmentedControl} title={title} role="radiogroup" aria-label={title}>
     {options.map((option) => (
       <button
         key={option.value}
         type="button"
+        role="radio"
+        aria-checked={value === option.value}
         className={`${styles.segmentOption} ${value === option.value ? styles.active : ""}`}
         onClick={() => onChange(option.value)}
         title={option.title ?? option.value}

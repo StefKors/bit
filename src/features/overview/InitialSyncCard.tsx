@@ -220,7 +220,11 @@ export const InitialSyncCard = ({
 
       {hasErrors && (
         <div className={styles.errorsSection}>
-          <button className={styles.errorsToggle} onClick={() => setShowErrors(!showErrors)}>
+          <button
+            className={styles.errorsToggle}
+            onClick={() => setShowErrors(!showErrors)}
+            aria-expanded={showErrors}
+          >
             <AlertIcon size={14} className={styles.alertIcon} />
             <span className={styles.errorsCount}>
               {errorStates.length} sync {errorStates.length === 1 ? "issue" : "issues"}
