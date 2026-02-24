@@ -9,7 +9,11 @@ import { Markdown } from "@/components/Markdown"
 import styles from "./DiffViewer.module.css"
 import type { DiffOptions } from "./DiffOptionsBar"
 import { Avatar } from "@/components/Avatar"
-import { createReviewCommentMutation } from "@/lib/mutations"
+import {
+  createReviewCommentMutation,
+  resolveThreadMutation,
+  unresolveThreadMutation,
+} from "@/lib/mutations"
 
 type Comment = InstaQLEntity<AppSchema, "prComments">
 type AnnotationSide = "additions" | "deletions"
@@ -73,11 +77,42 @@ const formatTimeAgo = (date: Date | number | null | undefined): string => {
 }
 
 // Comment thread component rendered in annotations
-const CommentThread = ({ comments }: { comments: Comment[] }) => {
+const CommentThread = ({
+  comments,
+  isResolved,
+  canToggleResolved,
+  isTogglingResolved,
+  onToggleResolved,
+}: {
+  comments: Comment[]
+  isResolved: boolean
+  canToggleResolved: boolean
+  isTogglingResolved: boolean
+  onToggleResolved: () => void
+}) => {
   return (
-    <div className={styles.commentThread}>
+    <div className={`${styles.commentThread} ${isResolved ? styles.commentThreadResolved : ""}`}>
+      <div className={styles.threadHeader}>
+        <span className={`${styles.threadStatus} ${isResolved ? styles.threadStatusResolved : ""}`}>
+          {isResolved ? "Resolved" : "Unresolved"}
+        </span>
+        {canToggleResolved && (
+          <Button
+            variant="default"
+            size="small"
+            loading={isTogglingResolved}
+            disabled={isTogglingResolved}
+            onClick={onToggleResolved}
+          >
+            {isResolved ? "Unresolve" : "Resolve"}
+          </Button>
+        )}
+      </div>
       {comments.map((comment) => (
-        <div key={comment.id} className={styles.comment}>
+        <div
+          key={comment.id}
+          className={`${styles.comment} ${isResolved ? styles.commentResolved : ""}`}
+        >
           <div className={styles.commentHeader}>
             <Avatar src={comment.authorAvatarUrl} name={comment.authorLogin} size={20} />
             <span className={styles.commentAuthor}>{comment.authorLogin}</span>
@@ -108,10 +143,18 @@ export const DiffViewer = ({
   const [composeTarget, setComposeTarget] = useState<ComposeTarget | null>(null)
   const [composeBody, setComposeBody] = useState("")
   const [composeError, setComposeError] = useState<string | null>(null)
+  const [threadError, setThreadError] = useState<string | null>(null)
 
   const canCreateInlineComment = Boolean(userId && owner && repo && prNumber && headSha)
+  const canToggleThreadResolved = Boolean(userId && owner && repo && prNumber)
   const createReviewComment = useMutation(
     createReviewCommentMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
+  )
+  const resolveThread = useMutation(
+    resolveThreadMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
+  )
+  const unresolveThread = useMutation(
+    unresolveThreadMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
   )
 
   // Only include review comments that have a path matching this file
@@ -232,12 +275,45 @@ ${patch}`
                 lineNumber: number
                 side: ReviewSide
               }
+              const threadResolved =
+                meta.comments.length > 0 &&
+                meta.comments.every((comment) => comment.resolved === true)
+              const firstCommentGithubId =
+                typeof meta.comments[0]?.githubId === "number" ? meta.comments[0].githubId : null
               const showComposer =
                 composeTarget?.line === meta.lineNumber && composeTarget.side === meta.side
 
               return (
                 <div className={styles.annotationContent}>
-                  {meta.comments.length > 0 && <CommentThread comments={meta.comments} />}
+                  {meta.comments.length > 0 && (
+                    <CommentThread
+                      comments={meta.comments}
+                      isResolved={threadResolved}
+                      canToggleResolved={Boolean(canToggleThreadResolved && firstCommentGithubId)}
+                      isTogglingResolved={resolveThread.isPending || unresolveThread.isPending}
+                      onToggleResolved={() => {
+                        if (!firstCommentGithubId) return
+                        const mutation = threadResolved ? unresolveThread : resolveThread
+                        mutation.mutate(
+                          { commentId: firstCommentGithubId },
+                          {
+                            onSuccess: () => {
+                              setThreadError(null)
+                              onCommentCreated?.()
+                            },
+                            onError: (error) => {
+                              setThreadError(
+                                error instanceof Error
+                                  ? error.message
+                                  : "Failed to update thread resolution",
+                              )
+                            },
+                          },
+                        )
+                      }}
+                    />
+                  )}
+                  {threadError && <div className={styles.inlineComposerError}>{threadError}</div>}
                   {showComposer && canCreateInlineComment && (
                     <div className={styles.inlineComposer}>
                       <div className={styles.inlineComposerMeta}>
@@ -292,6 +368,7 @@ ${patch}`
                     if (!result) return
                     setComposeError(null)
                     setComposeBody("")
+                    setThreadError(null)
                     setComposeTarget({
                       line: result.lineNumber,
                       side: reviewSideFromAnnotationSide(result.side as AnnotationSide),

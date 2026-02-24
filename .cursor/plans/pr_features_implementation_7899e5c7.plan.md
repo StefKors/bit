@@ -22,7 +22,7 @@ todos:
     status: completed
   - id: phase-2-4
     content: "Phase 2.4: Resolve Conversation Threads - API route for resolve/unresolve, mutation, CommentThread component updates, tests"
-    status: pending
+    status: completed
   - id: phase-3-1
     content: "Phase 3.1: Suggest Changes - API route, suggestion formatting, SuggestionBlock component, tests"
     status: pending

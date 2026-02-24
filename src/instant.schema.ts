@@ -158,6 +158,7 @@ export const schema = i.schema({
       line: i.number().optional(),
       side: i.string().optional(), // LEFT, RIGHT
       diffHunk: i.string().optional(),
+      resolved: i.boolean().optional(),
       // Denormalized ID for efficient filtering
       pullRequestId: i.string().indexed(),
       // Timestamps

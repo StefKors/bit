@@ -81,6 +81,10 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
       line: 1,
       side: "RIGHT",
     }),
+    updateReviewComment: vi.fn().mockResolvedValue({
+      id: 1,
+      resolved: true,
+    }),
     ...overrides,
   })
 

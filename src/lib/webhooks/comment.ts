@@ -123,6 +123,7 @@ export async function handleCommentWebhook(
       line: reviewComment?.line ?? reviewComment?.original_line ?? null,
       side: reviewComment?.side || null,
       diffHunk: reviewComment?.diff_hunk || null,
+      resolved: existingCommentResult.prComments?.[0]?.resolved ?? false,
       githubCreatedAt: parseGithubTimestamp(comment.created_at),
       githubUpdatedAt: parseGithubTimestamp(comment.updated_at),
       userId: prRecord.userId,

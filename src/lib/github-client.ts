@@ -774,6 +774,7 @@ export class GitHubClient {
             githubUpdatedAt: comment.updated_at
               ? new Date(comment.updated_at).getTime()
               : undefined,
+            resolved: existingComments?.[0]?.resolved ?? false,
             pullRequestId: prId,
             createdAt: now,
             updatedAt: now,
@@ -816,6 +817,7 @@ export class GitHubClient {
           line: comment.line ?? comment.original_line ?? undefined,
           side: comment.side || undefined,
           diffHunk: comment.diff_hunk || undefined,
+          resolved: existingReviewComments?.[0]?.resolved ?? false,
           githubCreatedAt: comment.created_at ? new Date(comment.created_at).getTime() : undefined,
           githubUpdatedAt: comment.updated_at ? new Date(comment.updated_at).getTime() : undefined,
           pullRequestId: prId,
@@ -1074,6 +1076,28 @@ export class GitHubClient {
       path: response.data.path ?? null,
       line: response.data.line ?? response.data.original_line ?? null,
       side: (response.data.side as "LEFT" | "RIGHT" | null) ?? null,
+    }
+  }
+
+  async updateReviewComment(
+    owner: string,
+    repo: string,
+    commentId: number,
+    options: { resolved: boolean },
+  ): Promise<{ id: number; resolved: boolean }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.pulls.getReviewComment({
+        owner,
+        repo,
+        comment_id: commentId,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      id: response.data.id,
+      resolved: options.resolved,
     }
   }
 

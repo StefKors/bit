@@ -489,3 +489,68 @@ export const createReviewCommentMutation = (
       return data
     },
   })
+
+type ResolveThreadResponse = {
+  commentId: number
+  resolved: boolean
+  error?: string
+  code?: string
+}
+
+export const resolveThreadMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "threads", "resolve", owner, repo, number],
+    mutationFn: async (vars: { commentId: number }): Promise<ResolveThreadResponse> => {
+      const res = await fetch(`/api/github/resolve/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as ResolveThreadResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to resolve thread")
+      }
+      return data
+    },
+  })
+
+export const unresolveThreadMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "threads", "unresolve", owner, repo, number],
+    mutationFn: async (vars: { commentId: number }): Promise<ResolveThreadResponse> => {
+      const res = await fetch(`/api/github/resolve/${owner}/${repo}/${number}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as ResolveThreadResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to unresolve thread")
+      }
+      return data
+    },
+  })

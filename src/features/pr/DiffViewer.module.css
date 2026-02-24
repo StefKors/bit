@@ -217,6 +217,29 @@
   overflow: hidden;
 }
 
+.commentThreadResolved {
+  border-color: rgba(var(--bit-rgb-accent-green-bright), 0.4);
+}
+
+.threadHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  background: rgba(var(--bit-rgb-fg), 0.02);
+}
+
+.threadStatus {
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+  font-weight: 500;
+}
+
+.threadStatusResolved {
+  color: var(--bit-color-accent-green-bright);
+}
+
 .comment {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.06);
@@ -224,6 +247,10 @@
 
 .comment:last-child {
   border-bottom: none;
+}
+
+.commentResolved {
+  opacity: 0.7;
 }
 
 .commentHeader {
