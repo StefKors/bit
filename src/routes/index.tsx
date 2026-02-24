@@ -1,5 +1,5 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router"
-import { useState, useMemo, useEffect, useRef } from "react"
+import { useState, useMemo, useRef } from "react"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { resolveUserAvatarUrl } from "@/lib/avatar"
@@ -212,31 +212,26 @@ function OverviewPage() {
     })()
   }
 
-  useEffect(() => {
-    if (!shouldAutoResumeInitialSync) {
-      autoResumeAttemptedRef.current = false
-      return
-    }
-    if (autoResumeAttemptedRef.current) return
+  if (!shouldAutoResumeInitialSync) {
+    autoResumeAttemptedRef.current = false
+  } else if (!autoResumeAttemptedRef.current && user?.id) {
     autoResumeAttemptedRef.current = true
-    if (!user?.id) return
-
     void (async () => {
       try {
         setError(null)
-        const data = await startOverviewSync(user.id)
-        if (data.rateLimit) {
+        const syncData = await startOverviewSync(user.id)
+        if (syncData.rateLimit) {
           setRateLimit({
-            remaining: data.rateLimit.remaining,
-            limit: data.rateLimit.limit,
-            reset: new Date(data.rateLimit.reset),
+            remaining: syncData.rateLimit.remaining,
+            limit: syncData.rateLimit.limit,
+            reset: new Date(syncData.rateLimit.reset),
           })
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to sync")
       }
     })()
-  }, [shouldAutoResumeInitialSync, user?.id])
+  }
 
   if (!user) {
     return <div>Loading...</div>

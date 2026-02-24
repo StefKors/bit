@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { useEffect, useRef, useState, useSyncExternalStore } from "react"
+import { useRef, useState, useSyncExternalStore } from "react"
 import {
   GitPullRequestIcon,
   GitMergeIcon,
@@ -120,8 +120,7 @@ function PRDetailPage() {
     (pr?.prCommits?.length ?? 0) === 0 &&
     (pr?.prEvents?.length ?? 0) === 0
 
-  useEffect(() => {
-    if (!needsInitialSync || syncing || autoSyncTriggered.current || !user?.id) return
+  if (needsInitialSync && !syncing && !autoSyncTriggered.current && user?.id) {
     autoSyncTriggered.current = true
     setSyncing(true)
     fetch(`/api/github/sync/${owner}/${repoName}/pull/${prNumber}?force=true`, {
@@ -139,7 +138,7 @@ function PRDetailPage() {
         setError(err instanceof Error ? err.message : "Auto-sync error")
       })
       .finally(() => setSyncing(false))
-  }, [needsInitialSync, syncing, user?.id, owner, repoName, prNumber])
+  }
 
   const handleSync = async () => {
     setSyncing(true)
