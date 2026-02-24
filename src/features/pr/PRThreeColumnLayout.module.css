@@ -144,6 +144,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  min-height: 42px;
   padding: 0.5rem;
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   background: transparent;

@@ -40,6 +40,7 @@ type PRThreeColumnLayoutProps = {
   authors: Author[]
   labels: string[]
   hasActiveFilters: boolean
+  currentUserLogin?: string | null
   syncing: boolean
   needsInitialSync: boolean
   onSync: () => void
@@ -93,6 +94,7 @@ export const PRThreeColumnLayout = ({
   authors,
   labels,
   hasActiveFilters,
+  currentUserLogin,
   syncing,
   needsInitialSync,
   onSync,
@@ -168,12 +170,17 @@ export const PRThreeColumnLayout = ({
 
       <div className={styles.columns}>
         <section className={styles.listColumn}>
+          <header className={styles.columnHeader}>
+            <h2 className={styles.columnTitle}>Pull Requests</h2>
+            <span className={styles.columnCount}>{totalPrCount}</span>
+          </header>
           <PRFiltersBar
             filters={filters}
             onFiltersChange={onFiltersChange}
             authors={authors}
             labels={labels}
             hasActiveFilters={hasActiveFilters}
+            currentUserLogin={currentUserLogin}
           />
           <div className={styles.listBody}>
             {prs.length === 0 ? (

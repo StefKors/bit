@@ -276,6 +276,7 @@ function PRDetailPage() {
           authors={authors}
           labels={labels}
           hasActiveFilters={hasActiveFilters}
+          currentUserLogin={user?.login ?? null}
           syncing={syncing}
           needsInitialSync={needsInitialSync}
           onSync={() => void handleSync()}

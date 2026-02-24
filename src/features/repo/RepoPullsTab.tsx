@@ -20,9 +20,16 @@ interface RepoPullsTabProps {
   fullName: string
   filters: PRFilters
   onFiltersChange: (filters: PRFilters) => void
+  currentUserLogin?: string | null
 }
 
-export const RepoPullsTab = ({ prs, fullName, filters, onFiltersChange }: RepoPullsTabProps) => {
+export const RepoPullsTab = ({
+  prs,
+  fullName,
+  filters,
+  onFiltersChange,
+  currentUserLogin,
+}: RepoPullsTabProps) => {
   // Compute derived data
   const authors = useMemo(() => extractAuthors(prs), [prs])
   const labels = useMemo(() => extractLabels(prs), [prs])
@@ -50,6 +57,7 @@ export const RepoPullsTab = ({ prs, fullName, filters, onFiltersChange }: RepoPu
         authors={authors}
         labels={labels}
         hasActiveFilters={hasActiveFilters}
+        currentUserLogin={currentUserLogin}
       />
       {filteredPrs.length === 0 ? (
         <div className={styles.emptyState}>

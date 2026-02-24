@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { RepoLayout } from "@/features/repo/RepoLayout"
 import { RepoPullsTab } from "@/features/repo/RepoPullsTab"
+import { useAuth } from "@/lib/hooks/useAuth"
 import {
   type PRFilters,
   type PRFiltersSearchParams,
@@ -9,6 +10,7 @@ import {
 } from "@/lib/pr-filters"
 
 function RepoPullsPage() {
+  const { user } = useAuth()
   const { owner, repo } = Route.useParams()
   const search = Route.useSearch()
   const navigate = useNavigate()
@@ -34,6 +36,7 @@ function RepoPullsPage() {
           fullName={fullName}
           filters={filters}
           onFiltersChange={handleFiltersChange}
+          currentUserLogin={user?.login ?? null}
         />
       )}
     </RepoLayout>

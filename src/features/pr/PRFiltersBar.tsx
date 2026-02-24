@@ -1,4 +1,5 @@
 import { Menu } from "@base-ui/react/menu"
+import { useMemo, useState } from "react"
 import {
   ChevronDownIcon,
   SortAscIcon,
@@ -23,6 +24,7 @@ export interface PRFiltersBarProps {
   authors: Author[]
   labels: string[]
   hasActiveFilters: boolean
+  currentUserLogin?: string | null
 }
 
 export const PRFiltersBar = ({
@@ -31,9 +33,13 @@ export const PRFiltersBar = ({
   authors,
   labels,
   hasActiveFilters,
+  currentUserLogin,
 }: PRFiltersBarProps) => {
+  const [authorSearch, setAuthorSearch] = useState("")
+
   const currentSortLabel =
     SORT_OPTIONS.find((option) => option.value === filters.sortBy)?.label ?? "Recently updated"
+  const currentSortDirectionLabel = filters.sortDirection === "desc" ? "Descending" : "Ascending"
 
   const updateFilter = <K extends keyof PRFilters>(key: K, value: PRFilters[K]) => {
     onFiltersChange({ ...filters, [key]: value })
@@ -50,14 +56,41 @@ export const PRFiltersBar = ({
     updateFilter("labels", newLabels)
   }
 
-  const toggleSortDirection = () => {
-    updateFilter("sortDirection", filters.sortDirection === "desc" ? "asc" : "desc")
+  const filteredAuthors = useMemo(() => {
+    const search = authorSearch.trim().toLowerCase()
+    const matchingAuthors = search
+      ? authors.filter((author) => author.login.toLowerCase().includes(search))
+      : authors
+
+    return [...matchingAuthors].sort((a, b) => {
+      if (a.login === filters.author && b.login !== filters.author) return -1
+      if (a.login !== filters.author && b.login === filters.author) return 1
+
+      if (currentUserLogin) {
+        if (a.login === currentUserLogin && b.login !== currentUserLogin) return -1
+        if (a.login !== currentUserLogin && b.login === currentUserLogin) return 1
+      }
+
+      return a.login.localeCompare(b.login)
+    })
+  }, [authors, authorSearch, currentUserLogin, filters.author])
+
+  const setSortField = (sortBy: PRFilters["sortBy"]) => {
+    updateFilter("sortBy", sortBy)
   }
 
   return (
     <div className={styles.filtersBar}>
       <div className={styles.filtersGroup}>
-        <FilterIcon size={16} className={styles.filterIcon} />
+        <button
+          type="button"
+          className={`${styles.filterIconButton} ${hasActiveFilters ? styles.filterIconButtonActive : ""}`}
+          onClick={hasActiveFilters ? clearFilters : undefined}
+          title={hasActiveFilters ? "Clear all filters" : "Filters"}
+          aria-label={hasActiveFilters ? "Clear all filters" : "Filters"}
+        >
+          {hasActiveFilters ? <XIcon size={14} /> : <FilterIcon size={16} />}
+        </button>
 
         <FilterDropdown
           label="Status"
@@ -76,29 +109,49 @@ export const PRFiltersBar = ({
         </FilterDropdown>
 
         {authors.length > 0 && (
-          <FilterDropdown
-            label="Author"
-            value={filters.author ?? "Any"}
-            isActive={filters.author !== null}
-          >
-            <FilterMenuItem
-              selected={filters.author === null}
-              onClick={() => updateFilter("author", null)}
+          <Menu.Root>
+            <Menu.Trigger
+              className={`${styles.filterTrigger} ${filters.author !== null ? styles.filterActive : ""}`}
             >
-              Any
-            </FilterMenuItem>
-            <Menu.Separator className={styles.menuSeparator} />
-            {authors.map((author) => (
-              <FilterMenuItem
-                key={author.login}
-                selected={filters.author === author.login}
-                onClick={() => updateFilter("author", author.login)}
-              >
-                <Avatar src={author.avatarUrl} name={author.login} size={16} />
-                {author.login}
-              </FilterMenuItem>
-            ))}
-          </FilterDropdown>
+              <span className={styles.filterLabel}>Author:</span>
+              <span className={styles.filterValue}>{filters.author ?? "All"}</span>
+              <ChevronDownIcon size={12} className={styles.chevron} />
+            </Menu.Trigger>
+            <Menu.Portal>
+              <Menu.Positioner className={styles.menuPositioner} sideOffset={4}>
+                <Menu.Popup className={styles.menuPopupLarge}>
+                  <div className={styles.authorSearchRow}>
+                    <input
+                      type="text"
+                      value={authorSearch}
+                      onChange={(event) => setAuthorSearch(event.target.value)}
+                      placeholder="Assign to..."
+                      className={styles.authorSearchInput}
+                    />
+                  </div>
+                  {filteredAuthors.length === 0 ? (
+                    <div className={styles.emptyMenuState}>No matching authors</div>
+                  ) : (
+                    filteredAuthors.map((author) => (
+                      <FilterMenuItem
+                        key={author.login}
+                        selected={filters.author === author.login}
+                        onClick={() =>
+                          updateFilter(
+                            "author",
+                            filters.author === author.login ? null : author.login,
+                          )
+                        }
+                      >
+                        <Avatar src={author.avatarUrl} name={author.login} size={16} />
+                        {author.login}
+                      </FilterMenuItem>
+                    ))
+                  )}
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
         )}
 
         {labels.length > 0 && (
@@ -138,23 +191,20 @@ export const PRFiltersBar = ({
             </FilterMenuItem>
           ))}
         </FilterDropdown>
-
-        {hasActiveFilters && (
-          <button className={styles.clearButton} onClick={clearFilters} title="Clear all filters">
-            <XIcon size={14} />
-            Clear
-          </button>
-        )}
       </div>
 
       <div className={styles.sortGroup}>
         <Menu.Root>
           <Menu.Trigger
             className={styles.sortFieldButton}
-            title={`Sort by: ${currentSortLabel}`}
-            aria-label={`Sort by: ${currentSortLabel}`}
+            title={`Sort by: ${currentSortLabel} (${currentSortDirectionLabel})`}
+            aria-label={`Sort by: ${currentSortLabel} (${currentSortDirectionLabel})`}
           >
-            <SortDescIcon size={15} className={styles.sortFieldIcon} />
+            {filters.sortDirection === "desc" ? (
+              <SortDescIcon size={15} className={styles.sortFieldIcon} />
+            ) : (
+              <SortAscIcon size={15} className={styles.sortFieldIcon} />
+            )}
             <ChevronDownIcon size={12} className={styles.sortFieldChevron} />
           </Menu.Trigger>
           <Menu.Portal>
@@ -164,27 +214,28 @@ export const PRFiltersBar = ({
                   <FilterMenuItem
                     key={option.value}
                     selected={filters.sortBy === option.value}
-                    onClick={() => updateFilter("sortBy", option.value)}
+                    onClick={() => setSortField(option.value)}
                   >
                     {option.label}
                   </FilterMenuItem>
                 ))}
+                <Menu.Separator className={styles.menuSeparator} />
+                <FilterMenuItem
+                  selected={filters.sortDirection === "desc"}
+                  onClick={() => updateFilter("sortDirection", "desc")}
+                >
+                  Descending
+                </FilterMenuItem>
+                <FilterMenuItem
+                  selected={filters.sortDirection === "asc"}
+                  onClick={() => updateFilter("sortDirection", "asc")}
+                >
+                  Ascending
+                </FilterMenuItem>
               </Menu.Popup>
             </Menu.Positioner>
           </Menu.Portal>
         </Menu.Root>
-
-        <button
-          className={styles.sortDirectionButton}
-          onClick={toggleSortDirection}
-          title={filters.sortDirection === "desc" ? "Sort descending" : "Sort ascending"}
-        >
-          {filters.sortDirection === "desc" ? (
-            <SortDescIcon size={16} />
-          ) : (
-            <SortAscIcon size={16} />
-          )}
-        </button>
       </div>
     </div>
   )

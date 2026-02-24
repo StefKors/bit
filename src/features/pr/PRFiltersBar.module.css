@@ -15,9 +15,29 @@
   flex-wrap: wrap;
 }
 
-.filterIcon {
-  color: rgba(var(--bit-rgb-fg), 0.4);
-  margin-right: 0.25rem;
+.filterIconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: rgba(var(--bit-rgb-fg), 0.04);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.12);
+  border-radius: var(--bit-radius-md);
+  color: rgba(var(--bit-rgb-fg), 0.55);
+  cursor: pointer;
+}
+
+.filterIconButton:hover {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+  border-color: rgba(var(--bit-rgb-fg), 0.2);
+  color: rgba(var(--bit-rgb-fg), 0.85);
+}
+
+.filterIconButtonActive {
+  color: rgb(var(--bit-rgb-accent-red));
+  border-color: rgba(var(--bit-rgb-accent-red), 0.28);
+  background: rgba(var(--bit-rgb-accent-red), 0.08);
 }
 
 .sortGroup {
@@ -119,43 +139,6 @@
   transform: rotate(180deg);
 }
 
-.clearButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.4rem 0.6rem;
-  background: transparent;
-  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
-  border-radius: var(--bit-radius-md);
-  font-size: 0.8rem;
-  color: rgba(var(--bit-rgb-fg), 0.6);
-  cursor: pointer;
-}
-
-.clearButton:hover {
-  background: rgba(var(--bit-rgb-accent-red), 0.08);
-  border-color: rgba(var(--bit-rgb-accent-red), 0.3);
-  color: rgb(var(--bit-rgb-accent-red));
-}
-
-.sortDirectionButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.4rem;
-  background: rgba(var(--bit-rgb-fg), 0.04);
-  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
-  border-radius: var(--bit-radius-md);
-  color: rgba(var(--bit-rgb-fg), 0.7);
-  cursor: pointer;
-}
-
-.sortDirectionButton:hover {
-  background: rgba(var(--bit-rgb-fg), 0.08);
-  border-color: rgba(var(--bit-rgb-fg), 0.2);
-  color: rgba(var(--bit-rgb-fg), 0.9);
-}
-
 /* Menu styles */
 .menuPositioner {
   z-index: 100;
@@ -171,6 +154,38 @@
   border-radius: var(--bit-radius-lg);
   box-shadow: var(--bit-shadow-lg);
   backdrop-filter: blur(8px);
+}
+
+.menuPopupLarge {
+  composes: menuPopup;
+  min-width: 220px;
+}
+
+.authorSearchRow {
+  padding: 0.2rem 0.25rem 0.4rem;
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  margin-bottom: 0.3rem;
+}
+
+.authorSearchInput {
+  width: 100%;
+  background: rgba(var(--bit-rgb-fg), 0.03);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.15);
+  border-radius: var(--bit-radius-md);
+  padding: 0.42rem 0.52rem;
+  color: rgba(var(--bit-rgb-fg), 0.9);
+  font-size: 0.82rem;
+}
+
+.authorSearchInput:focus {
+  outline: none;
+  border-color: rgba(var(--bit-rgb-accent-blue), 0.45);
+}
+
+.emptyMenuState {
+  padding: 0.5rem 0.7rem;
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
 }
 
 .menuItem {
