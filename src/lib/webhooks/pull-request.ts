@@ -1,6 +1,6 @@
 import { id } from "@instantdb/admin"
 import type { PullRequestEvent, WebhookDB, WebhookPayload } from "./types"
-import { findUserBySender, ensureRepoFromWebhook } from "./utils"
+import { findUserBySender, ensureRepoFromWebhook, syncPRDetailsForWebhook } from "./utils"
 
 const parseGithubTimestamp = (value?: string | null): number | null => {
   if (!value) return null
@@ -105,6 +105,12 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
     }
 
     await db.transact(db.tx.pullRequests[prId].update(prData))
+
+    const [repoOwner, repoName] = repoFullName.split("/")
+    await syncPRDetailsForWebhook(db, repoRecord.userId, repoOwner, repoName, pr.number, {
+      event: "pull_request",
+      action,
+    })
   }
 
   console.log(`Processed pull_request.${action} for ${repoFullName}#${pr.number}`)

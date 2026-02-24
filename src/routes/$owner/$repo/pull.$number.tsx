@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { useRef, useState, useSyncExternalStore } from "react"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import {
   GitPullRequestIcon,
   GitMergeIcon,
@@ -19,6 +19,16 @@ import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { getPRLayoutMode, subscribePRLayoutMode } from "@/lib/pr-layout-preference"
+import {
+  type PRFilters,
+  type PRFiltersSearchParams,
+  parseFiltersFromSearch,
+  filtersToSearchParams,
+  extractAuthors,
+  extractLabels,
+  applyFiltersAndSort,
+  hasActiveFilters as checkActivePRFilters,
+} from "@/lib/pr-filters"
 import styles from "@/pages/PRDetailPage.module.css"
 
 type TabType = "conversation" | "commits" | "files"
@@ -51,6 +61,8 @@ function formatTimeAgo(date: Date | number | null | undefined): string {
 function PRDetailPage() {
   const { user } = useAuth()
   const { owner, repo, number } = Route.useParams()
+  const search = Route.useSearch()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<TabType>("conversation")
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -75,6 +87,11 @@ function PRDetailPage() {
   })
   const repoData = repoListData?.repos?.[0] ?? null
   const repoPRs = repoData?.pullRequests ?? []
+  const filters = parseFiltersFromSearch(search)
+  const authors = extractAuthors(repoPRs)
+  const labels = extractLabels(repoPRs)
+  const filteredRepoPRs = applyFiltersAndSort(repoPRs, filters)
+  const hasActiveFilters = checkActivePRFilters(filters)
 
   const { data: prDetailsRepoData, isLoading: isPrDetailsLoading } = db.useQuery({
     repos: {
@@ -92,13 +109,22 @@ function PRDetailPage() {
   const pr = prDetailsRepoData?.repos?.[0]?.pullRequests?.[0] ?? null
 
   const autoSyncTriggered = useRef(false)
-  const prHasDetails = Boolean(
-    pr && ((pr.prFiles?.length ?? 0) > 0 || (pr.prReviews?.length ?? 0) > 0),
-  )
+  const dataLoaded = !isRepoLoading && !isPrDetailsLoading
 
-  if (pr && !prHasDetails && !syncing && !autoSyncTriggered.current && user?.id) {
+  const needsInitialSync =
+    dataLoaded &&
+    Boolean(pr) &&
+    (pr?.prFiles?.length ?? 0) === 0 &&
+    (pr?.prReviews?.length ?? 0) === 0 &&
+    (pr?.prComments?.length ?? 0) === 0 &&
+    (pr?.prCommits?.length ?? 0) === 0 &&
+    (pr?.prEvents?.length ?? 0) === 0
+
+  useEffect(() => {
+    if (!needsInitialSync || syncing || autoSyncTriggered.current || !user?.id) return
     autoSyncTriggered.current = true
-    fetch(`/api/github/sync/${owner}/${repoName}/pull/${prNumber}`, {
+    setSyncing(true)
+    fetch(`/api/github/sync/${owner}/${repoName}/pull/${prNumber}?force=true`, {
       method: "POST",
       credentials: "include",
       headers: { Authorization: `Bearer ${user.id}` },
@@ -106,24 +132,28 @@ function PRDetailPage() {
       .then(async (res) => {
         if (!res.ok) {
           const data = (await res.json()) as { error?: string }
-          console.error("Auto-sync failed:", data.error)
+          setError(data.error || "Auto-sync failed")
         }
       })
-      .catch((err) => console.error("Auto-sync error:", err))
-  }
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Auto-sync error")
+      })
+      .finally(() => setSyncing(false))
+  }, [needsInitialSync, syncing, user?.id, owner, repoName, prNumber])
 
   const handleSync = async () => {
     setSyncing(true)
     setError(null)
 
     try {
-      const response = await fetch(`/api/github/sync/${owner}/${repoName}/pull/${prNumber}`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${user?.id}`,
+      const response = await fetch(
+        `/api/github/sync/${owner}/${repoName}/pull/${prNumber}?force=true`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { Authorization: `Bearer ${user?.id}` },
         },
-      })
+      )
 
       const data = (await response.json()) as { error?: string }
 
@@ -135,6 +165,15 @@ function PRDetailPage() {
     } finally {
       setSyncing(false)
     }
+  }
+
+  const handlePRFiltersChange = (newFilters: PRFilters) => {
+    void navigate({
+      to: "/$owner/$repo/pull/$number",
+      params: { owner, repo: repoName, number },
+      search: filtersToSearchParams(newFilters),
+      replace: true,
+    })
   }
 
   if (isRepoLoading || isPrDetailsLoading) {
@@ -230,8 +269,15 @@ function PRDetailPage() {
           owner={owner}
           repoName={repoName}
           pr={pr}
-          prs={repoPRs}
+          prs={filteredRepoPRs}
+          totalPrCount={repoPRs.length}
+          filters={filters}
+          onFiltersChange={handlePRFiltersChange}
+          authors={authors}
+          labels={labels}
+          hasActiveFilters={hasActiveFilters}
           syncing={syncing}
+          needsInitialSync={needsInitialSync}
           onSync={() => void handleSync()}
           diffOptions={diffOptions}
           onDiffOptionsChange={setDiffOptions}
@@ -293,16 +339,18 @@ function PRDetailPage() {
                 </span>
               </div>
             </header>
-            <div className={styles.actions}>
-              <Button
-                variant="success"
-                leadingIcon={<SyncIcon size={16} />}
-                loading={syncing}
-                onClick={() => void handleSync()}
-              >
-                {syncing ? "Syncing..." : "Sync Details"}
-              </Button>
-            </div>
+            {(needsInitialSync || syncing) && (
+              <div className={styles.actions}>
+                <Button
+                  variant="success"
+                  leadingIcon={<SyncIcon size={16} />}
+                  loading={syncing}
+                  onClick={() => void handleSync()}
+                >
+                  {syncing ? "Syncing..." : "Sync Details"}
+                </Button>
+              </div>
+            )}
           </div>
 
           <Tabs
@@ -365,4 +413,9 @@ function PRDetailPage() {
 
 export const Route = createFileRoute("/$owner/$repo/pull/$number")({
   component: PRDetailPage,
+  validateSearch: (
+    search: Record<string, string | number | boolean | null | undefined>,
+  ): PRFiltersSearchParams => {
+    return filtersToSearchParams(parseFiltersFromSearch(search))
+  },
 })

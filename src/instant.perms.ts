@@ -124,6 +124,16 @@ export default {
     },
   },
 
+  // User Settings: user can only access their own
+  userSettings: {
+    allow: {
+      view: "auth.id in data.ref('user.id')",
+      create: "auth.id != null",
+      update: "auth.id in data.ref('user.id')",
+      delete: "auth.id in data.ref('user.id')",
+    },
+  },
+
   // Sync States: user can only access their own
   syncStates: {
     allow: {

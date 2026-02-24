@@ -1,5 +1,5 @@
 import type { WebhookDB, WebhookPayload, PushEvent, RepoRecord } from "./types"
-import { findUserBySender, ensureRepoFromWebhook } from "./utils"
+import { findUserBySender, ensureRepoFromWebhook, syncPRDetailsForWebhook } from "./utils"
 
 /**
  * Handle push webhook events.
@@ -161,6 +161,13 @@ async function syncCommitsToPRs(
       )
 
       console.log(`Synced ${commits.length} commit(s) to PR #${pr.number} on branch ${branch}`)
+
+      const [repoOwner, repoName] = (repoRecord.fullName || "").split("/")
+      if (repoOwner && repoName) {
+        await syncPRDetailsForWebhook(db, repoRecord.userId, repoOwner, repoName, pr.number, {
+          event: "push",
+        })
+      }
     }
   }
 }

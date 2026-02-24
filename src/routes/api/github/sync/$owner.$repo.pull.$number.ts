@@ -26,13 +26,16 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/pull/$number
           return jsonResponse({ error: "Invalid pull request number" }, 400)
         }
 
+        const url = new URL(request.url)
+        const force = url.searchParams.get("force") === "true"
+
         const client = await createGitHubClient(userId)
         if (!client) {
           return jsonResponse({ error: "GitHub account not connected" }, 400)
         }
 
         try {
-          const result = await client.fetchPullRequestDetails(owner, repo, pullNumber)
+          const result = await client.fetchPullRequestDetails(owner, repo, pullNumber, force)
 
           return jsonResponse({
             prId: result.prId,

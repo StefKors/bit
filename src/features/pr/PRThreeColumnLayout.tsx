@@ -8,8 +8,10 @@ import {
 import type { InstaQLEntity } from "@instantdb/core"
 import type { AppSchema } from "@/instant.schema"
 import { Button } from "@/components/Button"
+import type { Author, PRFilters } from "@/lib/pr-filters"
 import { DiffOptionsBar, type DiffOptions } from "./DiffOptionsBar"
 import { PRActivityFeed } from "./PRActivityFeed"
+import { PRFiltersBar } from "./PRFiltersBar"
 import { PRFilesTab } from "./PRFilesTab"
 import { PRListItem } from "./PRListItem"
 import styles from "./PRThreeColumnLayout.module.css"
@@ -32,7 +34,14 @@ type PRThreeColumnLayoutProps = {
   repoName: string
   pr: DetailedPullRequest
   prs: readonly PullRequest[]
+  totalPrCount: number
+  filters: PRFilters
+  onFiltersChange: (filters: PRFilters) => void
+  authors: Author[]
+  labels: string[]
+  hasActiveFilters: boolean
   syncing: boolean
+  needsInitialSync: boolean
   onSync: () => void
   diffOptions: DiffOptions
   onDiffOptionsChange: (options: DiffOptions) => void
@@ -78,7 +87,14 @@ export const PRThreeColumnLayout = ({
   repoName,
   pr,
   prs,
+  totalPrCount,
+  filters,
+  onFiltersChange,
+  authors,
+  labels,
+  hasActiveFilters,
   syncing,
+  needsInitialSync,
   onSync,
   diffOptions,
   onDiffOptionsChange,
@@ -136,27 +152,34 @@ export const PRThreeColumnLayout = ({
             </span>
           </div>
         </div>
-        <div className={styles.actions}>
-          <Button
-            variant="success"
-            leadingIcon={<SyncIcon size={16} />}
-            loading={syncing}
-            onClick={() => onSync()}
-          >
-            {syncing ? "Syncing..." : "Sync Details"}
-          </Button>
-        </div>
+        {(needsInitialSync || syncing) && (
+          <div className={styles.actions}>
+            <Button
+              variant="success"
+              leadingIcon={<SyncIcon size={16} />}
+              loading={syncing}
+              onClick={() => onSync()}
+            >
+              {syncing ? "Syncing..." : "Sync Details"}
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className={styles.columns}>
-        <section className={`${styles.column} ${styles.listColumn}`}>
-          <header className={styles.columnHeader}>
-            <h2 className={styles.columnTitle}>Pull Requests</h2>
-            <span className={styles.columnCount}>{prs.length}</span>
-          </header>
-          <div className={styles.columnBody}>
+        <section className={styles.listColumn}>
+          <PRFiltersBar
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+            authors={authors}
+            labels={labels}
+            hasActiveFilters={hasActiveFilters}
+          />
+          <div className={styles.listBody}>
             {prs.length === 0 ? (
-              <div className={styles.emptyState}>No pull requests in this repository.</div>
+              <div className={styles.emptyState}>
+                No matching pull requests for this filter set.
+              </div>
             ) : (
               <div className={styles.prList}>
                 {prs.map((repoPr) => (
@@ -169,6 +192,9 @@ export const PRThreeColumnLayout = ({
                 ))}
               </div>
             )}
+          </div>
+          <div className={styles.resultsCount}>
+            Showing {prs.length} of {totalPrCount} pull requests
           </div>
         </section>
 

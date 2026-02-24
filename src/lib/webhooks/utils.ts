@@ -1,5 +1,13 @@
 import { id } from "@instantdb/admin"
+import { createGitHubClient } from "@/lib/github-client"
+import { log } from "@/lib/logger"
 import type { PullRequest, RepoRecord, Repository, PRRecord, User, WebhookDB } from "./types"
+
+export type WebhookSyncMode = "minimal" | "full" | "full-force"
+
+const DEFAULT_SYNC_MODE: WebhookSyncMode = "full"
+
+const VALID_SYNC_MODES = new Set<string>(["minimal", "full", "full-force"])
 
 type UnknownRecord = Record<string, unknown>
 
@@ -245,4 +253,72 @@ export async function ensurePRFromWebhook(
   console.log(`Auto-tracked PR #${prNumber} for repo ${repoRecord.fullName}`)
 
   return (inserted[0] as PRRecord) ?? null
+}
+
+/**
+ * Resolve the webhook PR sync behavior mode for a given user.
+ * Falls back to "full" when no setting exists.
+ */
+export async function resolveUserSyncMode(db: WebhookDB, userId: string): Promise<WebhookSyncMode> {
+  const { userSettings } = await db.query({
+    userSettings: {
+      $: { where: { userId }, limit: 1 },
+    },
+  })
+
+  const raw = userSettings?.[0]?.webhookPrSyncBehavior
+  if (typeof raw === "string" && VALID_SYNC_MODES.has(raw)) {
+    return raw as WebhookSyncMode
+  }
+  return DEFAULT_SYNC_MODE
+}
+
+/**
+ * Trigger a PR detail sync based on the user's sync mode.
+ * Called from webhook handlers after the fast-path payload upsert.
+ *
+ * - minimal: no additional fetch (payload upsert only)
+ * - full: fetchPullRequestDetails with force=false (respects freshness)
+ * - full-force: fetchPullRequestDetails with force=true (bypasses freshness)
+ */
+export async function syncPRDetailsForWebhook(
+  db: WebhookDB,
+  userId: string,
+  owner: string,
+  repo: string,
+  prNumber: number,
+  eventContext: { event: string; action?: string },
+): Promise<void> {
+  const mode = await resolveUserSyncMode(db, userId)
+
+  const ctx = {
+    op: "webhook-pr-sync",
+    event: eventContext.event,
+    action: eventContext.action,
+    repo: `${owner}/${repo}`,
+    pr: prNumber,
+    userId,
+    syncMode: mode,
+  }
+
+  if (mode === "minimal") {
+    log.info("Webhook PR sync skipped (mode=minimal, payload upsert only)", ctx)
+    return
+  }
+
+  const force = mode === "full-force"
+  log.info(`Webhook PR sync starting (mode=${mode}, force=${force})`, ctx)
+
+  const client = await createGitHubClient(userId)
+  if (!client) {
+    log.warn("Webhook PR sync skipped: no GitHub client for user", ctx)
+    return
+  }
+
+  try {
+    await client.fetchPullRequestDetails(owner, repo, prNumber, force)
+    log.info(`Webhook PR sync completed (mode=${mode})`, ctx)
+  } catch (err) {
+    log.error("Webhook PR sync failed", err, ctx)
+  }
 }

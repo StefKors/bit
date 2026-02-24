@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useState, useRef } from "react"
+import { id } from "@instantdb/react"
 import {
   MarkGithubIcon,
   CheckCircleFillIcon,
@@ -17,6 +18,29 @@ import { Button } from "@/components/Button"
 import { Avatar } from "@/components/Avatar"
 import styles from "@/pages/SettingsPage.module.css"
 
+type WebhookSyncMode = "minimal" | "full" | "full-force"
+
+const SYNC_MODE_OPTIONS: { value: WebhookSyncMode; label: string; description: string }[] = [
+  {
+    value: "minimal",
+    label: "Minimal",
+    description:
+      "Webhook payload only. Fastest, uses no extra API calls. Detail data is only fetched when you open a PR page.",
+  },
+  {
+    value: "full",
+    label: "Full",
+    description:
+      "Webhook payload + fetch related PR details (files, reviews, comments, commits). Respects freshness cache.",
+  },
+  {
+    value: "full-force",
+    label: "Full (force)",
+    description:
+      "Webhook payload + force-fetch all related PR details, bypassing freshness cache. Most thorough, highest API usage.",
+  },
+]
+
 const GITHUB_APP_SLUG = "bit-backend"
 const GITHUB_APP_INSTALLATIONS_URL = "https://github.com/settings/installations"
 
@@ -28,7 +52,11 @@ function SettingsPage() {
   const [prLayoutMode, setPrLayoutMode] = useState<PRLayoutMode>(() => getPRLayoutMode())
 
   const { data: syncData } = db.useQuery({ syncStates: {} })
+  const { data: settingsData } = db.useQuery({ userSettings: {} })
   const syncStates = syncData?.syncStates ?? []
+  const userSettingsRecord = settingsData?.userSettings?.[0] ?? null
+  const currentSyncMode: WebhookSyncMode =
+    (userSettingsRecord?.webhookPrSyncBehavior as WebhookSyncMode) || "full"
 
   const tokenState = syncStates.find((s) => s.resourceType === "github:token")
   const isGitHubConnected = Boolean(tokenState)
@@ -130,6 +158,22 @@ function SettingsPage() {
 
   const handleRemoveGitHubApp = () => {
     window.location.href = GITHUB_APP_INSTALLATIONS_URL
+  }
+
+  const handleSyncModeChange = (mode: WebhookSyncMode) => {
+    if (!user?.id) return
+    const now = Date.now()
+    const settingsId = userSettingsRecord?.id || id()
+    void db.transact(
+      db.tx.userSettings[settingsId]
+        .update({
+          webhookPrSyncBehavior: mode,
+          userId: user.id,
+          createdAt: userSettingsRecord?.createdAt ?? now,
+          updatedAt: now,
+        })
+        .link({ user: user.id }),
+    )
   }
 
   if (!user) return null
@@ -304,6 +348,42 @@ function SettingsPage() {
           </div>
           <p className={styles.preferenceHint}>
             This applies to repository pull request detail pages.
+          </p>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Webhook Sync Behavior</h2>
+        <div className={styles.card}>
+          <div className={styles.preferenceInfo}>
+            <span className={styles.preferenceLabel}>PR detail sync mode</span>
+            <p className={styles.preferenceDescription}>
+              Controls how much data is fetched when GitHub webhook events arrive for pull requests.
+            </p>
+          </div>
+          <div className={styles.radioGroup}>
+            {SYNC_MODE_OPTIONS.map((option) => (
+              <label
+                key={option.value}
+                className={`${styles.radioOption} ${currentSyncMode === option.value ? styles.radioOptionSelected : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="webhookSyncMode"
+                  className={styles.radioInput}
+                  value={option.value}
+                  checked={currentSyncMode === option.value}
+                  onChange={() => handleSyncModeChange(option.value)}
+                />
+                <div className={styles.radioContent}>
+                  <span className={styles.radioLabel}>{option.label}</span>
+                  <p className={styles.radioDescription}>{option.description}</p>
+                </div>
+              </label>
+            ))}
+          </div>
+          <p className={styles.preferenceHint}>
+            Changes take effect immediately for incoming webhooks.
           </p>
         </div>
       </section>

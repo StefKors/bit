@@ -409,6 +409,17 @@ export const schema = i.schema({
       updatedAt: i.number(),
     }),
 
+    // Per-user settings (persisted in InstantDB)
+    userSettings: i.entity({
+      // "minimal" = webhook payload only
+      // "full"    = webhook payload + fetch related PR details (default)
+      // "full-force" = webhook payload + force-fetch related PR details
+      webhookPrSyncBehavior: i.string().optional(),
+      userId: i.string().indexed(),
+      createdAt: i.number(),
+      updatedAt: i.number(),
+    }),
+
     // GitHub Sync State
     syncStates: i.entity({
       resourceType: i.string().indexed(), // overview, repo:{fullName}, pr:{repoId}:{number}
@@ -790,6 +801,20 @@ export const schema = i.schema({
         on: "$users",
         has: "many",
         label: "repoCommits",
+      },
+    },
+
+    // User -> Settings (one-to-one)
+    userSettingsLink: {
+      forward: {
+        on: "userSettings",
+        has: "one",
+        label: "user",
+      },
+      reverse: {
+        on: "$users",
+        has: "one",
+        label: "userSettings",
       },
     },
 

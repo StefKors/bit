@@ -132,6 +132,13 @@
   overflow: hidden;
 }
 
+.listColumn {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .columnHeader {
   display: flex;
   align-items: center;
@@ -170,7 +177,9 @@
   padding: 1rem;
 }
 
-.listColumn .columnBody {
+.listBody {
+  flex: 1;
+  overflow: auto;
   padding: 0.5rem;
 }
 
@@ -193,6 +202,13 @@
   color: rgba(var(--bit-rgb-fg), 0.55);
 }
 
+.resultsCount {
+  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
 @media (max-width: 1500px) {
   .columns {
     grid-template-columns: minmax(230px, 0.9fr) minmax(0, 2fr) minmax(270px, 1fr);
@@ -205,7 +221,8 @@
     min-height: 0;
   }
 
-  .column {
+  .column,
+  .listColumn {
     min-height: 320px;
   }
 }
