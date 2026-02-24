@@ -4,6 +4,7 @@ import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { resolveUserAvatarUrl } from "@/lib/avatar"
 import { shouldResumeInitialSync } from "@/lib/initial-sync"
+import { parseStringArray, parseInitialSyncProgress } from "@/lib/json-validators"
 import { RepoSection } from "@/features/repo/RepoSection"
 import {
   InitialSyncCard,
@@ -18,15 +19,6 @@ type RateLimitInfo = {
   remaining: number
   limit: number
   reset: Date
-}
-
-type InitialSyncProgress = {
-  step: "orgs" | "repos" | "webhooks" | "pullRequests" | "completed"
-  orgs?: { total: number }
-  repos?: { total: number }
-  webhooks?: { completed: number; total: number }
-  pullRequests?: { completed: number; total: number; prsFound: number }
-  error?: string
 }
 
 type OverviewSyncResponse = {
@@ -86,9 +78,7 @@ function OverviewPage() {
   const repos = data?.repos ?? []
   const organizations = data?.organizations ?? []
   const initialSyncState = syncStates.find((s) => s.resourceType === "initial_sync")
-  const initialSyncProgress = initialSyncState?.lastEtag
-    ? (JSON.parse(initialSyncState.lastEtag) as InitialSyncProgress)
-    : null
+  const initialSyncProgress = parseInitialSyncProgress(initialSyncState?.lastEtag)
   const isInitialSyncComplete = initialSyncState?.syncStatus === "completed"
   const isInitialSyncing = isGitHubConnected && !isInitialSyncComplete
 
@@ -116,15 +106,7 @@ function OverviewPage() {
   const reviewRequestedPRs = useMemo(() => {
     const prs = data?.pullRequests ?? []
     if (!currentUserLogin) return []
-    return prs.filter((pr) => {
-      if (!pr.reviewRequestedBy) return false
-      try {
-        const reviewers = JSON.parse(pr.reviewRequestedBy) as string[]
-        return reviewers.includes(currentUserLogin)
-      } catch {
-        return false
-      }
-    })
+    return prs.filter((pr) => parseStringArray(pr.reviewRequestedBy).includes(currentUserLogin))
   }, [data?.pullRequests, currentUserLogin])
 
   const orgs = organizations.filter(
