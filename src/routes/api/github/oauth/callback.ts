@@ -12,6 +12,7 @@ import { log } from "@/lib/logger"
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET
 const GITHUB_APP_SLUG = process.env.GITHUB_APP_SLUG || "bit-backend"
+const GITHUB_APP_INSTALLATIONS_URL = "https://github.com/settings/installations"
 
 interface GitHubTokenResponse {
   access_token: string
@@ -136,6 +137,8 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
 
           const accessToken = tokenData.access_token
           const userId = state
+          const installParams = new URLSearchParams({ state: userId })
+          const installationUrl = `https://github.com/apps/${GITHUB_APP_SLUG}/installations/new?${installParams.toString()}`
 
           // Fetch GitHub user info first so we can read x-oauth-scopes header
           const userResponse = await fetch("https://api.github.com/user", {
@@ -236,17 +239,21 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
 
           if (!permReport.allGranted) {
             const params = new URLSearchParams()
-            params.set("error", `Missing GitHub permissions (${missingScopesSummary}).`)
+            params.set(
+              "message",
+              `OAuth permissions are limited (${missingScopesSummary}). Continue with GitHub App installation.`,
+            )
             if (GITHUB_CLIENT_ID) {
               params.set(
                 "revokeUrl",
                 `https://github.com/settings/connections/applications/${GITHUB_CLIENT_ID}`,
               )
             }
+            params.set("installationsUrl", GITHUB_APP_INSTALLATIONS_URL)
             return new Response(null, {
               status: 302,
               headers: {
-                Location: `/?${params.toString()}`,
+                Location: `${installationUrl}&${params.toString()}`,
               },
             })
           }
@@ -266,9 +273,6 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
             })
 
           // Redirect to GitHub App installation so users can choose org/repo access.
-          const installParams = new URLSearchParams({ state: userId })
-          const installationUrl = `https://github.com/apps/${GITHUB_APP_SLUG}/installations/new?${installParams.toString()}`
-
           return new Response(null, {
             status: 302,
             headers: {

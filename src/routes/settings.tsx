@@ -17,6 +17,9 @@ import { Button } from "@/components/Button"
 import { Avatar } from "@/components/Avatar"
 import styles from "@/pages/SettingsPage.module.css"
 
+const GITHUB_APP_SLUG = "bit-backend"
+const GITHUB_APP_INSTALLATIONS_URL = "https://github.com/settings/installations"
+
 function SettingsPage() {
   const { user } = useAuth()
   const [disconnecting, setDisconnecting] = useState(false)
@@ -35,6 +38,9 @@ function SettingsPage() {
   const lastSyncedAt = initialSyncState?.lastSyncedAt
 
   const isFullScreenPRLayout = prLayoutMode === "full-screen-3-column"
+  const githubAppInstallUrl = user?.id
+    ? `https://github.com/apps/${GITHUB_APP_SLUG}/installations/new?${new URLSearchParams({ state: user.id }).toString()}`
+    : `https://github.com/apps/${GITHUB_APP_SLUG}/installations/new`
 
   const handleConnectGitHub = () => {
     if (!user?.id) return
@@ -112,6 +118,18 @@ function SettingsPage() {
     const nextMode: PRLayoutMode = isFullScreenPRLayout ? "default" : "full-screen-3-column"
     setPrLayoutMode(nextMode)
     setPRLayoutMode(nextMode)
+  }
+
+  const handleInstallGitHubApp = () => {
+    window.location.href = githubAppInstallUrl
+  }
+
+  const handleManageGitHubApp = () => {
+    window.location.href = GITHUB_APP_INSTALLATIONS_URL
+  }
+
+  const handleRemoveGitHubApp = () => {
+    window.location.href = GITHUB_APP_INSTALLATIONS_URL
   }
 
   if (!user) return null
@@ -210,6 +228,22 @@ function SettingsPage() {
                 authorize the token for org SAML SSO.
               </p>
             </div>
+
+            <div className={styles.appActions}>
+              <Button variant="default" onClick={handleInstallGitHubApp}>
+                Install GitHub App
+              </Button>
+              <Button variant="default" onClick={handleManageGitHubApp}>
+                Manage GitHub App
+              </Button>
+              <Button variant="danger" onClick={handleRemoveGitHubApp}>
+                Remove GitHub App
+              </Button>
+            </div>
+            <p className={styles.appActionsHint}>
+              Manage and remove open GitHub installations. Use Install if you need to grant access
+              to additional orgs or repositories.
+            </p>
           </div>
         ) : (
           <div className={styles.card}>
@@ -228,6 +262,14 @@ function SettingsPage() {
               >
                 Connect GitHub
               </Button>
+              <div className={styles.appActions}>
+                <Button variant="default" onClick={handleInstallGitHubApp}>
+                  Install GitHub App
+                </Button>
+                <Button variant="default" onClick={handleManageGitHubApp}>
+                  Manage GitHub App
+                </Button>
+              </div>
             </div>
           </div>
         )}

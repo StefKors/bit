@@ -165,6 +165,19 @@
   margin: 0;
 }
 
+.appActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.875rem;
+}
+
+.appActionsHint {
+  margin: 0.625rem 0 0;
+  font-size: 0.82rem;
+  color: rgba(var(--bit-rgb-fg), 0.55);
+}
+
 .emptyConnection {
   display: flex;
   flex-direction: column;
@@ -370,6 +383,7 @@
 
   .connectionHeader,
   .cardActions,
+  .appActions,
   .addRepoRow {
     flex-wrap: wrap;
   }

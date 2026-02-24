@@ -140,7 +140,7 @@ describe("GET /api/github/oauth/callback", () => {
     expect(mockPerformInitialSync).toHaveBeenCalledTimes(1)
   })
 
-  it("redirects with error and skips initial sync when required scopes are missing", async () => {
+  it("redirects to GitHub App installation when required scopes are missing", async () => {
     mockFetch.mockReset()
     mockOAuthExchange("read:user,user:email")
 
@@ -154,8 +154,13 @@ describe("GET /api/github/oauth/callback", () => {
     const res = await handler({ request })
 
     expect(res.status).toBe(302)
-    expect(res.headers.get("Location")).toContain("error=Missing")
-    expect(res.headers.get("Location")).toContain("permissions")
+    expect(res.headers.get("Location")).toContain(
+      "https://github.com/apps/bit-backend/installations/new",
+    )
+    expect(res.headers.get("Location")).toContain("message=OAuth+permissions+are+limited")
+    expect(res.headers.get("Location")).toContain(
+      "installationsUrl=https%3A%2F%2Fgithub.com%2Fsettings%2Finstallations",
+    )
     expect(mockPerformInitialSync).not.toHaveBeenCalled()
   })
 })
