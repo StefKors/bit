@@ -15,6 +15,11 @@ type OrganizationRecord = {
 const isRecord = (value: unknown): value is UnknownRecord =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
+const isOrganizationRecord = (value: unknown): value is OrganizationRecord =>
+  isRecord(value) &&
+  typeof value.id === "string" &&
+  (typeof value.login === "string" || value.login === undefined)
+
 const toRecord = (value: unknown): UnknownRecord | null => (isRecord(value) ? value : null)
 const toPayloadRecord = (value: WebhookPayload): UnknownRecord => toRecord(value) ?? {}
 
@@ -135,13 +140,8 @@ const getTrackedOrgs = async (
     const userId = await findUserBySender(db, sender)
     if (userId) {
       const createdOrg = await ensureOrgFromWebhook(db, organization, userId)
-      if (createdOrg && isRecord(createdOrg) && typeof createdOrg.id === "string") {
-        orgRecords = [
-          {
-            id: createdOrg.id,
-            login: typeof createdOrg.login === "string" ? createdOrg.login : undefined,
-          },
-        ]
+      if (isOrganizationRecord(createdOrg)) {
+        orgRecords = [createdOrg]
       }
     }
   }

@@ -28,19 +28,16 @@ export async function handleCommentWebhook(
   eventType: "issue_comment" | "pull_request_review_comment",
 ) {
   const typedPayload = payload as IssueCommentEvent | PullRequestReviewCommentEvent
+  const issueCommentPayload = typedPayload as IssueCommentEvent
+  const reviewCommentPayload = typedPayload as PullRequestReviewCommentEvent
+  const isReviewCommentEvent = eventType === "pull_request_review_comment"
   const repo = typedPayload.repository
   const sender = typedPayload.sender
 
-  const comment =
-    eventType === "pull_request_review_comment"
-      ? (typedPayload as PullRequestReviewCommentEvent).comment
-      : (typedPayload as IssueCommentEvent).comment
-  const pr =
-    eventType === "pull_request_review_comment"
-      ? (typedPayload as PullRequestReviewCommentEvent).pull_request
-      : null
-  const issue =
-    eventType === "issue_comment" ? (typedPayload as IssueCommentEvent).issue : undefined
+  const comment = isReviewCommentEvent ? reviewCommentPayload.comment : issueCommentPayload.comment
+  const reviewComment = isReviewCommentEvent ? reviewCommentPayload.comment : null
+  const pr = isReviewCommentEvent ? reviewCommentPayload.pull_request : null
+  const issue = !isReviewCommentEvent ? issueCommentPayload.issue : undefined
 
   // For issue_comment on PRs, get the PR github ID
   // pr.id is available for pull_request_review_comment
@@ -106,35 +103,16 @@ export async function handleCommentWebhook(
     const commentData = {
       githubId: commentGithubId,
       pullRequestId: prRecord.id,
-      reviewId:
-        eventType === "pull_request_review_comment"
-          ? String(
-              (comment as PullRequestReviewCommentEvent["comment"]).pull_request_review_id || "",
-            ) || null
-          : null,
-      commentType: eventType === "pull_request_review_comment" ? "review_comment" : "issue_comment",
+      reviewId: reviewComment ? String(reviewComment.pull_request_review_id || "") || null : null,
+      commentType: isReviewCommentEvent ? "review_comment" : "issue_comment",
       body: comment.body || null,
       authorLogin: comment.user?.login || null,
       authorAvatarUrl: comment.user?.avatar_url || null,
       htmlUrl: comment.html_url,
-      path:
-        eventType === "pull_request_review_comment"
-          ? (comment as PullRequestReviewCommentEvent["comment"]).path || null
-          : null,
-      line:
-        eventType === "pull_request_review_comment"
-          ? ((comment as PullRequestReviewCommentEvent["comment"]).line ??
-            (comment as PullRequestReviewCommentEvent["comment"]).original_line ??
-            null)
-          : null,
-      side:
-        eventType === "pull_request_review_comment"
-          ? (comment as PullRequestReviewCommentEvent["comment"]).side || null
-          : null,
-      diffHunk:
-        eventType === "pull_request_review_comment"
-          ? (comment as PullRequestReviewCommentEvent["comment"]).diff_hunk || null
-          : null,
+      path: reviewComment?.path || null,
+      line: reviewComment?.line ?? reviewComment?.original_line ?? null,
+      side: reviewComment?.side || null,
+      diffHunk: reviewComment?.diff_hunk || null,
       githubCreatedAt: parseGithubTimestamp(comment.created_at),
       githubUpdatedAt: parseGithubTimestamp(comment.updated_at),
       userId: prRecord.userId,
