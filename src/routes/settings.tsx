@@ -36,7 +36,42 @@ function SettingsPage() {
 
   const handleConnectGitHub = () => {
     if (!user?.id) return
-    window.location.href = `/api/github/oauth?userId=${user.id}`
+    setError(null)
+    setSuccess(null)
+
+    const connectUrl = `/api/github/oauth?${new URLSearchParams({ userId: user.id }).toString()}`
+    if (!isGitHubConnected) {
+      window.location.href = connectUrl
+      return
+    }
+
+    void (async () => {
+      try {
+        const response = await fetch("/api/github/oauth", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.id}`,
+          },
+          body: JSON.stringify({ userId: user.id }),
+        })
+
+        if (!response.ok) {
+          let errorMessage = "Failed to prepare GitHub reconnect"
+          try {
+            const payload = (await response.json()) as { error?: string }
+            errorMessage = payload.error || errorMessage
+          } catch {
+            errorMessage = `Reconnect request failed (${response.status})`
+          }
+          throw new Error(errorMessage)
+        }
+
+        window.location.href = connectUrl
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to prepare GitHub reconnect")
+      }
+    })()
   }
 
   const handleDisconnect = async () => {
@@ -163,6 +198,15 @@ function SettingsPage() {
               >
                 Disconnect
               </Button>
+            </div>
+
+            <div className={styles.permissionsHint}>
+              <AlertIcon size={14} />
+              <p>
+                Organization access can still depend on GitHub org policies. If repos or webhooks
+                are missing after reconnecting, ask an org admin to approve this OAuth app and
+                authorize the token for org SAML SSO.
+              </p>
             </div>
           </div>
         ) : (

@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { adminDb } from "@/lib/instantAdmin"
+import { revokeGitHubGrantForUser } from "@/lib/github-connection"
+import { log } from "@/lib/logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -80,6 +82,14 @@ export const Route = createFileRoute("/api/github/sync/reset")({
 
           if (!userId) {
             return jsonResponse({ error: "Not authenticated" }, 401)
+          }
+
+          const revokeResult = await revokeGitHubGrantForUser(userId)
+          if (revokeResult.attempted && !revokeResult.revoked) {
+            log.warn("Disconnect requested but OAuth grant revocation failed", {
+              userId,
+              reason: revokeResult.reason,
+            })
           }
 
           // Find all sync states for this user

@@ -25,6 +25,14 @@ describe("parseScopes", () => {
   it("filters out empty entries", () => {
     expect(parseScopes("repo,,read:org")).toEqual(["repo", "read:org"])
   })
+
+  it("parses whitespace-delimited scopes", () => {
+    expect(parseScopes("repo read:org read:user")).toEqual(["repo", "read:org", "read:user"])
+  })
+
+  it("deduplicates repeated scopes", () => {
+    expect(parseScopes("repo,repo,read:org repo")).toEqual(["repo", "read:org"])
+  })
 })
 
 describe("checkPermissions", () => {
@@ -38,13 +46,13 @@ describe("checkPermissions", () => {
   it("reports missing scopes", () => {
     const report = checkPermissions(["read:user"])
     expect(report.allGranted).toBe(false)
-    expect(report.missingScopes).toEqual(["repo", "read:org", "user:email"])
+    expect(report.missingScopes).toEqual(["repo", "read:org", "user:email", "admin:repo_hook"])
   })
 
   it("reports all missing when no scopes granted", () => {
     const report = checkPermissions([])
     expect(report.allGranted).toBe(false)
-    expect(report.missingScopes).toHaveLength(4)
+    expect(report.missingScopes).toHaveLength(5)
   })
 
   it("includes descriptions for each scope", () => {
@@ -58,5 +66,16 @@ describe("checkPermissions", () => {
     const report = checkPermissions(["repo", "read:org", "read:user", "user:email", "admin:org"])
     expect(report.allGranted).toBe(true)
     expect(report.grantedScopes).toContain("admin:org")
+  })
+
+  it("treats repo as satisfying admin:repo_hook", () => {
+    const report = checkPermissions(["repo", "read:org", "read:user", "user:email"])
+    const webhookScope = report.scopes.find((scope) => scope.scope === "admin:repo_hook")
+    expect(webhookScope?.status).toBe("granted")
+  })
+
+  it("treats user as satisfying read:user and user:email", () => {
+    const report = checkPermissions(["repo", "read:org", "user"])
+    expect(report.allGranted).toBe(true)
   })
 })

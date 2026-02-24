@@ -139,6 +139,30 @@
   border-top: 1px solid rgba(var(--bit-rgb-fg), 0.06);
 }
 
+.permissionsHint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: var(--bit-radius-md);
+  background: rgba(var(--bit-rgb-fg), 0.04);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  color: rgba(var(--bit-rgb-fg), 0.75);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.permissionsHint svg {
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+}
+
+.permissionsHint p {
+  margin: 0;
+}
+
 .emptyConnection {
   display: flex;
   flex-direction: column;
