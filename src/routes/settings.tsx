@@ -387,6 +387,13 @@ function SettingsPage() {
         </div>
       </section>
 
+      {isGitHubConnected && !isAuthInvalid && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Webhook Queue</h2>
+          <WebhookQueueCard />
+        </section>
+      )}
+
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Account</h2>
         <div className={styles.card}>
@@ -487,6 +494,183 @@ function AddRepoCard({ userId }: { userId: string }) {
       <p className={styles.addRepoHint}>
         Paste a GitHub URL or type owner/repo to track a specific repository.
       </p>
+    </div>
+  )
+}
+
+type QueueItem = {
+  id: string
+  deliveryId: string
+  event: string
+  action?: string
+  status: string
+  attempts: number
+  maxAttempts: number
+  lastError?: string
+  createdAt: number
+  failedAt?: number
+}
+
+function WebhookQueueCard() {
+  const [items, setItems] = useState<QueueItem[]>([])
+  const [loading, setLoading] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+  const [queueError, setQueueError] = useState<string | null>(null)
+
+  const loadItems = async () => {
+    setLoading(true)
+    setQueueError(null)
+    try {
+      const res = await fetch("/api/github/webhook-queue")
+      const data = (await res.json()) as { items?: QueueItem[]; error?: string }
+      if (!res.ok) throw new Error(data.error || "Failed to load queue")
+      setItems(data.items ?? [])
+      setLoaded(true)
+    } catch (err) {
+      setQueueError(err instanceof Error ? err.message : "Failed to load")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAction = async (action: string, itemId?: string) => {
+    try {
+      const res = await fetch("/api/github/webhook-queue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, itemId }),
+      })
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string }
+        throw new Error(data.error || "Action failed")
+      }
+      await loadItems()
+    } catch (err) {
+      setQueueError(err instanceof Error ? err.message : "Action failed")
+    }
+  }
+
+  const deadLetterItems = items.filter((i) => i.status === "dead_letter")
+  const failedItems = items.filter((i) => i.status === "failed")
+
+  return (
+    <div className={styles.card}>
+      <div className={styles.preferenceRow}>
+        <div className={styles.preferenceInfo}>
+          <span className={styles.preferenceLabel}>Dead-letter & failed webhooks</span>
+          <p className={styles.preferenceDescription}>
+            Inspect webhooks that exhausted retries or are currently failing.
+          </p>
+        </div>
+        <Button variant="default" size="small" loading={loading} onClick={() => void loadItems()}>
+          {loaded ? "Refresh" : "Load"}
+        </Button>
+      </div>
+
+      {queueError && <div className={styles.errorBanner}>{queueError}</div>}
+
+      {loaded && items.length === 0 && (
+        <p className={styles.preferenceHint}>No dead-letter or failed items in the queue.</p>
+      )}
+
+      {loaded && items.length > 0 && (
+        <>
+          {deadLetterItems.length > 0 && (
+            <div className={styles.cardActions}>
+              <Button
+                variant="default"
+                size="small"
+                leadingIcon={<SyncIcon size={14} />}
+                onClick={() => void handleAction("retry-all")}
+              >
+                Retry all dead-letter ({deadLetterItems.length})
+              </Button>
+              <Button
+                variant="danger"
+                size="small"
+                leadingIcon={<TrashIcon size={14} />}
+                onClick={() => void handleAction("discard-all")}
+              >
+                Discard all
+              </Button>
+            </div>
+          )}
+
+          <div className={styles.accountRow} style={{ flexDirection: "column", gap: "0.5rem" }}>
+            {items.map((item) => (
+              <div
+                key={item.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "0.5rem 0",
+                  borderBottom: "1px solid rgba(var(--bit-rgb-fg), 0.06)",
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        color:
+                          item.status === "dead_letter"
+                            ? "var(--bit-color-danger)"
+                            : "var(--bit-color-warning)",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {item.status === "dead_letter" ? "dead" : "failed"}
+                    </span>
+                    <code style={{ fontSize: "0.8rem" }}>
+                      {item.event}
+                      {item.action ? `.${item.action}` : ""}
+                    </code>
+                    <span style={{ fontSize: "0.75rem", opacity: 0.5 }}>
+                      {formatTimeAgo(item.createdAt)}
+                    </span>
+                  </div>
+                  {item.lastError && (
+                    <p
+                      style={{
+                        fontSize: "0.75rem",
+                        opacity: 0.6,
+                        margin: "0.25rem 0 0",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.lastError}
+                    </p>
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: "0.25rem", flexShrink: 0 }}>
+                  <Button
+                    variant="default"
+                    size="small"
+                    onClick={() => void handleAction("retry", item.id)}
+                  >
+                    Retry
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="small"
+                    onClick={() => void handleAction("discard", item.id)}
+                  >
+                    Discard
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className={styles.preferenceHint}>
+            {deadLetterItems.length} dead-letter, {failedItems.length} failed
+          </p>
+        </>
+      )}
     </div>
   )
 }

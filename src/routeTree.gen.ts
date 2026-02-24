@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as OwnerIndexRouteImport } from './routes/$owner/index'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as OwnerRepoIndexRouteImport } from './routes/$owner/$repo/index'
+import { Route as ApiGithubWebhookQueueRouteImport } from './routes/api/github/webhook-queue'
 import { Route as ApiGithubWebhookProcessRouteImport } from './routes/api/github/webhook-process'
 import { Route as ApiGithubWebhookHealthRouteImport } from './routes/api/github/webhook-health'
 import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
@@ -64,6 +65,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
 const OwnerRepoIndexRoute = OwnerRepoIndexRouteImport.update({
   id: '/$owner/$repo/',
   path: '/$owner/$repo/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubWebhookQueueRoute = ApiGithubWebhookQueueRouteImport.update({
+  id: '/api/github/webhook-queue',
+  path: '/api/github/webhook-queue',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubWebhookProcessRoute = ApiGithubWebhookProcessRouteImport.update({
@@ -217,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/api/github/webhook-health': typeof ApiGithubWebhookHealthRoute
   '/api/github/webhook-process': typeof ApiGithubWebhookProcessRoute
+  '/api/github/webhook-queue': typeof ApiGithubWebhookQueueRoute
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/commits/$branch': typeof OwnerRepoCommitsBranchRoute
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
@@ -250,6 +257,7 @@ export interface FileRoutesByTo {
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/api/github/webhook-health': typeof ApiGithubWebhookHealthRoute
   '/api/github/webhook-process': typeof ApiGithubWebhookProcessRoute
+  '/api/github/webhook-queue': typeof ApiGithubWebhookQueueRoute
   '/$owner/$repo': typeof OwnerRepoIndexRoute
   '/$owner/$repo/commits/$branch': typeof OwnerRepoCommitsBranchRoute
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/api/github/webhook-health': typeof ApiGithubWebhookHealthRoute
   '/api/github/webhook-process': typeof ApiGithubWebhookProcessRoute
+  '/api/github/webhook-queue': typeof ApiGithubWebhookQueueRoute
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/commits/$branch': typeof OwnerRepoCommitsBranchRoute
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
@@ -319,6 +328,7 @@ export interface FileRouteTypes {
     | '/api/github/webhook'
     | '/api/github/webhook-health'
     | '/api/github/webhook-process'
+    | '/api/github/webhook-queue'
     | '/$owner/$repo/'
     | '/$owner/$repo/commits/$branch'
     | '/$owner/$repo/issues/$number'
@@ -352,6 +362,7 @@ export interface FileRouteTypes {
     | '/api/github/webhook'
     | '/api/github/webhook-health'
     | '/api/github/webhook-process'
+    | '/api/github/webhook-queue'
     | '/$owner/$repo'
     | '/$owner/$repo/commits/$branch'
     | '/$owner/$repo/issues/$number'
@@ -385,6 +396,7 @@ export interface FileRouteTypes {
     | '/api/github/webhook'
     | '/api/github/webhook-health'
     | '/api/github/webhook-process'
+    | '/api/github/webhook-queue'
     | '/$owner/$repo/'
     | '/$owner/$repo/commits/$branch'
     | '/$owner/$repo/issues/$number'
@@ -419,6 +431,7 @@ export interface RootRouteChildren {
   ApiGithubWebhookRoute: typeof ApiGithubWebhookRoute
   ApiGithubWebhookHealthRoute: typeof ApiGithubWebhookHealthRoute
   ApiGithubWebhookProcessRoute: typeof ApiGithubWebhookProcessRoute
+  ApiGithubWebhookQueueRoute: typeof ApiGithubWebhookQueueRoute
   OwnerRepoIndexRoute: typeof OwnerRepoIndexRoute
   OwnerRepoCommitsBranchRoute: typeof OwnerRepoCommitsBranchRoute
   OwnerRepoPullNumberRoute: typeof OwnerRepoPullNumberRoute
@@ -471,6 +484,13 @@ declare module '@tanstack/react-router' {
       path: '/$owner/$repo'
       fullPath: '/$owner/$repo/'
       preLoaderRoute: typeof OwnerRepoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/webhook-queue': {
+      id: '/api/github/webhook-queue'
+      path: '/api/github/webhook-queue'
+      fullPath: '/api/github/webhook-queue'
+      preLoaderRoute: typeof ApiGithubWebhookQueueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/webhook-process': {
@@ -704,6 +724,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGithubWebhookRoute: ApiGithubWebhookRoute,
   ApiGithubWebhookHealthRoute: ApiGithubWebhookHealthRoute,
   ApiGithubWebhookProcessRoute: ApiGithubWebhookProcessRoute,
+  ApiGithubWebhookQueueRoute: ApiGithubWebhookQueueRoute,
   OwnerRepoIndexRoute: OwnerRepoIndexRoute,
   OwnerRepoCommitsBranchRoute: OwnerRepoCommitsBranchRoute,
   OwnerRepoPullNumberRoute: OwnerRepoPullNumberRoute,
@@ -723,12 +744,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
