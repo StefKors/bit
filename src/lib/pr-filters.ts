@@ -19,7 +19,7 @@ export interface PRFilters {
 }
 
 export const DEFAULT_PR_FILTERS: PRFilters = {
-  status: "all",
+  status: "open",
   author: null,
   labels: [],
   draft: "all",

@@ -247,7 +247,7 @@ describe("parseFiltersFromSearch", () => {
 
   it("ignores invalid values and uses defaults", () => {
     const result = parseFiltersFromSearch({ status: "invalid", sortBy: "nope" })
-    expect(result.status).toBe("all")
+    expect(result.status).toBe("open")
     expect(result.sortBy).toBe("updated")
   })
 })
@@ -260,8 +260,8 @@ describe("filtersToSearchParams", () => {
   })
 
   it("only includes non-default values", () => {
-    const params = filtersToSearchParams({ ...DEFAULT_PR_FILTERS, status: "open" })
-    expect(params).toEqual({ status: "open" })
+    const params = filtersToSearchParams({ ...DEFAULT_PR_FILTERS, status: "all" })
+    expect(params).toEqual({ status: "all" })
   })
 })
 
@@ -273,7 +273,7 @@ describe("hasActiveFilters", () => {
   })
 
   it("returns true when status is changed", () => {
-    expect(hasActiveFilters({ ...DEFAULT_PR_FILTERS, status: "open" })).toBe(true)
+    expect(hasActiveFilters({ ...DEFAULT_PR_FILTERS, status: "all" })).toBe(true)
   })
 
   it("returns true when labels are set", () => {
