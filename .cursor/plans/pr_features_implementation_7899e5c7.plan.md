@@ -37,7 +37,7 @@ todos:
     status: completed
   - id: phase-4-1
     content: "Phase 4.1: Edit PR Title/Description - API route, PRHeader component with inline editing, tests"
-    status: pending
+    status: completed
   - id: phase-4-2
     content: "Phase 4.2: Assign Reviewers - API route, ReviewerPicker component with multi-select, tests"
     status: pending

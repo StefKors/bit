@@ -1,13 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useRef, useState, useSyncExternalStore } from "react"
 import { useMutation } from "@tanstack/react-query"
-import {
-  GitPullRequestIcon,
-  GitMergeIcon,
-  HistoryIcon,
-  FileIcon,
-  GitCommitIcon,
-} from "@primer/octicons-react"
+import { GitPullRequestIcon, HistoryIcon, FileIcon, GitCommitIcon } from "@primer/octicons-react"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Tabs } from "@/components/Tabs"
 import { PRActivityFeed } from "@/features/pr/PRActivityFeed"
@@ -15,6 +9,7 @@ import { PRActionsBar } from "@/features/pr/PRActionsBar"
 import { PRFilesTab } from "@/features/pr/PRFilesTab"
 import { PRCommitsTab } from "@/features/pr/PRCommitsTab"
 import { PRThreeColumnLayout } from "@/features/pr/PRThreeColumnLayout"
+import { PRHeader } from "@/features/pr/PRHeader"
 import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
@@ -181,9 +176,13 @@ function PRDetailPage() {
   }
 
   const isMerged = pr.merged
-  const isClosed = pr.state === "closed"
   const isOpen = pr.state === "open"
   const isDraft = pr.draft
+  const prTitle = typeof pr.title === "string" ? pr.title : ""
+  const prBody = typeof pr.body === "string" ? pr.body : null
+  const prState = pr.state === "closed" ? "closed" : "open"
+  const prDraft = Boolean(pr.draft)
+  const prMerged = Boolean(pr.merged)
 
   const prFiles = pr.prFiles ?? []
   const prReviews = pr.prReviews ?? []
@@ -270,59 +269,26 @@ function PRDetailPage() {
       ) : (
         <>
           <div className={styles.headerContainer}>
-            <header className={styles.header}>
-              <div className={styles.titleRow}>
-                {isMerged ? (
-                  <GitMergeIcon className={`${styles.prIcon} ${styles.prIconMerged}`} size={24} />
-                ) : (
-                  <GitPullRequestIcon
-                    className={`${styles.prIcon} ${isClosed ? styles.prIconClosed : styles.prIconOpen}`}
-                    size={24}
-                  />
-                )}
-                <h1 className={styles.title}>
-                  {pr.title}
-                  <span className={styles.prNumber}> #{pr.number}</span>
-                  {isDraft ? (
-                    <span className={`${styles.statusBadge} ${styles.statusDraft}`}>Draft</span>
-                  ) : isMerged ? (
-                    <span className={`${styles.statusBadge} ${styles.statusMerged}`}>Merged</span>
-                  ) : isClosed ? (
-                    <span className={`${styles.statusBadge} ${styles.statusClosed}`}>Closed</span>
-                  ) : (
-                    <span className={`${styles.statusBadge} ${styles.statusOpen}`}>Open</span>
-                  )}
-                </h1>
-              </div>
-
-              <div className={styles.meta}>
-                {pr.authorLogin && (
-                  <span className={styles.metaItem}>
-                    {pr.authorAvatarUrl && (
-                      <img
-                        src={pr.authorAvatarUrl}
-                        alt={pr.authorLogin}
-                        className={styles.authorAvatar}
-                      />
-                    )}
-                    <strong>{pr.authorLogin}</strong>
-                  </span>
-                )}
-                <span className={styles.metaItem}>
-                  wants to merge into
-                  <span className={styles.branchInfo}>{pr.baseRef}</span>
-                  from
-                  <span className={styles.branchInfo}>{pr.headRef}</span>
-                </span>
-                <span className={styles.metaItem}>
-                  {isOpen
-                    ? `opened ${formatTimeAgo(pr.githubCreatedAt)}`
-                    : isMerged
-                      ? `merged ${formatTimeAgo(pr.mergedAt)}`
-                      : `closed ${formatTimeAgo(pr.closedAt)}`}
-                </span>
-              </div>
-            </header>
+            <PRHeader
+              userId={user?.id}
+              owner={owner}
+              repo={repoName}
+              prNumber={prNumber}
+              title={prTitle}
+              body={prBody}
+              state={prState}
+              draft={prDraft}
+              merged={prMerged}
+              authorLogin={pr.authorLogin}
+              authorAvatarUrl={pr.authorAvatarUrl}
+              baseRef={pr.baseRef}
+              headRef={pr.headRef}
+              githubCreatedAt={pr.githubCreatedAt}
+              mergedAt={pr.mergedAt}
+              closedAt={pr.closedAt}
+              onUpdated={() => prSync.mutate()}
+              formatTimeAgo={formatTimeAgo}
+            />
           </div>
 
           {user?.id && (

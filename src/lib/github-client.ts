@@ -896,6 +896,49 @@ export class GitHubClient {
   }
 
   // Update pull request state (open/closed)
+  async updatePullRequest(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    options: {
+      title?: string
+      body?: string
+      state?: "open" | "closed"
+    },
+  ): Promise<{
+    number: number
+    title: string
+    body: string | null
+    state: "open" | "closed"
+    draft: boolean
+    githubUpdatedAt: number | null
+  }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.pulls.update({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        title: options.title,
+        body: options.body,
+        state: options.state,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      number: response.data.number,
+      title: response.data.title,
+      body: response.data.body ?? null,
+      state: response.data.state,
+      draft: response.data.draft || false,
+      githubUpdatedAt: response.data.updated_at
+        ? new Date(response.data.updated_at).getTime()
+        : null,
+    }
+  }
+
+  // Update pull request state (open/closed)
   async updatePullRequestState(
     owner: string,
     repo: string,

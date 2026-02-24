@@ -244,6 +244,41 @@ export const updatePRStateMutation = (
     },
   })
 
+export interface UpdatePRResponse {
+  number: number
+  title: string
+  body: string | null
+  state: "open" | "closed"
+  draft: boolean
+  githubUpdatedAt: number | null
+  error?: string
+  code?: string
+}
+
+export const updatePRMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "update", owner, repo, number],
+    mutationFn: async (vars: { title?: string; body?: string }): Promise<UpdatePRResponse> => {
+      const res = await fetch(`/api/github/pr/update/${owner}/${repo}/${number}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as UpdatePRResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to update pull request")
+      }
+      return data
+    },
+  })
+
 type DeleteBranchResponse = {
   deleted: boolean
   error?: string

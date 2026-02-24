@@ -1,0 +1,169 @@
+.header {
+  margin-bottom: 1.25rem;
+}
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.85rem;
+  background: rgba(var(--bit-rgb-accent-red), 0.12);
+  border: 1px solid rgba(var(--bit-rgb-accent-red), 0.32);
+  border-radius: var(--bit-radius-md);
+  color: var(--bit-color-accent-red);
+  margin-bottom: 0.85rem;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.prIcon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.prIconOpen {
+  color: var(--bit-color-accent-green-bright);
+}
+
+.prIconClosed {
+  color: var(--bit-color-accent-red);
+}
+
+.prIconDraft {
+  color: var(--bit-color-muted);
+}
+
+.prIconMerged {
+  color: var(--bit-color-accent-purple);
+}
+
+.titleSection {
+  flex: 1;
+  min-width: 0;
+}
+
+.titleLine {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--bit-color-heading);
+  line-height: 1.3;
+}
+
+.prNumber {
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  font-weight: 400;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--bit-radius-xl);
+  padding: 0.2rem 0.6rem;
+  margin-left: 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.statusOpen {
+  background: rgba(var(--bit-rgb-accent-green-bright), 0.15);
+  color: var(--bit-color-accent-green-bright);
+}
+
+.statusClosed {
+  background: rgba(var(--bit-rgb-accent-red), 0.15);
+  color: var(--bit-color-accent-red);
+}
+
+.statusMerged {
+  background: rgba(var(--bit-rgb-accent-purple), 0.15);
+  color: var(--bit-color-accent-purple);
+}
+
+.statusDraft {
+  background: rgba(var(--bit-rgb-muted), 0.15);
+  color: var(--bit-color-muted);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 0.6rem;
+  color: rgba(var(--bit-rgb-fg), 0.62);
+  font-size: 0.9rem;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.authorAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.branchInfo {
+  font-family: var(--bit-font-mono);
+  font-size: 0.84rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--bit-radius-sm);
+  background: rgba(var(--bit-rgb-fg), 0.08);
+}
+
+.description {
+  margin-top: 0.85rem;
+  padding: 1rem;
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  border-radius: var(--bit-radius-md);
+  background: var(--bit-color-panel-bg);
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.titleInput,
+.bodyInput {
+  width: 100%;
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.18);
+  border-radius: var(--bit-radius-md);
+  padding: 0.6rem 0.7rem;
+  font: inherit;
+  color: var(--bit-color-fg);
+  background: var(--bit-color-panel-bg);
+}
+
+.titleInput:focus,
+.bodyInput:focus {
+  outline: 2px solid rgba(var(--bit-rgb-accent-blue), 0.35);
+  border-color: rgba(var(--bit-rgb-accent-blue), 0.45);
+}
+
+.bodyInput {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.editActions {
+  display: flex;
+  gap: 0.5rem;
+}

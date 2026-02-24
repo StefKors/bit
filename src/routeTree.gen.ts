@@ -48,6 +48,7 @@ import { Route as ApiGithubFileOwnerRepoSplatRouteImport } from './routes/api/gi
 import { Route as ApiGithubCommentsOwnerRepoNumberRouteImport } from './routes/api/github/comments.$owner.$repo.$number'
 import { Route as ApiGithubSyncOwnerRepoPullNumberRouteImport } from './routes/api/github/sync/$owner.$repo.pull.$number'
 import { Route as ApiGithubSyncOwnerRepoIssueNumberRouteImport } from './routes/api/github/sync/$owner.$repo.issue.$number'
+import { Route as ApiGithubPrUpdateOwnerRepoNumberRouteImport } from './routes/api/github/pr.update.$owner.$repo.$number'
 import { Route as ApiGithubPrStateOwnerRepoNumberRouteImport } from './routes/api/github/pr.state.$owner.$repo.$number'
 import { Route as ApiGithubPrMergeOwnerRepoNumberRouteImport } from './routes/api/github/pr.merge.$owner.$repo.$number'
 
@@ -261,6 +262,12 @@ const ApiGithubSyncOwnerRepoIssueNumberRoute =
     path: '/issue/$number',
     getParentRoute: () => ApiGithubSyncOwnerRepoRoute,
   } as any)
+const ApiGithubPrUpdateOwnerRepoNumberRoute =
+  ApiGithubPrUpdateOwnerRepoNumberRouteImport.update({
+    id: '/api/github/pr/update/$owner/$repo/$number',
+    path: '/api/github/pr/update/$owner/$repo/$number',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiGithubPrStateOwnerRepoNumberRoute =
   ApiGithubPrStateOwnerRepoNumberRouteImport.update({
     id: '/api/github/pr/state/$owner/$repo/$number',
@@ -314,6 +321,7 @@ export interface FileRoutesByFullPath {
   '/api/github/viewed/$owner/$repo/$number': typeof ApiGithubViewedOwnerRepoNumberRoute
   '/api/github/pr/merge/$owner/$repo/$number': typeof ApiGithubPrMergeOwnerRepoNumberRoute
   '/api/github/pr/state/$owner/$repo/$number': typeof ApiGithubPrStateOwnerRepoNumberRoute
+  '/api/github/pr/update/$owner/$repo/$number': typeof ApiGithubPrUpdateOwnerRepoNumberRoute
   '/api/github/sync/$owner/$repo/issue/$number': typeof ApiGithubSyncOwnerRepoIssueNumberRoute
   '/api/github/sync/$owner/$repo/pull/$number': typeof ApiGithubSyncOwnerRepoPullNumberRoute
 }
@@ -357,6 +365,7 @@ export interface FileRoutesByTo {
   '/api/github/viewed/$owner/$repo/$number': typeof ApiGithubViewedOwnerRepoNumberRoute
   '/api/github/pr/merge/$owner/$repo/$number': typeof ApiGithubPrMergeOwnerRepoNumberRoute
   '/api/github/pr/state/$owner/$repo/$number': typeof ApiGithubPrStateOwnerRepoNumberRoute
+  '/api/github/pr/update/$owner/$repo/$number': typeof ApiGithubPrUpdateOwnerRepoNumberRoute
   '/api/github/sync/$owner/$repo/issue/$number': typeof ApiGithubSyncOwnerRepoIssueNumberRoute
   '/api/github/sync/$owner/$repo/pull/$number': typeof ApiGithubSyncOwnerRepoPullNumberRoute
 }
@@ -401,6 +410,7 @@ export interface FileRoutesById {
   '/api/github/viewed/$owner/$repo/$number': typeof ApiGithubViewedOwnerRepoNumberRoute
   '/api/github/pr/merge/$owner/$repo/$number': typeof ApiGithubPrMergeOwnerRepoNumberRoute
   '/api/github/pr/state/$owner/$repo/$number': typeof ApiGithubPrStateOwnerRepoNumberRoute
+  '/api/github/pr/update/$owner/$repo/$number': typeof ApiGithubPrUpdateOwnerRepoNumberRoute
   '/api/github/sync/$owner/$repo/issue/$number': typeof ApiGithubSyncOwnerRepoIssueNumberRoute
   '/api/github/sync/$owner/$repo/pull/$number': typeof ApiGithubSyncOwnerRepoPullNumberRoute
 }
@@ -446,6 +456,7 @@ export interface FileRouteTypes {
     | '/api/github/viewed/$owner/$repo/$number'
     | '/api/github/pr/merge/$owner/$repo/$number'
     | '/api/github/pr/state/$owner/$repo/$number'
+    | '/api/github/pr/update/$owner/$repo/$number'
     | '/api/github/sync/$owner/$repo/issue/$number'
     | '/api/github/sync/$owner/$repo/pull/$number'
   fileRoutesByTo: FileRoutesByTo
@@ -489,6 +500,7 @@ export interface FileRouteTypes {
     | '/api/github/viewed/$owner/$repo/$number'
     | '/api/github/pr/merge/$owner/$repo/$number'
     | '/api/github/pr/state/$owner/$repo/$number'
+    | '/api/github/pr/update/$owner/$repo/$number'
     | '/api/github/sync/$owner/$repo/issue/$number'
     | '/api/github/sync/$owner/$repo/pull/$number'
   id:
@@ -532,6 +544,7 @@ export interface FileRouteTypes {
     | '/api/github/viewed/$owner/$repo/$number'
     | '/api/github/pr/merge/$owner/$repo/$number'
     | '/api/github/pr/state/$owner/$repo/$number'
+    | '/api/github/pr/update/$owner/$repo/$number'
     | '/api/github/sync/$owner/$repo/issue/$number'
     | '/api/github/sync/$owner/$repo/pull/$number'
   fileRoutesById: FileRoutesById
@@ -573,6 +586,7 @@ export interface RootRouteChildren {
   ApiGithubViewedOwnerRepoNumberRoute: typeof ApiGithubViewedOwnerRepoNumberRoute
   ApiGithubPrMergeOwnerRepoNumberRoute: typeof ApiGithubPrMergeOwnerRepoNumberRoute
   ApiGithubPrStateOwnerRepoNumberRoute: typeof ApiGithubPrStateOwnerRepoNumberRoute
+  ApiGithubPrUpdateOwnerRepoNumberRoute: typeof ApiGithubPrUpdateOwnerRepoNumberRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -850,6 +864,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubSyncOwnerRepoIssueNumberRouteImport
       parentRoute: typeof ApiGithubSyncOwnerRepoRoute
     }
+    '/api/github/pr/update/$owner/$repo/$number': {
+      id: '/api/github/pr/update/$owner/$repo/$number'
+      path: '/api/github/pr/update/$owner/$repo/$number'
+      fullPath: '/api/github/pr/update/$owner/$repo/$number'
+      preLoaderRoute: typeof ApiGithubPrUpdateOwnerRepoNumberRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/github/pr/state/$owner/$repo/$number': {
       id: '/api/github/pr/state/$owner/$repo/$number'
       path: '/api/github/pr/state/$owner/$repo/$number'
@@ -940,6 +961,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGithubViewedOwnerRepoNumberRoute: ApiGithubViewedOwnerRepoNumberRoute,
   ApiGithubPrMergeOwnerRepoNumberRoute: ApiGithubPrMergeOwnerRepoNumberRoute,
   ApiGithubPrStateOwnerRepoNumberRoute: ApiGithubPrStateOwnerRepoNumberRoute,
+  ApiGithubPrUpdateOwnerRepoNumberRoute: ApiGithubPrUpdateOwnerRepoNumberRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
