@@ -191,11 +191,41 @@ function OverviewPage() {
 
   const handleConnectGitHub = () => {
     if (!user?.id) return
-    const params = new URLSearchParams({ userId: user.id })
-    if (isGitHubConnected) {
-      params.set("reconnect", "1")
+    setError(null)
+
+    const connectUrl = `/api/github/oauth?${new URLSearchParams({ userId: user.id }).toString()}`
+    if (!isGitHubConnected) {
+      window.location.href = connectUrl
+      return
     }
-    window.location.href = `/api/github/oauth?${params.toString()}`
+
+    void (async () => {
+      try {
+        const response = await fetch("/api/github/oauth", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.id}`,
+          },
+          body: JSON.stringify({ userId: user.id }),
+        })
+
+        if (!response.ok) {
+          let errorMessage = "Failed to prepare GitHub reconnect"
+          try {
+            const payload = (await response.json()) as { error?: string }
+            errorMessage = payload.error || errorMessage
+          } catch {
+            errorMessage = `Reconnect request failed (${response.status})`
+          }
+          throw new Error(errorMessage)
+        }
+
+        window.location.href = connectUrl
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to prepare GitHub reconnect")
+      }
+    })()
   }
 
   if (!user) {

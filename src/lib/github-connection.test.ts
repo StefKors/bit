@@ -84,6 +84,14 @@ describe("github-connection", () => {
       expect(mockFetch).not.toHaveBeenCalled()
     })
 
+    it("returns db_error when token lookup query fails", async () => {
+      vi.mocked(adminDb.query).mockRejectedValue(new Error("database unavailable"))
+
+      const result = await revokeGitHubGrantForUser("user-1")
+      expect(result).toEqual({ attempted: true, revoked: false, reason: "db_error" })
+      expect(mockFetch).not.toHaveBeenCalled()
+    })
+
     it("revokes the latest saved token", async () => {
       vi.mocked(adminDb.query).mockResolvedValue({
         syncStates: [

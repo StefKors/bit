@@ -41,18 +41,29 @@ export const revokeGitHubGrantForUser = async (userId: string): Promise<RevokeGr
     return { attempted: false, revoked: false, reason: "oauth_not_configured" }
   }
 
-  const { syncStates } = await adminDb.query({
-    syncStates: {
-      $: {
-        where: {
-          resourceType: "github:token",
-          userId,
+  let accessToken: string | null = null
+  try {
+    const { syncStates } = await adminDb.query({
+      syncStates: {
+        $: {
+          where: {
+            resourceType: "github:token",
+            userId,
+          },
         },
       },
-    },
-  })
+    })
 
-  const accessToken = getLatestAccessToken(syncStates ?? [])
+    const tokenStates = syncStates ?? []
+    if (!Array.isArray(tokenStates)) {
+      throw new Error("adminDb.query returned non-array syncStates")
+    }
+    accessToken = getLatestAccessToken(tokenStates)
+  } catch (error) {
+    log.error("Skipping GitHub grant revocation due to database error", error, { userId })
+    return { attempted: true, revoked: false, reason: "db_error" }
+  }
+
   if (!accessToken) {
     return { attempted: false, revoked: false, reason: "no_token" }
   }
