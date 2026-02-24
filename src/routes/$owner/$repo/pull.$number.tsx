@@ -10,6 +10,7 @@ import { PRFilesTab } from "@/features/pr/PRFilesTab"
 import { PRCommitsTab } from "@/features/pr/PRCommitsTab"
 import { PRThreeColumnLayout } from "@/features/pr/PRThreeColumnLayout"
 import { PRHeader } from "@/features/pr/PRHeader"
+import { LabelPicker } from "@/features/pr/LabelPicker"
 import { ReviewerPicker } from "@/features/pr/ReviewerPicker"
 import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
 import { db } from "@/lib/instantDb"
@@ -61,6 +62,30 @@ const parseStringArray = (value: string | null | undefined): string[] => {
     const parsed = JSON.parse(value) as Array<string | number | boolean | null>
     if (!Array.isArray(parsed)) return []
     return parsed.filter((entry): entry is string => typeof entry === "string")
+  } catch {
+    return []
+  }
+}
+
+const parseLabelArray = (
+  value: string | null | undefined,
+): Array<{ name: string; color: string | null }> => {
+  if (!value) return []
+  try {
+    const parsed = JSON.parse(value) as Array<{
+      name?: string | number | boolean | null
+      color?: string | number | boolean | null
+    }>
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .filter(
+        (entry): entry is { name: string; color?: string | number | boolean | null } =>
+          typeof entry === "object" && entry !== null && typeof entry.name === "string",
+      )
+      .map((entry) => ({
+        name: entry.name,
+        color: typeof entry.color === "string" ? entry.color : null,
+      }))
   } catch {
     return []
   }
@@ -202,6 +227,7 @@ function PRDetailPage() {
   const prCommits = pr.prCommits ?? []
   const prEvents = pr.prEvents ?? []
   const prReviewers = parseStringArray(pr.reviewers ?? pr.reviewRequestedBy)
+  const prLabels = parseLabelArray(pr.labels)
 
   return (
     <div className={containerClassName}>
@@ -330,6 +356,14 @@ function PRDetailPage() {
                 repo={repoName}
                 prNumber={prNumber}
                 reviewers={prReviewers}
+                onUpdated={() => prSync.mutate()}
+              />
+              <LabelPicker
+                userId={user.id}
+                owner={owner}
+                repo={repoName}
+                prNumber={prNumber}
+                labels={prLabels}
                 onUpdated={() => prSync.mutate()}
               />
             </div>

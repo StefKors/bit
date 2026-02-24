@@ -345,6 +345,84 @@ export const removeReviewersMutation = (
     },
   })
 
+type LabelsResponse = {
+  labels: Array<{ name: string; color: string | null }>
+  error?: string
+  code?: string
+}
+
+export const addLabelsMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "labels", "add", owner, repo, number],
+    mutationFn: async (vars: { labels: string[] }): Promise<LabelsResponse> => {
+      const res = await fetch(`/api/github/pr/labels/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as LabelsResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to add labels")
+      }
+      return data
+    },
+  })
+
+export const removeLabelMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "labels", "remove", owner, repo, number],
+    mutationFn: async (vars: { label: string }): Promise<LabelsResponse> => {
+      const res = await fetch(`/api/github/pr/labels/${owner}/${repo}/${number}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as LabelsResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to remove label")
+      }
+      return data
+    },
+  })
+
+export const setLabelsMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "labels", "set", owner, repo, number],
+    mutationFn: async (vars: { labels: string[] }): Promise<LabelsResponse> => {
+      const res = await fetch(`/api/github/pr/labels/${owner}/${repo}/${number}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as LabelsResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to replace labels")
+      }
+      return data
+    },
+  })
+
 type DeleteBranchResponse = {
   deleted: boolean
   error?: string

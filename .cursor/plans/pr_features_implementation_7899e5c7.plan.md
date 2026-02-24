@@ -43,7 +43,7 @@ todos:
     status: completed
   - id: phase-4-3
     content: "Phase 4.3: Add/Remove Labels - API route with POST/DELETE/PUT, LabelPicker component, tests"
-    status: pending
+    status: completed
   - id: phase-4-4
     content: "Phase 4.4: Mark Draft/Ready - API route, mutation, button in PRActionsBar, tests"
     status: pending

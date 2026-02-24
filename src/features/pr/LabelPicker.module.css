@@ -1,0 +1,81 @@
+.container {
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-md);
+  background: var(--bit-color-panel-bg);
+  padding: 0.75rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--bit-color-heading);
+}
+
+.labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-height: 1.8rem;
+}
+
+.labelChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: var(--bit-radius-xl);
+  padding: 0.18rem 0.45rem;
+  background: rgba(var(--bit-rgb-fg), 0.08);
+  color: var(--bit-color-fg);
+  font-size: 0.8rem;
+}
+
+.removeChip {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  font-size: 0.95rem;
+}
+
+.empty {
+  font-size: 0.82rem;
+  color: rgba(var(--bit-rgb-fg), 0.52);
+}
+
+.controls {
+  margin-top: 0.65rem;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.18);
+  border-radius: var(--bit-radius-sm);
+  padding: 0.4rem 0.5rem;
+  font-size: 0.84rem;
+  color: var(--bit-color-fg);
+  background: var(--bit-color-panel-bg);
+}
+
+.input:focus {
+  outline: 2px solid rgba(var(--bit-rgb-accent-blue), 0.3);
+  border-color: rgba(var(--bit-rgb-accent-blue), 0.45);
+}
+
+.error {
+  margin: 0.55rem 0 0;
+  color: var(--bit-color-accent-red);
+  font-size: 0.8rem;
+}

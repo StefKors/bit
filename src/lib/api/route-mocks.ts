@@ -98,6 +98,15 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
       requestedReviewers: [],
       requestedTeams: [],
     }),
+    addLabels: vi.fn().mockResolvedValue({
+      labels: [{ name: "bug", color: "d73a4a" }],
+    }),
+    removeLabel: vi.fn().mockResolvedValue({
+      labels: [],
+    }),
+    setLabels: vi.fn().mockResolvedValue({
+      labels: [],
+    }),
     createReviewComment: vi.fn().mockResolvedValue({
       id: 1,
       body: "Inline comment",

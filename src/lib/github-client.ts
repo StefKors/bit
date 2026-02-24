@@ -1353,6 +1353,81 @@ export class GitHubClient {
     }
   }
 
+  async addLabels(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    labels: string[],
+  ): Promise<{ labels: Array<{ name: string; color: string | null }> }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.issues.addLabels({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        labels,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      labels: response.data.map((label) => ({
+        name: label.name,
+        color: label.color ?? null,
+      })),
+    }
+  }
+
+  async removeLabel(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    label: string,
+  ): Promise<{ labels: Array<{ name: string; color: string | null }> }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.issues.removeLabel({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        name: label,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      labels: response.data.map((nextLabel) => ({
+        name: nextLabel.name,
+        color: nextLabel.color ?? null,
+      })),
+    }
+  }
+
+  async setLabels(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    labels: string[],
+  ): Promise<{ labels: Array<{ name: string; color: string | null }> }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.issues.setLabels({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        labels,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      labels: response.data.map((label) => ({
+        name: label.name,
+        color: label.color ?? null,
+      })),
+    }
+  }
+
   // Merge a pull request
   async mergePullRequest(
     owner: string,
