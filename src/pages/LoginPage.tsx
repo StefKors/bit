@@ -1,6 +1,7 @@
 import { useState, useRef } from "react"
 import { SignOutIcon, MailIcon, ArrowLeftIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
+import { useAuth } from "@/lib/hooks/useAuth"
 import { Button } from "@/components/Button"
 import { Avatar } from "@/components/Avatar"
 import styles from "./LoginPage.module.css"
@@ -8,7 +9,7 @@ import styles from "./LoginPage.module.css"
 type AuthStep = "email" | "code" | "authenticated"
 
 function LoginPage() {
-  const { isLoading, user, error } = db.useAuth()
+  const { isLoading, user, error, signOut } = useAuth()
   const [step, setStep] = useState<AuthStep>("email")
   const [email, setEmail] = useState("")
   const [code, setCode] = useState("")
@@ -61,7 +62,7 @@ function LoginPage() {
   }
 
   const handleSignOut = () => {
-    void db.auth.signOut()
+    void signOut()
     setStep("email")
     setEmail("")
     setCode("")
@@ -105,12 +106,7 @@ function LoginPage() {
       <div className={styles.container}>
         <div className={styles.card}>
           <div className={styles.header}>
-            <Avatar
-              src={(user as { avatarUrl?: string }).avatarUrl}
-              name={user.email}
-              size={80}
-              isOnline
-            />
+            <Avatar src={user?.avatarUrl} name={user.email} size={80} isOnline />
             <h1 className={styles.title}>Welcome back</h1>
             <p className={styles.subtitle}>{user.email}</p>
           </div>
@@ -120,10 +116,10 @@ function LoginPage() {
               <span className={styles.infoLabel}>Email</span>
               <span className={styles.infoValue}>{user.email}</span>
             </div>
-            {(user as { login?: string }).login && (
+            {user?.login && (
               <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>GitHub</span>
-                <span className={styles.infoValue}>@{(user as { login?: string }).login}</span>
+                <span className={styles.infoValue}>@{user.login}</span>
               </div>
             )}
             <div className={styles.infoRow}>

@@ -10,6 +10,7 @@ import {
   LockIcon,
 } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
+import { useAuth } from "@/lib/hooks/useAuth"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoFiltersBar } from "@/features/repo/RepoFiltersBar"
 import {
@@ -45,7 +46,7 @@ const languageColors: Record<string, string> = {
 
 const OwnerPage = () => {
   const params: { owner?: string } = Route.useParams()
-  const { user } = db.useAuth()
+  const { user } = useAuth()
   const [filters, setFilters] = useState<RepoFilters>(DEFAULT_REPO_FILTERS)
 
   const owner = params?.owner ?? ""
@@ -73,11 +74,7 @@ const OwnerPage = () => {
   const totalForks = repos.reduce((acc, repo) => acc + (repo.forksCount ?? 0), 0)
 
   // Get avatar and display name — fall back to GitHub's predictable avatar URL (matches profile page)
-  const avatarUrl = isOrg
-    ? org?.avatarUrl
-    : isCurrentUser
-      ? resolveUserAvatarUrl(user as { avatarUrl?: string; login?: string; email?: string })
-      : null
+  const avatarUrl = isOrg ? org?.avatarUrl : isCurrentUser ? resolveUserAvatarUrl(user) : null
   const resolvedAvatarUrl = avatarUrl || `https://github.com/${owner}.png?size=128`
   const displayName = isOrg ? org?.name || owner : isCurrentUser ? user?.email : owner
   const description = isOrg ? org?.description : null

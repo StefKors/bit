@@ -1,5 +1,5 @@
 import { SignOutIcon } from "@primer/octicons-react"
-import { db } from "@/lib/instantDb"
+import { useAuth } from "@/lib/hooks/useAuth"
 import { Button } from "@/components/Button"
 import styles from "./HomePage.module.css"
 import { Avatar } from "@/components/Avatar"
@@ -9,10 +9,10 @@ interface HomePageProps {
 }
 
 export function HomePage({ onLogout }: HomePageProps) {
-  const { user } = db.useAuth()
+  const { user, signOut } = useAuth()
 
   const handleSignOut = async () => {
-    await db.auth.signOut()
+    await signOut()
     onLogout()
   }
 

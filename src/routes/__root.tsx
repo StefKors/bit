@@ -4,7 +4,7 @@ import { createRootRoute, Outlet, HeadContent, Scripts } from "@tanstack/react-r
 import { Layout } from "@/layout"
 import { LoadingCube } from "@/components/LoadingCube"
 import LoginPage from "@/pages/LoginPage"
-import { db } from "@/lib/instantDb"
+import { useAuth } from "@/lib/hooks/useAuth"
 import "@/theme.css"
 import "@/index.css"
 import { isDev } from "@/lib/utils/isDevelopment"
@@ -65,7 +65,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 }
 
 function AppContent() {
-  const { isLoading, user, error } = db.useAuth()
+  const { isLoading, user, error } = useAuth()
 
   if (isLoading) {
     return (
