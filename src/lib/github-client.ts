@@ -541,6 +541,8 @@ export class GitHubClient {
       state: pr.state,
       draft: pr.draft || false,
       merged: pr.merged_at !== null,
+      locked: pr.locked || false,
+      lockReason: pr.active_lock_reason || undefined,
       authorLogin: pr.user?.login || undefined,
       authorAvatarUrl: pr.user?.avatar_url || undefined,
       headRef: pr.head.ref,
@@ -662,6 +664,8 @@ export class GitHubClient {
           state: prData.state,
           draft: prData.draft || false,
           merged: prData.merged,
+          locked: prData.locked || false,
+          lockReason: prData.active_lock_reason || undefined,
           mergeable: prData.mergeable ?? undefined,
           mergeableState: prData.mergeable_state || undefined,
           authorLogin: prData.user?.login || undefined,
@@ -1471,6 +1475,52 @@ export class GitHubClient {
         name: label.name,
         color: label.color ?? null,
       })),
+    }
+  }
+
+  async lockIssue(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    options: { lockReason?: "off-topic" | "too heated" | "resolved" | "spam" } = {},
+  ): Promise<{ locked: boolean; lockReason: string | null }> {
+    await withRateLimitRetry(() =>
+      this.octokit.rest.issues.lock({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        lock_reason: options.lockReason,
+      }),
+    )
+
+    const rateLimit = await this.getRateLimit()
+    this.lastRateLimit = rateLimit
+
+    return {
+      locked: true,
+      lockReason: options.lockReason ?? null,
+    }
+  }
+
+  async unlockIssue(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+  ): Promise<{ locked: boolean; lockReason: string | null }> {
+    await withRateLimitRetry(() =>
+      this.octokit.rest.issues.unlock({
+        owner,
+        repo,
+        issue_number: issueNumber,
+      }),
+    )
+
+    const rateLimit = await this.getRateLimit()
+    this.lastRateLimit = rateLimit
+
+    return {
+      locked: false,
+      lockReason: null,
     }
   }
 

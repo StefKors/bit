@@ -119,6 +119,8 @@ export const schema = i.schema({
       reviewRequestedBy: i.string().optional(),
       // Requested reviewers (JSON array of user logins and team slugs prefixed with "team:")
       reviewers: i.string().optional(),
+      locked: i.boolean().optional(),
+      lockReason: i.string().optional(),
       viewedFiles: i.string().optional(),
       // Denormalized IDs for efficient filtering (also has repo/user links)
       repoId: i.string().indexed(),

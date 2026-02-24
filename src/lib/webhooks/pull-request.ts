@@ -98,6 +98,8 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
       state: pr.state,
       draft: pr.draft || false,
       merged: pr.merged || false,
+      locked: pr.locked || false,
+      lockReason: pr.active_lock_reason || null,
       mergeable: pr.mergeable ?? null,
       mergeableState: pr.mergeable_state || null,
       authorLogin: pr.user?.login || null,

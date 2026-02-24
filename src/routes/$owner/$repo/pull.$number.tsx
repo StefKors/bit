@@ -339,6 +339,8 @@ function PRDetailPage() {
               isOpen={isOpen}
               isDraft={isDraft}
               isMerged={isMerged}
+              isLocked={Boolean(pr.locked)}
+              lockReason={typeof pr.lockReason === "string" ? pr.lockReason : null}
               mergeable={pr.mergeable}
               mergeableState={pr.mergeableState}
               headRef={pr.headRef ?? ""}

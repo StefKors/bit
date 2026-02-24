@@ -489,6 +489,61 @@ export const markReadyForReviewMutation = (
     },
   })
 
+type LockPRResponse = {
+  locked: boolean
+  lockReason: string | null
+  error?: string
+  code?: string
+}
+
+export const lockPRMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "lock", owner, repo, number],
+    mutationFn: async (vars: {
+      lockReason?: "off-topic" | "too heated" | "resolved" | "spam"
+    }): Promise<LockPRResponse> => {
+      const res = await fetch(`/api/github/pr/lock/${owner}/${repo}/${number}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as LockPRResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to lock conversation")
+      }
+      return data
+    },
+  })
+
+export const unlockPRMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "unlock", owner, repo, number],
+    mutationFn: async (): Promise<LockPRResponse> => {
+      const res = await fetch(`/api/github/pr/lock/${owner}/${repo}/${number}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${userId}`,
+        },
+      })
+      const data = (await res.json()) as LockPRResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to unlock conversation")
+      }
+      return data
+    },
+  })
+
 type DeleteBranchResponse = {
   deleted: boolean
   error?: string

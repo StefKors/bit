@@ -117,6 +117,14 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
     setLabels: vi.fn().mockResolvedValue({
       labels: [],
     }),
+    lockIssue: vi.fn().mockResolvedValue({
+      locked: true,
+      lockReason: "resolved",
+    }),
+    unlockIssue: vi.fn().mockResolvedValue({
+      locked: false,
+      lockReason: null,
+    }),
     createReviewComment: vi.fn().mockResolvedValue({
       id: 1,
       body: "Inline comment",
