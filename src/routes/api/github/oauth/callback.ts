@@ -11,6 +11,7 @@ import { log } from "@/lib/logger"
 
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET
+const GITHUB_APP_SLUG = process.env.GITHUB_APP_SLUG || "bit-backend"
 
 interface GitHubTokenResponse {
   access_token: string
@@ -69,16 +70,14 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
         }
 
         // Handle GitHub App installation callback (no code, has installation_id)
-        // This happens when user installs the app from GitHub directly
-        // We need to redirect them to complete OAuth authorization
+        // This happens after successful OAuth when we redirect users to app installation.
         if (installationId && !code) {
           log.info("GitHub App installed", { installationId, setupAction })
-          // Redirect to home with a message to complete setup
+          // Installation complete: route back as connected so UI can continue.
           return new Response(null, {
             status: 302,
             headers: {
-              Location:
-                "/?github=installed&message=App+installed!+Click+Connect+GitHub+to+complete+setup",
+              Location: "/?github=connected&message=GitHub+App+installed",
             },
           })
         }
@@ -266,11 +265,14 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
               log.error("Initial sync failed", err, { userId })
             })
 
-          // Redirect back to the app
+          // Redirect to GitHub App installation so users can choose org/repo access.
+          const installParams = new URLSearchParams({ state: userId })
+          const installationUrl = `https://github.com/apps/${GITHUB_APP_SLUG}/installations/new?${installParams.toString()}`
+
           return new Response(null, {
             status: 302,
             headers: {
-              Location: "/?github=connected",
+              Location: installationUrl,
             },
           })
         } catch (err) {

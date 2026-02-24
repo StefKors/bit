@@ -75,6 +75,7 @@ describe("GET /api/github/oauth/callback", () => {
   beforeEach(() => {
     vi.stubEnv("GITHUB_CLIENT_ID", "client-id")
     vi.stubEnv("GITHUB_CLIENT_SECRET", "client-secret")
+    vi.stubEnv("GITHUB_APP_SLUG", "bit-backend")
     vi.resetModules()
     mockFetch.mockReset()
     mockPerformInitialSync.mockReset().mockResolvedValue({ synced: true })
@@ -95,7 +96,7 @@ describe("GET /api/github/oauth/callback", () => {
     expect(res.headers.get("Location")).toContain("error=")
   })
 
-  it("redirects when installation_id present but no code", async () => {
+  it("redirects as connected when installation_id present but no code", async () => {
     const { Route } = await import("./callback")
     const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
@@ -106,7 +107,7 @@ describe("GET /api/github/oauth/callback", () => {
     const res = await handler({ request })
 
     expect(res.status).toBe(302)
-    expect(res.headers.get("Location")).toContain("github=installed")
+    expect(res.headers.get("Location")).toContain("github=connected")
   })
 
   it("redirects with error when code or state missing", async () => {
@@ -121,7 +122,7 @@ describe("GET /api/github/oauth/callback", () => {
     expect(res.headers.get("Location")).toContain("Missing+code+or+state")
   })
 
-  it("redirects to app with github=connected on success", async () => {
+  it("redirects to GitHub App installation on successful OAuth", async () => {
     const { Route } = await import("./callback")
     const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
@@ -132,7 +133,10 @@ describe("GET /api/github/oauth/callback", () => {
     const res = await handler({ request })
 
     expect(res.status).toBe(302)
-    expect(res.headers.get("Location")).toContain("github=connected")
+    expect(res.headers.get("Location")).toContain(
+      "https://github.com/apps/bit-backend/installations/new",
+    )
+    expect(res.headers.get("Location")).toContain("state=user-123")
     expect(mockPerformInitialSync).toHaveBeenCalledTimes(1)
   })
 
