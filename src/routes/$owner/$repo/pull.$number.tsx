@@ -335,6 +335,7 @@ function PRDetailPage() {
               isMerged={isMerged}
               mergeable={pr.mergeable}
               mergeableState={pr.mergeableState}
+              headRef={pr.headRef ?? ""}
               headSha={pr.headSha ?? ""}
               onMergeSuccess={() => prSync.mutate()}
               onStateChange={() => prSync.mutate()}

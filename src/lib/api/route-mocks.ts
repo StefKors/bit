@@ -50,6 +50,12 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
       state: "closed",
       merged: false,
     }),
+    deleteBranch: vi.fn().mockResolvedValue({ deleted: true }),
+    restoreBranch: vi.fn().mockResolvedValue({
+      restored: true,
+      ref: "refs/heads/feature/test",
+      sha: "abc123",
+    }),
     ...overrides,
   })
 

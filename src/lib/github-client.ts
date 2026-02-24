@@ -910,6 +910,47 @@ export class GitHubClient {
     }
   }
 
+  // Delete a branch from a repository.
+  async deleteBranch(owner: string, repo: string, branch: string): Promise<{ deleted: boolean }> {
+    await withRateLimitRetry(() =>
+      this.octokit.rest.git.deleteRef({
+        owner,
+        repo,
+        ref: `heads/${branch}`,
+      }),
+    )
+
+    const rateLimit = await this.getRateLimit()
+    this.lastRateLimit = rateLimit
+
+    return { deleted: true }
+  }
+
+  // Restore a previously deleted branch by recreating the ref at a commit SHA.
+  async restoreBranch(
+    owner: string,
+    repo: string,
+    branch: string,
+    sha: string,
+  ): Promise<{ restored: boolean; ref: string; sha: string }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.git.createRef({
+        owner,
+        repo,
+        ref: `refs/heads/${branch}`,
+        sha,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      restored: true,
+      ref: response.data.ref,
+      sha: response.data.object.sha,
+    }
+  }
+
   // Merge a pull request
   async mergePullRequest(
     owner: string,

@@ -2,7 +2,12 @@ import { useState } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { GitMergeIcon, AlertIcon, ChevronDownIcon } from "@primer/octicons-react"
 import { Button } from "@/components/Button"
-import { mergePRMutation, updatePRStateMutation } from "@/lib/mutations"
+import {
+  deleteBranchMutation,
+  mergePRMutation,
+  restoreBranchMutation,
+  updatePRStateMutation,
+} from "@/lib/mutations"
 import styles from "./PRActionsBar.module.css"
 
 type MergeMethod = "merge" | "squash" | "rebase"
@@ -17,6 +22,7 @@ interface PRActionsBarProps {
   isMerged: boolean
   mergeable?: boolean | null
   mergeableState?: string | null
+  headRef: string
   headSha: string
   onMergeSuccess?: () => void
   onStateChange?: (nextState: "open" | "closed") => void
@@ -32,6 +38,7 @@ export function PRActionsBar({
   isMerged,
   mergeable,
   mergeableState,
+  headRef,
   headSha,
   onMergeSuccess,
   onStateChange,
@@ -65,8 +72,71 @@ export function PRActionsBar({
   const isMerging = merge.isPending
   const isUpdatingState = updateState.isPending
 
+  const deleteBranch = useMutation({
+    ...deleteBranchMutation(userId, owner, repo),
+    onSuccess: () => {
+      setError(null)
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Failed to delete branch")
+    },
+  })
+
+  const restoreBranch = useMutation({
+    ...restoreBranchMutation(userId, owner, repo),
+    onSuccess: () => {
+      setError(null)
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Failed to restore branch")
+    },
+  })
+
   if (isMerged) {
-    return null
+    const isBranchActionPending = deleteBranch.isPending || restoreBranch.isPending
+    const canRestore = deleteBranch.isSuccess
+    const canDelete = headRef.length > 0
+    const canRestoreBranch = canRestore && headSha.length > 0
+
+    return (
+      <div className={styles.container}>
+        {error && (
+          <div className={styles.errorBanner}>
+            <AlertIcon size={16} />
+            <span>{error}</span>
+          </div>
+        )}
+        <div className={styles.mergeBar}>
+          <div className={styles.mergeActions}>
+            <Button
+              variant="danger"
+              loading={deleteBranch.isPending}
+              disabled={isBranchActionPending || !canDelete}
+              onClick={() => {
+                setError(null)
+                deleteBranch.mutate({ branch: headRef })
+              }}
+            >
+              {deleteBranch.isPending ? "Deleting..." : "Delete source branch"}
+            </Button>
+
+            {canRestore && (
+              <Button
+                variant="default"
+                loading={restoreBranch.isPending}
+                disabled={isBranchActionPending || !canRestoreBranch}
+                onClick={() => {
+                  setError(null)
+                  restoreBranch.mutate({ branch: headRef, sha: headSha })
+                }}
+              >
+                {restoreBranch.isPending ? "Restoring..." : "Restore branch"}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const handleStateToggle = () => {

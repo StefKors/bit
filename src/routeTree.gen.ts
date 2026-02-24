@@ -34,6 +34,7 @@ import { Route as OwnerRepoIssuesNumberRouteImport } from './routes/$owner/$repo
 import { Route as OwnerRepoCommitsBranchRouteImport } from './routes/$owner/$repo/commits.$branch'
 import { Route as ApiGithubSyncOwnerRepoRouteImport } from './routes/api/github/sync/$owner.$repo'
 import { Route as ApiGithubReadmeOwnerRepoRouteImport } from './routes/api/github/readme/$owner.$repo'
+import { Route as ApiGithubBranchOwnerRepoRouteImport } from './routes/api/github/branch.$owner.$repo'
 import { Route as OwnerRepoTreeBranchSplatRouteImport } from './routes/$owner/$repo/tree.$branch.$'
 import { Route as OwnerRepoBlobBranchSplatRouteImport } from './routes/$owner/$repo/blob.$branch.$'
 import { Route as ApiGithubSyncOwnerRepoTreeRouteImport } from './routes/api/github/sync/$owner.$repo.tree'
@@ -170,6 +171,12 @@ const ApiGithubReadmeOwnerRepoRoute =
     path: '/api/github/readme/$owner/$repo',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiGithubBranchOwnerRepoRoute =
+  ApiGithubBranchOwnerRepoRouteImport.update({
+    id: '/api/github/branch/$owner/$repo',
+    path: '/api/github/branch/$owner/$repo',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const OwnerRepoTreeBranchSplatRoute =
   OwnerRepoTreeBranchSplatRouteImport.update({
     id: '/$owner/$repo/tree/$branch/$',
@@ -251,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
   '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
   '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
+  '/api/github/branch/$owner/$repo': typeof ApiGithubBranchOwnerRepoRoute
   '/api/github/readme/$owner/$repo': typeof ApiGithubReadmeOwnerRepoRoute
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
   '/api/github/file/$owner/$repo/$': typeof ApiGithubFileOwnerRepoSplatRoute
@@ -287,6 +295,7 @@ export interface FileRoutesByTo {
   '/api/github/oauth': typeof ApiGithubOauthIndexRoute
   '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
   '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
+  '/api/github/branch/$owner/$repo': typeof ApiGithubBranchOwnerRepoRoute
   '/api/github/readme/$owner/$repo': typeof ApiGithubReadmeOwnerRepoRoute
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
   '/api/github/file/$owner/$repo/$': typeof ApiGithubFileOwnerRepoSplatRoute
@@ -324,6 +333,7 @@ export interface FileRoutesById {
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
   '/$owner/$repo/blob/$branch/$': typeof OwnerRepoBlobBranchSplatRoute
   '/$owner/$repo/tree/$branch/$': typeof OwnerRepoTreeBranchSplatRoute
+  '/api/github/branch/$owner/$repo': typeof ApiGithubBranchOwnerRepoRoute
   '/api/github/readme/$owner/$repo': typeof ApiGithubReadmeOwnerRepoRoute
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
   '/api/github/file/$owner/$repo/$': typeof ApiGithubFileOwnerRepoSplatRoute
@@ -362,6 +372,7 @@ export interface FileRouteTypes {
     | '/api/github/oauth/'
     | '/$owner/$repo/blob/$branch/$'
     | '/$owner/$repo/tree/$branch/$'
+    | '/api/github/branch/$owner/$repo'
     | '/api/github/readme/$owner/$repo'
     | '/api/github/sync/$owner/$repo'
     | '/api/github/file/$owner/$repo/$'
@@ -398,6 +409,7 @@ export interface FileRouteTypes {
     | '/api/github/oauth'
     | '/$owner/$repo/blob/$branch/$'
     | '/$owner/$repo/tree/$branch/$'
+    | '/api/github/branch/$owner/$repo'
     | '/api/github/readme/$owner/$repo'
     | '/api/github/sync/$owner/$repo'
     | '/api/github/file/$owner/$repo/$'
@@ -434,6 +446,7 @@ export interface FileRouteTypes {
     | '/api/github/oauth/'
     | '/$owner/$repo/blob/$branch/$'
     | '/$owner/$repo/tree/$branch/$'
+    | '/api/github/branch/$owner/$repo'
     | '/api/github/readme/$owner/$repo'
     | '/api/github/sync/$owner/$repo'
     | '/api/github/file/$owner/$repo/$'
@@ -470,6 +483,7 @@ export interface RootRouteChildren {
   ApiGithubOauthIndexRoute: typeof ApiGithubOauthIndexRoute
   OwnerRepoBlobBranchSplatRoute: typeof OwnerRepoBlobBranchSplatRoute
   OwnerRepoTreeBranchSplatRoute: typeof OwnerRepoTreeBranchSplatRoute
+  ApiGithubBranchOwnerRepoRoute: typeof ApiGithubBranchOwnerRepoRoute
   ApiGithubReadmeOwnerRepoRoute: typeof ApiGithubReadmeOwnerRepoRoute
   ApiGithubSyncOwnerRepoRoute: typeof ApiGithubSyncOwnerRepoRouteWithChildren
   ApiGithubFileOwnerRepoSplatRoute: typeof ApiGithubFileOwnerRepoSplatRoute
@@ -654,6 +668,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubReadmeOwnerRepoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/github/branch/$owner/$repo': {
+      id: '/api/github/branch/$owner/$repo'
+      path: '/api/github/branch/$owner/$repo'
+      fullPath: '/api/github/branch/$owner/$repo'
+      preLoaderRoute: typeof ApiGithubBranchOwnerRepoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$owner/$repo/tree/$branch/$': {
       id: '/$owner/$repo/tree/$branch/$'
       path: '/$owner/$repo/tree/$branch/$'
@@ -779,6 +800,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGithubOauthIndexRoute: ApiGithubOauthIndexRoute,
   OwnerRepoBlobBranchSplatRoute: OwnerRepoBlobBranchSplatRoute,
   OwnerRepoTreeBranchSplatRoute: OwnerRepoTreeBranchSplatRoute,
+  ApiGithubBranchOwnerRepoRoute: ApiGithubBranchOwnerRepoRoute,
   ApiGithubReadmeOwnerRepoRoute: ApiGithubReadmeOwnerRepoRoute,
   ApiGithubSyncOwnerRepoRoute: ApiGithubSyncOwnerRepoRouteWithChildren,
   ApiGithubFileOwnerRepoSplatRoute: ApiGithubFileOwnerRepoSplatRoute,

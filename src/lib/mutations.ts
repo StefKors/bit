@@ -243,3 +243,65 @@ export const updatePRStateMutation = (
       return data
     },
   })
+
+type DeleteBranchResponse = {
+  deleted: boolean
+  error?: string
+  code?: string
+}
+
+type RestoreBranchResponse = {
+  restored: boolean
+  ref: string
+  sha: string
+  error?: string
+  code?: string
+}
+
+export const deleteBranchMutation = (userId: string, owner: string, repo: string) =>
+  mutationOptions({
+    mutationKey: ["branch", "delete", owner, repo],
+    mutationFn: async (vars: { branch: string }): Promise<DeleteBranchResponse> => {
+      const res = await fetch(`/api/github/branch/${owner}/${repo}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as DeleteBranchResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to delete branch")
+      }
+      return data
+    },
+  })
+
+export const restoreBranchMutation = (userId: string, owner: string, repo: string) =>
+  mutationOptions({
+    mutationKey: ["branch", "restore", owner, repo],
+    mutationFn: async (vars: { branch: string; sha: string }): Promise<RestoreBranchResponse> => {
+      const res = await fetch(`/api/github/branch/${owner}/${repo}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as RestoreBranchResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to restore branch")
+      }
+      return data
+    },
+  })
