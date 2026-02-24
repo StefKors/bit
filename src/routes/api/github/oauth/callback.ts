@@ -15,7 +15,7 @@ const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET
 interface GitHubTokenResponse {
   access_token: string
   token_type: string
-  scope: string
+  scope?: string
   error?: string
   error_description?: string
 }
@@ -138,26 +138,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           const accessToken = tokenData.access_token
           const userId = state
 
-          // Validate granted scopes
-          const grantedScopes = parseScopes(tokenData.scope)
-          const permReport = checkPermissions(grantedScopes)
-          const missingScopesSummary = permReport.missingScopes.join(", ")
-
-          if (!permReport.allGranted) {
-            log.warn("OAuth token granted with missing scopes", {
-              userId,
-              granted: grantedScopes.join(", ") || "(none)",
-              missing: missingScopesSummary,
-              required: REQUIRED_SCOPES.join(", "),
-            })
-          } else {
-            log.info("OAuth token granted with all required scopes", {
-              userId,
-              scopes: grantedScopes.join(", "),
-            })
-          }
-
-          // Fetch GitHub user info
+          // Fetch GitHub user info first so we can read x-oauth-scopes header
           const userResponse = await fetch("https://api.github.com/user", {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -179,6 +160,28 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           }
 
           const githubUser = (await userResponse.json()) as GitHubUser
+
+          // Validate granted scopes via the x-oauth-scopes response header,
+          // which is the reliable source. The token exchange response body
+          // can return an empty scope field even when scopes are granted.
+          const headerScopes = userResponse.headers.get("x-oauth-scopes")
+          const grantedScopes = parseScopes(headerScopes ?? tokenData.scope)
+          const permReport = checkPermissions(grantedScopes)
+          const missingScopesSummary = permReport.missingScopes.join(", ")
+
+          if (!permReport.allGranted) {
+            log.warn("OAuth token granted with missing scopes", {
+              userId,
+              granted: grantedScopes.join(", ") || "(none)",
+              missing: missingScopesSummary,
+              required: REQUIRED_SCOPES.join(", "),
+            })
+          } else {
+            log.info("OAuth token granted with all required scopes", {
+              userId,
+              scopes: grantedScopes.join(", "),
+            })
+          }
           const now = Date.now()
 
           // Update the user record with GitHub info and access token

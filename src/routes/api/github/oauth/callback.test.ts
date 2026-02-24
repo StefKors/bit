@@ -67,6 +67,7 @@ const mockOAuthExchange = (scope: string) => {
     .mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve(mockGitHubUserResponse),
+      headers: new Headers({ "x-oauth-scopes": scope }),
     })
 }
 
