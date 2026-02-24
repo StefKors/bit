@@ -71,15 +71,20 @@ function OverviewPage() {
   const oauthMessage = search.message
   const revokeUrl = search.revokeUrl
 
-  // Check if user has GitHub connected by looking at their login field
-  const isGitHubConnected = Boolean((user as { login?: string } | undefined)?.login)
+  const isGitHubConnected = Boolean(user?.login)
 
-  // Query sync states
-  const { data: syncData } = db.useQuery({
+  const { data } = db.useQuery({
     syncStates: {},
+    repos: {},
+    organizations: {},
+    pullRequests: {
+      $: { where: { state: "open" } },
+      repo: {},
+    },
   })
-  const syncStates = syncData?.syncStates ?? []
-
+  const syncStates = data?.syncStates ?? []
+  const repos = data?.repos ?? []
+  const organizations = data?.organizations ?? []
   const initialSyncState = syncStates.find((s) => s.resourceType === "initial_sync")
   const initialSyncProgress = initialSyncState?.lastEtag
     ? (JSON.parse(initialSyncState.lastEtag) as InitialSyncProgress)
@@ -100,35 +105,18 @@ function OverviewPage() {
   const syncError = overviewSyncState?.syncError
   const lastSyncedAt = overviewSyncState?.lastSyncedAt
 
-  // Query repos and organizations separately (org relation isn't linked during sync)
-  const { data: reposData } = db.useQuery({
-    repos: {},
-    organizations: {},
-  })
-  const repos = reposData?.repos ?? []
-  const organizations = reposData?.organizations ?? []
-
-  // Query all open PRs with their repos
   const currentUserLogin = user?.login ?? user?.email?.split("@")[0] ?? ""
-  const { data: prsData } = db.useQuery({
-    pullRequests: {
-      $: { where: { state: "open" } },
-      repo: {},
-    },
-  })
 
-  // Filter authored PRs client-side
   const authoredPRs = useMemo(() => {
-    const allPRs = prsData?.pullRequests ?? []
+    const prs = data?.pullRequests ?? []
     if (!currentUserLogin) return []
-    return allPRs.filter((pr) => pr.authorLogin === currentUserLogin)
-  }, [prsData?.pullRequests, currentUserLogin])
+    return prs.filter((pr) => pr.authorLogin === currentUserLogin)
+  }, [data?.pullRequests, currentUserLogin])
 
-  // Filter review-requested PRs: check if current user is in reviewRequestedBy JSON array
   const reviewRequestedPRs = useMemo(() => {
-    const allPRs = prsData?.pullRequests ?? []
+    const prs = data?.pullRequests ?? []
     if (!currentUserLogin) return []
-    return allPRs.filter((pr) => {
+    return prs.filter((pr) => {
       if (!pr.reviewRequestedBy) return false
       try {
         const reviewers = JSON.parse(pr.reviewRequestedBy) as string[]
@@ -137,9 +125,8 @@ function OverviewPage() {
         return false
       }
     })
-  }, [prsData?.pullRequests, currentUserLogin])
+  }, [data?.pullRequests, currentUserLogin])
 
-  // Use directly queried organizations (deduplicated by login)
   const orgs = organizations.filter(
     (org, index, self) => self.findIndex((o) => o.login === org.login) === index,
   )
