@@ -72,6 +72,21 @@ export function formatSuggestedChangeBody(
   return `${normalizedComment}\n\n${suggestionBlock}`
 }
 
+const combineRequestedReviewers = (
+  requestedReviewers: Array<{ login?: string | null }> | null | undefined,
+  requestedTeams: Array<{ slug?: string | null }> | null | undefined,
+): string[] => {
+  const reviewers = (requestedReviewers ?? [])
+    .map((reviewer) => reviewer.login ?? null)
+    .filter((login): login is string => Boolean(login))
+  const teams = (requestedTeams ?? [])
+    .map((team) => team.slug ?? null)
+    .filter((slug): slug is string => Boolean(slug))
+    .map((slug) => `team:${slug}`)
+
+  return [...reviewers, ...teams]
+}
+
 export async function handleGitHubAuthError(userId: string): Promise<void> {
   const { syncStates } = await adminDb.query({
     syncStates: {
@@ -535,6 +550,9 @@ export class GitHubClient {
       htmlUrl: pr.html_url,
       diffUrl: pr.diff_url,
       labels: JSON.stringify(pr.labels.map((l) => ({ name: l.name, color: l.color }))),
+      reviewers: JSON.stringify(
+        combineRequestedReviewers(pr.requested_reviewers, pr.requested_teams),
+      ),
       githubCreatedAt: pr.created_at ? new Date(pr.created_at).getTime() : undefined,
       githubUpdatedAt: pr.updated_at ? new Date(pr.updated_at).getTime() : undefined,
       closedAt: pr.closed_at ? new Date(pr.closed_at).getTime() : undefined,
@@ -661,6 +679,9 @@ export class GitHubClient {
           comments: prData.comments,
           reviewComments: prData.review_comments,
           labels: JSON.stringify(prData.labels.map((l) => ({ name: l.name, color: l.color }))),
+          reviewers: JSON.stringify(
+            combineRequestedReviewers(prData.requested_reviewers, prData.requested_teams),
+          ),
           githubCreatedAt: prData.created_at ? new Date(prData.created_at).getTime() : undefined,
           githubUpdatedAt: prData.updated_at ? new Date(prData.updated_at).getTime() : undefined,
           closedAt: prData.closed_at ? new Date(prData.closed_at).getTime() : undefined,
@@ -1284,6 +1305,34 @@ export class GitHubClient {
   ): Promise<{ requestedReviewers: string[]; requestedTeams: string[] }> {
     const response = await withRateLimitRetry(() =>
       this.octokit.rest.pulls.requestReviewers({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        reviewers: options.reviewers,
+        team_reviewers: options.teamReviewers,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      requestedReviewers: (response.data.requested_reviewers ?? [])
+        .map((reviewer) => reviewer?.login)
+        .filter((login): login is string => Boolean(login)),
+      requestedTeams: (response.data.requested_teams ?? [])
+        .map((team) => team?.slug)
+        .filter((slug): slug is string => Boolean(slug)),
+    }
+  }
+
+  async removeRequestedReviewers(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    options: { reviewers: string[]; teamReviewers?: string[] },
+  ): Promise<{ requestedReviewers: string[]; requestedTeams: string[] }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.pulls.removeRequestedReviewers({
         owner,
         repo,
         pull_number: pullNumber,

@@ -279,6 +279,72 @@ export const updatePRMutation = (userId: string, owner: string, repo: string, nu
     },
   })
 
+type ReviewersResponse = {
+  requestedReviewers: string[]
+  requestedTeams: string[]
+  error?: string
+  code?: string
+}
+
+export const addReviewersMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "reviewers", "add", owner, repo, number],
+    mutationFn: async (vars: {
+      reviewers: string[]
+      teamReviewers?: string[]
+    }): Promise<ReviewersResponse> => {
+      const res = await fetch(`/api/github/pr/reviewers/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as ReviewersResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to request reviewers")
+      }
+      return data
+    },
+  })
+
+export const removeReviewersMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "reviewers", "remove", owner, repo, number],
+    mutationFn: async (vars: {
+      reviewers: string[]
+      teamReviewers?: string[]
+    }): Promise<ReviewersResponse> => {
+      const res = await fetch(`/api/github/pr/reviewers/${owner}/${repo}/${number}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as ReviewersResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to remove reviewers")
+      }
+      return data
+    },
+  })
+
 type DeleteBranchResponse = {
   deleted: boolean
   error?: string

@@ -117,6 +117,8 @@ export const schema = i.schema({
       labels: i.string().optional(),
       // Dashboard tracking: JSON array of user logins who requested review
       reviewRequestedBy: i.string().optional(),
+      // Requested reviewers (JSON array of user logins and team slugs prefixed with "team:")
+      reviewers: i.string().optional(),
       viewedFiles: i.string().optional(),
       // Denormalized IDs for efficient filtering (also has repo/user links)
       repoId: i.string().indexed(),

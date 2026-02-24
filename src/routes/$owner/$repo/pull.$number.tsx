@@ -10,6 +10,7 @@ import { PRFilesTab } from "@/features/pr/PRFilesTab"
 import { PRCommitsTab } from "@/features/pr/PRCommitsTab"
 import { PRThreeColumnLayout } from "@/features/pr/PRThreeColumnLayout"
 import { PRHeader } from "@/features/pr/PRHeader"
+import { ReviewerPicker } from "@/features/pr/ReviewerPicker"
 import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
@@ -52,6 +53,17 @@ function formatTimeAgo(date: Date | number | null | undefined): string {
   if (diffHours < 24) return `${diffHours} hours ago`
   if (diffDays < 30) return `${diffDays} days ago`
   return d.toLocaleDateString()
+}
+
+const parseStringArray = (value: string | null | undefined): string[] => {
+  if (!value) return []
+  try {
+    const parsed = JSON.parse(value) as Array<string | number | boolean | null>
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter((entry): entry is string => typeof entry === "string")
+  } catch {
+    return []
+  }
 }
 
 function PRDetailPage() {
@@ -189,6 +201,7 @@ function PRDetailPage() {
   const prComments = pr.prComments ?? []
   const prCommits = pr.prCommits ?? []
   const prEvents = pr.prEvents ?? []
+  const prReviewers = parseStringArray(pr.reviewers ?? pr.reviewRequestedBy)
 
   return (
     <div className={containerClassName}>
@@ -307,6 +320,19 @@ function PRDetailPage() {
               onMergeSuccess={() => prSync.mutate()}
               onStateChange={() => prSync.mutate()}
             />
+          )}
+
+          {user?.id && (
+            <div className={styles.managementBar}>
+              <ReviewerPicker
+                userId={user.id}
+                owner={owner}
+                repo={repoName}
+                prNumber={prNumber}
+                reviewers={prReviewers}
+                onUpdated={() => prSync.mutate()}
+              />
+            </div>
           )}
 
           <Tabs

@@ -40,7 +40,7 @@ todos:
     status: completed
   - id: phase-4-2
     content: "Phase 4.2: Assign Reviewers - API route, ReviewerPicker component with multi-select, tests"
-    status: pending
+    status: completed
   - id: phase-4-3
     content: "Phase 4.3: Add/Remove Labels - API route with POST/DELETE/PUT, LabelPicker component, tests"
     status: pending
