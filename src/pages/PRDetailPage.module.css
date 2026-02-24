@@ -6,6 +6,11 @@
   width: 100%;
 }
 
+.containerFullScreen {
+  max-width: none;
+  padding: 1rem;
+}
+
 .headerContainer {
   display: flex;
   justify-content: space-between;

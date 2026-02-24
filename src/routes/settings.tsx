@@ -12,6 +12,7 @@ import {
 } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { db } from "@/lib/instantDb"
+import { getPRLayoutMode, setPRLayoutMode, type PRLayoutMode } from "@/lib/pr-layout-preference"
 import { Button } from "@/components/Button"
 import { Avatar } from "@/components/Avatar"
 import styles from "@/pages/SettingsPage.module.css"
@@ -22,8 +23,10 @@ function SettingsPage() {
   const [disconnecting, setDisconnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [prLayoutMode, setPrLayoutMode] = useState<PRLayoutMode>(() => getPRLayoutMode())
 
   const isGitHubConnected = Boolean(user?.login)
+  const isFullScreenPRLayout = prLayoutMode === "full-screen-3-column"
 
   const { data: syncData } = db.useQuery({ syncStates: {} })
   const syncStates = syncData?.syncStates ?? []
@@ -75,6 +78,12 @@ function SettingsPage() {
     } finally {
       setDisconnecting(false)
     }
+  }
+
+  const handlePRLayoutToggle = () => {
+    const nextMode: PRLayoutMode = isFullScreenPRLayout ? "default" : "full-screen-3-column"
+    setPrLayoutMode(nextMode)
+    setPRLayoutMode(nextMode)
   }
 
   if (!user) return null
@@ -193,6 +202,31 @@ function SettingsPage() {
           <AddRepoCard userId={user.id} />
         </section>
       )}
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Pull Request View</h2>
+        <div className={styles.card}>
+          <div className={styles.preferenceRow}>
+            <div className={styles.preferenceInfo}>
+              <span className={styles.preferenceLabel}>Enable full-screen PR workspace</span>
+              <p className={styles.preferenceDescription}>
+                Shows pull requests in a 3-column layout with PR list, diffs, and activity.
+              </p>
+            </div>
+            <button
+              type="button"
+              className={`${styles.toggleSwitch} ${isFullScreenPRLayout ? styles.toggleSwitchOn : ""}`}
+              aria-pressed={isFullScreenPRLayout}
+              onClick={handlePRLayoutToggle}
+            >
+              <span className={styles.toggleThumb} />
+            </button>
+          </div>
+          <p className={styles.preferenceHint}>
+            This applies to repository pull request detail pages.
+          </p>
+        </div>
+      </section>
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Account</h2>

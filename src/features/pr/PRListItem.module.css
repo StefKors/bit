@@ -23,6 +23,10 @@
   background: rgba(var(--bit-rgb-fg), 0.02);
 }
 
+.prItemActive {
+  background: rgba(var(--bit-rgb-accent-blue), 0.1);
+}
+
 .prContent {
   flex: 1;
   min-width: 0;

@@ -263,3 +263,71 @@
   font-size: 0.8rem;
   color: rgba(var(--bit-rgb-fg), 0.4);
 }
+
+.preferenceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.preferenceInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.preferenceLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--bit-color-heading);
+}
+
+.preferenceDescription {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(var(--bit-rgb-fg), 0.55);
+}
+
+.preferenceHint {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.45);
+}
+
+.toggleSwitch {
+  width: 48px;
+  height: 28px;
+  border-radius: var(--bit-radius-pill);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.15);
+  background: rgba(var(--bit-rgb-fg), 0.15);
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.toggleSwitch:hover {
+  border-color: rgba(var(--bit-rgb-fg), 0.25);
+}
+
+.toggleSwitchOn {
+  background: rgba(var(--bit-rgb-accent-blue), 0.25);
+  border-color: rgba(var(--bit-rgb-accent-blue), 0.45);
+}
+
+.toggleThumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bit-color-paper);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+
+.toggleSwitchOn .toggleThumb {
+  transform: translateX(20px);
+}
