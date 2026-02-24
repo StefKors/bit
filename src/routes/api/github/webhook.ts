@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { createHmac, timingSafeEqual } from "crypto"
 import { adminDb } from "@/lib/instantAdmin"
 import { enqueueWebhook } from "@/lib/webhooks/processor"
-import type { WebhookEventName } from "@/lib/webhooks"
+import { validateWebhookPayload } from "@/lib/webhook-validation"
 import { log } from "@/lib/logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
@@ -44,25 +44,34 @@ export const Route = createFileRoute("/api/github/webhook")({
           return jsonResponse({ error: "Invalid signature" }, 401)
         }
 
-        const event = request.headers.get("x-github-event") as WebhookEventName | null
+        const event = request.headers.get("x-github-event")
         const delivery = request.headers.get("x-github-delivery")
+
+        if (!event) {
+          return jsonResponse({ error: "Missing event header" }, 400)
+        }
 
         log.info("Webhook received", { event, deliveryId: delivery })
 
-        let payload: Record<string, unknown>
+        let parsedPayload: object
         try {
-          payload = JSON.parse(rawBody) as Record<string, unknown>
+          parsedPayload = JSON.parse(rawBody) as object
         } catch {
           return jsonResponse({ error: "Invalid JSON payload" }, 400)
+        }
+
+        const payloadValidation = validateWebhookPayload(parsedPayload)
+        if (!payloadValidation.valid) {
+          return jsonResponse({ error: "Invalid webhook payload shape" }, 400)
         }
 
         if (!delivery) {
           return jsonResponse({ error: "Missing delivery ID" }, 400)
         }
 
-        const action = (payload.action as string) || undefined
+        const action = payloadValidation.data.action || undefined
 
-        const result = await enqueueWebhook(adminDb, delivery, event || "unknown", action, rawBody)
+        const result = await enqueueWebhook(adminDb, delivery, event, action, rawBody)
 
         if (result.duplicate) {
           log.info("Duplicate webhook delivery, skipping", { deliveryId: delivery })

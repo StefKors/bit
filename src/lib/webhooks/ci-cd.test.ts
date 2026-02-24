@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import type { WebhookDB, WebhookPayload } from "./types"
+import type { WebhookDB } from "./types"
 
 vi.mock("@instantdb/admin", () => ({
   id: vi.fn(() => `mock-check-${Date.now()}-${Math.random()}`),
@@ -17,7 +17,7 @@ const mockQuery = vi.fn()
 const mockTransact = vi.fn().mockResolvedValue(undefined)
 const mockUpdate = vi.fn().mockReturnThis()
 
-const mockDb = {
+const mockDbBase = {
   query: mockQuery,
   transact: mockTransact,
   tx: new Proxy(
@@ -34,7 +34,8 @@ const mockDb = {
         ),
     },
   ),
-} as unknown as WebhookDB
+}
+const mockDb = mockDbBase as never as WebhookDB
 
 vi.mock("./utils", () => ({
   findUserBySender: vi.fn().mockResolvedValue("user-1"),
@@ -168,7 +169,7 @@ describe("handleCheckRunWebhook", () => {
   })
 
   it("processes a check_run event", async () => {
-    await handleCheckRunWebhook(mockDb, makeCheckRunPayload() as unknown as WebhookPayload)
+    await handleCheckRunWebhook(mockDb, makeCheckRunPayload())
     expect(mockTransact).toHaveBeenCalled()
   })
 
@@ -177,13 +178,13 @@ describe("handleCheckRunWebhook", () => {
     const { findUserBySender } = await import("./utils")
     vi.mocked(findUserBySender).mockResolvedValueOnce(null)
 
-    await handleCheckRunWebhook(mockDb, makeCheckRunPayload() as unknown as WebhookPayload)
+    await handleCheckRunWebhook(mockDb, makeCheckRunPayload())
   })
 
   it("handles missing check_run gracefully", async () => {
     await handleCheckRunWebhook(mockDb, {
       repository: { full_name: "x" },
-    } as unknown as WebhookPayload)
+    })
   })
 })
 
@@ -194,7 +195,7 @@ describe("handleCheckSuiteWebhook", () => {
   })
 
   it("processes a check_suite event", async () => {
-    await handleCheckSuiteWebhook(mockDb, makeCheckSuitePayload() as unknown as WebhookPayload)
+    await handleCheckSuiteWebhook(mockDb, makeCheckSuitePayload())
     expect(mockTransact).toHaveBeenCalled()
   })
 })
@@ -206,23 +207,17 @@ describe("handleStatusWebhook", () => {
   })
 
   it("processes a status event with success state", async () => {
-    await handleStatusWebhook(mockDb, makeStatusPayload() as unknown as WebhookPayload)
+    await handleStatusWebhook(mockDb, makeStatusPayload())
     expect(mockTransact).toHaveBeenCalled()
   })
 
   it("processes a status event with pending state", async () => {
-    await handleStatusWebhook(
-      mockDb,
-      makeStatusPayload({ state: "pending" }) as unknown as WebhookPayload,
-    )
+    await handleStatusWebhook(mockDb, makeStatusPayload({ state: "pending" }))
     expect(mockTransact).toHaveBeenCalled()
   })
 
   it("processes a status event with failure state", async () => {
-    await handleStatusWebhook(
-      mockDb,
-      makeStatusPayload({ state: "failure" }) as unknown as WebhookPayload,
-    )
+    await handleStatusWebhook(mockDb, makeStatusPayload({ state: "failure" }))
     expect(mockTransact).toHaveBeenCalled()
   })
 })
@@ -234,7 +229,7 @@ describe("handleWorkflowRunWebhook", () => {
   })
 
   it("processes a workflow_run event", async () => {
-    await handleWorkflowRunWebhook(mockDb, makeWorkflowRunPayload() as unknown as WebhookPayload)
+    await handleWorkflowRunWebhook(mockDb, makeWorkflowRunPayload())
     expect(mockTransact).toHaveBeenCalled()
   })
 })
@@ -246,19 +241,19 @@ describe("handleWorkflowJobWebhook", () => {
   })
 
   it("processes a workflow_job event", async () => {
-    await handleWorkflowJobWebhook(mockDb, makeWorkflowJobPayload() as unknown as WebhookPayload)
+    await handleWorkflowJobWebhook(mockDb, makeWorkflowJobPayload())
     expect(mockTransact).toHaveBeenCalled()
   })
 })
 
 describe("unknown events do not break processing", () => {
   it("handles missing repository gracefully in check_run", async () => {
-    await handleCheckRunWebhook(mockDb, { check_run: { id: 1 } } as unknown as WebhookPayload)
+    await handleCheckRunWebhook(mockDb, { check_run: { id: 1 } })
   })
 
   it("handles missing sha gracefully in status", async () => {
     await handleStatusWebhook(mockDb, {
       repository: { full_name: "x" },
-    } as unknown as WebhookPayload)
+    })
   })
 })

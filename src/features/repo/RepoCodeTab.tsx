@@ -32,19 +32,19 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: 
   const [readmeLoading, setReadmeLoading] = useState(false)
   const initialSyncTriggered = useRef(false)
 
-  // Query the tree entries (uses type assertion because repoTrees has dynamic schema fields)
-  const treeQuery = {
-    repoTrees: {
-      $: { where: { repoId, ref: branch }, order: { path: "asc" } },
+  const { data: repoData, isLoading: treeLoading } = db.useQuery({
+    repos: {
+      $: { where: { id: repoId }, limit: 1 },
+      repoTrees: {
+        $: { where: { ref: branch }, order: { path: "asc" } },
+      },
     },
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-  const { data: treeData, isLoading: treeLoading } = db.useQuery(treeQuery as any)
+  })
 
   const treeEntries = useMemo<TreeEntryData[]>(() => {
-    const data = (treeData as { repoTrees?: TreeEntryData[] } | undefined)?.repoTrees
-    return data ?? []
-  }, [treeData])
+    const data = (repoData as { repos?: Array<{ repoTrees?: TreeEntryData[] }> } | undefined)?.repos
+    return data?.[0]?.repoTrees ?? []
+  }, [repoData])
 
   const handleSync = async () => {
     setSyncing(true)
@@ -70,7 +70,7 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: 
 
   // Auto-sync files on first visit when webhooks are installed but tree is empty
   const hasWebhooks = webhookStatus === "installed"
-  const treeIsEmpty = treeData !== undefined && treeEntries.length === 0
+  const treeIsEmpty = repoData !== undefined && treeEntries.length === 0
   if (hasWebhooks && treeIsEmpty && user?.id && !initialSyncTriggered.current && !syncing) {
     initialSyncTriggered.current = true
     void handleSync()
@@ -126,7 +126,7 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: 
   const entries: TreeEntry[] = treeEntries.map((entry) => ({
     id: entry.id,
     path: entry.path,
-    name: entry.name,
+    name: String(entry.name ?? ""),
     type: entry.type as "file" | "dir",
     sha: entry.sha,
     size: entry.size ?? null,

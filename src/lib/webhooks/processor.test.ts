@@ -8,7 +8,7 @@ const mockQuery = vi.fn()
 const mockTransact = vi.fn().mockResolvedValue(undefined)
 const mockUpdate = vi.fn().mockReturnThis()
 
-const mockDb = {
+const mockDbBase = {
   query: mockQuery,
   transact: mockTransact,
   tx: new Proxy(
@@ -25,7 +25,8 @@ const mockDb = {
         ),
     },
   ),
-} as unknown as WebhookDB
+}
+const mockDb = mockDbBase as never as WebhookDB
 
 vi.mock("@/lib/webhooks/index", () => ({
   handlePullRequestWebhook: vi.fn().mockResolvedValue(undefined),
@@ -162,7 +163,7 @@ describe("dispatchWebhookEvent", () => {
 
   it("handles unknown events without throwing", async () => {
     await expect(
-      dispatchWebhookEvent(mockDb, "unknown_event" as unknown as WebhookEventName, {}),
+      dispatchWebhookEvent(mockDb, "unknown_event" as WebhookEventName, {}),
     ).resolves.toBeUndefined()
   })
 })

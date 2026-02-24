@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { createGitHubClient } from "@/lib/github-client"
 
-const jsonResponse = (data: unknown, status = 200) =>
+const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
     status,
     headers: { "Content-Type": "application/json" },

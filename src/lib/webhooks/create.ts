@@ -14,13 +14,9 @@ import { findUserBySender, ensureRepoFromWebhook } from "./utils"
  * - If sender not registered → logs and skips
  */
 export async function handleCreateWebhook(db: WebhookDB, payload: WebhookPayload) {
-  const createPayload = payload as unknown as CreateEvent
-  const repo = payload.repository as Record<string, unknown>
-  const sender = payload.sender as Record<string, unknown>
-
-  if (!repo) return
-
-  const repoFullName = repo.full_name as string
+  const createPayload = payload as CreateEvent
+  const { repository: repo, sender } = createPayload
+  const repoFullName = repo.full_name
   const refType = createPayload.ref_type // 'branch' or 'tag'
   const refName = createPayload.ref
   const now = Date.now()
@@ -35,7 +31,7 @@ export async function handleCreateWebhook(db: WebhookDB, payload: WebhookPayload
   let repoRecords = reposResult.repos || []
 
   // If no users tracking, try to auto-track for the webhook sender
-  if (repoRecords.length === 0 && sender) {
+  if (repoRecords.length === 0) {
     const userId = await findUserBySender(db, sender)
     if (userId) {
       const newRepo = await ensureRepoFromWebhook(db, repo, userId)

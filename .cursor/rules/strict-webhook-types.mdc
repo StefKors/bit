@@ -1,0 +1,40 @@
+---
+description: Enforce strict GitHub webhook typing and boundary validation.
+globs: src/lib/webhooks/**/*.ts,src/routes/api/github/**/*.ts
+alwaysApply: false
+---
+
+# Strict Webhook Types
+
+Use the strongest available webhook types and keep untrusted payload handling explicit.
+
+## Source of Truth Types
+
+- Use event/entity types from `src/lib/webhooks/types.ts` (re-exported from `@octokit/webhooks-types`).
+- Keep ingress payloads (`request.json()`, `JSON.parse`) as untrusted data until validated.
+
+## Required Typing Pattern
+
+1. **Boundary first**: parse/validate payload shape (`zod` or type guards) in API routes.
+2. **Narrow once**: inside handler, cast from `WebhookPayload` to the specific event type:
+   - `const typedPayload = payload as unknown as PullRequestEvent`
+3. **Use typed properties** from `typedPayload` (avoid `Record<string, unknown>` for domain fields).
+
+## any/unknown Rules
+
+- Never introduce `any`.
+- Use `unknown` only at input boundaries (JSON parsing, external APIs), then narrow immediately.
+- Do not pass `Record<string, unknown>` through business logic when a concrete GitHub type exists.
+
+## Error Handling
+
+- Throw `Error` instances only.
+- Return explicit API errors for malformed headers/payloads (4xx) and unexpected failures (5xx).
+- Preserve original error messages where safe, but avoid leaking raw objects.
+
+## Helper Function Contracts
+
+- Helpers in `src/lib/webhooks/utils.ts` should accept concrete GitHub types or `object` boundaries and normalize internally.
+- Keep timestamp parsing defensive (`null` on invalid inputs).
+- Do not assume optional GitHub fields are present.
+

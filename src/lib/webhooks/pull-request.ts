@@ -1,6 +1,12 @@
 import { id } from "@instantdb/admin"
-import type { WebhookDB, WebhookPayload } from "./types"
+import type { PullRequestEvent, WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
+
+const parseGithubTimestamp = (value?: string | null): number | null => {
+  if (!value) return null
+  const timestamp = Date.parse(value)
+  return Number.isFinite(timestamp) ? timestamp : null
+}
 
 /**
  * Handle pull_request webhook events.
@@ -11,15 +17,11 @@ import { findUserBySender, ensureRepoFromWebhook } from "./utils"
  * - If sender not registered → logs and skips
  */
 export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPayload) {
-  const action = payload.action as string
-  const pr = payload.pull_request as Record<string, unknown>
-  const repo = payload.repository as Record<string, unknown>
-  const sender = payload.sender as Record<string, unknown>
+  const typedPayload = payload as PullRequestEvent
+  const { action, pull_request: pr, repository: repo, sender } = typedPayload
 
-  if (!pr || !repo) return
-
-  const repoFullName = repo.full_name as string
-  const githubId = pr.id as number
+  const repoFullName = repo.full_name
+  const githubId = pr.id
 
   // Find users who have this repo synced
   const reposResult = await db.query({
@@ -31,7 +33,7 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
   let repoRecords = reposResult.repos || []
 
   // If no users tracking, try to auto-track for the webhook sender
-  if (repoRecords.length === 0 && sender) {
+  if (repoRecords.length === 0) {
     const userId = await findUserBySender(db, sender)
     if (userId) {
       const newRepo = await ensureRepoFromWebhook(db, repo, userId)
@@ -58,39 +60,39 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
     const now = Date.now()
     const prData = {
       githubId,
-      number: pr.number as number,
+      number: pr.number,
       repoId: repoRecord.id,
-      title: pr.title as string,
-      body: (pr.body as string) || null,
-      state: pr.state as string,
-      draft: (pr.draft as boolean) || false,
-      merged: (pr.merged as boolean) || false,
-      mergeable: (pr.mergeable as boolean) ?? null,
-      mergeableState: (pr.mergeable_state as string) || null,
-      authorLogin: ((pr.user as Record<string, unknown>)?.login as string) || null,
-      authorAvatarUrl: ((pr.user as Record<string, unknown>)?.avatar_url as string) || null,
-      headRef: (pr.head as Record<string, unknown>)?.ref as string,
-      headSha: (pr.head as Record<string, unknown>)?.sha as string,
-      baseRef: (pr.base as Record<string, unknown>)?.ref as string,
-      baseSha: (pr.base as Record<string, unknown>)?.sha as string,
-      htmlUrl: pr.html_url as string,
-      diffUrl: pr.diff_url as string,
-      additions: (pr.additions as number) ?? 0,
-      deletions: (pr.deletions as number) ?? 0,
-      changedFiles: (pr.changed_files as number) ?? 0,
-      commits: (pr.commits as number) ?? 0,
-      comments: (pr.comments as number) ?? 0,
-      reviewComments: (pr.review_comments as number) ?? 0,
+      title: pr.title,
+      body: pr.body || null,
+      state: pr.state,
+      draft: pr.draft || false,
+      merged: pr.merged || false,
+      mergeable: pr.mergeable ?? null,
+      mergeableState: pr.mergeable_state || null,
+      authorLogin: pr.user?.login || null,
+      authorAvatarUrl: pr.user?.avatar_url || null,
+      headRef: pr.head.ref,
+      headSha: pr.head.sha,
+      baseRef: pr.base.ref,
+      baseSha: pr.base.sha,
+      htmlUrl: pr.html_url,
+      diffUrl: pr.diff_url,
+      additions: pr.additions ?? 0,
+      deletions: pr.deletions ?? 0,
+      changedFiles: pr.changed_files ?? 0,
+      commits: pr.commits ?? 0,
+      comments: pr.comments ?? 0,
+      reviewComments: pr.review_comments ?? 0,
       labels: JSON.stringify(
-        ((pr.labels as Array<Record<string, unknown>>) || []).map((l) => ({
+        (pr.labels || []).map((l) => ({
           name: l.name,
           color: l.color,
         })),
       ),
-      githubCreatedAt: new Date(pr.created_at as string).getTime(),
-      githubUpdatedAt: new Date(pr.updated_at as string).getTime(),
-      closedAt: pr.closed_at ? new Date(pr.closed_at as string).getTime() : null,
-      mergedAt: pr.merged_at ? new Date(pr.merged_at as string).getTime() : null,
+      githubCreatedAt: parseGithubTimestamp(pr.created_at),
+      githubUpdatedAt: parseGithubTimestamp(pr.updated_at),
+      closedAt: parseGithubTimestamp(pr.closed_at),
+      mergedAt: parseGithubTimestamp(pr.merged_at),
       userId: repoRecord.userId,
       syncedAt: now,
       createdAt: now,
@@ -99,11 +101,11 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
 
     if (action === "closed" && pr.merged) {
       prData.merged = true
-      prData.mergedAt = pr.merged_at ? new Date(pr.merged_at as string).getTime() : Date.now()
+      prData.mergedAt = parseGithubTimestamp(pr.merged_at) ?? Date.now()
     }
 
     await db.transact(db.tx.pullRequests[prId].update(prData))
   }
 
-  console.log(`Processed pull_request.${action} for ${repoFullName}#${pr.number as number}`)
+  console.log(`Processed pull_request.${action} for ${repoFullName}#${pr.number}`)
 }
