@@ -5,6 +5,12 @@ import { findOrCreateSyncStateId } from "./sync-state"
 import { buildTreeEntries, computeStaleEntries, type GitHubTreeItem } from "./sync-trees"
 import { buildCommitEntries, computeStaleCommits, type GitHubCommit } from "./sync-commits"
 import { log } from "./logger"
+import {
+  chunkItems,
+  mapWithConcurrency,
+  selectReposForPullSync,
+  type RepoActivitySnapshot,
+} from "./sync-ingest"
 
 export interface RateLimitInfo {
   remaining: number
@@ -36,9 +42,16 @@ export interface PullRequestDashboardItem {
   githubUpdatedAt: Date | null
 }
 
+interface RepositorySyncItem extends RepoActivitySnapshot {
+  githubId: number
+}
+
 const SYNC_FRESHNESS_MS = 5 * 60 * 1000
 const RATE_LIMIT_MAX_RETRIES = 3
 const RATE_LIMIT_BASE_DELAY_MS = 1000
+const TRANSACT_CHUNK_SIZE = 100
+const WEBHOOK_REGISTRATION_CONCURRENCY = 6
+const INITIAL_SYNC_PR_CONCURRENCY = 4
 
 export function isGitHubAuthError(error: unknown): boolean {
   return error instanceof RequestError && error.status === 401
@@ -269,31 +282,44 @@ export class GitHubClient {
       url: org.url,
     }))
 
-    // Upsert organizations - check if exists first, then update or create
-    for (const org of orgs) {
-      const { organizations: existing } = await adminDb.query({
+    const orgIds = orgs.map((org) => org.githubId)
+    const existingByGithubId = new Map<number, { id: string; createdAt?: number }>()
+    if (orgIds.length > 0) {
+      const { organizations: existingOrganizations } = await adminDb.query({
         organizations: {
-          $: { where: { githubId: org.githubId } },
+          $: { where: { githubId: { $in: orgIds } } },
         },
       })
 
-      const orgId = existing?.[0]?.id || id()
+      for (const existingOrg of existingOrganizations || []) {
+        existingByGithubId.set(existingOrg.githubId, {
+          id: existingOrg.id,
+          createdAt: existingOrg.createdAt,
+        })
+      }
+    }
 
-      await adminDb.transact(
-        adminDb.tx.organizations[orgId]
-          .update({
-            githubId: org.githubId,
-            login: org.login,
-            name: org.name,
-            description: org.description,
-            avatarUrl: org.avatarUrl,
-            url: org.url,
-            syncedAt: now,
-            createdAt: now,
-            updatedAt: now,
-          })
-          .link({ user: this.userId }),
-      )
+    const orgTxs = orgs.map((org) => {
+      const existingOrg = existingByGithubId.get(org.githubId)
+      const orgId = existingOrg?.id || id()
+
+      return adminDb.tx.organizations[orgId]
+        .update({
+          githubId: org.githubId,
+          login: org.login,
+          name: org.name,
+          description: org.description,
+          avatarUrl: org.avatarUrl,
+          url: org.url,
+          syncedAt: now,
+          createdAt: existingOrg?.createdAt ?? now,
+          updatedAt: now,
+        })
+        .link({ user: this.userId })
+    })
+
+    for (const txChunk of chunkItems(orgTxs, TRANSACT_CHUNK_SIZE)) {
+      await adminDb.transact(txChunk)
     }
 
     await this.updateSyncState("orgs", null, rateLimit)
@@ -302,7 +328,7 @@ export class GitHubClient {
   }
 
   // Fetch user's repositories (personal and org repos) with pagination
-  async fetchRepositories(): Promise<SyncResult<{ githubId: number; fullName: string }[]>> {
+  async fetchRepositories(): Promise<SyncResult<RepositorySyncItem[]>> {
     const allReposData = await withRateLimitRetry(() =>
       this.octokit.paginate(this.octokit.rest.repos.listForAuthenticatedUser, {
         per_page: 100,
@@ -342,54 +368,97 @@ export class GitHubClient {
     ]
     const orgMap = new Map<string, string>()
 
-    for (const login of orgLogins) {
+    if (orgLogins.length > 0) {
       const { organizations } = await adminDb.query({
         organizations: {
-          $: { where: { login }, limit: 1 },
+          $: { where: { login: { $in: orgLogins } } },
         },
       })
-      if (organizations?.[0]) {
-        orgMap.set(login, organizations[0].id)
+
+      for (const organization of organizations || []) {
+        if (!orgMap.has(organization.login)) {
+          orgMap.set(organization.login, organization.id)
+        }
       }
     }
 
-    // Upsert repositories - check if exists first, then update or create
-    for (const repo of repos) {
-      const { repos: existing } = await adminDb.query({
+    const githubIds = repos.map((repo) => repo.githubId)
+    const existingByGithubId = new Map<
+      number,
+      {
+        id: string
+        githubUpdatedAt?: number
+        githubPushedAt?: number
+        createdAt: number
+        userId: string
+      }
+    >()
+    if (githubIds.length > 0) {
+      const { repos: existingRepos } = await adminDb.query({
         repos: {
-          $: { where: { githubId: repo.githubId } },
+          $: { where: { githubId: { $in: githubIds } } },
         },
       })
 
-      const repoId = existing?.[0]?.id || id()
-
-      // Prepare links - always link to user, optionally link to org
-      const links: { user: string; organization?: string } = { user: this.userId }
-      const orgId = orgMap.get(repo.owner)
-      if (orgId) {
-        links.organization = orgId
+      for (const existingRepo of existingRepos || []) {
+        existingByGithubId.set(existingRepo.githubId, existingRepo)
       }
+    }
 
-      // Remove ownerType from saved data (not in schema)
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { ownerType, ...repoData } = repo
+    const repoTxs = repos
+      .map((repo) => {
+        const existingRepo = existingByGithubId.get(repo.githubId)
+        const isUnchanged =
+          existingRepo &&
+          existingRepo.userId === this.userId &&
+          existingRepo.githubUpdatedAt &&
+          repo.githubUpdatedAt &&
+          existingRepo.githubUpdatedAt >= repo.githubUpdatedAt &&
+          existingRepo.githubPushedAt === repo.githubPushedAt
 
-      await adminDb.transact(
-        adminDb.tx.repos[repoId]
+        if (isUnchanged) {
+          return null
+        }
+
+        const repoId = existingRepo?.id || id()
+        const links: { user: string; organization?: string } = { user: this.userId }
+        const orgId = orgMap.get(repo.owner)
+        if (orgId) {
+          links.organization = orgId
+        }
+
+        // Remove ownerType from saved data (not in schema)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { ownerType, ...repoData } = repo
+
+        return adminDb.tx.repos[repoId]
           .update({
             ...repoData,
-            userId: this.userId, // Required attribute
+            userId: this.userId,
             syncedAt: now,
-            createdAt: now,
+            createdAt: existingRepo?.createdAt ?? now,
             updatedAt: now,
           })
-          .link(links),
-      )
+          .link(links)
+      })
+      .filter((tx): tx is NonNullable<typeof tx> => tx !== null)
+
+    for (const txChunk of chunkItems(repoTxs, TRANSACT_CHUNK_SIZE)) {
+      await adminDb.transact(txChunk)
     }
 
     await this.updateSyncState("repos", null, rateLimit)
 
-    return { data: repos, rateLimit, fromCache: false }
+    return {
+      data: repos.map((repo) => ({
+        githubId: repo.githubId,
+        fullName: repo.fullName,
+        githubPushedAt: repo.githubPushedAt,
+        githubUpdatedAt: repo.githubUpdatedAt,
+      })),
+      rateLimit,
+      fromCache: false,
+    }
   }
 
   async fetchPullRequests(
@@ -400,8 +469,22 @@ export class GitHubClient {
   ): Promise<SyncResult<{ githubId: number; number: number }[]>> {
     const repoRecord = await this.ensureRepoRecord(owner, repo)
 
-    const syncedAt = "syncedAt" in repoRecord ? repoRecord.syncedAt : undefined
-    if (!force && syncedAt && Date.now() - syncedAt < SYNC_FRESHNESS_MS) {
+    const resourceId = `${owner}/${repo}`
+    const { syncStates } = await adminDb.query({
+      syncStates: {
+        $: {
+          where: {
+            resourceType: "pulls",
+            userId: this.userId,
+            resourceId,
+          },
+          limit: 1,
+        },
+      },
+    })
+
+    const lastPullSyncAt = syncStates?.[0]?.lastSyncedAt
+    if (!force && lastPullSyncAt && Date.now() - lastPullSyncAt < SYNC_FRESHNESS_MS) {
       const rateLimit = this.lastRateLimit ?? (await this.getRateLimit())
       return { data: [], rateLimit, fromCache: true }
     }
@@ -443,41 +526,50 @@ export class GitHubClient {
       mergedAt: pr.merged_at ? new Date(pr.merged_at).getTime() : undefined,
     }))
 
-    for (const pr of prs) {
-      const { pullRequests: existing } = await adminDb.query({
-        pullRequests: {
-          $: { where: { githubId: pr.githubId } },
-        },
-      })
+    const { pullRequests: existingPullRequests } = await adminDb.query({
+      pullRequests: {
+        $: { where: { repoId: repoRecord.id } },
+      },
+    })
+    const existingByGithubId = new Map<
+      number,
+      { id: string; githubUpdatedAt?: number; createdAt: number }
+    >()
+    for (const existingPullRequest of existingPullRequests || []) {
+      existingByGithubId.set(existingPullRequest.githubId, existingPullRequest)
+    }
 
-      const existingRecord = existing?.[0]
-      const prId = existingRecord?.id || id()
+    const prTxs = prs
+      .map((pr) => {
+        const existingRecord = existingByGithubId.get(pr.githubId)
+        if (
+          existingRecord?.githubUpdatedAt &&
+          pr.githubUpdatedAt &&
+          existingRecord.githubUpdatedAt >= pr.githubUpdatedAt
+        ) {
+          return null
+        }
 
-      // Skip if the existing record was updated more recently (e.g. by a webhook)
-      if (
-        existingRecord?.githubUpdatedAt &&
-        pr.githubUpdatedAt &&
-        existingRecord.githubUpdatedAt >= pr.githubUpdatedAt
-      ) {
-        continue
-      }
-
-      await adminDb.transact(
-        adminDb.tx.pullRequests[prId]
+        const prId = existingRecord?.id || id()
+        return adminDb.tx.pullRequests[prId]
           .update({
             ...pr,
             repoId: repoRecord.id,
             userId: this.userId,
             syncedAt: now,
-            createdAt: now,
+            createdAt: existingRecord?.createdAt ?? now,
             updatedAt: now,
           })
           .link({ user: this.userId })
-          .link({ repo: repoRecord.id }),
-      )
+          .link({ repo: repoRecord.id })
+      })
+      .filter((tx): tx is NonNullable<typeof tx> => tx !== null)
+
+    for (const txChunk of chunkItems(prTxs, TRANSACT_CHUNK_SIZE)) {
+      await adminDb.transact(txChunk)
     }
 
-    await this.updateSyncState("pulls", `${owner}/${repo}`, rateLimit)
+    await this.updateSyncState("pulls", resourceId, rateLimit)
 
     return { data: prs, rateLimit, fromCache: false }
   }
@@ -814,9 +906,39 @@ export class GitHubClient {
       now,
     )
 
-    for (const entry of entries) {
-      await adminDb.transact(
-        adminDb.tx.repoTrees[entry.id]
+    const { repoTrees: allExisting } = await adminDb.query({
+      repoTrees: {
+        $: { where: { ref: branch, repoId: repoRecord.id } },
+      },
+    })
+
+    const existingById = new Map<
+      string,
+      { createdAt?: number; sha?: string; type?: string; size?: number }
+    >()
+    for (const existingEntry of allExisting || []) {
+      existingById.set(existingEntry.id, {
+        createdAt: existingEntry.createdAt,
+        sha: existingEntry.sha,
+        type: existingEntry.type,
+        size: existingEntry.size,
+      })
+    }
+
+    const entryTxs = entries
+      .map((entry) => {
+        const existingEntry = existingById.get(entry.id)
+        const isUnchanged =
+          existingEntry &&
+          existingEntry.sha === entry.sha &&
+          existingEntry.type === entry.type &&
+          existingEntry.size === entry.size
+
+        if (isUnchanged) {
+          return null
+        }
+
+        return adminDb.tx.repoTrees[entry.id]
           .update({
             ref: entry.ref,
             path: entry.path,
@@ -827,24 +949,24 @@ export class GitHubClient {
             url: entry.url,
             htmlUrl: entry.htmlUrl,
             repoId: entry.repoId,
-            createdAt: entry.createdAt,
+            createdAt: existingEntry?.createdAt ?? entry.createdAt,
             updatedAt: entry.updatedAt,
           })
           .link({ user: this.userId })
-          .link({ repo: repoRecord.id }),
-      )
+          .link({ repo: repoRecord.id })
+      })
+      .filter((tx): tx is NonNullable<typeof tx> => tx !== null)
+
+    for (const txChunk of chunkItems(entryTxs, TRANSACT_CHUNK_SIZE)) {
+      await adminDb.transact(txChunk)
     }
 
     // Remove stale entries that no longer exist in the tree
-    const { repoTrees: allExisting } = await adminDb.query({
-      repoTrees: {
-        $: { where: { ref: branch, repoId: repoRecord.id } },
-      },
-    })
     const incomingPaths = new Set(entries.map((e) => e.path))
     const staleIds = computeStaleEntries(allExisting || [], incomingPaths)
-    for (const staleId of staleIds) {
-      await adminDb.transact(adminDb.tx.repoTrees[staleId].delete())
+    const deleteTxs = staleIds.map((staleId) => adminDb.tx.repoTrees[staleId].delete())
+    for (const txChunk of chunkItems(deleteTxs, TRANSACT_CHUNK_SIZE)) {
+      await adminDb.transact(txChunk)
     }
 
     await this.updateSyncState("tree", `${owner}/${repo}:${branch}`, rateLimit)
@@ -893,9 +1015,37 @@ export class GitHubClient {
       now,
     )
 
-    for (const entry of commitEntries) {
-      await adminDb.transact(
-        adminDb.tx.repoCommits[entry.id]
+    const { repoCommits: allExisting } = await adminDb.query({
+      repoCommits: {
+        $: { where: { ref: branch, repoId: repoRecord.id } },
+      },
+    })
+
+    const existingById = new Map<
+      string,
+      { createdAt?: number; message?: string; committedAt?: number }
+    >()
+    for (const existingCommit of allExisting || []) {
+      existingById.set(existingCommit.id, {
+        createdAt: existingCommit.createdAt,
+        message: typeof existingCommit.message === "string" ? existingCommit.message : undefined,
+        committedAt: existingCommit.committedAt,
+      })
+    }
+
+    const commitTxs = commitEntries
+      .map((entry) => {
+        const existingCommit = existingById.get(entry.id)
+        const isUnchanged =
+          existingCommit &&
+          existingCommit.message === entry.message &&
+          existingCommit.committedAt === entry.committedAt
+
+        if (isUnchanged) {
+          return null
+        }
+
+        return adminDb.tx.repoCommits[entry.id]
           .update({
             sha: entry.sha,
             message: entry.message,
@@ -910,24 +1060,24 @@ export class GitHubClient {
             ref: entry.ref,
             repoId: entry.repoId,
             committedAt: entry.committedAt,
-            createdAt: entry.createdAt,
+            createdAt: existingCommit?.createdAt ?? entry.createdAt,
             updatedAt: entry.updatedAt,
           })
           .link({ user: this.userId })
-          .link({ repo: repoRecord.id }),
-      )
+          .link({ repo: repoRecord.id })
+      })
+      .filter((tx): tx is NonNullable<typeof tx> => tx !== null)
+
+    for (const txChunk of chunkItems(commitTxs, TRANSACT_CHUNK_SIZE)) {
+      await adminDb.transact(txChunk)
     }
 
     // Remove stale commits no longer in the branch history
-    const { repoCommits: allExisting } = await adminDb.query({
-      repoCommits: {
-        $: { where: { ref: branch, repoId: repoRecord.id } },
-      },
-    })
     const incomingShas = new Set(commitEntries.map((e) => e.sha))
     const staleIds = computeStaleCommits(allExisting || [], incomingShas)
-    for (const staleId of staleIds) {
-      await adminDb.transact(adminDb.tx.repoCommits[staleId].delete())
+    const deleteTxs = staleIds.map((staleId) => adminDb.tx.repoCommits[staleId].delete())
+    for (const txChunk of chunkItems(deleteTxs, TRANSACT_CHUNK_SIZE)) {
+      await adminDb.transact(txChunk)
     }
 
     await this.updateSyncState("commits", `${owner}/${repo}:${branch}`, rateLimit)
@@ -1057,7 +1207,9 @@ export class GitHubClient {
   }
 
   // Register webhooks for all repos belonging to this user
-  async registerAllWebhooks(): Promise<{
+  async registerAllWebhooks(
+    repoList?: Array<{ fullName: string; webhookStatus?: string }>,
+  ): Promise<{
     total: number
     installed: number
     skipped: number
@@ -1065,34 +1217,50 @@ export class GitHubClient {
     errors: number
     results: Array<{ fullName: string; status: string; error?: string; skipped?: boolean }>
   }> {
-    // Get all repos for this user
-    const { repos } = await adminDb.query({
-      repos: { $: { where: { userId: this.userId } } },
-    })
-
-    const results: Array<{ fullName: string; status: string; error?: string; skipped?: boolean }> =
+    const repos =
+      repoList ||
+      (
+        await adminDb.query({
+          repos: { $: { where: { userId: this.userId } } },
+        })
+      ).repos ||
       []
+
+    const results = await mapWithConcurrency(
+      repos,
+      WEBHOOK_REGISTRATION_CONCURRENCY,
+      async (repo) => {
+        if (repo.webhookStatus === GitHubClient.WEBHOOK_STATUS.INSTALLED) {
+          return {
+            fullName: repo.fullName,
+            status: GitHubClient.WEBHOOK_STATUS.INSTALLED,
+            skipped: true,
+          }
+        }
+
+        const [owner, repoName] = repo.fullName.split("/")
+        if (!owner || !repoName) {
+          return {
+            fullName: repo.fullName,
+            status: GitHubClient.WEBHOOK_STATUS.ERROR,
+            error: "Invalid repository full name",
+          }
+        }
+
+        const result = await this.registerRepoWebhook(owner, repoName)
+        return { fullName: repo.fullName, status: result.status, error: result.error }
+      },
+    )
+
     let installed = 0
     let skipped = 0
     let noAccess = 0
     let errors = 0
-
-    for (const repo of repos || []) {
-      // Skip repos that already have webhooks installed
-      if (repo.webhookStatus === GitHubClient.WEBHOOK_STATUS.INSTALLED) {
-        results.push({
-          fullName: repo.fullName,
-          status: GitHubClient.WEBHOOK_STATUS.INSTALLED,
-          skipped: true,
-        })
+    for (const result of results) {
+      if (result.skipped) {
         skipped++
         continue
       }
-
-      const [owner, repoName] = repo.fullName.split("/")
-      const result = await this.registerRepoWebhook(owner, repoName)
-      results.push({ fullName: repo.fullName, status: result.status, error: result.error })
-
       if (result.status === GitHubClient.WEBHOOK_STATUS.INSTALLED) {
         installed++
       } else if (result.status === GitHubClient.WEBHOOK_STATUS.NO_ACCESS) {
@@ -1103,7 +1271,7 @@ export class GitHubClient {
     }
 
     return {
-      total: repos?.length || 0,
+      total: repos.length,
       installed,
       skipped,
       noAccess,
@@ -1152,7 +1320,7 @@ export class GitHubClient {
     let reposCount = 0
     let webhooksRegistered = 0
     let totalOpenPRs = 0
-    let reposData: { githubId: number; fullName: string; githubPushedAt?: number }[] = []
+    let reposData: RepositorySyncItem[] = []
 
     const updateProgress = (
       step: "orgs" | "repos" | "webhooks" | "pullRequests" | "completed",
@@ -1188,7 +1356,7 @@ export class GitHubClient {
       await updateProgress("repos")
       const reposResult = await this.fetchRepositories()
       reposCount = reposResult.data.length
-      reposData = reposResult.data as typeof reposData
+      reposData = reposResult.data
       log.info("Synced repositories", { count: reposCount, userId: this.userId })
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to sync repositories"
@@ -1199,56 +1367,96 @@ export class GitHubClient {
     // Step 3: Webhooks
     try {
       await updateProgress("webhooks")
-      for (let i = 0; i < reposData.length; i++) {
-        const repo = reposData[i]
-        const [owner, repoName] = repo.fullName.split("/")
-        const result = await this.registerRepoWebhook(owner, repoName)
-        if (result.success) webhooksRegistered++
-      }
-      log.info("Registered webhooks", { count: webhooksRegistered, userId: this.userId })
+      const webhookResult = await this.registerAllWebhooks(reposData)
+      webhooksRegistered = webhookResult.installed + webhookResult.skipped
+      log.info("Registered webhooks", {
+        count: webhooksRegistered,
+        noAccess: webhookResult.noAccess,
+        errors: webhookResult.errors,
+        userId: this.userId,
+      })
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to register webhooks"
       await updateProgress("webhooks", { error: msg })
       throw err
     }
 
-    // Step 4: Sync open PRs for all repos, sorted by most recently active
+    // Step 4: Sync open PRs for active repos that need pull refresh
     const sortedRepos = [...reposData].sort((a, b) => {
-      const aTime = a.githubPushedAt ?? 0
-      const bTime = b.githubPushedAt ?? 0
+      const aTime = Math.max(a.githubPushedAt ?? 0, a.githubUpdatedAt ?? 0)
+      const bTime = Math.max(b.githubPushedAt ?? 0, b.githubUpdatedAt ?? 0)
       return bTime - aTime
     })
 
+    const { syncStates: pullSyncStates } = await adminDb.query({
+      syncStates: {
+        $: {
+          where: {
+            resourceType: "pulls",
+            userId: this.userId,
+          },
+        },
+      },
+    })
+    const reposToSync = selectReposForPullSync(sortedRepos, pullSyncStates || [])
+
+    await updateProgress("pullRequests", { prCompleted: 0, prTotal: reposToSync.length })
+
     let prErrors = 0
-    for (let i = 0; i < sortedRepos.length; i++) {
-      const repo = sortedRepos[i]
-      await updateProgress("pullRequests", {
-        prCompleted: i,
-        prTotal: sortedRepos.length,
-      })
+    let prCompleted = 0
+    let progressWrite = Promise.resolve()
+    const queuePullProgressUpdate = (completed: number) => {
+      progressWrite = progressWrite.then(() =>
+        updateProgress("pullRequests", {
+          prCompleted: completed,
+          prTotal: reposToSync.length,
+        }),
+      )
+      return progressWrite
+    }
+
+    await mapWithConcurrency(reposToSync, INITIAL_SYNC_PR_CONCURRENCY, async (repo, index) => {
       try {
         const [owner, repoName] = repo.fullName.split("/")
+        if (!owner || !repoName) {
+          prErrors++
+          log.error("Skipping invalid repo name during initial sync", undefined, {
+            repo: repo.fullName,
+            index,
+            userId: this.userId,
+          })
+          return
+        }
+
         const prsResult = await this.fetchPullRequests(owner, repoName, "open")
         totalOpenPRs += prsResult.data.length
       } catch (err) {
         prErrors++
         log.error("PR sync failed during initial sync", err, {
           repo: repo.fullName,
+          index,
           userId: this.userId,
         })
         if (isRateLimitError(err)) {
-          log.warn("Rate limited during PR sync, pausing", {
-            repoIndex: i + 1,
-            total: sortedRepos.length,
+          log.warn("Rate limited during PR sync, pausing worker", {
+            repo: repo.fullName,
+            index,
+            total: reposToSync.length,
           })
           const delay = err instanceof RequestError ? getRateLimitRetryDelay(err) : 60_000
           await new Promise((resolve) => setTimeout(resolve, delay))
         }
+      } finally {
+        prCompleted++
+        await queuePullProgressUpdate(prCompleted)
       }
-    }
+    })
+    await progressWrite
+
     log.info("Initial PR sync complete", {
       openPRs: totalOpenPRs,
-      repos: sortedRepos.length,
+      repos: reposToSync.length,
+      skippedRepos: sortedRepos.length - reposToSync.length,
       errors: prErrors,
       userId: this.userId,
     })
