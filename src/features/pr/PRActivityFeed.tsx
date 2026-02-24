@@ -32,6 +32,7 @@ import {
   createCommentMutation,
   createDraftReviewMutation,
   discardDraftReviewMutation,
+  reRequestReviewMutation,
   submitDraftReviewMutation,
   submitReviewMutation,
 } from "@/lib/mutations"
@@ -160,6 +161,9 @@ export const PRActivityFeed = ({
   const discardDraftReview = useMutation(
     discardDraftReviewMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
   )
+  const reRequestReview = useMutation(
+    reRequestReviewMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
+  )
 
   if (timelineItems.length === 0) {
     return (
@@ -174,7 +178,21 @@ export const PRActivityFeed = ({
   return (
     <div className={styles.timeline}>
       {timelineItems.map((item) => (
-        <TimelineItemRenderer key={item.id} item={item} formatTimeAgo={formatTimeAgo} />
+        <TimelineItemRenderer
+          key={item.id}
+          item={item}
+          formatTimeAgo={formatTimeAgo}
+          canReRequestReview={canReview}
+          isReRequestPending={reRequestReview.isPending}
+          onReRequestReviewer={(reviewerLogin) => {
+            reRequestReview.mutate(
+              { reviewers: [reviewerLogin] },
+              {
+                onSuccess: () => onCommentCreated?.(),
+              },
+            )
+          }}
+        />
       ))}
       {canComment && (
         <CommentComposer
@@ -242,9 +260,15 @@ export const PRActivityFeed = ({
 const TimelineItemRenderer = ({
   item,
   formatTimeAgo,
+  canReRequestReview,
+  isReRequestPending,
+  onReRequestReviewer,
 }: {
   item: TimelineItem
   formatTimeAgo: (date: Date | number | null | undefined) => string
+  canReRequestReview: boolean
+  isReRequestPending: boolean
+  onReRequestReviewer: (reviewerLogin: string) => void
 }) => {
   switch (item.type) {
     case "pr_opened":
@@ -261,7 +285,15 @@ const TimelineItemRenderer = ({
     case "commit":
       return <CommitItem commit={item.data.commit!} formatTimeAgo={formatTimeAgo} />
     case "review":
-      return <ReviewItem review={item.data.review!} formatTimeAgo={formatTimeAgo} />
+      return (
+        <ReviewItem
+          review={item.data.review!}
+          formatTimeAgo={formatTimeAgo}
+          canReRequestReview={canReRequestReview}
+          isReRequestPending={isReRequestPending}
+          onReRequestReviewer={onReRequestReviewer}
+        />
+      )
     case "comment":
       return <CommentItem comment={item.data.comment!} formatTimeAgo={formatTimeAgo} />
     case "review_comment":
@@ -569,10 +601,19 @@ const getEventDisplay = (
 const ReviewItem = ({
   review,
   formatTimeAgo,
+  canReRequestReview,
+  isReRequestPending,
+  onReRequestReviewer,
 }: {
   review: GithubPrReview
   formatTimeAgo: (date: Date | number | null | undefined) => string
+  canReRequestReview: boolean
+  isReRequestPending: boolean
+  onReRequestReviewer: (reviewerLogin: string) => void
 }) => {
+  const canShowReRequestButton =
+    canReRequestReview && Boolean(review.authorLogin) && review.state !== "PENDING"
+
   return (
     <div className={styles.timelineItem}>
       <Avatar src={review.authorAvatarUrl} name={review.authorLogin} size={40} />
@@ -580,6 +621,20 @@ const ReviewItem = ({
         <div className={styles.timelineHeader}>
           <span className={styles.timelineAuthor}>{review.authorLogin}</span>
           <ReviewStateBadge state={review.state} />
+          {canShowReRequestButton && (
+            <div className={styles.reviewActions}>
+              <button
+                type="button"
+                className={styles.reRequestButton}
+                onClick={() => {
+                  if (review.authorLogin) onReRequestReviewer(review.authorLogin)
+                }}
+                disabled={isReRequestPending}
+              >
+                Re-request
+              </button>
+            </div>
+          )}
           <span className={styles.timelineTime}>{formatTimeAgo(review.submittedAt)}</span>
         </div>
         {review.body && (

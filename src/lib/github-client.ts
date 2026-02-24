@@ -1233,6 +1233,34 @@ export class GitHubClient {
     return { discarded: true }
   }
 
+  async requestReviewers(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    options: { reviewers: string[]; teamReviewers?: string[] },
+  ): Promise<{ requestedReviewers: string[]; requestedTeams: string[] }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.pulls.requestReviewers({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        reviewers: options.reviewers,
+        team_reviewers: options.teamReviewers,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      requestedReviewers: (response.data.requested_reviewers ?? [])
+        .map((reviewer) => reviewer?.login)
+        .filter((login): login is string => Boolean(login)),
+      requestedTeams: (response.data.requested_teams ?? [])
+        .map((team) => team?.slug)
+        .filter((slug): slug is string => Boolean(slug)),
+    }
+  }
+
   // Merge a pull request
   async mergePullRequest(
     owner: string,

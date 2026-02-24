@@ -201,6 +201,42 @@ describe("/api/github/reviews/$owner/$repo/$number", () => {
     expect(mockDiscardPendingReview).toHaveBeenCalledWith("test-owner", "test-repo", 1, 4)
   })
 
+  it("re-requests reviewers from existing review authors", async () => {
+    const mockRequestReviewers = vi.fn().mockResolvedValue({
+      requestedReviewers: ["reviewer-a"],
+      requestedTeams: [],
+    })
+    vi.mocked(createGitHubClient).mockResolvedValue(
+      createMockGitHubClient({
+        requestReviewers: mockRequestReviewers,
+      }),
+    )
+
+    const handler = getRouteHandler(Route, "POST")
+    if (!handler) throw new Error("No POST handler")
+    const request = makeAuthRequest(
+      "http://localhost/api/github/reviews/test-owner/test-repo/1",
+      "test-user-id",
+      { method: "POST" },
+    )
+    const requestWithBody = new Request(request, {
+      body: JSON.stringify({
+        action: "re_request",
+        reviewers: ["reviewer-a"],
+      }),
+    })
+    const response = await handler({
+      request: requestWithBody,
+      params: { owner: "test-owner", repo: "test-repo", number: "1" },
+    })
+
+    expect(response.status).toBe(200)
+    expect(mockRequestReviewers).toHaveBeenCalledWith("test-owner", "test-repo", 1, {
+      reviewers: ["reviewer-a"],
+      teamReviewers: undefined,
+    })
+  })
+
   it("returns 401 without auth header", async () => {
     const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")

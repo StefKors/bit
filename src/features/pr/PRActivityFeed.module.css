@@ -294,6 +294,30 @@
   color: var(--bit-color-muted);
 }
 
+.reviewActions {
+  display: inline-flex;
+}
+
+.reRequestButton {
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.16);
+  background: rgba(var(--bit-rgb-fg), 0.03);
+  color: var(--bit-color-fg);
+  border-radius: var(--bit-radius-md);
+  font-size: 0.75rem;
+  line-height: 1.1;
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
+}
+
+.reRequestButton:hover:not(:disabled) {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+}
+
+.reRequestButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Review comment (inline diff comment) */
 .reviewCommentPath {
   font-family: var(--bit-font-mono);

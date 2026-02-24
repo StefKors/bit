@@ -34,7 +34,7 @@ todos:
     status: completed
   - id: phase-3-4
     content: "Phase 3.4: Re-request Review - API endpoint, mutation, UI button in activity feed, tests"
-    status: pending
+    status: completed
   - id: phase-4-1
     content: "Phase 4.1: Edit PR Title/Description - API route, PRHeader component with inline editing, tests"
     status: pending

@@ -35,11 +35,18 @@ const discardDraftSchema = z.object({
   reviewId: z.number().int().positive(),
 })
 
+const reRequestReviewSchema = z.object({
+  action: z.literal("re_request"),
+  reviewers: z.array(z.string().min(1)).min(1),
+  teamReviewers: z.array(z.string().min(1)).optional(),
+})
+
 const reviewSchema = z.union([
   submitReviewSchema,
   createDraftSchema,
   submitDraftSchema,
   discardDraftSchema,
+  reRequestReviewSchema,
 ])
 
 const legacySubmitSchema = z.object({
@@ -129,6 +136,14 @@ export const Route = createFileRoute("/api/github/reviews/$owner/$repo/$number")
               pullNumber,
               input.reviewId,
             )
+            return jsonResponse(result)
+          }
+
+          if (input.action === "re_request") {
+            const result = await client.requestReviewers(owner, repo, pullNumber, {
+              reviewers: input.reviewers,
+              teamReviewers: input.teamReviewers,
+            })
             return jsonResponse(result)
           }
 

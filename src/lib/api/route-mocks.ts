@@ -82,6 +82,10 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
     discardPendingReview: vi.fn().mockResolvedValue({
       discarded: true,
     }),
+    requestReviewers: vi.fn().mockResolvedValue({
+      requestedReviewers: ["reviewer-a"],
+      requestedTeams: [],
+    }),
     createReviewComment: vi.fn().mockResolvedValue({
       id: 1,
       body: "Inline comment",

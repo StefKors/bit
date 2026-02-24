@@ -551,6 +551,49 @@ export const discardDraftReviewMutation = (
     },
   })
 
+type ReRequestReviewResponse = {
+  requestedReviewers: string[]
+  requestedTeams: string[]
+  error?: string
+  code?: string
+}
+
+export const reRequestReviewMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "reviews", "re-request", owner, repo, number],
+    mutationFn: async (vars: {
+      reviewers: string[]
+      teamReviewers?: string[]
+    }): Promise<ReRequestReviewResponse> => {
+      const res = await fetch(`/api/github/reviews/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({
+          action: "re_request",
+          reviewers: vars.reviewers,
+          teamReviewers: vars.teamReviewers,
+        }),
+      })
+      const data = (await res.json()) as ReRequestReviewResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to re-request review")
+      }
+      return data
+    },
+  })
+
 type ToggleFileViewedResponse = {
   viewedFiles: string[]
   path: string
