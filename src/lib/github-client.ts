@@ -1018,6 +1018,65 @@ export class GitHubClient {
     return { deleted: true }
   }
 
+  async createReviewComment(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    options: {
+      body: string
+      path?: string
+      line?: number
+      side?: "LEFT" | "RIGHT"
+      commitId?: string
+      inReplyTo?: number
+    },
+  ): Promise<{
+    id: number
+    body: string
+    htmlUrl: string | null
+    path: string | null
+    line: number | null
+    side: "LEFT" | "RIGHT" | null
+  }> {
+    const response = await withRateLimitRetry(() => {
+      if (options.inReplyTo) {
+        return this.octokit.rest.pulls.createReplyForReviewComment({
+          owner,
+          repo,
+          pull_number: pullNumber,
+          comment_id: options.inReplyTo,
+          body: options.body,
+        })
+      }
+
+      if (!options.path || !options.commitId || !options.line || !options.side) {
+        throw new Error("path, commitId, line, and side are required for inline comments")
+      }
+
+      return this.octokit.rest.pulls.createReviewComment({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        body: options.body,
+        path: options.path,
+        line: options.line,
+        side: options.side,
+        commit_id: options.commitId,
+      })
+    })
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      id: response.data.id,
+      body: response.data.body ?? "",
+      htmlUrl: response.data.html_url ?? null,
+      path: response.data.path ?? null,
+      line: response.data.line ?? response.data.original_line ?? null,
+      side: (response.data.side as "LEFT" | "RIGHT" | null) ?? null,
+    }
+  }
+
   async createPullRequestReview(
     owner: string,
     repo: string,

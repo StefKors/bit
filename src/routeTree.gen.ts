@@ -40,6 +40,7 @@ import { Route as OwnerRepoBlobBranchSplatRouteImport } from './routes/$owner/$r
 import { Route as ApiGithubSyncOwnerRepoTreeRouteImport } from './routes/api/github/sync/$owner.$repo.tree'
 import { Route as ApiGithubSyncOwnerRepoCommitsRouteImport } from './routes/api/github/sync/$owner.$repo.commits'
 import { Route as ApiGithubReviewsOwnerRepoNumberRouteImport } from './routes/api/github/reviews.$owner.$repo.$number'
+import { Route as ApiGithubReviewCommentsOwnerRepoNumberRouteImport } from './routes/api/github/review-comments.$owner.$repo.$number'
 import { Route as ApiGithubFileOwnerRepoSplatRouteImport } from './routes/api/github/file/$owner.$repo.$'
 import { Route as ApiGithubCommentsOwnerRepoNumberRouteImport } from './routes/api/github/comments.$owner.$repo.$number'
 import { Route as ApiGithubSyncOwnerRepoPullNumberRouteImport } from './routes/api/github/sync/$owner.$repo.pull.$number'
@@ -209,6 +210,12 @@ const ApiGithubReviewsOwnerRepoNumberRoute =
     path: '/api/github/reviews/$owner/$repo/$number',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiGithubReviewCommentsOwnerRepoNumberRoute =
+  ApiGithubReviewCommentsOwnerRepoNumberRouteImport.update({
+    id: '/api/github/review-comments/$owner/$repo/$number',
+    path: '/api/github/review-comments/$owner/$repo/$number',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiGithubFileOwnerRepoSplatRoute =
   ApiGithubFileOwnerRepoSplatRouteImport.update({
     id: '/api/github/file/$owner/$repo/$',
@@ -277,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
   '/api/github/comments/$owner/$repo/$number': typeof ApiGithubCommentsOwnerRepoNumberRoute
   '/api/github/file/$owner/$repo/$': typeof ApiGithubFileOwnerRepoSplatRoute
+  '/api/github/review-comments/$owner/$repo/$number': typeof ApiGithubReviewCommentsOwnerRepoNumberRoute
   '/api/github/reviews/$owner/$repo/$number': typeof ApiGithubReviewsOwnerRepoNumberRoute
   '/api/github/sync/$owner/$repo/commits': typeof ApiGithubSyncOwnerRepoCommitsRoute
   '/api/github/sync/$owner/$repo/tree': typeof ApiGithubSyncOwnerRepoTreeRoute
@@ -316,6 +324,7 @@ export interface FileRoutesByTo {
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
   '/api/github/comments/$owner/$repo/$number': typeof ApiGithubCommentsOwnerRepoNumberRoute
   '/api/github/file/$owner/$repo/$': typeof ApiGithubFileOwnerRepoSplatRoute
+  '/api/github/review-comments/$owner/$repo/$number': typeof ApiGithubReviewCommentsOwnerRepoNumberRoute
   '/api/github/reviews/$owner/$repo/$number': typeof ApiGithubReviewsOwnerRepoNumberRoute
   '/api/github/sync/$owner/$repo/commits': typeof ApiGithubSyncOwnerRepoCommitsRoute
   '/api/github/sync/$owner/$repo/tree': typeof ApiGithubSyncOwnerRepoTreeRoute
@@ -356,6 +365,7 @@ export interface FileRoutesById {
   '/api/github/sync/$owner/$repo': typeof ApiGithubSyncOwnerRepoRouteWithChildren
   '/api/github/comments/$owner/$repo/$number': typeof ApiGithubCommentsOwnerRepoNumberRoute
   '/api/github/file/$owner/$repo/$': typeof ApiGithubFileOwnerRepoSplatRoute
+  '/api/github/review-comments/$owner/$repo/$number': typeof ApiGithubReviewCommentsOwnerRepoNumberRoute
   '/api/github/reviews/$owner/$repo/$number': typeof ApiGithubReviewsOwnerRepoNumberRoute
   '/api/github/sync/$owner/$repo/commits': typeof ApiGithubSyncOwnerRepoCommitsRoute
   '/api/github/sync/$owner/$repo/tree': typeof ApiGithubSyncOwnerRepoTreeRoute
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/api/github/sync/$owner/$repo'
     | '/api/github/comments/$owner/$repo/$number'
     | '/api/github/file/$owner/$repo/$'
+    | '/api/github/review-comments/$owner/$repo/$number'
     | '/api/github/reviews/$owner/$repo/$number'
     | '/api/github/sync/$owner/$repo/commits'
     | '/api/github/sync/$owner/$repo/tree'
@@ -436,6 +447,7 @@ export interface FileRouteTypes {
     | '/api/github/sync/$owner/$repo'
     | '/api/github/comments/$owner/$repo/$number'
     | '/api/github/file/$owner/$repo/$'
+    | '/api/github/review-comments/$owner/$repo/$number'
     | '/api/github/reviews/$owner/$repo/$number'
     | '/api/github/sync/$owner/$repo/commits'
     | '/api/github/sync/$owner/$repo/tree'
@@ -475,6 +487,7 @@ export interface FileRouteTypes {
     | '/api/github/sync/$owner/$repo'
     | '/api/github/comments/$owner/$repo/$number'
     | '/api/github/file/$owner/$repo/$'
+    | '/api/github/review-comments/$owner/$repo/$number'
     | '/api/github/reviews/$owner/$repo/$number'
     | '/api/github/sync/$owner/$repo/commits'
     | '/api/github/sync/$owner/$repo/tree'
@@ -514,6 +527,7 @@ export interface RootRouteChildren {
   ApiGithubSyncOwnerRepoRoute: typeof ApiGithubSyncOwnerRepoRouteWithChildren
   ApiGithubCommentsOwnerRepoNumberRoute: typeof ApiGithubCommentsOwnerRepoNumberRoute
   ApiGithubFileOwnerRepoSplatRoute: typeof ApiGithubFileOwnerRepoSplatRoute
+  ApiGithubReviewCommentsOwnerRepoNumberRoute: typeof ApiGithubReviewCommentsOwnerRepoNumberRoute
   ApiGithubReviewsOwnerRepoNumberRoute: typeof ApiGithubReviewsOwnerRepoNumberRoute
   ApiGithubPrMergeOwnerRepoNumberRoute: typeof ApiGithubPrMergeOwnerRepoNumberRoute
   ApiGithubPrStateOwnerRepoNumberRoute: typeof ApiGithubPrStateOwnerRepoNumberRoute
@@ -738,6 +752,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubReviewsOwnerRepoNumberRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/github/review-comments/$owner/$repo/$number': {
+      id: '/api/github/review-comments/$owner/$repo/$number'
+      path: '/api/github/review-comments/$owner/$repo/$number'
+      fullPath: '/api/github/review-comments/$owner/$repo/$number'
+      preLoaderRoute: typeof ApiGithubReviewCommentsOwnerRepoNumberRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/github/file/$owner/$repo/$': {
       id: '/api/github/file/$owner/$repo/$'
       path: '/api/github/file/$owner/$repo/$'
@@ -847,6 +868,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGithubSyncOwnerRepoRoute: ApiGithubSyncOwnerRepoRouteWithChildren,
   ApiGithubCommentsOwnerRepoNumberRoute: ApiGithubCommentsOwnerRepoNumberRoute,
   ApiGithubFileOwnerRepoSplatRoute: ApiGithubFileOwnerRepoSplatRoute,
+  ApiGithubReviewCommentsOwnerRepoNumberRoute:
+    ApiGithubReviewCommentsOwnerRepoNumberRoute,
   ApiGithubReviewsOwnerRepoNumberRoute: ApiGithubReviewsOwnerRepoNumberRoute,
   ApiGithubPrMergeOwnerRepoNumberRoute: ApiGithubPrMergeOwnerRepoNumberRoute,
   ApiGithubPrStateOwnerRepoNumberRoute: ApiGithubPrStateOwnerRepoNumberRoute,

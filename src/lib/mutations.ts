@@ -442,3 +442,50 @@ export const submitReviewMutation = (userId: string, owner: string, repo: string
       return data
     },
   })
+
+type ReviewCommentResponse = {
+  id: number
+  body: string
+  htmlUrl: string | null
+  path: string | null
+  line: number | null
+  side: "LEFT" | "RIGHT" | null
+  error?: string
+  code?: string
+}
+
+export const createReviewCommentMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "review-comments", "create", owner, repo, number],
+    mutationFn: async (vars: {
+      body: string
+      path?: string
+      line?: number
+      side?: "LEFT" | "RIGHT"
+      commitId?: string
+      inReplyTo?: number
+    }): Promise<ReviewCommentResponse> => {
+      const res = await fetch(`/api/github/review-comments/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as ReviewCommentResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to create inline review comment")
+      }
+      return data
+    },
+  })

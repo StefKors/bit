@@ -261,6 +261,7 @@ function PRDetailPage() {
           authors={authors}
           labels={labels}
           hasActiveFilters={hasActiveFilters}
+          currentUserId={user?.id ?? null}
           currentUserLogin={user?.login ?? null}
           diffOptions={diffOptions}
           onDiffOptionsChange={setDiffOptions}
@@ -397,7 +398,17 @@ function PRDetailPage() {
             )}
 
             {activeTab === "files" && (
-              <PRFilesTab files={prFiles} comments={prComments} diffOptions={diffOptions} />
+              <PRFilesTab
+                files={prFiles}
+                comments={prComments}
+                diffOptions={diffOptions}
+                userId={user?.id}
+                owner={owner}
+                repo={repoName}
+                prNumber={prNumber}
+                headSha={pr.headSha ?? undefined}
+                onCommentCreated={() => prSync.mutate()}
+              />
             )}
           </div>
         </>

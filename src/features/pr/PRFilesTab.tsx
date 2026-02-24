@@ -12,9 +12,25 @@ interface PRFilesTabProps {
   files: readonly PrFile[]
   comments: readonly PrComment[]
   diffOptions: DiffOptions
+  userId?: string
+  owner?: string
+  repo?: string
+  prNumber?: number
+  headSha?: string
+  onCommentCreated?: () => void
 }
 
-export const PRFilesTab = ({ files, comments, diffOptions }: PRFilesTabProps) => {
+export const PRFilesTab = ({
+  files,
+  comments,
+  diffOptions,
+  userId,
+  owner,
+  repo,
+  prNumber,
+  headSha,
+  onCommentCreated,
+}: PRFilesTabProps) => {
   // Filter to only review comments (inline diff comments)
   const reviewComments = useMemo(
     () => comments.filter((c) => c.commentType === "review_comment"),
@@ -50,6 +66,12 @@ export const PRFilesTab = ({ files, comments, diffOptions }: PRFilesTabProps) =>
               file={file}
               comments={commentsByPath.get(file.filename) || []}
               diffOptions={diffOptions}
+              userId={userId}
+              owner={owner}
+              repo={repo}
+              prNumber={prNumber}
+              headSha={headSha}
+              onCommentCreated={onCommentCreated}
             />
           ))}
         </div>
@@ -62,9 +84,25 @@ interface FileItemProps {
   file: PrFile
   comments: PrComment[]
   diffOptions: DiffOptions
+  userId?: string
+  owner?: string
+  repo?: string
+  prNumber?: number
+  headSha?: string
+  onCommentCreated?: () => void
 }
 
-const FileItem = ({ file, comments, diffOptions }: FileItemProps) => {
+const FileItem = ({
+  file,
+  comments,
+  diffOptions,
+  userId,
+  owner,
+  repo,
+  prNumber,
+  headSha,
+  onCommentCreated,
+}: FileItemProps) => {
   const { filename, previousFilename, patch } = file
   return (
     <DiffViewer
@@ -73,6 +111,12 @@ const FileItem = ({ file, comments, diffOptions }: FileItemProps) => {
       patch={patch ?? ""}
       comments={comments}
       diffOptions={diffOptions}
+      userId={userId}
+      owner={owner}
+      repo={repo}
+      prNumber={prNumber}
+      headSha={headSha}
+      onCommentCreated={onCommentCreated}
     />
   )
 }

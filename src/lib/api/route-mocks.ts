@@ -73,6 +73,14 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
       body: "Looks good",
       htmlUrl: "https://github.com/test/repo/pull/1#pullrequestreview-1",
     }),
+    createReviewComment: vi.fn().mockResolvedValue({
+      id: 1,
+      body: "Inline comment",
+      htmlUrl: "https://github.com/test/repo/pull/1#discussion_r1",
+      path: "src/index.ts",
+      line: 1,
+      side: "RIGHT",
+    }),
     ...overrides,
   })
 

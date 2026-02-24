@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: phase-2-3
     content: "Phase 2.3: Inline Review Comments - API route, GitHub client function, inline comment UI in DiffViewer, tests"
-    status: pending
+    status: completed
   - id: phase-2-4
     content: "Phase 2.4: Resolve Conversation Threads - API route for resolve/unresolve, mutation, CommentThread component updates, tests"
     status: pending
@@ -92,17 +92,17 @@ flowchart TB
         UI[PR Detail UI Components]
         Mutations[React Query Mutations]
     end
-    
+
     subgraph Backend["Backend (TanStack Router API)"]
         Routes[API Route Handlers]
         GitHubAPI[GitHub API Client]
     end
-    
+
     subgraph DataLayer["Data Layer"]
         InstantDB[(InstantDB)]
         Webhooks[Webhook Handlers]
     end
-    
+
     UI --> Mutations
     Mutations --> Routes
     Routes --> GitHubAPI
@@ -110,8 +110,6 @@ flowchart TB
     GitHubAPI --> InstantDB
     Webhooks --> InstantDB
 ```
-
-
 
 ---
 
@@ -328,7 +326,7 @@ flowchart TB
 - `src/lib/github-client.ts` - Add helper
   - `createSuggestedChange()` - Formats body with
 
-```suggestion code blocks
+````suggestion code blocks
 
 - `src/features/pr/SuggestionBlock.tsx` - New component
   - Render suggestions in diff view
@@ -681,7 +679,7 @@ milestoneId: "string",
 locked: "boolean",
 lockReason: "string",
 viewedFiles: "string", // JSON array of paths
-```
+````
 
 ---
 
@@ -739,12 +737,12 @@ describe("POST /api/github/pr/merge", () => {
     // Assert InstantDB updated
     // Assert response structure
   })
-  
+
   it("returns 409 on merge conflict", async () => {
     // Mock GitHub API returning 405
     // Assert 409 response with meaningful error
   })
-  
+
   it("returns 401 without valid auth", async () => {
     // No auth header
     // Assert 401 response
@@ -876,4 +874,3 @@ describe("POST /api/github/pr/merge", () => {
 - All happy paths and error cases are tested
 - Webhook handlers maintain real-time sync for all new features
 - Zero regression in existing read-only PR functionality
-
