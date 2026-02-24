@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useState, useRef } from "react"
+import { useRef, useState, useSyncExternalStore } from "react"
 import {
   GitPullRequestIcon,
   GitMergeIcon,
@@ -14,9 +14,11 @@ import { Button } from "@/components/Button"
 import { PRActivityFeed } from "@/features/pr/PRActivityFeed"
 import { PRFilesTab } from "@/features/pr/PRFilesTab"
 import { PRCommitsTab } from "@/features/pr/PRCommitsTab"
+import { PRThreeColumnLayout } from "@/features/pr/PRThreeColumnLayout"
 import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { getPRLayoutMode, subscribePRLayoutMode } from "@/lib/pr-layout-preference"
 import styles from "@/pages/PRDetailPage.module.css"
 
 type TabType = "conversation" | "commits" | "files"
@@ -57,9 +59,24 @@ function PRDetailPage() {
   const repoName = repo
   const prNumber = parseInt(number, 10)
   const fullName = `${owner}/${repoName}`
+  const prLayoutMode = useSyncExternalStore(subscribePRLayoutMode, getPRLayoutMode, () => "default")
+  const isFullScreenLayout = prLayoutMode === "full-screen-3-column"
+  const containerClassName = isFullScreenLayout
+    ? `${styles.container} ${styles.containerFullScreen}`
+    : styles.container
 
-  // Query repo with PR and all related data using InstantDB
-  const { data: reposData } = db.useQuery({
+  const { data: repoListData, isLoading: isRepoLoading } = db.useQuery({
+    repos: {
+      $: { where: { fullName } },
+      pullRequests: {
+        $: { order: { githubUpdatedAt: "desc" } },
+      },
+    },
+  })
+  const repoData = repoListData?.repos?.[0] ?? null
+  const repoPRs = repoData?.pullRequests ?? []
+
+  const { data: prDetailsRepoData, isLoading: isPrDetailsLoading } = db.useQuery({
     repos: {
       $: { where: { fullName } },
       pullRequests: {
@@ -72,9 +89,7 @@ function PRDetailPage() {
       },
     },
   })
-
-  const repoData = reposData?.repos?.[0] ?? null
-  const pr = repoData?.pullRequests?.[0] ?? null
+  const pr = prDetailsRepoData?.repos?.[0]?.pullRequests?.[0] ?? null
 
   const autoSyncTriggered = useRef(false)
   const prHasDetails = Boolean(
@@ -122,20 +137,13 @@ function PRDetailPage() {
     }
   }
 
-  if (pr === undefined) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.emptyState}>
-          <GitPullRequestIcon className={styles.emptyIcon} size={48} />
-          <h3 className={styles.emptyTitle}>Pull request not found</h3>
-        </div>
-      </div>
-    )
+  if (isRepoLoading || isPrDetailsLoading) {
+    return <div className={containerClassName} />
   }
 
   if (!repoData || !pr) {
     return (
-      <div className={styles.container}>
+      <div className={containerClassName}>
         <div className={styles.emptyState}>
           <GitPullRequestIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>Pull request not found</h3>
@@ -184,7 +192,7 @@ function PRDetailPage() {
   const prEvents = pr.prEvents ?? []
 
   return (
-    <div className={styles.container}>
+    <div className={containerClassName}>
       <Breadcrumb
         items={[
           { label: "Repositories", to: "/" },
@@ -203,72 +211,6 @@ function PRDetailPage() {
         ]}
       />
 
-      <div className={styles.headerContainer}>
-        <header className={styles.header}>
-          <div className={styles.titleRow}>
-            {isMerged ? (
-              <GitMergeIcon className={`${styles.prIcon} ${styles.prIconMerged}`} size={24} />
-            ) : (
-              <GitPullRequestIcon
-                className={`${styles.prIcon} ${isClosed ? styles.prIconClosed : styles.prIconOpen}`}
-                size={24}
-              />
-            )}
-            <h1 className={styles.title}>
-              {pr.title}
-              <span className={styles.prNumber}> #{pr.number}</span>
-              {isDraft ? (
-                <span className={`${styles.statusBadge} ${styles.statusDraft}`}>Draft</span>
-              ) : isMerged ? (
-                <span className={`${styles.statusBadge} ${styles.statusMerged}`}>Merged</span>
-              ) : isClosed ? (
-                <span className={`${styles.statusBadge} ${styles.statusClosed}`}>Closed</span>
-              ) : (
-                <span className={`${styles.statusBadge} ${styles.statusOpen}`}>Open</span>
-              )}
-            </h1>
-          </div>
-
-          <div className={styles.meta}>
-            {pr.authorLogin && (
-              <span className={styles.metaItem}>
-                {pr.authorAvatarUrl && (
-                  <img
-                    src={pr.authorAvatarUrl}
-                    alt={pr.authorLogin}
-                    className={styles.authorAvatar}
-                  />
-                )}
-                <strong>{pr.authorLogin}</strong>
-              </span>
-            )}
-            <span className={styles.metaItem}>
-              wants to merge into
-              <span className={styles.branchInfo}>{pr.baseRef}</span>
-              from
-              <span className={styles.branchInfo}>{pr.headRef}</span>
-            </span>
-            <span className={styles.metaItem}>
-              {isOpen
-                ? `opened ${formatTimeAgo(pr.githubCreatedAt)}`
-                : isMerged
-                  ? `merged ${formatTimeAgo(pr.mergedAt)}`
-                  : `closed ${formatTimeAgo(pr.closedAt)}`}
-            </span>
-          </div>
-        </header>
-        <div className={styles.actions}>
-          <Button
-            variant="success"
-            leadingIcon={<SyncIcon size={16} />}
-            loading={syncing}
-            onClick={() => void handleSync()}
-          >
-            {syncing ? "Syncing..." : "Sync Details"}
-          </Button>
-        </div>
-      </div>
-
       {error && (
         <div
           style={{
@@ -283,58 +225,140 @@ function PRDetailPage() {
         </div>
       )}
 
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) => setActiveTab(value as TabType)}
-        items={[
-          {
-            value: "conversation",
-            label: "Activity",
-            icon: <HistoryIcon size={16} />,
-          },
-          {
-            value: "commits",
-            label: "Commits",
-            icon: <GitCommitIcon size={16} />,
-            count: prCommits.length || pr.commits || 0,
-          },
-          {
-            value: "files",
-            label: "Files changed",
-            icon: <FileIcon size={16} />,
-          },
-        ]}
-        trailing={
-          activeTab === "files" ? (
-            <DiffOptionsBar options={diffOptions} onChange={setDiffOptions} />
-          ) : undefined
-        }
-      />
+      {isFullScreenLayout ? (
+        <PRThreeColumnLayout
+          owner={owner}
+          repoName={repoName}
+          pr={pr}
+          prs={repoPRs}
+          syncing={syncing}
+          onSync={() => void handleSync()}
+          diffOptions={diffOptions}
+          onDiffOptionsChange={setDiffOptions}
+          formatTimeAgo={formatTimeAgo}
+        />
+      ) : (
+        <>
+          <div className={styles.headerContainer}>
+            <header className={styles.header}>
+              <div className={styles.titleRow}>
+                {isMerged ? (
+                  <GitMergeIcon className={`${styles.prIcon} ${styles.prIconMerged}`} size={24} />
+                ) : (
+                  <GitPullRequestIcon
+                    className={`${styles.prIcon} ${isClosed ? styles.prIconClosed : styles.prIconOpen}`}
+                    size={24}
+                  />
+                )}
+                <h1 className={styles.title}>
+                  {pr.title}
+                  <span className={styles.prNumber}> #{pr.number}</span>
+                  {isDraft ? (
+                    <span className={`${styles.statusBadge} ${styles.statusDraft}`}>Draft</span>
+                  ) : isMerged ? (
+                    <span className={`${styles.statusBadge} ${styles.statusMerged}`}>Merged</span>
+                  ) : isClosed ? (
+                    <span className={`${styles.statusBadge} ${styles.statusClosed}`}>Closed</span>
+                  ) : (
+                    <span className={`${styles.statusBadge} ${styles.statusOpen}`}>Open</span>
+                  )}
+                </h1>
+              </div>
 
-      <div className={styles.content}>
-        {activeTab === "conversation" && (
-          <PRActivityFeed
-            prBody={pr.body}
-            prAuthor={{
-              login: pr.authorLogin,
-              avatarUrl: pr.authorAvatarUrl,
-            }}
-            prCreatedAt={pr.githubCreatedAt}
-            events={prEvents}
-            reviews={prReviews}
-            comments={prComments}
-            formatTimeAgo={formatTimeAgo}
+              <div className={styles.meta}>
+                {pr.authorLogin && (
+                  <span className={styles.metaItem}>
+                    {pr.authorAvatarUrl && (
+                      <img
+                        src={pr.authorAvatarUrl}
+                        alt={pr.authorLogin}
+                        className={styles.authorAvatar}
+                      />
+                    )}
+                    <strong>{pr.authorLogin}</strong>
+                  </span>
+                )}
+                <span className={styles.metaItem}>
+                  wants to merge into
+                  <span className={styles.branchInfo}>{pr.baseRef}</span>
+                  from
+                  <span className={styles.branchInfo}>{pr.headRef}</span>
+                </span>
+                <span className={styles.metaItem}>
+                  {isOpen
+                    ? `opened ${formatTimeAgo(pr.githubCreatedAt)}`
+                    : isMerged
+                      ? `merged ${formatTimeAgo(pr.mergedAt)}`
+                      : `closed ${formatTimeAgo(pr.closedAt)}`}
+                </span>
+              </div>
+            </header>
+            <div className={styles.actions}>
+              <Button
+                variant="success"
+                leadingIcon={<SyncIcon size={16} />}
+                loading={syncing}
+                onClick={() => void handleSync()}
+              >
+                {syncing ? "Syncing..." : "Sync Details"}
+              </Button>
+            </div>
+          </div>
+
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as TabType)}
+            items={[
+              {
+                value: "conversation",
+                label: "Activity",
+                icon: <HistoryIcon size={16} />,
+              },
+              {
+                value: "commits",
+                label: "Commits",
+                icon: <GitCommitIcon size={16} />,
+                count: prCommits.length || pr.commits || 0,
+              },
+              {
+                value: "files",
+                label: "Files changed",
+                icon: <FileIcon size={16} />,
+              },
+            ]}
+            trailing={
+              activeTab === "files" ? (
+                <DiffOptionsBar options={diffOptions} onChange={setDiffOptions} />
+              ) : undefined
+            }
           />
-        )}
 
-        {activeTab === "commits" && (
-          <PRCommitsTab commits={prCommits} formatTimeAgo={formatTimeAgo} />
-        )}
+          <div className={styles.content}>
+            {activeTab === "conversation" && (
+              <PRActivityFeed
+                prBody={pr.body}
+                prAuthor={{
+                  login: pr.authorLogin,
+                  avatarUrl: pr.authorAvatarUrl,
+                }}
+                prCreatedAt={pr.githubCreatedAt}
+                events={prEvents}
+                reviews={prReviews}
+                comments={prComments}
+                formatTimeAgo={formatTimeAgo}
+              />
+            )}
 
-        {activeTab === "files" && (
-          <PRFilesTab files={prFiles} comments={prComments} diffOptions={diffOptions} />
-        )}
-      </div>
+            {activeTab === "commits" && (
+              <PRCommitsTab commits={prCommits} formatTimeAgo={formatTimeAgo} />
+            )}
+
+            {activeTab === "files" && (
+              <PRFilesTab files={prFiles} comments={prComments} diffOptions={diffOptions} />
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }

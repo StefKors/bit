@@ -169,6 +169,8 @@ export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
         number: String(pr.number),
       }}
       className={styles.prItem}
+      activeOptions={{ exact: true }}
+      activeProps={{ className: `${styles.prItem} ${styles.prItemActive}` }}
     >
       {/* Status icon */}
       <StatusIcon status={prStatus} />
