@@ -4,6 +4,7 @@ import type { AppSchema } from "@/instant.schema"
 type GithubPrEvent = InstaQLEntity<AppSchema, "prEvents">
 type GithubPrReview = InstaQLEntity<AppSchema, "prReviews">
 type GithubPrComment = InstaQLEntity<AppSchema, "prComments">
+type GithubPrCommit = InstaQLEntity<AppSchema, "prCommits">
 import { Avatar } from "@/components/Avatar"
 import { Markdown } from "@/components/Markdown"
 import {
@@ -35,17 +36,19 @@ interface PRActivityFeedProps {
   prAuthor: PRAuthor
   prCreatedAt: Date | number | null | undefined
   events: readonly GithubPrEvent[]
+  commits: readonly GithubPrCommit[]
   reviews: readonly GithubPrReview[]
   comments: readonly GithubPrComment[]
   formatTimeAgo: (date: Date | number | null | undefined) => string
 }
 
 interface TimelineItem {
-  type: "pr_opened" | "event" | "review" | "comment" | "review_comment"
+  type: "pr_opened" | "event" | "commit" | "review" | "comment" | "review_comment"
   id: string
   timestamp: number | null | undefined
   data: {
     event?: GithubPrEvent
+    commit?: GithubPrCommit
     review?: GithubPrReview
     comment?: GithubPrComment
     prBody?: string | null | undefined
@@ -58,6 +61,7 @@ export const PRActivityFeed = ({
   prAuthor,
   prCreatedAt,
   events,
+  commits,
   reviews,
   comments,
   formatTimeAgo,
@@ -82,6 +86,16 @@ export const PRActivityFeed = ({
       id: event.id,
       timestamp: event.eventCreatedAt,
       data: { event },
+    })
+  }
+
+  // Add commits (pushes)
+  for (const commit of commits) {
+    timelineItems.push({
+      type: "commit",
+      id: commit.id,
+      timestamp: commit.committedAt,
+      data: { commit },
     })
   }
 
@@ -145,6 +159,8 @@ const TimelineItemRenderer = ({
       )
     case "event":
       return <EventItem event={item.data.event!} formatTimeAgo={formatTimeAgo} />
+    case "commit":
+      return <CommitItem commit={item.data.commit!} formatTimeAgo={formatTimeAgo} />
     case "review":
       return <ReviewItem review={item.data.review!} formatTimeAgo={formatTimeAgo} />
     case "comment":
@@ -205,6 +221,34 @@ const EventItem = ({
         {event.actorLogin && <span className={styles.eventActor}>{event.actorLogin}</span>}
         {content}
         <span className={styles.eventTime}>{formatTimeAgo(event.eventCreatedAt)}</span>
+      </div>
+    </div>
+  )
+}
+
+const CommitItem = ({
+  commit,
+  formatTimeAgo,
+}: {
+  commit: GithubPrCommit
+  formatTimeAgo: (date: Date | number | null | undefined) => string
+}) => {
+  const shortSha = typeof commit.sha === "string" ? commit.sha.substring(0, 7) : ""
+  const message = typeof commit.message === "string" ? commit.message : ""
+  const firstLine = message.split("\n")[0] ?? ""
+
+  return (
+    <div className={`${styles.eventItem} ${styles.eventCommit}`}>
+      <div className={styles.eventIcon}>
+        <GitCommitIcon size={16} />
+      </div>
+      <div className={styles.eventContent}>
+        {commit.authorLogin && <span className={styles.eventActor}>{commit.authorLogin}</span>}
+        <span className={styles.eventText}>
+          pushed commit <code className={styles.commitSha}>{shortSha}</code>
+          {firstLine && <span className={styles.commitMessage}>{firstLine}</span>}
+        </span>
+        <span className={styles.eventTime}>{formatTimeAgo(commit.committedAt)}</span>
       </div>
     </div>
   )

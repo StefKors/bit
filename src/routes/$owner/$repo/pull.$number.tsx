@@ -389,6 +389,7 @@ function PRDetailPage() {
                 }}
                 prCreatedAt={pr.githubCreatedAt}
                 events={prEvents}
+                commits={prCommits}
                 reviews={prReviews}
                 comments={prComments}
                 formatTimeAgo={formatTimeAgo}

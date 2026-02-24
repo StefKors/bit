@@ -22,12 +22,14 @@ type PrFile = InstaQLEntity<AppSchema, "prFiles">
 type PrReview = InstaQLEntity<AppSchema, "prReviews">
 type PrComment = InstaQLEntity<AppSchema, "prComments">
 type PrEvent = InstaQLEntity<AppSchema, "prEvents">
+type PrCommit = InstaQLEntity<AppSchema, "prCommits">
 
 type DetailedPullRequest = PullRequest & {
   prFiles?: readonly PrFile[]
   prReviews?: readonly PrReview[]
   prComments?: readonly PrComment[]
   prEvents?: readonly PrEvent[]
+  prCommits?: readonly PrCommit[]
 }
 
 type PRThreeColumnLayoutProps = {
@@ -125,6 +127,7 @@ export const PRThreeColumnLayout = ({
   const prReviews = pr.prReviews ?? []
   const prComments = pr.prComments ?? []
   const prEvents = pr.prEvents ?? []
+  const prCommits = pr.prCommits ?? []
 
   return (
     <div className={styles.container}>
@@ -234,7 +237,9 @@ export const PRThreeColumnLayout = ({
         <section className={`${styles.column} ${styles.activityColumn}`}>
           <header className={styles.columnHeader}>
             <h2 className={styles.columnTitle}>Description & Activity</h2>
-            <span className={styles.columnCount}>{prComments.length + prReviews.length}</span>
+            <span className={styles.columnCount}>
+              {prComments.length + prReviews.length + prEvents.length + prCommits.length}
+            </span>
           </header>
           <div className={styles.columnBody}>
             <PRActivityFeed
@@ -245,6 +250,7 @@ export const PRThreeColumnLayout = ({
               }}
               prCreatedAt={pr.githubCreatedAt}
               events={prEvents}
+              commits={prCommits}
               reviews={prReviews}
               comments={prComments}
               formatTimeAgo={formatTimeAgo}
