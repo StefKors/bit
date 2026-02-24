@@ -66,6 +66,7 @@ import {
   processQueueItem,
   dispatchWebhookEvent,
   calculateBackoff,
+  EXTENDED_WEBHOOK_EVENTS,
   type WebhookQueueItem,
 } from "./processor"
 import {
@@ -74,58 +75,6 @@ import {
   handleExtendedWebhook,
 } from "@/lib/webhooks/index"
 import { handleCheckRunWebhook } from "@/lib/webhooks/ci-cd"
-
-const extendedEventNames: WebhookEventName[] = [
-  "public",
-  "repository_import",
-  "repository_dispatch",
-  "pull_request_review_thread",
-  "deployment",
-  "deployment_status",
-  "deployment_protection_rule",
-  "deployment_review",
-  "workflow_dispatch",
-  "code_scanning_alert",
-  "dependabot_alert",
-  "secret_scanning_alert",
-  "secret_scanning_alert_location",
-  "security_advisory",
-  "repository_vulnerability_alert",
-  "security_and_analysis",
-  "member",
-  "membership",
-  "org_block",
-  "team",
-  "team_add",
-  "installation",
-  "installation_repositories",
-  "installation_target",
-  "github_app_authorization",
-  "discussion",
-  "discussion_comment",
-  "project",
-  "project_card",
-  "project_column",
-  "projects_v2_item",
-  "branch_protection_rule",
-  "branch_protection_configuration",
-  "merge_group",
-  "deploy_key",
-  "release",
-  "watch",
-  "label",
-  "milestone",
-  "meta",
-  "page_build",
-  "commit_comment",
-  "gollum",
-  "package",
-  "registry_package",
-  "sponsorship",
-  "marketplace_purchase",
-  "custom_property",
-  "custom_property_values",
-]
 
 describe("calculateBackoff", () => {
   it("increases exponentially with attempt number", () => {
@@ -205,7 +154,7 @@ describe("dispatchWebhookEvent", () => {
     expect(handleCheckRunWebhook).toHaveBeenCalledWith(mockDb, payload)
   })
 
-  it.each(extendedEventNames)("dispatches %s event to extended handler", async (eventName) => {
+  it.each(EXTENDED_WEBHOOK_EVENTS)("dispatches %s event to extended handler", async (eventName) => {
     const payload = { action: "updated", repository: { full_name: "owner/repo" } }
     await dispatchWebhookEvent(mockDb, eventName, payload)
     expect(handleExtendedWebhook).toHaveBeenCalledWith(mockDb, payload, eventName)

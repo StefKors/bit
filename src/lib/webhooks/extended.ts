@@ -237,8 +237,8 @@ const createPREventFromWebhook = async (
     senderLogin: toStringOrNull(sender?.login),
   })
 
-  await db.transact(
-    db.tx.prEvents[id()].update({
+  const transaction = db.tx.prEvents[id()]
+    .update({
       githubId: extractEventGithubId(payload) ?? undefined,
       eventType: action ? `${event}.${action}` : event,
       actorLogin: toStringOrNull(sender?.login),
@@ -248,8 +248,11 @@ const createPREventFromWebhook = async (
       eventCreatedAt: extractEventCreatedAt(payload) ?? now,
       createdAt: now,
       updatedAt: now,
-    }),
-  )
+    })
+    .link({ pullRequest: pullRequestRecord.id })
+    .link({ user: pullRequestRecord.userId })
+
+  await db.transact(transaction)
 }
 
 const ensureIssueTracking = async (

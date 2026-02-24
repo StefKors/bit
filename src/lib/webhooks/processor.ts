@@ -24,6 +24,64 @@ import { log } from "@/lib/logger"
 const MAX_ATTEMPTS = 5
 const BASE_DELAY_MS = 1000
 
+export const EXTENDED_WEBHOOK_EVENTS = [
+  "public",
+  "repository_import",
+  "repository_dispatch",
+  "pull_request_review_thread",
+  "deployment",
+  "deployment_status",
+  "deployment_protection_rule",
+  "deployment_review",
+  "workflow_dispatch",
+  "code_scanning_alert",
+  "dependabot_alert",
+  "secret_scanning_alert",
+  "secret_scanning_alert_location",
+  "security_advisory",
+  "repository_vulnerability_alert",
+  "security_and_analysis",
+  "member",
+  "membership",
+  "org_block",
+  "team",
+  "team_add",
+  "installation",
+  "installation_repositories",
+  "installation_target",
+  "github_app_authorization",
+  "discussion",
+  "discussion_comment",
+  "project",
+  "project_card",
+  "project_column",
+  "projects_v2_item",
+  "branch_protection_rule",
+  "branch_protection_configuration",
+  "merge_group",
+  "deploy_key",
+  "release",
+  "watch",
+  "label",
+  "milestone",
+  "meta",
+  "page_build",
+  "commit_comment",
+  "gollum",
+  "package",
+  "registry_package",
+  "sponsorship",
+  "marketplace_purchase",
+  "custom_property",
+  "custom_property_values",
+] as const satisfies readonly WebhookEventName[]
+
+const extendedWebhookEventSet = new Set<WebhookEventName>(EXTENDED_WEBHOOK_EVENTS)
+
+const isExtendedWebhookEvent = (
+  event: WebhookEventName,
+): event is (typeof EXTENDED_WEBHOOK_EVENTS)[number] => extendedWebhookEventSet.has(event)
+
 export type WebhookQueueItem = {
   id: string
   deliveryId: string
@@ -104,6 +162,11 @@ export const dispatchWebhookEvent = async (
   event: WebhookEventName,
   payload: WebhookPayload,
 ): Promise<void> => {
+  if (isExtendedWebhookEvent(event)) {
+    await handleExtendedWebhook(db, payload, event)
+    return
+  }
+
   switch (event) {
     case "push":
       await handlePushWebhook(db, payload)
@@ -162,57 +225,6 @@ export const dispatchWebhookEvent = async (
       break
     case "workflow_job":
       await handleWorkflowJobWebhook(db, payload)
-      break
-    case "public":
-    case "repository_import":
-    case "repository_dispatch":
-    case "pull_request_review_thread":
-    case "deployment":
-    case "deployment_status":
-    case "deployment_protection_rule":
-    case "deployment_review":
-    case "workflow_dispatch":
-    case "code_scanning_alert":
-    case "dependabot_alert":
-    case "secret_scanning_alert":
-    case "secret_scanning_alert_location":
-    case "security_advisory":
-    case "repository_vulnerability_alert":
-    case "security_and_analysis":
-    case "member":
-    case "membership":
-    case "org_block":
-    case "team":
-    case "team_add":
-    case "installation":
-    case "installation_repositories":
-    case "installation_target":
-    case "github_app_authorization":
-    case "discussion":
-    case "discussion_comment":
-    case "project":
-    case "project_card":
-    case "project_column":
-    case "projects_v2_item":
-    case "branch_protection_rule":
-    case "branch_protection_configuration":
-    case "merge_group":
-    case "deploy_key":
-    case "release":
-    case "watch":
-    case "label":
-    case "milestone":
-    case "meta":
-    case "page_build":
-    case "commit_comment":
-    case "gollum":
-    case "package":
-    case "registry_package":
-    case "sponsorship":
-    case "marketplace_purchase":
-    case "custom_property":
-    case "custom_property_values":
-      await handleExtendedWebhook(db, payload, event)
       break
     case "ping":
       log.info("Received ping webhook - webhook is configured correctly")

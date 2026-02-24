@@ -117,7 +117,22 @@ const createMockDb = () => {
                     id,
                   }
 
-                  return { __op: "update", __table: tableName, __id: id, __data: data }
+                  const transaction = {
+                    __op: "update",
+                    __table: tableName,
+                    __id: id,
+                    __data: data,
+                    __links: {} as Record<string, string>,
+                    link: (links: Record<string, string>) => {
+                      transaction.__links = {
+                        ...transaction.__links,
+                        ...links,
+                      }
+                      return transaction
+                    },
+                  }
+
+                  return transaction
                 },
                 delete: () => {
                   if (store[tableName]) {
@@ -202,7 +217,7 @@ describe("handleExtendedWebhook", () => {
   })
 
   it("records prEvents for PR-scoped events", async () => {
-    const { db, store } = createMockDb()
+    const { db, store, transact } = createMockDb()
     store.repos["repo-1"] = {
       id: "repo-1",
       fullName: "acme/widgets",
@@ -235,6 +250,13 @@ describe("handleExtendedWebhook", () => {
     expect(prEvents).toHaveLength(1)
     expect(prEvents[0].eventType).toBe("pull_request_review_thread.resolved")
     expect(prEvents[0].pullRequestId).toBe("pr-auto")
+    const transaction = transact.mock.calls[1]?.[0] as {
+      __links?: Record<string, string>
+    }
+    expect(transaction.__links).toMatchObject({
+      pullRequest: "pr-auto",
+      user: "user-1",
+    })
   })
 
   it("ensures issue tracking when issue payload is present", async () => {
