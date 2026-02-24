@@ -14,34 +14,18 @@ export const Route = createFileRoute("/api/github/webhook-health")({
         try {
           const now = Date.now()
 
-          const [pending, processing, failed, deadLetter, processed] = await Promise.all([
-            adminDb.query({
-              webhookQueue: { $: { where: { status: "pending" } } },
-            }),
-            adminDb.query({
-              webhookQueue: { $: { where: { status: "processing" } } },
-            }),
-            adminDb.query({
-              webhookQueue: { $: { where: { status: "failed" } } },
-            }),
-            adminDb.query({
-              webhookQueue: { $: { where: { status: "dead_letter" } } },
-            }),
-            adminDb.query({
-              webhookQueue: {
-                $: {
-                  where: { status: "processed" },
-                  limit: 1,
-                },
-              },
-            }),
-          ])
+          const { webhookQueue: allItems } = await adminDb.query({
+            webhookQueue: {},
+          })
+          const items = allItems || []
 
-          const pendingItems = pending.webhookQueue || []
-          const processingItems = processing.webhookQueue || []
-          const failedItems = failed.webhookQueue || []
-          const deadLetterItems = deadLetter.webhookQueue || []
-          const lastProcessed = processed.webhookQueue?.[0]
+          const pendingItems = items.filter((i) => i.status === "pending")
+          const processingItems = items.filter((i) => i.status === "processing")
+          const failedItems = items.filter((i) => i.status === "failed")
+          const deadLetterItems = items.filter((i) => i.status === "dead_letter")
+          const lastProcessed = items
+            .filter((i) => i.status === "processed")
+            .sort((a, b) => (b.processedAt ?? 0) - (a.processedAt ?? 0))[0]
 
           const oldestPending = pendingItems.reduce(
             (oldest, item) => (item.createdAt < oldest ? item.createdAt : oldest),
