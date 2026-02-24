@@ -3,7 +3,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.625rem 0.55rem;
+  height: 57px;
+  padding: 0.45rem 0.55rem;
   border-radius: var(--bit-radius-md);
   text-decoration: none;
   transition: background 0.15s ease;
@@ -23,7 +24,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.15rem;
 }
 
 .prTitle {
@@ -118,11 +119,11 @@
 }
 
 .draftBadge {
-  padding: 0.2rem 0.5rem;
+  padding: 0.06rem 0.35rem;
   background: rgba(var(--bit-rgb-muted), 0.2);
   border: 1px solid rgba(var(--bit-rgb-muted), 0.4);
   border-radius: var(--bit-radius-md);
-  font-size: 0.65rem;
+  font-size: 0.58rem;
   font-weight: 600;
   color: var(--bit-color-muted);
   text-transform: capitalize;
@@ -157,9 +158,11 @@
 
 @media (max-width: 640px) {
   .prItem {
+    height: auto;
     flex-direction: column;
     align-items: stretch;
     gap: 0.6rem;
+    padding: 0.55rem;
   }
 
   .prMeta {

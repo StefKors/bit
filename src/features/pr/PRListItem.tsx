@@ -30,13 +30,14 @@ interface PRListItemProps {
   isApproved?: boolean
 }
 
-// Status indicator component for CI/check status
-function StatusDot({ status }: { status: "success" | "failure" | "pending" | "warning" }) {
+type CIStatus = "success" | "failure" | "pending"
+
+// Compact CI status indicator
+function StatusDot({ status }: { status: CIStatus }) {
   const colors = {
     success: "#3fb950",
     failure: "#f85149",
     pending: "#d29922",
-    warning: "#d29922",
   }
 
   return (
@@ -44,27 +45,21 @@ function StatusDot({ status }: { status: "success" | "failure" | "pending" | "wa
   )
 }
 
-// Generate mock statuses based on PR state for demo purposes
-function getStatusIndicators(pr: {
+function getCIStatus(pr: {
   state: string
   merged?: boolean | null
   draft?: boolean | null
-}) {
+}): CIStatus {
   if (pr.draft) {
-    return [{ status: "pending" as const }]
+    return "pending"
   }
   if (pr.merged) {
-    return [
-      { status: "success" as const },
-      { status: "success" as const },
-      { status: "success" as const },
-    ]
+    return "success"
   }
   if (pr.state === "closed") {
-    return [{ status: "failure" as const }]
+    return "failure"
   }
-  // Open PRs - show varying statuses
-  return [{ status: "success" as const }, { status: "success" as const }]
+  return "success"
 }
 
 function formatDate(date: Date | number | string | null | undefined): string {
@@ -157,7 +152,7 @@ const StatusIcon = ({ status }: { status: PRStatus }) => {
 
 export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
   const totalComments = (pr.comments ?? 0) + (pr.reviewComments ?? 0)
-  const statusIndicators = getStatusIndicators(pr)
+  const ciStatus = getCIStatus(pr)
   const prStatus = getPRStatus(pr)
 
   return (
@@ -208,11 +203,9 @@ export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
           </span>
         )}
 
-        {/* Status indicators (CI jobs) */}
+        {/* CI status */}
         <div className={styles.statusIndicators}>
-          {statusIndicators.map((indicator, index) => (
-            <StatusDot key={index} status={indicator.status} />
-          ))}
+          <StatusDot status={ciStatus} />
         </div>
 
         {/* Date */}
