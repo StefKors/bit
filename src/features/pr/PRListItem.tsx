@@ -167,8 +167,9 @@ export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
       activeOptions={{ exact: true }}
       activeProps={{ className: `${styles.prItem} ${styles.prItemActive}` }}
     >
-      {/* Status icon */}
-      <StatusIcon status={prStatus} />
+      <div className={styles.leadingIcon}>
+        <StatusIcon status={prStatus} />
+      </div>
 
       {/* Left side content */}
       <div className={styles.prContent}>
@@ -188,30 +189,29 @@ export function PRListItem({ pr, repoFullName, isApproved }: PRListItemProps) {
 
       {/* Right side actions */}
       <div className={styles.prActions}>
-        {/* Comment count */}
-        {totalComments > 0 && (
-          <div className={styles.commentCount}>
-            <CommentIcon className={styles.commentIcon} size={16} />
-            {totalComments}
-          </div>
-        )}
-
-        {/* Approved indicator */}
-        {isApproved && (
-          <span className={styles.approvedBadge} title="Approved">
-            <CheckIcon size={12} />
+        <div className={styles.actionsTopRow}>
+          {isApproved && (
+            <span className={styles.approvedIndicator} title="Approved">
+              <CheckIcon size={12} />
+              Approved
+            </span>
+          )}
+          <span className={styles.prDate}>
+            {formatDate(pr.githubUpdatedAt || pr.githubCreatedAt)}
           </span>
-        )}
-
-        {/* CI status */}
-        <div className={styles.statusIndicators}>
-          <StatusDot status={ciStatus} />
         </div>
 
-        {/* Date */}
-        <span className={styles.prDate}>
-          {formatDate(pr.githubUpdatedAt || pr.githubCreatedAt)}
-        </span>
+        <div className={styles.actionsBottomRow}>
+          {totalComments > 0 && (
+            <div className={styles.commentCount}>
+              <CommentIcon className={styles.commentIcon} size={16} />
+              {totalComments}
+            </div>
+          )}
+          <div className={styles.statusIndicators}>
+            <StatusDot status={ciStatus} />
+          </div>
+        </div>
       </div>
     </Link>
   )

@@ -1,6 +1,6 @@
 .prItem {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
   height: 57px;
@@ -23,7 +23,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.2rem;
 }
 
 .prTitle {
@@ -43,6 +43,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.leadingIcon {
+  align-self: flex-start;
+  margin-top: 0.05rem;
 }
 
 .prMeta {
@@ -75,9 +80,26 @@
 
 .prActions {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 0.15rem;
+  align-self: stretch;
   flex-shrink: 0;
+}
+
+.actionsTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.actionsBottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
 }
 
 .commentCount {
@@ -93,14 +115,16 @@
   height: 14px;
 }
 
-.approvedBadge {
-  display: flex;
+.approvedIndicator {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  background: rgba(var(--bit-rgb-accent-green-bright), 0.15);
-  border-radius: 50%;
+  gap: 0.25rem;
+  background: rgba(var(--bit-rgb-accent-green-bright), 0.14);
+  border: 1px solid rgba(var(--bit-rgb-accent-green-bright), 0.28);
+  border-radius: var(--bit-radius-sm);
+  padding: 0.05rem 0.3rem;
+  font-size: 0.65rem;
+  font-weight: 600;
   color: var(--bit-color-accent-green-bright);
 }
 
@@ -130,7 +154,7 @@
 }
 
 .prDate {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: rgba(var(--bit-rgb-fg), 0.45);
   white-space: nowrap;
 }
@@ -169,7 +193,12 @@
   }
 
   .prActions {
+    align-items: stretch;
+    align-self: auto;
+  }
+
+  .actionsTopRow,
+  .actionsBottomRow {
     justify-content: space-between;
-    gap: 0.5rem;
   }
 }

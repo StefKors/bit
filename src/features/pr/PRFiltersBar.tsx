@@ -32,6 +32,9 @@ export const PRFiltersBar = ({
   labels,
   hasActiveFilters,
 }: PRFiltersBarProps) => {
+  const currentSortLabel =
+    SORT_OPTIONS.find((option) => option.value === filters.sortBy)?.label ?? "Recently updated"
+
   const updateFilter = <K extends keyof PRFilters>(key: K, value: PRFilters[K]) => {
     onFiltersChange({ ...filters, [key]: value })
   }
@@ -145,21 +148,31 @@ export const PRFiltersBar = ({
       </div>
 
       <div className={styles.sortGroup}>
-        <FilterDropdown
-          label="Sort"
-          value={SORT_OPTIONS.find((o) => o.value === filters.sortBy)?.label ?? "Recently updated"}
-          isActive={false}
-        >
-          {SORT_OPTIONS.map((option) => (
-            <FilterMenuItem
-              key={option.value}
-              selected={filters.sortBy === option.value}
-              onClick={() => updateFilter("sortBy", option.value)}
-            >
-              {option.label}
-            </FilterMenuItem>
-          ))}
-        </FilterDropdown>
+        <Menu.Root>
+          <Menu.Trigger
+            className={styles.sortFieldButton}
+            title={`Sort by: ${currentSortLabel}`}
+            aria-label={`Sort by: ${currentSortLabel}`}
+          >
+            <SortDescIcon size={15} className={styles.sortFieldIcon} />
+            <ChevronDownIcon size={12} className={styles.sortFieldChevron} />
+          </Menu.Trigger>
+          <Menu.Portal>
+            <Menu.Positioner className={styles.menuPositioner} sideOffset={4}>
+              <Menu.Popup className={styles.menuPopup}>
+                {SORT_OPTIONS.map((option) => (
+                  <FilterMenuItem
+                    key={option.value}
+                    selected={filters.sortBy === option.value}
+                    onClick={() => updateFilter("sortBy", option.value)}
+                  >
+                    {option.label}
+                  </FilterMenuItem>
+                ))}
+              </Menu.Popup>
+            </Menu.Positioner>
+          </Menu.Portal>
+        </Menu.Root>
 
         <button
           className={styles.sortDirectionButton}

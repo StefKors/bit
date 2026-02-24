@@ -124,9 +124,9 @@
 
 .column {
   min-width: 0;
-  background: var(--bit-color-panel-bg);
-  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
-  border-radius: var(--bit-radius-lg);
+  background: transparent;
+  border: none;
+  border-radius: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -144,9 +144,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem;
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
-  background: rgba(var(--bit-rgb-fg), 0.03);
+  background: transparent;
 }
 
 .diffColumnHeader {
@@ -174,7 +174,7 @@
 .columnBody {
   flex: 1;
   overflow: auto;
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 .listBody {

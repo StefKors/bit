@@ -23,7 +23,40 @@
 .sortGroup {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
+}
+
+.sortFieldButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.4rem 0.35rem;
+  min-width: 32px;
+  background: rgba(var(--bit-rgb-fg), 0.04);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-md);
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  cursor: pointer;
+}
+
+.sortFieldButton:hover {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+  border-color: rgba(var(--bit-rgb-fg), 0.2);
+  color: rgba(var(--bit-rgb-fg), 0.9);
+}
+
+.sortFieldIcon {
+  flex-shrink: 0;
+}
+
+.sortFieldChevron {
+  opacity: 0.55;
+  transition: transform 0.15s ease;
+}
+
+.sortFieldButton[data-popup-open] .sortFieldChevron {
+  transform: rotate(180deg);
 }
 
 .filterTrigger {
