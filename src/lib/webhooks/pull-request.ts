@@ -1,6 +1,7 @@
 import { id } from "@instantdb/admin"
 import type { PullRequestEvent, WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, syncPRDetailsForWebhook } from "./utils"
+import { log } from "@/lib/logger"
 
 const parseGithubTimestamp = (value?: string | null): number | null => {
   if (!value) return null
@@ -23,6 +24,15 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
   const repoFullName = repo.full_name
   const githubId = pr.id
 
+  log.info("Webhook pull_request: updating entities", {
+    op: "webhook-handler-pull-request",
+    entity: "pullRequests",
+    repo: repoFullName,
+    pr: pr.number,
+    action,
+    dataToUpdate: "pullRequests (title, body, state, headSha, labels, etc.)",
+  })
+
   // Find users who have this repo synced
   const reposResult = await db.query({
     repos: {
@@ -44,7 +54,11 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
   }
 
   if (repoRecords.length === 0) {
-    console.log(`No users tracking repo ${repoFullName} and sender not registered`)
+    log.info("Webhook pull_request: no users tracking repo, skipping", {
+      op: "webhook-handler-pull-request",
+      repo: repoFullName,
+      pr: pr.number,
+    })
     return
   }
 
@@ -113,5 +127,10 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
     })
   }
 
-  console.log(`Processed pull_request.${action} for ${repoFullName}#${pr.number}`)
+  log.info("Webhook pull_request: processed", {
+    op: "webhook-handler-pull-request",
+    repo: repoFullName,
+    pr: pr.number,
+    action,
+  })
 }

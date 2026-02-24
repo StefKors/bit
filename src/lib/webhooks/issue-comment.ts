@@ -2,6 +2,7 @@ import { id } from "@instantdb/admin"
 import type { IssueCommentEvent, WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
 import { ensureIssueFromWebhook } from "./issue"
+import { log } from "@/lib/logger"
 
 const parseGithubTimestamp = (value?: string | null): number | null => {
   if (!value) return null
@@ -33,6 +34,15 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
 
   const repoFullName = repo.full_name
   const issueGithubId = issue.id
+
+  log.info("Webhook issue_comment: updating entities", {
+    op: "webhook-handler-issue-comment",
+    entity: "issueComments",
+    repo: repoFullName,
+    issue: issue.number,
+    action,
+    dataToUpdate: "issueComments (body, author, etc.)",
+  })
 
   // Find the issue in our database by githubId
   const issuesResult = await db.query({
@@ -75,7 +85,11 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
   }
 
   if (issueRecords.length === 0) {
-    console.log(`No users tracking issue ${repoFullName}#${issue.number}`)
+    log.info("Webhook issue_comment: no users tracking issue, skipping", {
+      op: "webhook-handler-issue-comment",
+      repo: repoFullName,
+      issue: issue.number,
+    })
     return
   }
 
@@ -92,7 +106,11 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
     if (existingComment) {
       await db.transact(db.tx.issueComments[existingComment.id].delete())
     }
-    console.log(`Deleted issue comment for ${repoFullName}#${issue.number}`)
+    log.info("Webhook issue_comment: deleted comment", {
+      op: "webhook-handler-issue-comment",
+      repo: repoFullName,
+      issue: issue.number,
+    })
     return
   }
 
@@ -125,5 +143,10 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
     await db.transact(db.tx.issueComments[commentId].update(commentData))
   }
 
-  console.log(`Processed issue_comment.${action} for issue ${repoFullName}#${issue.number}`)
+  log.info("Webhook issue_comment: processed", {
+    op: "webhook-handler-issue-comment",
+    repo: repoFullName,
+    issue: issue.number,
+    action,
+  })
 }

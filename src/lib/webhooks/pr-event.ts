@@ -1,6 +1,7 @@
 import { id } from "@instantdb/admin"
 import type { PullRequestEvent, WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./utils"
+import { log } from "@/lib/logger"
 
 /**
  * Event types that should be recorded in the prEvents table.
@@ -41,6 +42,15 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
 
   const repoFullName = repo.full_name
 
+  log.info("Webhook pull_request event: updating entities", {
+    op: "webhook-handler-pr-event",
+    entity: "prEvents",
+    repo: repoFullName,
+    pr: pr.number,
+    action,
+    dataToUpdate: "prEvents (eventType, actor, label, assignee, etc.)",
+  })
+
   // Find users who have this repo synced
   const reposResult = await db.query({
     repos: {
@@ -62,7 +72,10 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
   }
 
   if (repoRecords.length === 0) {
-    console.log(`No users tracking repo ${repoFullName} for PR event`)
+    log.info("Webhook pull_request event: no users tracking repo, skipping", {
+      op: "webhook-handler-pr-event",
+      repo: repoFullName,
+    })
     return
   }
 
@@ -154,5 +167,10 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
     await db.transact(db.tx.prEvents[eventId].update(eventData))
   }
 
-  console.log(`Processed pull_request.${action} event for ${repoFullName}#${pr.number}`)
+  log.info("Webhook pull_request event: processed", {
+    op: "webhook-handler-pr-event",
+    repo: repoFullName,
+    pr: pr.number,
+    action,
+  })
 }

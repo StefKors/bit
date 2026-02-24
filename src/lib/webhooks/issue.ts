@@ -8,6 +8,7 @@ import type {
   WebhookPayload,
 } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
+import { log } from "@/lib/logger"
 
 const parseGithubTimestamp = (value?: string | null): number | null => {
   if (!value) return null
@@ -68,12 +69,25 @@ export const handleIssueWebhook = async (db: WebhookDB, payload: WebhookPayload)
 
   // Skip if this is a pull request (PRs show up as issues too)
   if (issue.pull_request) {
-    console.log("Skipping issue webhook for pull request")
+    log.info("Webhook issues: skipping (pull request)", {
+      op: "webhook-handler-issues",
+      repo: repo.full_name,
+      issue: issue.number,
+    })
     return
   }
 
   const repoFullName = repo.full_name
   const githubId = issue.id
+
+  log.info("Webhook issues: updating entities", {
+    op: "webhook-handler-issues",
+    entity: "issues",
+    repo: repoFullName,
+    issue: issue.number,
+    action,
+    dataToUpdate: "issues (title, body, state, labels, etc.)",
+  })
 
   // Find users who have this repo synced
   const reposResult = await db.query({
@@ -96,7 +110,10 @@ export const handleIssueWebhook = async (db: WebhookDB, payload: WebhookPayload)
   }
 
   if (repoRecords.length === 0) {
-    console.log(`No users tracking repo ${repoFullName} and sender not registered`)
+    log.info("Webhook issues: no users tracking repo, skipping", {
+      op: "webhook-handler-issues",
+      repo: repoFullName,
+    })
     return
   }
 
@@ -115,7 +132,12 @@ export const handleIssueWebhook = async (db: WebhookDB, payload: WebhookPayload)
     await db.transact(db.tx.issues[issueId].update(issueData))
   }
 
-  console.log(`Processed issues.${action} for ${repoFullName}#${issue.number}`)
+  log.info("Webhook issues: processed", {
+    op: "webhook-handler-issues",
+    repo: repoFullName,
+    issue: issue.number,
+    action,
+  })
 }
 
 /**

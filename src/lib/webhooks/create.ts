@@ -1,5 +1,6 @@
 import type { WebhookDB, WebhookPayload, CreateEvent } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
+import { log } from "@/lib/logger"
 
 /**
  * Handle create webhook events.
@@ -20,6 +21,15 @@ export async function handleCreateWebhook(db: WebhookDB, payload: WebhookPayload
   const refType = createPayload.ref_type // 'branch' or 'tag'
   const refName = createPayload.ref
   const now = Date.now()
+
+  log.info("Webhook create: updating entities", {
+    op: "webhook-handler-create",
+    entity: "repos",
+    repo: repoFullName,
+    refType,
+    ref: refName,
+    dataToUpdate: "repos.syncedAt",
+  })
 
   // Find users who have this repo synced
   const reposResult = await db.query({
@@ -42,7 +52,10 @@ export async function handleCreateWebhook(db: WebhookDB, payload: WebhookPayload
   }
 
   if (repoRecords.length === 0) {
-    console.log(`No users tracking repo ${repoFullName} and sender not registered`)
+    log.info("Webhook create: no users tracking repo, skipping", {
+      op: "webhook-handler-create",
+      repo: repoFullName,
+    })
     return
   }
 
@@ -56,5 +69,10 @@ export async function handleCreateWebhook(db: WebhookDB, payload: WebhookPayload
     )
   }
 
-  console.log(`Processed create event for ${repoFullName}: ${refType} "${refName}" created`)
+  log.info("Webhook create: processed", {
+    op: "webhook-handler-create",
+    repo: repoFullName,
+    refType,
+    ref: refName,
+  })
 }

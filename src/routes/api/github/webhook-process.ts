@@ -15,7 +15,11 @@ export const Route = createFileRoute("/api/github/webhook-process")({
       POST: async () => {
         try {
           const result = await processPendingQueue(adminDb)
-          log.info("Queue processing complete", result)
+          log.info("Webhook process: queue processing complete", {
+            op: "webhook-process",
+            entity: "webhookQueue",
+            ...result,
+          })
           return jsonResponse(result)
         } catch (error) {
           log.error("Queue processing failed", error)

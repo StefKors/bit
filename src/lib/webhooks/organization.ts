@@ -1,6 +1,7 @@
 import { id } from "@instantdb/admin"
 import type { Organization, OrganizationEvent, WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender } from "./utils"
+import { log } from "@/lib/logger"
 
 const toStringOrNull = (value: unknown): string | null =>
   typeof value === "string" && value.length > 0 ? value : null
@@ -32,6 +33,15 @@ export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookP
   const orgLogin = org.login
   const now = Date.now()
 
+  log.info("Webhook organization: updating entities", {
+    op: "webhook-handler-organization",
+    entity: "organizations",
+    org: orgLogin,
+    action,
+    dataToUpdate:
+      action === "deleted" ? "organizations (delete)" : "organizations (name, description, etc.)",
+  })
+
   // Find users who have this org synced
   const orgsResult = await db.query({
     organizations: {
@@ -53,7 +63,10 @@ export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookP
   }
 
   if (orgRecords.length === 0) {
-    console.log(`No users tracking org ${orgLogin} and sender not registered`)
+    log.info("Webhook organization: no users tracking org, skipping", {
+      op: "webhook-handler-organization",
+      org: orgLogin,
+    })
     return
   }
 
@@ -62,7 +75,10 @@ export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookP
     for (const orgRecord of orgRecords) {
       await db.transact(db.tx.organizations[orgRecord.id].delete())
     }
-    console.log(`Deleted org ${orgLogin} from all tracking users`)
+    log.info("Webhook organization: deleted org", {
+      op: "webhook-handler-organization",
+      org: orgLogin,
+    })
     return
   }
 
@@ -82,7 +98,11 @@ export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookP
     )
   }
 
-  console.log(`Processed organization ${action} event for ${orgLogin}`)
+  log.info("Webhook organization: processed", {
+    op: "webhook-handler-organization",
+    org: orgLogin,
+    action,
+  })
 }
 
 /**

@@ -1,4 +1,5 @@
 import type { WebhookDB, WebhookPayload, DeleteEvent } from "./types"
+import { log } from "@/lib/logger"
 
 /**
  * Handle delete webhook events.
@@ -13,6 +14,15 @@ export async function handleDeleteWebhook(db: WebhookDB, payload: WebhookPayload
   const refType = deletePayload.ref_type // 'branch' or 'tag'
   const refName = deletePayload.ref
 
+  log.info("Webhook delete: updating entities", {
+    op: "webhook-handler-delete",
+    entity: "repoTrees",
+    repo: repoFullName,
+    refType,
+    ref: refName,
+    dataToUpdate: "repoTrees (delete cached tree entries)",
+  })
+
   // Find users who have this repo synced
   const reposResult = await db.query({
     repos: {
@@ -23,7 +33,10 @@ export async function handleDeleteWebhook(db: WebhookDB, payload: WebhookPayload
   const repoRecords = reposResult.repos || []
 
   if (repoRecords.length === 0) {
-    console.log(`No users tracking repo ${repoFullName}`)
+    log.info("Webhook delete: no users tracking repo, skipping", {
+      op: "webhook-handler-delete",
+      repo: repoFullName,
+    })
     return
   }
 
@@ -45,5 +58,10 @@ export async function handleDeleteWebhook(db: WebhookDB, payload: WebhookPayload
     }
   }
 
-  console.log(`Processed delete event for ${repoFullName}: ${refType} "${refName}" deleted`)
+  log.info("Webhook delete: processed", {
+    op: "webhook-handler-delete",
+    repo: repoFullName,
+    refType,
+    ref: refName,
+  })
 }

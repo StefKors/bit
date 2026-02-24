@@ -6,6 +6,7 @@ import type {
   WebhookPayload,
 } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./utils"
+import { log } from "@/lib/logger"
 
 const parseGithubTimestamp = (value?: string | null): number | null => {
   if (!value) return null
@@ -46,9 +47,18 @@ export async function handleCommentWebhook(
   if (!prGithubId) return
 
   const repoFullName = repo.full_name
-
-  // Find the PR in our database by number (more reliable than githubId for issue_comments)
   const prNumber = pr?.number || issue?.number || 0
+
+  log.info("Webhook comment: updating entities", {
+    op: "webhook-handler-comment",
+    entity: "prComments",
+    repo: repoFullName,
+    pr: prNumber,
+    eventType,
+    commentId: comment.id,
+    dataToUpdate: "prComments (body, author, path, line, etc.)",
+  })
+
   const prResult = await db.query({
     pullRequests: {
       $: { where: { githubId: prGithubId } },
@@ -123,5 +133,10 @@ export async function handleCommentWebhook(
     await db.transact(db.tx.prComments[commentId].update(commentData))
   }
 
-  console.log(`Processed ${eventType} for PR #${prNumber}`)
+  log.info("Webhook comment: processed", {
+    op: "webhook-handler-comment",
+    repo: repoFullName,
+    pr: prNumber,
+    eventType,
+  })
 }

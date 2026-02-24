@@ -4,6 +4,7 @@ import { adminDb } from "@/lib/instantAdmin"
 import { enqueueWebhook } from "@/lib/webhooks/processor"
 import { validateWebhookPayload } from "@/lib/webhook-validation"
 import { log } from "@/lib/logger"
+import { logWebhookReceived, logWebhookEnqueued } from "@/lib/webhooks/logging"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -51,8 +52,6 @@ export const Route = createFileRoute("/api/github/webhook")({
           return jsonResponse({ error: "Missing event header" }, 400)
         }
 
-        log.info("Webhook received", { event, deliveryId: delivery })
-
         let parsedPayload: object
         try {
           parsedPayload = JSON.parse(rawBody) as object
@@ -65,17 +64,27 @@ export const Route = createFileRoute("/api/github/webhook")({
           return jsonResponse({ error: "Invalid webhook payload shape" }, 400)
         }
 
+        const action = payloadValidation.data.action || undefined
+        logWebhookReceived(event, delivery, action, parsedPayload)
+
         if (!delivery) {
           return jsonResponse({ error: "Missing delivery ID" }, 400)
         }
 
-        const action = payloadValidation.data.action || undefined
-
         const result = await enqueueWebhook(adminDb, delivery, event, action, rawBody)
 
         if (result.duplicate) {
-          log.info("Duplicate webhook delivery, skipping", { deliveryId: delivery })
+          log.info("Duplicate webhook delivery, skipping", {
+            op: "webhook-duplicate",
+            deliveryId: delivery,
+            event,
+            action,
+          })
           return jsonResponse({ received: true, duplicate: true })
+        }
+
+        if (result.queueItemId) {
+          logWebhookEnqueued(delivery, event, action, result.queueItemId)
         }
 
         return jsonResponse({ received: true, queued: true, queueItemId: result.queueItemId })

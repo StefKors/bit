@@ -1,6 +1,7 @@
 import { id } from "@instantdb/admin"
 import type { PullRequestReviewEvent, WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./utils"
+import { log } from "@/lib/logger"
 
 const parseGithubTimestamp = (value?: string | null): number | null => {
   if (!value) return null
@@ -24,6 +25,16 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
   const prGithubId = pr.id
   const reviewGithubId = review.id
   const repoFullName = repo.full_name
+
+  log.info("Webhook pull_request_review: updating entities", {
+    op: "webhook-handler-pull-request-review",
+    entity: "prReviews",
+    repo: repoFullName,
+    pr: pr.number,
+    reviewId: reviewGithubId,
+    state: review.state,
+    dataToUpdate: "prReviews (state, body, author, submittedAt)",
+  })
 
   // Find the PR in our database by githubId
   const prResult = await db.query({
@@ -92,5 +103,9 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
     await db.transact(db.tx.prReviews[reviewId].update(reviewData))
   }
 
-  console.log(`Processed pull_request_review for PR #${pr.number}`)
+  log.info("Webhook pull_request_review: processed", {
+    op: "webhook-handler-pull-request-review",
+    repo: repoFullName,
+    pr: pr.number,
+  })
 }

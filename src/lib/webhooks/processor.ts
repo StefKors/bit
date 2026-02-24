@@ -20,6 +20,7 @@ import { handleCheckRunWebhook, handleCheckSuiteWebhook } from "./ci-cd"
 import { handleStatusWebhook } from "./ci-cd"
 import { handleWorkflowRunWebhook, handleWorkflowJobWebhook } from "./ci-cd"
 import { log } from "@/lib/logger"
+import { logWebhookProcessing, logWebhookHandler } from "./logging"
 import { WEBHOOK_MAX_ATTEMPTS, WEBHOOK_BASE_DELAY_MS } from "@/lib/sync-config"
 
 export const EXTENDED_WEBHOOK_EVENTS = [
@@ -172,66 +173,151 @@ export const dispatchWebhookEvent = async (
   payload: WebhookPayload,
 ): Promise<void> => {
   if (isExtendedWebhookEvent(event)) {
+    logWebhookHandler(event, "handleExtendedWebhook", ["prEvents", "prComments"], {
+      repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+    })
     await handleExtendedWebhook(db, payload, event)
     return
   }
 
   switch (event) {
     case "push":
+      logWebhookHandler(
+        event,
+        "handlePushWebhook",
+        ["repos", "prCommits", "pullRequests", "repoTrees"],
+        {
+          repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+          ref: (payload as { ref?: string }).ref,
+          commitsCount: (payload as { commits?: unknown[] }).commits?.length ?? 0,
+        },
+      )
       await handlePushWebhook(db, payload)
       break
     case "create":
+      logWebhookHandler(event, "handleCreateWebhook", ["repos"], {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+        refType: (payload as { ref_type?: string }).ref_type,
+        ref: (payload as { ref?: string }).ref,
+      })
       await handleCreateWebhook(db, payload)
       break
     case "delete":
+      logWebhookHandler(event, "handleDeleteWebhook", ["repoTrees"], {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+        refType: (payload as { ref_type?: string }).ref_type,
+        ref: (payload as { ref?: string }).ref,
+      })
       await handleDeleteWebhook(db, payload)
       break
     case "fork":
+      logWebhookHandler(event, "handleForkWebhook", ["repos"], {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+        forkee: (payload as { forkee?: { full_name?: string } }).forkee?.full_name,
+      })
       await handleForkWebhook(db, payload)
       break
     case "repository":
+      logWebhookHandler(event, "handleRepositoryWebhook", ["repos"], {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+        action: (payload as { action?: string }).action,
+      })
       await handleRepositoryWebhook(db, payload)
       break
     case "pull_request":
+      logWebhookHandler(
+        event,
+        "handlePullRequestWebhook+handlePullRequestEventWebhook",
+        ["pullRequests", "prEvents"],
+        {
+          repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+          pr: (payload as { pull_request?: { number?: number } }).pull_request?.number,
+          action: (payload as { action?: string }).action,
+        },
+      )
       await handlePullRequestWebhook(db, payload)
       await handlePullRequestEventWebhook(db, payload)
       break
     case "pull_request_review":
+      logWebhookHandler(event, "handlePullRequestReviewWebhook", ["prReviews"], {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+        pr: (payload as { pull_request?: { number?: number } }).pull_request?.number,
+      })
       await handlePullRequestReviewWebhook(db, payload)
       break
     case "pull_request_review_comment":
+      logWebhookHandler(event, "handleCommentWebhook", ["prComments"], {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+        pr: (payload as { pull_request?: { number?: number } }).pull_request?.number,
+      })
       await handleCommentWebhook(db, payload, event)
       break
     case "issues":
+      logWebhookHandler(event, "handleIssueWebhook", ["issues"], {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+        issue: (payload as { issue?: { number?: number } }).issue?.number,
+        action: (payload as { action?: string }).action,
+      })
       await handleIssueWebhook(db, payload)
       break
     case "issue_comment": {
       if (isIssueCommentEventPayload(payload) && payload.issue.pull_request) {
+        logWebhookHandler(event, "handleCommentWebhook", ["prComments"], {
+          repo: payload.repository?.full_name,
+          pr: payload.issue?.number,
+        })
         await handleCommentWebhook(db, payload, event)
       } else {
+        logWebhookHandler(event, "handleIssueCommentWebhook", ["issueComments"], {
+          repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+          issue: (payload as { issue?: { number?: number } }).issue?.number,
+        })
         await handleIssueCommentWebhook(db, payload)
       }
       break
     }
     case "star":
+      logWebhookHandler(event, "handleStarWebhook", ["repos"], {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+        action: (payload as { action?: string }).action,
+      })
       await handleStarWebhook(db, payload)
       break
     case "organization":
+      logWebhookHandler(event, "handleOrganizationWebhook", ["organizations", "repos"], {
+        org: (payload as { organization?: { login?: string } }).organization?.login,
+        action: (payload as { action?: string }).action,
+      })
       await handleOrganizationWebhook(db, payload)
       break
     case "check_run":
+      logWebhookHandler(event, "handleCheckRunWebhook", ["prChecks"], {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+      })
       await handleCheckRunWebhook(db, payload)
       break
     case "check_suite":
+      logWebhookHandler(event, "handleCheckSuiteWebhook", ["prChecks"], {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+      })
       await handleCheckSuiteWebhook(db, payload)
       break
     case "status":
+      logWebhookHandler(event, "handleStatusWebhook", ["prChecks"], {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+      })
       await handleStatusWebhook(db, payload)
       break
     case "workflow_run":
+      logWebhookHandler(event, "handleWorkflowRunWebhook", ["prChecks"], {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+      })
       await handleWorkflowRunWebhook(db, payload)
       break
     case "workflow_job":
+      logWebhookHandler(event, "handleWorkflowJobWebhook", ["prChecks"], {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+      })
       await handleWorkflowJobWebhook(db, payload)
       break
     case "ping":
@@ -260,6 +346,7 @@ export const processQueueItem = async (
 
   try {
     const payload = JSON.parse(item.payload) as WebhookPayload
+    logWebhookProcessing(item.deliveryId, item.event, item.action, payload)
     await dispatchWebhookEvent(db, item.event as WebhookEventName, payload)
 
     await db.transact([

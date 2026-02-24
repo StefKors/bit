@@ -1,5 +1,6 @@
 import type { WebhookDB, WebhookPayload, RepositoryEvent, StarEvent, ForkEvent } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
+import { log } from "@/lib/logger"
 
 const parseGithubTimestamp = (value?: string | null): number | null => {
   if (!value) return null
@@ -54,7 +55,10 @@ export async function handleRepositoryWebhook(db: WebhookDB, payload: WebhookPay
   }
 
   if (repoRecords.length === 0) {
-    console.log(`No users tracking repo ${repoFullName} and sender not registered`)
+    log.info("Webhook repository: no users tracking repo, skipping", {
+      op: "webhook-handler-repository",
+      repo: repoFullName,
+    })
     return
   }
 
@@ -63,7 +67,10 @@ export async function handleRepositoryWebhook(db: WebhookDB, payload: WebhookPay
     for (const repoRecord of repoRecords) {
       await db.transact(db.tx.repos[repoRecord.id].delete())
     }
-    console.log(`Deleted repo ${repoFullName} from all tracking users`)
+    log.info("Webhook repository: deleted repo", {
+      op: "webhook-handler-repository",
+      repo: repoFullName,
+    })
     return
   }
 
@@ -91,7 +98,11 @@ export async function handleRepositoryWebhook(db: WebhookDB, payload: WebhookPay
     )
   }
 
-  console.log(`Processed repository ${action} event for ${repoFullName}`)
+  log.info("Webhook repository: processed", {
+    op: "webhook-handler-repository",
+    repo: repoFullName,
+    action,
+  })
 }
 
 /**
@@ -135,8 +146,19 @@ export async function handleStarWebhook(db: WebhookDB, payload: WebhookPayload) 
     }
   }
 
+  log.info("Webhook star: updating entities", {
+    op: "webhook-handler-star",
+    entity: "repos",
+    repo: repoFullName,
+    action,
+    dataToUpdate: "repos.stargazersCount",
+  })
+
   if (repoRecords.length === 0) {
-    console.log(`No users tracking repo ${repoFullName} and sender not registered`)
+    log.info("Webhook star: no users tracking repo, skipping", {
+      op: "webhook-handler-star",
+      repo: repoFullName,
+    })
     return
   }
 
@@ -151,7 +173,12 @@ export async function handleStarWebhook(db: WebhookDB, payload: WebhookPayload) 
     )
   }
 
-  console.log(`Processed star ${action} event for ${repoFullName}: ${repo.stargazers_count} stars`)
+  log.info("Webhook star: processed", {
+    op: "webhook-handler-star",
+    repo: repoFullName,
+    action,
+    stargazersCount: repo.stargazers_count,
+  })
 }
 
 /**
@@ -174,6 +201,14 @@ export async function handleForkWebhook(db: WebhookDB, payload: WebhookPayload) 
 
   const repoFullName = repo.full_name
   const now = Date.now()
+
+  log.info("Webhook fork: updating entities", {
+    op: "webhook-handler-fork",
+    entity: "repos",
+    repo: repoFullName,
+    forkee: forkee.full_name,
+    dataToUpdate: "repos.forksCount, repos (auto-track forked repo)",
+  })
 
   // Update fork count on the original repo
   const reposResult = await db.query({
@@ -198,8 +233,16 @@ export async function handleForkWebhook(db: WebhookDB, payload: WebhookPayload) 
   const userId = await findUserBySender(db, sender)
   if (userId) {
     await ensureRepoFromWebhook(db, forkee, userId)
-    console.log(`Auto-tracked forked repo ${forkee.full_name} for user ${userId}`)
+    log.info("Webhook fork: auto-tracked forked repo", {
+      op: "webhook-handler-fork",
+      forkee: forkee.full_name,
+      userId,
+    })
   }
 
-  console.log(`Processed fork event: ${forkee.full_name} forked from ${repoFullName}`)
+  log.info("Webhook fork: processed", {
+    op: "webhook-handler-fork",
+    repo: repoFullName,
+    forkee: forkee.full_name,
+  })
 }

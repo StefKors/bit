@@ -18,6 +18,7 @@ import {
   handleIssueCommentWebhook,
 } from "@/lib/webhooks"
 import type { IssueCommentEvent, WebhookEventName, WebhookPayload } from "@/lib/webhooks"
+import { log } from "@/lib/logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -142,6 +143,11 @@ export const Route = createFileRoute("/api/github/sync/retry")({
                 result,
               })
             case "webhooks": {
+              log.info("Retry API: fetching failed webhook deliveries", {
+                op: "retry-webhooks",
+                resourceType: "webhooks",
+                entity: "webhookDeliveries",
+              })
               const { webhookDeliveries: failed } = await adminDb.query({
                 webhookDeliveries: {
                   $: { where: { status: "failed" } },
@@ -159,6 +165,14 @@ export const Route = createFileRoute("/api/github/sync/retry")({
               for (const delivery of failed) {
                 if (!delivery.payload) continue
                 retried++
+                log.info("Retry API: processing failed webhook delivery", {
+                  op: "retry-webhooks",
+                  deliveryId: delivery.deliveryId,
+                  event: delivery.event,
+                  action: delivery.action,
+                  entity: "webhookDeliveries",
+                  dataToUpdate: "webhookDeliveries.status, webhook handlers (repos, prs, etc.)",
+                })
                 try {
                   const payload = JSON.parse(delivery.payload) as WebhookPayload
                   await processWebhookPayload(delivery.event as WebhookEventName, payload)
@@ -185,6 +199,12 @@ export const Route = createFileRoute("/api/github/sync/retry")({
                 }
               }
 
+              log.info("Retry API: webhook retry complete", {
+                op: "retry-webhooks",
+                retried,
+                succeeded,
+                stillFailed,
+              })
               return jsonResponse({ retried, succeeded, stillFailed })
             }
             default:

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { adminDb } from "@/lib/instantAdmin"
+import { log } from "@/lib/logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -12,6 +13,10 @@ export const Route = createFileRoute("/api/github/webhook-queue")({
     handlers: {
       GET: async () => {
         try {
+          log.info("Webhook queue API: listing failed/dead-letter items", {
+            op: "webhook-queue-get",
+            entity: "webhookQueue",
+          })
           const { webhookQueue } = await adminDb.query({
             webhookQueue: {
               $: {
@@ -50,6 +55,12 @@ export const Route = createFileRoute("/api/github/webhook-queue")({
           const body = (await request.json()) as { action: string; itemId?: string }
 
           if (body.action === "retry" && body.itemId) {
+            log.info("Webhook queue API: retrying single item", {
+              op: "webhook-queue-retry",
+              entity: "webhookQueue",
+              itemId: body.itemId,
+              dataToUpdate: "webhookQueue.status=pending, attempts=0",
+            })
             const now = Date.now()
             await adminDb.transact(
               adminDb.tx.webhookQueue[body.itemId].update({
@@ -65,11 +76,22 @@ export const Route = createFileRoute("/api/github/webhook-queue")({
           }
 
           if (body.action === "discard" && body.itemId) {
+            log.info("Webhook queue API: discarding single item", {
+              op: "webhook-queue-discard",
+              entity: "webhookQueue",
+              itemId: body.itemId,
+              dataToUpdate: "webhookQueue (delete)",
+            })
             await adminDb.transact(adminDb.tx.webhookQueue[body.itemId].delete())
             return jsonResponse({ ok: true })
           }
 
           if (body.action === "retry-all") {
+            log.info("Webhook queue API: retrying all dead-letter items", {
+              op: "webhook-queue-retry-all",
+              entity: "webhookQueue",
+              dataToUpdate: "webhookQueue.status=pending, attempts=0 for all dead_letter",
+            })
             const { webhookQueue } = await adminDb.query({
               webhookQueue: {
                 $: { where: { status: "dead_letter" } },
@@ -91,6 +113,11 @@ export const Route = createFileRoute("/api/github/webhook-queue")({
           }
 
           if (body.action === "discard-all") {
+            log.info("Webhook queue API: discarding all dead-letter items", {
+              op: "webhook-queue-discard-all",
+              entity: "webhookQueue",
+              dataToUpdate: "webhookQueue (delete all dead_letter)",
+            })
             const { webhookQueue } = await adminDb.query({
               webhookQueue: {
                 $: { where: { status: "dead_letter" } },

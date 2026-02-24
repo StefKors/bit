@@ -1,5 +1,7 @@
 import type { WebhookDB, WebhookPayload, PushEvent, RepoRecord } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, syncPRDetailsForWebhook } from "./utils"
+import { log } from "@/lib/logger"
+import { logWebhookEntityUpdate } from "./logging"
 
 /**
  * Handle push webhook events.
@@ -17,7 +19,17 @@ export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) 
   const pushPayload = payload as PushEvent
   const { repository: repo, sender, ref } = pushPayload
   const repoFullName = repo.full_name
-  const pushedAt = Date.now()
+  const branch = ref.replace("refs/heads/", "").replace("refs/tags/", "")
+  const commitsCount = pushPayload.commits?.length ?? 0
+
+  log.info("Webhook push: updating entities", {
+    op: "webhook-handler-push",
+    entity: "repos",
+    repo: repoFullName,
+    ref: branch,
+    commitsCount,
+    dataToUpdate: "repos.githubPushedAt, prCommits, pullRequests.commits, repoTrees (invalidate)",
+  })
 
   // Find users who have this repo synced
   const reposResult = await db.query({
@@ -40,9 +52,25 @@ export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) 
   }
 
   if (repoRecords.length === 0) {
-    console.log(`No users tracking repo ${repoFullName} and sender not registered`)
+    log.info("Webhook push: no users tracking repo, skipping", {
+      op: "webhook-handler-push",
+      repo: repoFullName,
+      sender: sender?.login,
+    })
     return
   }
+
+  const pushedAt = Date.now()
+  logWebhookEntityUpdate(
+    "repos",
+    "update",
+    repoRecords.map((r) => r.id),
+    {
+      repo: repoFullName,
+      count: repoRecords.length,
+      fields: "githubPushedAt, syncedAt, updatedAt",
+    },
+  )
 
   // Update githubPushedAt for all tracked instances of this repo
   for (const repoRecord of repoRecords) {
@@ -55,8 +83,6 @@ export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) 
     )
   }
 
-  // Extract branch name from ref (e.g., "refs/heads/main" -> "main")
-  const branch = ref.replace("refs/heads/", "").replace("refs/tags/", "")
   const commits = pushPayload.commits ?? []
 
   // Invalidate cached tree data for the pushed ref
@@ -68,7 +94,12 @@ export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) 
     await syncCommitsToPRs(db, repoRecords, branch, commits)
   }
 
-  console.log(`Processed push event for ${repoFullName}: ${commits.length} commit(s) to ${branch}`)
+  log.info("Webhook push: processed", {
+    op: "webhook-handler-push",
+    repo: repoFullName,
+    branch,
+    commitsCount: commits.length,
+  })
 }
 
 /**
@@ -160,7 +191,13 @@ async function syncCommitsToPRs(
         }),
       )
 
-      console.log(`Synced ${commits.length} commit(s) to PR #${pr.number} on branch ${branch}`)
+      log.info("Webhook push: synced commits to PR", {
+        op: "webhook-handler-push",
+        entity: "prCommits",
+        repo: repoRecord.fullName,
+        prNumber: pr.number,
+        commitsCount: commits.length,
+      })
 
       const [repoOwner, repoName] = (repoRecord.fullName || "").split("/")
       if (repoOwner && repoName) {
