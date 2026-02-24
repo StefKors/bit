@@ -11,6 +11,7 @@ import {
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Tabs } from "@/components/Tabs"
 import { PRActivityFeed } from "@/features/pr/PRActivityFeed"
+import { PRActionsBar } from "@/features/pr/PRActionsBar"
 import { PRFilesTab } from "@/features/pr/PRFilesTab"
 import { PRCommitsTab } from "@/features/pr/PRCommitsTab"
 import { PRThreeColumnLayout } from "@/features/pr/PRThreeColumnLayout"
@@ -322,6 +323,22 @@ function PRDetailPage() {
               </div>
             </header>
           </div>
+
+          {user?.id && (
+            <PRActionsBar
+              userId={user.id}
+              owner={owner}
+              repo={repoName}
+              prNumber={prNumber}
+              isOpen={isOpen}
+              isDraft={isDraft}
+              isMerged={isMerged}
+              mergeable={pr.mergeable}
+              mergeableState={pr.mergeableState}
+              headSha={pr.headSha ?? ""}
+              onMergeSuccess={() => prSync.mutate()}
+            />
+          )}
 
           <Tabs
             value={activeTab}

@@ -881,6 +881,43 @@ export class GitHubClient {
     return this.lastRateLimit
   }
 
+  // Merge a pull request
+  async mergePullRequest(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    options: {
+      commitTitle?: string
+      commitMessage?: string
+      sha?: string
+      mergeMethod?: "merge" | "squash" | "rebase"
+    } = {},
+  ): Promise<{
+    merged: boolean
+    message: string
+    sha?: string
+  }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.pulls.merge({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        commit_title: options.commitTitle,
+        commit_message: options.commitMessage,
+        sha: options.sha,
+        merge_method: options.mergeMethod,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      merged: response.data.merged,
+      message: response.data.message,
+      sha: response.data.sha,
+    }
+  }
+
   // Fetch repository tree (file structure)
   async fetchRepoTree(
     owner: string,

@@ -166,3 +166,43 @@ export const disconnectGitHubMutation = (userId: string) =>
       }
     },
   })
+
+export interface MergePRResponse {
+  merged: boolean
+  message: string
+  sha?: string
+  error?: string
+  code?: string
+}
+
+export const mergePRMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "merge", owner, repo, number],
+    mutationFn: async (options: {
+      commitTitle?: string
+      commitMessage?: string
+      sha?: string
+      mergeMethod?: "merge" | "squash" | "rebase"
+    }): Promise<MergePRResponse> => {
+      const res = await fetch(`/api/github/pr/merge/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(options),
+      })
+      const data = (await res.json()) as MergePRResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        if (data.code === "merge_conflict") {
+          throw new Error("This pull request has merge conflicts that must be resolved.")
+        }
+        throw new Error(data.error || "Failed to merge pull request")
+      }
+      return data
+    },
+  })
