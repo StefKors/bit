@@ -5,15 +5,16 @@ import { PatchDiff } from "@pierre/diffs/react"
 import type { InstaQLEntity } from "@instantdb/core"
 import type { AppSchema } from "@/instant.schema"
 import { Button } from "@/components/Button"
-import { Markdown } from "@/components/Markdown"
 import styles from "./DiffViewer.module.css"
 import type { DiffOptions } from "./DiffOptionsBar"
 import { Avatar } from "@/components/Avatar"
 import {
   createReviewCommentMutation,
+  createSuggestionMutation,
   resolveThreadMutation,
   unresolveThreadMutation,
 } from "@/lib/mutations"
+import { SuggestionBlock } from "./SuggestionBlock"
 
 type Comment = InstaQLEntity<AppSchema, "prComments">
 type AnnotationSide = "additions" | "deletions"
@@ -23,6 +24,7 @@ type ComposeTarget = {
   line: number
   side: ReviewSide
 }
+type ComposeMode = "comment" | "suggestion"
 
 interface DiffViewerProps {
   filename: string
@@ -119,7 +121,7 @@ const CommentThread = ({
             <span className={styles.commentTime}>{formatTimeAgo(comment.githubCreatedAt)}</span>
           </div>
           <div className={styles.commentBody}>
-            <Markdown content={comment.body ?? ""} />
+            <SuggestionBlock body={comment.body ?? ""} />
           </div>
         </div>
       ))}
@@ -141,7 +143,9 @@ export const DiffViewer = ({
   onCommentCreated,
 }: DiffViewerProps) => {
   const [composeTarget, setComposeTarget] = useState<ComposeTarget | null>(null)
+  const [composeMode, setComposeMode] = useState<ComposeMode>("comment")
   const [composeBody, setComposeBody] = useState("")
+  const [suggestionBody, setSuggestionBody] = useState("")
   const [composeError, setComposeError] = useState<string | null>(null)
   const [threadError, setThreadError] = useState<string | null>(null)
 
@@ -149,6 +153,9 @@ export const DiffViewer = ({
   const canToggleThreadResolved = Boolean(userId && owner && repo && prNumber)
   const createReviewComment = useMutation(
     createReviewCommentMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
+  )
+  const createSuggestion = useMutation(
+    createSuggestionMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
   )
   const resolveThread = useMutation(
     resolveThreadMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
@@ -216,7 +223,9 @@ ${patch}`
 
   const handleCancelComposer = () => {
     setComposeTarget(null)
+    setComposeMode("comment")
     setComposeBody("")
+    setSuggestionBody("")
     setComposeError(null)
   }
 
@@ -229,6 +238,34 @@ ${patch}`
     }
     if (!headSha) {
       setComposeError("Head SHA is required to create an inline comment.")
+      return
+    }
+
+    if (composeMode === "suggestion") {
+      const suggestion = suggestionBody.trim()
+      if (!suggestion) {
+        setComposeError("Suggested code is required.")
+        return
+      }
+      createSuggestion.mutate(
+        {
+          body: body || undefined,
+          suggestion,
+          path: filename,
+          line: composeTarget.line,
+          side: composeTarget.side,
+          commitId: headSha,
+        },
+        {
+          onSuccess: () => {
+            handleCancelComposer()
+            onCommentCreated?.()
+          },
+          onError: (error) => {
+            setComposeError(error instanceof Error ? error.message : "Failed to create suggestion")
+          },
+        },
+      )
       return
     }
 
@@ -319,13 +356,46 @@ ${patch}`
                       <div className={styles.inlineComposerMeta}>
                         Commenting on line {meta.lineNumber} ({meta.side})
                       </div>
+                      <div className={styles.composerModeRow}>
+                        <button
+                          type="button"
+                          className={`${styles.composerModeButton} ${
+                            composeMode === "comment" ? styles.composerModeButtonActive : ""
+                          }`}
+                          onClick={() => setComposeMode("comment")}
+                        >
+                          Comment
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.composerModeButton} ${
+                            composeMode === "suggestion" ? styles.composerModeButtonActive : ""
+                          }`}
+                          onClick={() => setComposeMode("suggestion")}
+                        >
+                          Suggest changes
+                        </button>
+                      </div>
                       <textarea
                         className={styles.inlineComposerTextarea}
                         rows={3}
-                        placeholder="Add an inline review comment"
+                        placeholder={
+                          composeMode === "suggestion"
+                            ? "Optional context for this suggestion"
+                            : "Add an inline review comment"
+                        }
                         value={composeBody}
                         onChange={(event) => setComposeBody(event.target.value)}
                       />
+                      {composeMode === "suggestion" && (
+                        <textarea
+                          className={styles.inlineComposerTextarea}
+                          rows={4}
+                          placeholder="Suggested replacement code"
+                          value={suggestionBody}
+                          onChange={(event) => setSuggestionBody(event.target.value)}
+                        />
+                      )}
                       {composeError && (
                         <div className={styles.inlineComposerError}>{composeError}</div>
                       )}
@@ -333,7 +403,7 @@ ${patch}`
                         <Button
                           variant="default"
                           size="small"
-                          disabled={createReviewComment.isPending}
+                          disabled={createReviewComment.isPending || createSuggestion.isPending}
                           onClick={handleCancelComposer}
                         >
                           Cancel
@@ -341,13 +411,16 @@ ${patch}`
                         <Button
                           variant="primary"
                           size="small"
-                          loading={createReviewComment.isPending}
+                          loading={createReviewComment.isPending || createSuggestion.isPending}
                           disabled={
-                            composeBody.trim().length === 0 || createReviewComment.isPending
+                            (composeMode === "comment" && composeBody.trim().length === 0) ||
+                            (composeMode === "suggestion" && suggestionBody.trim().length === 0) ||
+                            createReviewComment.isPending ||
+                            createSuggestion.isPending
                           }
                           onClick={handleSubmitInlineComment}
                         >
-                          Add comment
+                          {composeMode === "suggestion" ? "Add suggestion" : "Add comment"}
                         </Button>
                       </div>
                     </div>
@@ -368,6 +441,8 @@ ${patch}`
                     if (!result) return
                     setComposeError(null)
                     setComposeBody("")
+                    setSuggestionBody("")
+                    setComposeMode("comment")
                     setThreadError(null)
                     setComposeTarget({
                       line: result.lineNumber,

@@ -320,6 +320,27 @@
   color: rgba(var(--bit-rgb-fg), 0.6);
 }
 
+.composerModeRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.composerModeButton {
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.18);
+  border-radius: var(--bit-radius-sm);
+  background: transparent;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  font-size: 0.75rem;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+}
+
+.composerModeButtonActive {
+  background: rgba(var(--bit-rgb-accent-blue), 0.16);
+  border-color: rgba(var(--bit-rgb-accent-blue), 0.4);
+  color: var(--bit-color-link);
+}
+
 .inlineComposerTextarea {
   width: 100%;
   min-height: 80px;

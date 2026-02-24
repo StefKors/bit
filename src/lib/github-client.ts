@@ -60,6 +60,18 @@ export function isGitHubAuthError(error: unknown): boolean {
   return error instanceof RequestError && error.status === 401
 }
 
+export function formatSuggestedChangeBody(
+  commentBody: string | undefined,
+  suggestion: string,
+): string {
+  const normalizedComment = commentBody?.trim()
+  const normalizedSuggestion = suggestion.replaceAll("\r\n", "\n").replace(/\n+$/, "")
+  const suggestionBlock = `\`\`\`suggestion\n${normalizedSuggestion}\n\`\`\``
+
+  if (!normalizedComment) return suggestionBlock
+  return `${normalizedComment}\n\n${suggestionBlock}`
+}
+
 export async function handleGitHubAuthError(userId: string): Promise<void> {
   const { syncStates } = await adminDb.query({
     syncStates: {
@@ -1099,6 +1111,36 @@ export class GitHubClient {
       id: response.data.id,
       resolved: options.resolved,
     }
+  }
+
+  async createSuggestedChange(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    options: {
+      path: string
+      line: number
+      side: "LEFT" | "RIGHT"
+      commitId: string
+      suggestion: string
+      body?: string
+    },
+  ): Promise<{
+    id: number
+    body: string
+    htmlUrl: string | null
+    path: string | null
+    line: number | null
+    side: "LEFT" | "RIGHT" | null
+  }> {
+    const formattedBody = formatSuggestedChangeBody(options.body, options.suggestion)
+    return this.createReviewComment(owner, repo, pullNumber, {
+      body: formattedBody,
+      path: options.path,
+      line: options.line,
+      side: options.side,
+      commitId: options.commitId,
+    })
   }
 
   async createPullRequestReview(

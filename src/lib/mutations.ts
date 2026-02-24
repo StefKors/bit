@@ -490,6 +490,42 @@ export const createReviewCommentMutation = (
     },
   })
 
+export const createSuggestionMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "suggestions", "create", owner, repo, number],
+    mutationFn: async (vars: {
+      body?: string
+      suggestion: string
+      path: string
+      line: number
+      side: "LEFT" | "RIGHT"
+      commitId: string
+    }): Promise<ReviewCommentResponse> => {
+      const res = await fetch(`/api/github/suggestions/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as ReviewCommentResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to create suggested change")
+      }
+      return data
+    },
+  })
+
 type ResolveThreadResponse = {
   commentId: number
   resolved: boolean

@@ -39,6 +39,7 @@ import { Route as OwnerRepoTreeBranchSplatRouteImport } from './routes/$owner/$r
 import { Route as OwnerRepoBlobBranchSplatRouteImport } from './routes/$owner/$repo/blob.$branch.$'
 import { Route as ApiGithubSyncOwnerRepoTreeRouteImport } from './routes/api/github/sync/$owner.$repo.tree'
 import { Route as ApiGithubSyncOwnerRepoCommitsRouteImport } from './routes/api/github/sync/$owner.$repo.commits'
+import { Route as ApiGithubSuggestionsOwnerRepoNumberRouteImport } from './routes/api/github/suggestions.$owner.$repo.$number'
 import { Route as ApiGithubReviewsOwnerRepoNumberRouteImport } from './routes/api/github/reviews.$owner.$repo.$number'
 import { Route as ApiGithubReviewCommentsOwnerRepoNumberRouteImport } from './routes/api/github/review-comments.$owner.$repo.$number'
 import { Route as ApiGithubResolveOwnerRepoNumberRouteImport } from './routes/api/github/resolve.$owner.$repo.$number'
@@ -205,6 +206,12 @@ const ApiGithubSyncOwnerRepoCommitsRoute =
     path: '/commits',
     getParentRoute: () => ApiGithubSyncOwnerRepoRoute,
   } as any)
+const ApiGithubSuggestionsOwnerRepoNumberRoute =
+  ApiGithubSuggestionsOwnerRepoNumberRouteImport.update({
+    id: '/api/github/suggestions/$owner/$repo/$number',
+    path: '/api/github/suggestions/$owner/$repo/$number',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiGithubReviewsOwnerRepoNumberRoute =
   ApiGithubReviewsOwnerRepoNumberRouteImport.update({
     id: '/api/github/reviews/$owner/$repo/$number',
@@ -294,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/api/github/resolve/$owner/$repo/$number': typeof ApiGithubResolveOwnerRepoNumberRoute
   '/api/github/review-comments/$owner/$repo/$number': typeof ApiGithubReviewCommentsOwnerRepoNumberRoute
   '/api/github/reviews/$owner/$repo/$number': typeof ApiGithubReviewsOwnerRepoNumberRoute
+  '/api/github/suggestions/$owner/$repo/$number': typeof ApiGithubSuggestionsOwnerRepoNumberRoute
   '/api/github/sync/$owner/$repo/commits': typeof ApiGithubSyncOwnerRepoCommitsRoute
   '/api/github/sync/$owner/$repo/tree': typeof ApiGithubSyncOwnerRepoTreeRoute
   '/api/github/pr/merge/$owner/$repo/$number': typeof ApiGithubPrMergeOwnerRepoNumberRoute
@@ -335,6 +343,7 @@ export interface FileRoutesByTo {
   '/api/github/resolve/$owner/$repo/$number': typeof ApiGithubResolveOwnerRepoNumberRoute
   '/api/github/review-comments/$owner/$repo/$number': typeof ApiGithubReviewCommentsOwnerRepoNumberRoute
   '/api/github/reviews/$owner/$repo/$number': typeof ApiGithubReviewsOwnerRepoNumberRoute
+  '/api/github/suggestions/$owner/$repo/$number': typeof ApiGithubSuggestionsOwnerRepoNumberRoute
   '/api/github/sync/$owner/$repo/commits': typeof ApiGithubSyncOwnerRepoCommitsRoute
   '/api/github/sync/$owner/$repo/tree': typeof ApiGithubSyncOwnerRepoTreeRoute
   '/api/github/pr/merge/$owner/$repo/$number': typeof ApiGithubPrMergeOwnerRepoNumberRoute
@@ -377,6 +386,7 @@ export interface FileRoutesById {
   '/api/github/resolve/$owner/$repo/$number': typeof ApiGithubResolveOwnerRepoNumberRoute
   '/api/github/review-comments/$owner/$repo/$number': typeof ApiGithubReviewCommentsOwnerRepoNumberRoute
   '/api/github/reviews/$owner/$repo/$number': typeof ApiGithubReviewsOwnerRepoNumberRoute
+  '/api/github/suggestions/$owner/$repo/$number': typeof ApiGithubSuggestionsOwnerRepoNumberRoute
   '/api/github/sync/$owner/$repo/commits': typeof ApiGithubSyncOwnerRepoCommitsRoute
   '/api/github/sync/$owner/$repo/tree': typeof ApiGithubSyncOwnerRepoTreeRoute
   '/api/github/pr/merge/$owner/$repo/$number': typeof ApiGithubPrMergeOwnerRepoNumberRoute
@@ -420,6 +430,7 @@ export interface FileRouteTypes {
     | '/api/github/resolve/$owner/$repo/$number'
     | '/api/github/review-comments/$owner/$repo/$number'
     | '/api/github/reviews/$owner/$repo/$number'
+    | '/api/github/suggestions/$owner/$repo/$number'
     | '/api/github/sync/$owner/$repo/commits'
     | '/api/github/sync/$owner/$repo/tree'
     | '/api/github/pr/merge/$owner/$repo/$number'
@@ -461,6 +472,7 @@ export interface FileRouteTypes {
     | '/api/github/resolve/$owner/$repo/$number'
     | '/api/github/review-comments/$owner/$repo/$number'
     | '/api/github/reviews/$owner/$repo/$number'
+    | '/api/github/suggestions/$owner/$repo/$number'
     | '/api/github/sync/$owner/$repo/commits'
     | '/api/github/sync/$owner/$repo/tree'
     | '/api/github/pr/merge/$owner/$repo/$number'
@@ -502,6 +514,7 @@ export interface FileRouteTypes {
     | '/api/github/resolve/$owner/$repo/$number'
     | '/api/github/review-comments/$owner/$repo/$number'
     | '/api/github/reviews/$owner/$repo/$number'
+    | '/api/github/suggestions/$owner/$repo/$number'
     | '/api/github/sync/$owner/$repo/commits'
     | '/api/github/sync/$owner/$repo/tree'
     | '/api/github/pr/merge/$owner/$repo/$number'
@@ -543,6 +556,7 @@ export interface RootRouteChildren {
   ApiGithubResolveOwnerRepoNumberRoute: typeof ApiGithubResolveOwnerRepoNumberRoute
   ApiGithubReviewCommentsOwnerRepoNumberRoute: typeof ApiGithubReviewCommentsOwnerRepoNumberRoute
   ApiGithubReviewsOwnerRepoNumberRoute: typeof ApiGithubReviewsOwnerRepoNumberRoute
+  ApiGithubSuggestionsOwnerRepoNumberRoute: typeof ApiGithubSuggestionsOwnerRepoNumberRoute
   ApiGithubPrMergeOwnerRepoNumberRoute: typeof ApiGithubPrMergeOwnerRepoNumberRoute
   ApiGithubPrStateOwnerRepoNumberRoute: typeof ApiGithubPrStateOwnerRepoNumberRoute
 }
@@ -759,6 +773,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubSyncOwnerRepoCommitsRouteImport
       parentRoute: typeof ApiGithubSyncOwnerRepoRoute
     }
+    '/api/github/suggestions/$owner/$repo/$number': {
+      id: '/api/github/suggestions/$owner/$repo/$number'
+      path: '/api/github/suggestions/$owner/$repo/$number'
+      fullPath: '/api/github/suggestions/$owner/$repo/$number'
+      preLoaderRoute: typeof ApiGithubSuggestionsOwnerRepoNumberRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/github/reviews/$owner/$repo/$number': {
       id: '/api/github/reviews/$owner/$repo/$number'
       path: '/api/github/reviews/$owner/$repo/$number'
@@ -893,6 +914,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGithubReviewCommentsOwnerRepoNumberRoute:
     ApiGithubReviewCommentsOwnerRepoNumberRoute,
   ApiGithubReviewsOwnerRepoNumberRoute: ApiGithubReviewsOwnerRepoNumberRoute,
+  ApiGithubSuggestionsOwnerRepoNumberRoute:
+    ApiGithubSuggestionsOwnerRepoNumberRoute,
   ApiGithubPrMergeOwnerRepoNumberRoute: ApiGithubPrMergeOwnerRepoNumberRoute,
   ApiGithubPrStateOwnerRepoNumberRoute: ApiGithubPrStateOwnerRepoNumberRoute,
 }

@@ -25,7 +25,7 @@ todos:
     status: completed
   - id: phase-3-1
     content: "Phase 3.1: Suggest Changes - API route, suggestion formatting, SuggestionBlock component, tests"
-    status: pending
+    status: completed
   - id: phase-3-2
     content: "Phase 3.2: Draft Review State - API support for draft reviews, ReviewComposer draft UI, mutations, tests"
     status: pending

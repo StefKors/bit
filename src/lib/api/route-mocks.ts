@@ -85,6 +85,14 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
       id: 1,
       resolved: true,
     }),
+    createSuggestedChange: vi.fn().mockResolvedValue({
+      id: 1,
+      body: "```suggestion\nconst value = 1\n```",
+      htmlUrl: "https://github.com/test/repo/pull/1#discussion_r1",
+      path: "src/index.ts",
+      line: 1,
+      side: "RIGHT",
+    }),
     ...overrides,
   })
 
