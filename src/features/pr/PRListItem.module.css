@@ -3,24 +3,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.875rem 0;
-  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  padding: 0.625rem 0.55rem;
+  border-radius: var(--bit-radius-md);
   text-decoration: none;
   transition: background 0.15s ease;
   cursor: pointer;
 }
 
-.prItem:first-child {
-  padding-top: 0;
-}
-
-.prItem:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
 .prItem:hover {
-  background: rgba(var(--bit-rgb-fg), 0.02);
+  background: rgba(var(--bit-rgb-fg), 0.045);
 }
 
 .prItemActive {
