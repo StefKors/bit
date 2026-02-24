@@ -28,6 +28,14 @@ INSTANT_ADMIN_TOKEN=your_instantdb_admin_token
 
 # GitHub Webhook Secret (for real-time updates)
 GITHUB_WEBHOOK_SECRET=your_webhook_secret
+
+# Public app URL used to register webhook callbacks
+# Must be publicly reachable in production, e.g. https://your-domain.com
+BASE_URL=http://localhost:5173
+
+# Optional local override (default false)
+# When false, webhook registration is skipped for localhost/private BASE_URL values
+ALLOW_LOCAL_WEBHOOK_REGISTRATION=false
 ```
 
 ### InstantDB Setup
@@ -58,6 +66,25 @@ To receive real-time updates, create a GitHub App:
    - Pull requests: Read
    - Contents: Read
    - Metadata: Read
+
+### Local Development Webhook Behavior
+
+When running locally with `BASE_URL` pointing to localhost/private addresses, the app now
+**skips webhook registration automatically** during sync. This avoids repeated GitHub API
+errors like:
+
+- `Validation Failed: url is not supported because it isn't reachable over the public Internet`
+
+Why this happens:
+
+- GitHub only accepts webhook callback URLs that are publicly reachable.
+- Local URLs (`localhost`, `127.0.0.1`, `192.168.x.x`, etc.) are not reachable from GitHub.
+
+How to enable webhook registration locally anyway:
+
+1. Expose your local app publicly (for example using a tunnel URL).
+2. Set `BASE_URL` to that public URL.
+3. Optionally set `ALLOW_LOCAL_WEBHOOK_REGISTRATION=true` if you need to force local/private URL registration attempts.
 
 ### Running the App
 

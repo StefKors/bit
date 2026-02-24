@@ -5,6 +5,7 @@ import { findOrCreateSyncStateId } from "./sync-state"
 import { buildTreeEntries, computeStaleEntries, type GitHubTreeItem } from "./sync-trees"
 import { buildCommitEntries, computeStaleCommits, type GitHubCommit } from "./sync-commits"
 import { log } from "./logger"
+import { getWebhookRegistrationConfig } from "./github-webhook-config"
 import {
   chunkItems,
   mapWithConcurrency,
@@ -1098,8 +1099,7 @@ export class GitHubClient {
     owner: string,
     repo: string,
   ): Promise<{ success: boolean; status: string; error?: string }> {
-    const webhookUrl = process.env.BASE_URL ? `${process.env.BASE_URL}/api/github/webhook` : null
-    const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET
+    const webhookConfig = getWebhookRegistrationConfig()
     const fullName = `${owner}/${repo}`
 
     // Helper to update webhook status in database
@@ -1118,12 +1118,15 @@ export class GitHubClient {
       }
     }
 
-    if (!webhookUrl || !webhookSecret) {
-      const error = "BASE_URL or GITHUB_WEBHOOK_SECRET not configured"
-      log.warn("Skipping webhook registration: not configured", { repo: fullName })
+    if (!webhookConfig.enabled || !webhookConfig.webhookUrl) {
+      const error = webhookConfig.reason ?? "Webhook registration disabled"
+      log.info("Skipping webhook registration", { repo: fullName, reason: error })
       await updateWebhookStatus(GitHubClient.WEBHOOK_STATUS.NOT_INSTALLED, error)
       return { success: false, status: GitHubClient.WEBHOOK_STATUS.NOT_INSTALLED, error }
     }
+
+    const webhookUrl = webhookConfig.webhookUrl
+    const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET as string
 
     try {
       // Check if webhook already exists (with pagination)
@@ -1225,6 +1228,30 @@ export class GitHubClient {
         })
       ).repos ||
       []
+
+    const webhookConfig = getWebhookRegistrationConfig()
+    if (!webhookConfig.enabled) {
+      const reason = webhookConfig.reason ?? "Webhook registration disabled"
+      log.info("Skipping webhook registration for all repositories", {
+        userId: this.userId,
+        reason,
+        repoCount: repos.length,
+      })
+
+      return {
+        total: repos.length,
+        installed: 0,
+        skipped: repos.length,
+        noAccess: 0,
+        errors: 0,
+        results: repos.map((repo) => ({
+          fullName: repo.fullName,
+          status: GitHubClient.WEBHOOK_STATUS.NOT_INSTALLED,
+          error: reason,
+          skipped: true,
+        })),
+      }
+    }
 
     const results = await mapWithConcurrency(
       repos,
