@@ -10,7 +10,39 @@ const jsonResponse = <T>(data: T, status = 200) =>
     headers: { "Content-Type": "application/json" },
   })
 
-const reviewSchema = z.object({
+const reviewEventSchema = z.enum(["APPROVE", "REQUEST_CHANGES", "COMMENT"])
+
+const submitReviewSchema = z.object({
+  action: z.literal("submit").optional(),
+  event: reviewEventSchema,
+  body: z.string().optional(),
+})
+
+const createDraftSchema = z.object({
+  action: z.literal("create_draft"),
+  body: z.string().optional(),
+})
+
+const submitDraftSchema = z.object({
+  action: z.literal("submit_draft"),
+  reviewId: z.number().int().positive(),
+  event: reviewEventSchema,
+  body: z.string().optional(),
+})
+
+const discardDraftSchema = z.object({
+  action: z.literal("discard_draft"),
+  reviewId: z.number().int().positive(),
+})
+
+const reviewSchema = z.union([
+  submitReviewSchema,
+  createDraftSchema,
+  submitDraftSchema,
+  discardDraftSchema,
+])
+
+const legacySubmitSchema = z.object({
   event: z.enum(["APPROVE", "REQUEST_CHANGES", "COMMENT"]),
   body: z.string().optional(),
 })
@@ -37,8 +69,30 @@ export const Route = createFileRoute("/api/github/reviews/$owner/$repo/$number")
         }
 
         const parsed = reviewSchema.safeParse(body)
-        if (!parsed.success)
-          return jsonResponse({ error: "Invalid request body", details: parsed.error.issues }, 400)
+        const legacyParsed = !parsed.success ? legacySubmitSchema.safeParse(body) : null
+        const normalizedReviewInput =
+          parsed.success || !legacyParsed?.success
+            ? parsed
+            : reviewSchema.safeParse({
+                action: "submit",
+                event: legacyParsed.data.event,
+                body: legacyParsed.data.body,
+              })
+
+        if (!normalizedReviewInput.success)
+          return jsonResponse(
+            { error: "Invalid request body", details: normalizedReviewInput.error.issues },
+            400,
+          )
+
+        const input = normalizedReviewInput.data
+        if (!parsed.success && legacyParsed?.success) {
+          log.info("Legacy review submit payload used without action field", {
+            owner: (params as { owner: string }).owner,
+            repo: (params as { repo: string }).repo,
+            pullNumber,
+          })
+        }
 
         const client = await createGitHubClient(userId)
         if (!client)
@@ -46,9 +100,41 @@ export const Route = createFileRoute("/api/github/reviews/$owner/$repo/$number")
 
         const { owner, repo } = params as { owner: string; repo: string }
         try {
+          if (input.action === "create_draft") {
+            const result = await client.createPullRequestReview(owner, repo, pullNumber, {
+              draft: true,
+              body: input.body,
+            })
+            return jsonResponse(result, 201)
+          }
+
+          if (input.action === "submit_draft") {
+            const result = await client.submitPullRequestReview(
+              owner,
+              repo,
+              pullNumber,
+              input.reviewId,
+              {
+                event: input.event,
+                body: input.body,
+              },
+            )
+            return jsonResponse(result)
+          }
+
+          if (input.action === "discard_draft") {
+            const result = await client.discardPendingReview(
+              owner,
+              repo,
+              pullNumber,
+              input.reviewId,
+            )
+            return jsonResponse(result)
+          }
+
           const result = await client.createPullRequestReview(owner, repo, pullNumber, {
-            event: parsed.data.event,
-            body: parsed.data.body,
+            event: input.event,
+            body: input.body,
           })
           return jsonResponse(result, 201)
         } catch (error) {

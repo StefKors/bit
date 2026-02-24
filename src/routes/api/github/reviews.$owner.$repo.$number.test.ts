@@ -94,6 +94,113 @@ describe("/api/github/reviews/$owner/$repo/$number", () => {
     expect(response.status).toBe(201)
   })
 
+  it("creates a draft review", async () => {
+    const mockCreatePullRequestReview = vi.fn().mockResolvedValue({
+      id: 3,
+      state: "PENDING",
+      body: "WIP review",
+      htmlUrl: "https://github.com/test/repo/pull/1#pullrequestreview-3",
+    })
+    vi.mocked(createGitHubClient).mockResolvedValue(
+      createMockGitHubClient({
+        createPullRequestReview: mockCreatePullRequestReview,
+      }),
+    )
+
+    const handler = getRouteHandler(Route, "POST")
+    if (!handler) throw new Error("No POST handler")
+    const request = makeAuthRequest(
+      "http://localhost/api/github/reviews/test-owner/test-repo/1",
+      "test-user-id",
+      { method: "POST" },
+    )
+    const requestWithBody = new Request(request, {
+      body: JSON.stringify({ action: "create_draft", body: "WIP review" }),
+    })
+    const response = await handler({
+      request: requestWithBody,
+      params: { owner: "test-owner", repo: "test-repo", number: "1" },
+    })
+
+    expect(response.status).toBe(201)
+    expect(mockCreatePullRequestReview).toHaveBeenCalledWith("test-owner", "test-repo", 1, {
+      draft: true,
+      body: "WIP review",
+    })
+  })
+
+  it("submits a draft review", async () => {
+    const mockSubmitPullRequestReview = vi.fn().mockResolvedValue({
+      id: 4,
+      state: "APPROVED",
+      body: "Ready",
+      htmlUrl: "https://github.com/test/repo/pull/1#pullrequestreview-4",
+    })
+    vi.mocked(createGitHubClient).mockResolvedValue(
+      createMockGitHubClient({
+        submitPullRequestReview: mockSubmitPullRequestReview,
+      }),
+    )
+
+    const handler = getRouteHandler(Route, "POST")
+    if (!handler) throw new Error("No POST handler")
+    const request = makeAuthRequest(
+      "http://localhost/api/github/reviews/test-owner/test-repo/1",
+      "test-user-id",
+      { method: "POST" },
+    )
+    const requestWithBody = new Request(request, {
+      body: JSON.stringify({
+        action: "submit_draft",
+        reviewId: 4,
+        event: "APPROVE",
+        body: "Ready",
+      }),
+    })
+    const response = await handler({
+      request: requestWithBody,
+      params: { owner: "test-owner", repo: "test-repo", number: "1" },
+    })
+
+    expect(response.status).toBe(200)
+    expect(mockSubmitPullRequestReview).toHaveBeenCalledWith("test-owner", "test-repo", 1, 4, {
+      event: "APPROVE",
+      body: "Ready",
+    })
+  })
+
+  it("discards a draft review", async () => {
+    const mockDiscardPendingReview = vi.fn().mockResolvedValue({
+      discarded: true,
+    })
+    vi.mocked(createGitHubClient).mockResolvedValue(
+      createMockGitHubClient({
+        discardPendingReview: mockDiscardPendingReview,
+      }),
+    )
+
+    const handler = getRouteHandler(Route, "POST")
+    if (!handler) throw new Error("No POST handler")
+    const request = makeAuthRequest(
+      "http://localhost/api/github/reviews/test-owner/test-repo/1",
+      "test-user-id",
+      { method: "POST" },
+    )
+    const requestWithBody = new Request(request, {
+      body: JSON.stringify({
+        action: "discard_draft",
+        reviewId: 4,
+      }),
+    })
+    const response = await handler({
+      request: requestWithBody,
+      params: { owner: "test-owner", repo: "test-repo", number: "1" },
+    })
+
+    expect(response.status).toBe(200)
+    expect(mockDiscardPendingReview).toHaveBeenCalledWith("test-owner", "test-repo", 1, 4)
+  })
+
   it("returns 401 without auth header", async () => {
     const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")

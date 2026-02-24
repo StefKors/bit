@@ -443,6 +443,114 @@ export const submitReviewMutation = (userId: string, owner: string, repo: string
     },
   })
 
+export const createDraftReviewMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "reviews", "create-draft", owner, repo, number],
+    mutationFn: async (vars: { body?: string }): Promise<SubmitReviewResponse> => {
+      const res = await fetch(`/api/github/reviews/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({
+          action: "create_draft",
+          body: vars.body,
+        }),
+      })
+      const data = (await res.json()) as SubmitReviewResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to create draft review")
+      }
+      return data
+    },
+  })
+
+export const submitDraftReviewMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "reviews", "submit-draft", owner, repo, number],
+    mutationFn: async (vars: {
+      reviewId: number
+      event: "APPROVE" | "REQUEST_CHANGES" | "COMMENT"
+      body?: string
+    }): Promise<SubmitReviewResponse> => {
+      const res = await fetch(`/api/github/reviews/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({
+          action: "submit_draft",
+          reviewId: vars.reviewId,
+          event: vars.event,
+          body: vars.body,
+        }),
+      })
+      const data = (await res.json()) as SubmitReviewResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to submit draft review")
+      }
+      return data
+    },
+  })
+
+type DiscardDraftReviewResponse = {
+  discarded: boolean
+  error?: string
+  code?: string
+}
+
+export const discardDraftReviewMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "reviews", "discard-draft", owner, repo, number],
+    mutationFn: async (vars: { reviewId: number }): Promise<DiscardDraftReviewResponse> => {
+      const res = await fetch(`/api/github/reviews/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({
+          action: "discard_draft",
+          reviewId: vars.reviewId,
+        }),
+      })
+      const data = (await res.json()) as DiscardDraftReviewResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to discard draft review")
+      }
+      return data
+    },
+  })
+
 type ReviewCommentResponse = {
   id: number
   body: string

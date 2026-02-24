@@ -1148,15 +1148,55 @@ export class GitHubClient {
     repo: string,
     pullNumber: number,
     options: {
+      event?: "APPROVE" | "REQUEST_CHANGES" | "COMMENT"
+      body?: string
+      draft?: boolean
+    },
+  ): Promise<{ id: number; state: string; body: string | null; htmlUrl: string | null }> {
+    const request: {
+      owner: string
+      repo: string
+      pull_number: number
+      event?: "APPROVE" | "REQUEST_CHANGES" | "COMMENT"
+      body?: string
+    } = {
+      owner,
+      repo,
+      pull_number: pullNumber,
+      body: options.body,
+    }
+    if (!options.draft && options.event) {
+      request.event = options.event
+    }
+
+    const response = await withRateLimitRetry(() => this.octokit.rest.pulls.createReview(request))
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      id: response.data.id,
+      state: response.data.state,
+      body: response.data.body ?? null,
+      htmlUrl: response.data.html_url ?? null,
+    }
+  }
+
+  async submitPullRequestReview(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    reviewId: number,
+    options: {
       event: "APPROVE" | "REQUEST_CHANGES" | "COMMENT"
       body?: string
     },
   ): Promise<{ id: number; state: string; body: string | null; htmlUrl: string | null }> {
     const response = await withRateLimitRetry(() =>
-      this.octokit.rest.pulls.createReview({
+      this.octokit.rest.pulls.submitReview({
         owner,
         repo,
         pull_number: pullNumber,
+        review_id: reviewId,
         event: options.event,
         body: options.body,
       }),
@@ -1170,6 +1210,27 @@ export class GitHubClient {
       body: response.data.body ?? null,
       htmlUrl: response.data.html_url ?? null,
     }
+  }
+
+  async discardPendingReview(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    reviewId: number,
+  ): Promise<{ discarded: boolean }> {
+    await withRateLimitRetry(() =>
+      this.octokit.rest.pulls.deletePendingReview({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        review_id: reviewId,
+      }),
+    )
+
+    const rateLimit = await this.getRateLimit()
+    this.lastRateLimit = rateLimit
+
+    return { discarded: true }
   }
 
   // Merge a pull request

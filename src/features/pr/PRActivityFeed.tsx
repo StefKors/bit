@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useMutation } from "@tanstack/react-query"
 import type { InstaQLEntity } from "@instantdb/core"
 import type { AppSchema } from "@/instant.schema"
@@ -27,7 +28,13 @@ import {
 } from "@primer/octicons-react"
 import styles from "./PRActivityFeed.module.css"
 import { CommentComposer } from "./CommentComposer"
-import { createCommentMutation, submitReviewMutation } from "@/lib/mutations"
+import {
+  createCommentMutation,
+  createDraftReviewMutation,
+  discardDraftReviewMutation,
+  submitDraftReviewMutation,
+  submitReviewMutation,
+} from "@/lib/mutations"
 import { ReviewComposer } from "./ReviewComposer"
 
 interface PRAuthor {
@@ -137,11 +144,21 @@ export const PRActivityFeed = ({
 
   const canComment = Boolean(userId && owner && repo && prNumber)
   const canReview = Boolean(userId && owner && repo && prNumber)
+  const [pendingReviewId, setPendingReviewId] = useState<number | null>(null)
   const createComment = useMutation(
     createCommentMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
   )
   const submitReview = useMutation(
     submitReviewMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
+  )
+  const createDraftReview = useMutation(
+    createDraftReviewMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
+  )
+  const submitDraftReview = useMutation(
+    submitDraftReviewMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
+  )
+  const discardDraftReview = useMutation(
+    discardDraftReviewMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
   )
 
   if (timelineItems.length === 0) {
@@ -174,11 +191,47 @@ export const PRActivityFeed = ({
       )}
       {canReview && (
         <ReviewComposer
-          isSubmitting={submitReview.isPending}
+          reviewId={pendingReviewId}
+          isSubmitting={
+            submitReview.isPending ||
+            createDraftReview.isPending ||
+            submitDraftReview.isPending ||
+            discardDraftReview.isPending
+          }
           onSubmit={(input) => {
             submitReview.mutate(input, {
               onSuccess: () => onCommentCreated?.(),
             })
+          }}
+          onStartDraft={(body) => {
+            createDraftReview.mutate(
+              { body: body || undefined },
+              {
+                onSuccess: (result) => {
+                  setPendingReviewId(result.id)
+                  onCommentCreated?.()
+                },
+              },
+            )
+          }}
+          onSubmitDraft={(input) => {
+            submitDraftReview.mutate(input, {
+              onSuccess: () => {
+                setPendingReviewId(null)
+                onCommentCreated?.()
+              },
+            })
+          }}
+          onDiscardDraft={(reviewId) => {
+            discardDraftReview.mutate(
+              { reviewId },
+              {
+                onSuccess: () => {
+                  setPendingReviewId(null)
+                  onCommentCreated?.()
+                },
+              },
+            )
           }}
         />
       )}
