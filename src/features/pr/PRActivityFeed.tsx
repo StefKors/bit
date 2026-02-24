@@ -41,7 +41,7 @@ interface PRActivityFeedProps {
 }
 
 interface TimelineItem {
-  type: "pr_opened" | "event" | "review" | "comment"
+  type: "pr_opened" | "event" | "review" | "comment" | "review_comment"
   id: string
   timestamp: number | null | undefined
   data: {
@@ -95,16 +95,13 @@ export const PRActivityFeed = ({
     })
   }
 
-  // Add comments (only issue_comment type for conversation)
   for (const comment of comments) {
-    if (comment.commentType === "issue_comment") {
-      timelineItems.push({
-        type: "comment",
-        id: comment.id,
-        timestamp: comment.githubCreatedAt,
-        data: { comment },
-      })
-    }
+    timelineItems.push({
+      type: comment.commentType === "review_comment" ? "review_comment" : "comment",
+      id: comment.id,
+      timestamp: comment.githubCreatedAt,
+      data: { comment },
+    })
   }
 
   // Sort by timestamp
@@ -152,6 +149,8 @@ const TimelineItemRenderer = ({
       return <ReviewItem review={item.data.review!} formatTimeAgo={formatTimeAgo} />
     case "comment":
       return <CommentItem comment={item.data.comment!} formatTimeAgo={formatTimeAgo} />
+    case "review_comment":
+      return <ReviewCommentItem comment={item.data.comment!} formatTimeAgo={formatTimeAgo} />
     default:
       return null
   }
@@ -516,6 +515,63 @@ const CommentItem = ({
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+const ReviewCommentItem = ({
+  comment,
+  formatTimeAgo,
+}: {
+  comment: GithubPrComment
+  formatTimeAgo: (date: Date | number | null | undefined) => string
+}) => {
+  return (
+    <div className={styles.timelineItem}>
+      <Avatar src={comment.authorAvatarUrl} name={comment.authorLogin} size={40} />
+      <div className={styles.timelineContent}>
+        <div className={styles.timelineHeader}>
+          <span className={styles.timelineAuthor}>{comment.authorLogin}</span>
+          <span className={styles.timelineAction}>
+            commented on <code className={styles.reviewCommentPath}>{comment.path}</code>
+            {comment.line != null && (
+              <span className={styles.reviewCommentLine}>:{comment.line}</span>
+            )}
+          </span>
+          <span className={styles.timelineTime}>{formatTimeAgo(comment.githubCreatedAt)}</span>
+        </div>
+        {comment.diffHunk && <DiffHunkSnippet diffHunk={comment.diffHunk} />}
+        {comment.body && (
+          <div className={styles.timelineBody}>
+            <Markdown content={comment.body} />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const DiffHunkSnippet = ({ diffHunk }: { diffHunk: string }) => {
+  const lines = diffHunk.split("\n")
+  const lastLines = lines.slice(-4)
+
+  return (
+    <div className={styles.diffHunkSnippet}>
+      <pre className={styles.diffHunkPre}>
+        {lastLines.map((line, i) => {
+          let lineClass = styles.diffHunkLine
+          if (line.startsWith("+")) lineClass = `${styles.diffHunkLine} ${styles.diffHunkAdd}`
+          else if (line.startsWith("-")) lineClass = `${styles.diffHunkLine} ${styles.diffHunkDel}`
+          else if (line.startsWith("@@"))
+            lineClass = `${styles.diffHunkLine} ${styles.diffHunkMeta}`
+
+          return (
+            <code key={i} className={lineClass}>
+              {line}
+            </code>
+          )
+        })}
+      </pre>
     </div>
   )
 }
