@@ -24,7 +24,6 @@
   background: transparent;
   color: rgba(var(--bit-rgb-fg), 0.7);
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .syncButtonSmall:hover:not(:disabled) {
@@ -65,7 +64,6 @@
   background: var(--bit-color-panel-bg);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   border-radius: var(--bit-radius-lg);
-  transition: border-color 0.15s ease;
 }
 
 .commitItem:hover {
@@ -133,7 +131,6 @@
 
 .shaLink {
   text-decoration: none;
-  transition: all 0.15s ease;
 }
 
 .shaLink:hover {
@@ -175,7 +172,6 @@
   background: transparent;
   color: rgba(var(--bit-rgb-fg), 0.7);
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .syncButton:hover {

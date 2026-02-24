@@ -7,7 +7,6 @@
   padding: 0.45rem 0.55rem;
   border-radius: var(--bit-radius-md);
   text-decoration: none;
-  transition: background 0.15s ease;
   cursor: pointer;
 }
 

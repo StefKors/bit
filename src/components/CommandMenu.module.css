@@ -65,7 +65,6 @@
   border-radius: var(--bit-radius-md);
   color: var(--bit-color-text);
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .backButton:hover {

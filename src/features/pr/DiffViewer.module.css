@@ -3,7 +3,6 @@
   border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   border-radius: var(--bit-radius-lg);
   overflow: hidden;
-  transition: border-color 0.15s ease;
 }
 
 .container:hover {
@@ -28,9 +27,6 @@
   text-align: left;
   font-family: inherit;
   color: inherit;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
 }
 
 .container[data-expanded="true"] .header {
@@ -62,7 +58,6 @@
   justify-content: center;
   color: rgba(var(--bit-rgb-fg), 0.5);
   flex-shrink: 0;
-  transition: color 0.15s ease;
 }
 
 .header:hover .chevron {
@@ -204,9 +199,6 @@
   min-width: unset !important;
   min-height: unset !important;
   border-radius: var(--bit-radius-sm) !important;
-  transition:
-    opacity 0.15s ease,
-    background-color 0.15s ease !important;
 }
 
 .addCommentButton:hover {

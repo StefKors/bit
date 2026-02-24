@@ -18,7 +18,6 @@
   padding: 0.5rem 0.75rem;
   margin: -0.5rem -0.75rem;
   border-radius: var(--bit-radius-lg);
-  transition: background-color 0.15s ease;
 }
 
 .sectionHeader:hover {

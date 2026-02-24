@@ -218,7 +218,6 @@
   border: none;
   border-radius: var(--bit-radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .backButton:hover {

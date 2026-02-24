@@ -226,9 +226,6 @@
   color: var(--bit-color-link);
   font-size: 0.875rem;
   text-decoration: none;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
 }
 
 .imageLink:hover {

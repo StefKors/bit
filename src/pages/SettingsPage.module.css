@@ -344,9 +344,6 @@
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
 }
 
 .toggleSwitch:hover {
@@ -369,6 +366,58 @@
 
 .toggleSwitchOn .toggleThumb {
   transform: translateX(20px);
+}
+
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.radioOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--bit-radius-md);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.radioOption:hover {
+  border-color: rgba(var(--bit-rgb-fg), 0.2);
+  background: rgba(var(--bit-rgb-fg), 0.03);
+}
+
+.radioOptionSelected {
+  border-color: rgba(var(--bit-rgb-accent-blue), 0.45);
+  background: rgba(var(--bit-rgb-accent-blue), 0.06);
+}
+
+.radioInput {
+  margin-top: 0.15rem;
+  accent-color: var(--bit-color-accent-blue);
+}
+
+.radioContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.radioLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--bit-color-heading);
+}
+
+.radioDescription {
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.55);
+  margin: 0;
 }
 
 @media (max-width: 768px) {

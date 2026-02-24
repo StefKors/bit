@@ -63,7 +63,6 @@
   padding: 0.75rem 1rem;
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   cursor: pointer;
-  transition: background 0.15s ease;
 }
 
 .fileItem:hover {

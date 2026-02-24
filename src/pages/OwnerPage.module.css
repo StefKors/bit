@@ -148,7 +148,6 @@
   font-size: 0.9rem;
   text-decoration: none;
   margin-top: 0.5rem;
-  transition: color 0.15s ease;
 }
 
 .externalLink:hover {
@@ -186,7 +185,6 @@
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   cursor: pointer;
-  transition: color 0.15s ease;
 }
 
 .navTab:hover {
@@ -258,7 +256,6 @@
   border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   border-radius: var(--bit-radius-lg);
   text-decoration: none;
-  transition: border-color 0.15s ease;
 }
 
 .repoItem:hover {

@@ -38,7 +38,6 @@
   color: rgba(var(--bit-rgb-fg), 0.9);
   text-decoration: none;
   font-size: 0.875rem;
-  transition: background 0.15s ease;
 }
 
 .item:last-child {
@@ -95,7 +94,6 @@
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: opacity 0.15s ease;
 }
 
 .syncButton:hover:not(:disabled) {
@@ -140,7 +138,6 @@
   padding: 0;
   cursor: pointer;
   color: rgba(var(--bit-rgb-fg), 0.5);
-  transition: transform 0.15s ease;
 }
 
 .expandButton:hover {

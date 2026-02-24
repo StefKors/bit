@@ -145,7 +145,6 @@
   cursor: pointer;
   font-size: 0.8rem;
   color: rgba(var(--bit-rgb-fg), 0.7);
-  transition: background 0.15s ease;
 }
 
 .errorsToggle:hover {

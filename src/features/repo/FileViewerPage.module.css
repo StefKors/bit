@@ -80,7 +80,6 @@
   color: rgba(var(--bit-rgb-fg), 0.9);
   text-decoration: none;
   font-size: 0.875rem;
-  transition: background 0.15s ease;
 }
 
 .directoryItem:last-child {
