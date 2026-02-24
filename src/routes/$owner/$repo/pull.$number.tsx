@@ -110,7 +110,13 @@ function PRDetailPage() {
       },
     },
   })
-  const pr = prDetailsRepoData?.repos?.[0]?.pullRequests?.[0] ?? null
+  const freshPr = prDetailsRepoData?.repos?.[0]?.pullRequests?.[0] ?? null
+
+  const previousPrRef = useRef(freshPr)
+  if (freshPr) {
+    previousPrRef.current = freshPr
+  }
+  const pr = freshPr ?? previousPrRef.current
 
   const autoSyncTriggered = useRef(false)
   const dataLoaded = !isRepoLoading && !isPrDetailsLoading
@@ -138,11 +144,15 @@ function PRDetailPage() {
     })
   }
 
-  if (isRepoLoading || isPrDetailsLoading) {
+  if (isRepoLoading && !repoData) {
     return <div className={containerClassName} />
   }
 
-  if (!repoData || !pr) {
+  if (!pr && isPrDetailsLoading) {
+    return <div className={containerClassName} />
+  }
+
+  if (!pr) {
     return (
       <div className={containerClassName}>
         <div className={styles.emptyState}>
