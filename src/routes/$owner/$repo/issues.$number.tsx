@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useState } from "react"
+import { useMutation } from "@tanstack/react-query"
 import { IssueOpenedIcon, IssueClosedIcon, SkipIcon, SyncIcon } from "@primer/octicons-react"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Button } from "@/components/Button"
 import { IssueConversationTab } from "@/features/issue/IssueConversationTab"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { syncIssueMutation } from "@/lib/mutations"
 import { parseLabels } from "@/lib/issue-filters"
 import styles from "@/pages/IssueDetailPage.module.css"
 
@@ -28,14 +29,15 @@ const formatTimeAgo = (date: Date | number | null | undefined): string => {
 const IssueDetailPage = () => {
   const { user } = useAuth()
   const { owner, repo, number } = Route.useParams()
-  const [syncing, setSyncing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const repoName = repo
   const issueNumber = parseInt(number, 10)
   const fullName = `${owner}/${repoName}`
 
-  // Query repo with issue and comments using InstantDB
+  const issueSync = useMutation(syncIssueMutation(user?.id ?? "", owner, repoName, issueNumber))
+  const syncing = issueSync.isPending
+  const error = issueSync.error?.message ?? null
+
   const { data: reposData } = db.useQuery({
     repos: {
       $: { where: { fullName } },
@@ -48,31 +50,6 @@ const IssueDetailPage = () => {
 
   const repoData = reposData?.repos?.[0] ?? null
   const issue = repoData?.issues?.[0] ?? null
-
-  const handleSync = async () => {
-    setSyncing(true)
-    setError(null)
-
-    try {
-      const response = await fetch(`/api/github/sync/${owner}/${repoName}/issue/${issueNumber}`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${user?.id}`,
-        },
-      })
-
-      const data = (await response.json()) as { error?: string }
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to sync")
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sync")
-    } finally {
-      setSyncing(false)
-    }
-  }
 
   if (issue === undefined) {
     return (
@@ -188,7 +165,7 @@ const IssueDetailPage = () => {
             variant="success"
             leadingIcon={<SyncIcon size={16} />}
             loading={syncing}
-            onClick={() => void handleSync()}
+            onClick={() => issueSync.mutate()}
           >
             {syncing ? "Syncing..." : "Sync Details"}
           </Button>

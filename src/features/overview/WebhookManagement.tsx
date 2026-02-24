@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react"
+import { useMutation } from "@tanstack/react-query"
 import {
   WebhookIcon,
   CheckCircleFillIcon,
@@ -12,6 +13,7 @@ import {
   SearchIcon,
 } from "@primer/octicons-react"
 import { Button } from "@/components/Button"
+import { syncWebhooksMutation } from "@/lib/mutations"
 import styles from "./WebhookManagement.module.css"
 
 type WebhookStatus = "installed" | "error" | "not_installed" | "no_access"
@@ -90,10 +92,12 @@ const RepoRow = ({ repo }: { repo: Repo }) => {
 }
 
 export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => {
-  const [isRegistering, setIsRegistering] = useState(false)
+  const webhookSync = useMutation(syncWebhooksMutation(userId))
+  const isRegistering = webhookSync.isPending
+  const error = webhookSync.error?.message ?? null
+
   const [showRepos, setShowRepos] = useState(false)
   const [filter, setFilter] = useState<FilterType>("all")
-  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const searchInputRef = useRef<HTMLInputElement>(null)
 
@@ -128,46 +132,6 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
     })
   }, [repos, filter, search])
 
-  const handleRegisterWebhooks = async () => {
-    setIsRegistering(true)
-    setError(null)
-
-    try {
-      const response = await fetch("/api/github/sync/webhooks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${userId}`,
-        },
-      })
-
-      // Handle non-JSON responses gracefully
-      const contentType = response.headers.get("content-type")
-      if (!contentType?.includes("application/json")) {
-        if (!response.ok) {
-          throw new Error(`Server error: ${response.status} ${response.statusText}`)
-        }
-        return
-      }
-
-      const data = (await response.json()) as { error?: string }
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to register webhooks")
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to register webhooks"
-      // Don't show JSON parse errors to user
-      if (message.includes("JSON.parse") || message.includes("Unexpected token")) {
-        setError("Server returned an invalid response. Please try again.")
-      } else {
-        setError(message)
-      }
-    } finally {
-      setIsRegistering(false)
-    }
-  }
-
   const hasIssues = stats.noAccess > 0 || stats.error > 0 || stats.pending > 0
 
   return (
@@ -185,7 +149,7 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
         <Button
           variant="primary"
           size="small"
-          onClick={() => void handleRegisterWebhooks()}
+          onClick={() => webhookSync.mutate()}
           disabled={isRegistering}
         >
           {isRegistering ? (

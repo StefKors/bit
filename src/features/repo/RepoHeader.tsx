@@ -11,6 +11,7 @@ import {
   ClockIcon,
 } from "@primer/octicons-react"
 import { Button } from "@/components/Button"
+import { useSyncStatus } from "@/lib/sync-status"
 import styles from "./RepoHeader.module.css"
 
 const languageColors: Record<string, string> = {
@@ -26,6 +27,7 @@ const languageColors: Record<string, string> = {
 
 interface RepoLike {
   name: string
+  fullName?: string
   private?: boolean
   description?: string | null
   language?: string | null
@@ -41,7 +43,7 @@ interface RepoLike {
 
 interface RepoHeaderProps {
   repo: RepoLike
-  syncing: boolean
+  syncing?: boolean
   onSync: () => void | Promise<void>
 }
 
@@ -95,7 +97,11 @@ const WebhookBadge = ({ status, error }: { status?: string | null; error?: strin
   )
 }
 
-export function RepoHeader({ repo, syncing, onSync }: RepoHeaderProps) {
+export function RepoHeader({ repo, syncing: syncingProp, onSync }: RepoHeaderProps) {
+  const [owner = "", repoName = ""] = repo.fullName?.split("/") ?? []
+  const { isSyncing: isMutationSyncing } = useSyncStatus(["sync", "repo", owner, repoName])
+  const syncing = syncingProp ?? isMutationSyncing
+
   const prCount = repo.pullRequests?.length ?? 0
   const issueCount = repo.issues?.length ?? 0
   const hasPRs = prCount > 0

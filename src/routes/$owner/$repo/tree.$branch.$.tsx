@@ -1,8 +1,9 @@
-import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { useMutation } from "@tanstack/react-query"
 import { FileIcon, FileDirectoryIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { syncTreeMutation } from "@/lib/mutations"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoHeader } from "@/features/repo/RepoHeader"
 import { FileTree, type TreeEntry } from "@/features/repo/FileTree"
@@ -14,9 +15,9 @@ function TreePage() {
   const { owner, repo, branch, _splat: path } = Route.useParams()
   const fullName = `${owner}/${repo}`
 
-  const [syncing, setSyncing] = useState(false)
+  const treeSync = useMutation(syncTreeMutation(user?.id ?? "", owner, repo, branch))
+  const syncing = treeSync.isPending
 
-  // Query the repo with InstantDB
   const { data: reposData, isLoading } = db.useQuery({
     repos: {
       $: { where: { fullName } },
@@ -32,22 +33,7 @@ function TreePage() {
   const repoData = reposData?.repos?.[0] ?? null
   const treeEntries = repoData?.repoTrees ?? []
 
-  const handleSync = async () => {
-    setSyncing(true)
-    try {
-      await fetch(`/api/github/sync/${owner}/${repo}/tree?ref=${branch}`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${user?.id}`,
-        },
-      })
-    } catch (err) {
-      console.error("Error syncing:", err)
-    } finally {
-      setSyncing(false)
-    }
-  }
+  const handleSync = () => treeSync.mutate()
 
   if (isLoading) {
     return (
@@ -142,7 +128,7 @@ function TreePage() {
         ]}
       />
 
-      <RepoHeader repo={repoForHeader} syncing={syncing} onSync={() => void handleSync()} />
+      <RepoHeader repo={repoForHeader} syncing={syncing} onSync={handleSync} />
 
       <div className={styles.layout}>
         <div className={styles.sidebar}>
@@ -153,7 +139,7 @@ function TreePage() {
             branch={branch}
             currentPath={currentPath}
             variant="sidebar"
-            onSync={() => void handleSync()}
+            onSync={handleSync}
             syncing={syncing}
           />
         </div>

@@ -1,8 +1,10 @@
-import { useState, type ReactNode } from "react"
+import { type ReactNode } from "react"
 import { Link, useParams } from "@tanstack/react-router"
+import { useMutation } from "@tanstack/react-query"
 import { FileDirectoryIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { syncRepoMutation } from "@/lib/mutations"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoHeader } from "./RepoHeader"
 import { RepoTabs } from "./RepoTabs"
@@ -69,14 +71,13 @@ interface RepoLayoutProps {
 export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
   const { user } = useAuth()
   const params = useParams({ strict: false })
-  const [syncing, setSyncing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const owner = params.owner || ""
   const repoName = params.repo || ""
   const fullName = `${owner}/${repoName}`
 
-  // Query the repo with PRs and issues using InstantDB
+  const repoSync = useMutation(syncRepoMutation(user?.id ?? "", owner, repoName))
+
   const { data: reposData, isLoading } = db.useQuery({
     repos: {
       $: { where: { fullName } },
@@ -87,31 +88,8 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
   })
 
   const repoRaw = reposData?.repos?.[0] ?? null
-
-  const handleSync = async () => {
-    setSyncing(true)
-    setError(null)
-
-    try {
-      const response = await fetch(`/api/github/sync/${owner}/${repoName}`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${user?.id}`,
-        },
-      })
-
-      const data = (await response.json()) as { error?: string }
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to sync")
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sync")
-    } finally {
-      setSyncing(false)
-    }
-  }
+  const syncing = repoSync.isPending
+  const error = repoSync.error?.message ?? null
 
   if (isLoading) {
     return <div className={styles.container} />
@@ -172,7 +150,7 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
         ]}
       />
 
-      <RepoHeader repo={repo} syncing={syncing} onSync={handleSync} />
+      <RepoHeader repo={repo} syncing={syncing} onSync={() => repoSync.mutate()} />
 
       {error && <div className={styles.error}>{error}</div>}
 

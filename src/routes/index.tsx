@@ -1,10 +1,17 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router"
 import { useState, useMemo, useRef } from "react"
+import { useMutation } from "@tanstack/react-query"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { resolveUserAvatarUrl } from "@/lib/avatar"
 import { shouldResumeInitialSync } from "@/lib/initial-sync"
 import { parseStringArray, parseInitialSyncProgress } from "@/lib/json-validators"
+import {
+  syncOverviewMutation,
+  syncResetMutation,
+  syncRetryMutation,
+  type OverviewSyncResponse,
+} from "@/lib/mutations"
 import { RepoSection } from "@/features/repo/RepoSection"
 import {
   InitialSyncCard,
@@ -21,40 +28,27 @@ type RateLimitInfo = {
   reset: Date
 }
 
-type OverviewSyncResponse = {
-  error?: string
-  code?: string
-  rateLimit?: { remaining: number; limit: number; reset: string }
-}
-
-const startOverviewSync = async (userId: string): Promise<OverviewSyncResponse> => {
-  const response = await fetch("/api/github/sync/overview", {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      Authorization: `Bearer ${userId}`,
-    },
-  })
-
-  const data = (await response.json()) as OverviewSyncResponse
-
-  if (!response.ok) {
-    if (data.code === "auth_invalid") {
-      throw new Error("Your GitHub connection has expired. Please reconnect to continue syncing.")
-    }
-    throw new Error(data.error || "Failed to sync")
-  }
-
-  return data
-}
-
 function OverviewPage() {
   const { user } = useAuth()
   const search = useSearch({ from: "/" })
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [showSyncManagement, setShowSyncManagement] = useState(false)
   const autoResumeAttemptedRef = useRef(false)
+
+  const overviewSync = useMutation({
+    ...syncOverviewMutation(user?.id ?? ""),
+    onSuccess: (data: OverviewSyncResponse) => {
+      if (data.rateLimit) {
+        setRateLimit({
+          remaining: data.rateLimit.remaining,
+          limit: data.rateLimit.limit,
+          reset: new Date(data.rateLimit.reset),
+        })
+      }
+    },
+  })
+  const resetSync = useMutation(syncResetMutation(user?.id ?? ""))
+  const retrySync = useMutation(syncRetryMutation(user?.id ?? ""))
 
   // Check if GitHub was just connected or installed
   const githubJustConnected = search.github === "connected"
@@ -115,67 +109,11 @@ function OverviewPage() {
 
   const hasSyncErrors = syncStates.some((state) => state.syncStatus === "error" || state.syncError)
 
-  const handleSync = async () => {
-    if (!user?.id) return
-    setError(null)
-
-    try {
-      const data = await startOverviewSync(user.id)
-      if (data.rateLimit) {
-        setRateLimit({
-          remaining: data.rateLimit.remaining,
-          limit: data.rateLimit.limit,
-          reset: new Date(data.rateLimit.reset),
-        })
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sync")
-    }
-  }
-
-  const handleResetSync = async (resourceType: string, resourceId?: string) => {
-    try {
-      const response = await fetch("/api/github/sync/reset", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user?.id}`,
-        },
-        body: JSON.stringify({ resourceType, resourceId }),
-      })
-
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string }
-        throw new Error(data.error || "Failed to reset sync")
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to reset sync")
-    }
-  }
-
-  const handleRetrySync = async (resourceType: string, resourceId?: string) => {
-    try {
-      const response = await fetch("/api/github/sync/retry", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user?.id}`,
-        },
-        body: JSON.stringify({ resourceType, resourceId }),
-      })
-
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string }
-        throw new Error(data.error || "Failed to retry sync")
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to retry sync")
-    }
-  }
+  const error =
+    overviewSync.error?.message ?? resetSync.error?.message ?? retrySync.error?.message ?? null
 
   const handleConnectGitHub = () => {
     if (!user?.id) return
-    setError(null)
 
     const connectUrl = `/api/github/oauth?${new URLSearchParams({ userId: user.id }).toString()}`
     if (!isGitHubConnected) {
@@ -206,8 +144,8 @@ function OverviewPage() {
         }
 
         window.location.href = connectUrl
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to prepare GitHub reconnect")
+      } catch {
+        // navigation will happen on success; errors are non-critical
       }
     })()
   }
@@ -216,21 +154,7 @@ function OverviewPage() {
     autoResumeAttemptedRef.current = false
   } else if (!autoResumeAttemptedRef.current && user?.id) {
     autoResumeAttemptedRef.current = true
-    void (async () => {
-      try {
-        setError(null)
-        const syncData = await startOverviewSync(user.id)
-        if (syncData.rateLimit) {
-          setRateLimit({
-            remaining: syncData.rateLimit.remaining,
-            limit: syncData.rateLimit.limit,
-            reset: new Date(syncData.rateLimit.reset),
-          })
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to sync")
-      }
-    })()
+    overviewSync.mutate()
   }
 
   if (!user) {
@@ -242,7 +166,7 @@ function OverviewPage() {
       <OverviewHeader
         isGitHubConnected={isGitHubConnected}
         isAuthInvalid={isAuthInvalid}
-        isSyncing={isSyncing}
+        isSyncing={isSyncing || overviewSync.isPending}
         rateLimit={rateLimit}
         lastSyncedAt={lastSyncedAt}
         syncError={syncError}
@@ -250,7 +174,7 @@ function OverviewPage() {
         oauthError={oauthError}
         revokeUrl={revokeUrl}
         error={error}
-        onSync={() => void handleSync()}
+        onSync={() => overviewSync.mutate()}
         onConnectGitHub={handleConnectGitHub}
         showSyncManagement={showSyncManagement}
         onToggleSyncManagement={() => setShowSyncManagement(!showSyncManagement)}
@@ -269,8 +193,8 @@ function OverviewPage() {
         <InitialSyncCard
           progress={initialSyncProgress}
           syncStates={syncStates}
-          onResetSync={(type, id) => void handleResetSync(type, id)}
-          onRetrySync={(type, id) => void handleRetrySync(type, id)}
+          onResetSync={(type, resId) => resetSync.mutate({ resourceType: type, resourceId: resId })}
+          onRetrySync={(type, resId) => retrySync.mutate({ resourceType: type, resourceId: resId })}
         />
       )}
 

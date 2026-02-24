@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from "react"
+import { useMutation } from "@tanstack/react-query"
 import { FileDirectoryIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { syncTreeMutation } from "@/lib/mutations"
 import { Markdown } from "@/components/Markdown"
 import { FileTree, type TreeEntry } from "./FileTree"
 import styles from "./RepoCodeTab.module.css"
@@ -27,7 +29,9 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: 
   const [owner, repo] = fullName.split("/")
   const branch = defaultBranch || "main"
 
-  const [syncing, setSyncing] = useState(false)
+  const treeSync = useMutation(syncTreeMutation(user?.id ?? "", owner, repo, branch))
+  const syncing = treeSync.isPending
+
   const [readme, setReadme] = useState<string | null>(null)
   const [readmeLoading, setReadmeLoading] = useState(false)
   const initialSyncTriggered = useRef(false)
@@ -46,34 +50,12 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: 
     return data?.[0]?.repoTrees ?? []
   }, [repoData])
 
-  const handleSync = async () => {
-    setSyncing(true)
-    try {
-      const response = await fetch(`/api/github/sync/${owner}/${repo}/tree?ref=${branch}`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${user?.id}`,
-        },
-      })
-
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string }
-        throw new Error(data.error || "Failed to sync")
-      }
-    } catch (err) {
-      console.error("Error syncing tree:", err)
-    } finally {
-      setSyncing(false)
-    }
-  }
-
   // Auto-sync files on first visit when webhooks are installed but tree is empty
   const hasWebhooks = webhookStatus === "installed"
   const treeIsEmpty = repoData !== undefined && treeEntries.length === 0
   if (hasWebhooks && treeIsEmpty && user?.id && !initialSyncTriggered.current && !syncing) {
     initialSyncTriggered.current = true
-    void handleSync()
+    treeSync.mutate()
   }
 
   // Fetch README when tree is loaded
@@ -139,7 +121,7 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: 
         owner={owner}
         repo={repo}
         branch={branch}
-        onSync={() => void handleSync()}
+        onSync={() => treeSync.mutate()}
         syncing={syncing}
         isLoading={treeLoading}
       />

@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useState, useRef } from "react"
+import { useMutation } from "@tanstack/react-query"
 import { id } from "@instantdb/react"
 import {
   MarkGithubIcon,
@@ -13,6 +14,11 @@ import {
 } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { db } from "@/lib/instantDb"
+import {
+  disconnectGitHubMutation,
+  syncAddRepoMutation,
+  type AddRepoResponse,
+} from "@/lib/mutations"
 import { getPRLayoutMode, setPRLayoutMode, type PRLayoutMode } from "@/lib/pr-layout-preference"
 import { Button } from "@/components/Button"
 import { Avatar } from "@/components/Avatar"
@@ -46,10 +52,15 @@ const GITHUB_APP_INSTALLATIONS_URL = "https://github.com/settings/installations"
 
 function SettingsPage() {
   const { user } = useAuth()
-  const [disconnecting, setDisconnecting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [prLayoutMode, setPrLayoutMode] = useState<PRLayoutMode>(() => getPRLayoutMode())
+
+  const disconnect = useMutation({
+    ...disconnectGitHubMutation(user?.id ?? ""),
+    onSuccess: () => setSuccess("GitHub account disconnected."),
+  })
+  const disconnecting = disconnect.isPending
+  const [success, setSuccess] = useState<string | null>(null)
+  const error = disconnect.error?.message ?? null
 
   const { data } = db.useQuery({ syncStates: {}, userSettings: {} })
   const syncStates = data?.syncStates ?? []
@@ -71,7 +82,6 @@ function SettingsPage() {
 
   const handleConnectGitHub = () => {
     if (!user?.id) return
-    setError(null)
     setSuccess(null)
 
     const connectUrl = `/api/github/oauth?${new URLSearchParams({ userId: user.id }).toString()}`
@@ -103,42 +113,10 @@ function SettingsPage() {
         }
 
         window.location.href = connectUrl
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to prepare GitHub reconnect")
+      } catch {
+        // navigation will happen on success; errors are non-critical
       }
     })()
-  }
-
-  const handleDisconnect = async () => {
-    if (!user?.id) return
-    setDisconnecting(true)
-    setError(null)
-    setSuccess(null)
-
-    try {
-      const response = await fetch("/api/github/sync/reset", {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${user.id}` },
-      })
-
-      if (!response.ok) {
-        let errorMessage = "Failed to disconnect"
-        try {
-          const text = await response.text()
-          const data = text ? (JSON.parse(text) as { error?: string }) : null
-          errorMessage = data?.error ?? errorMessage
-        } catch {
-          errorMessage = `Request failed (${response.status})`
-        }
-        throw new Error(errorMessage)
-      }
-
-      setSuccess("GitHub account disconnected.")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to disconnect")
-    } finally {
-      setDisconnecting(false)
-    }
   }
 
   const handlePRLayoutToggle = () => {
@@ -257,7 +235,7 @@ function SettingsPage() {
                 variant="danger"
                 leadingIcon={<TrashIcon size={16} />}
                 loading={disconnecting}
-                onClick={() => void handleDisconnect()}
+                onClick={() => disconnect.mutate()}
               >
                 Disconnect
               </Button>
@@ -412,55 +390,29 @@ function SettingsPage() {
 function AddRepoCard({ userId }: { userId: string }) {
   const navigate = useNavigate()
   const inputRef = useRef<HTMLInputElement>(null)
-  const [adding, setAdding] = useState(false)
-  const [addError, setAddError] = useState<string | null>(null)
-  const [addSuccess, setAddSuccess] = useState<string | null>(null)
 
-  const handleAddRepo = async () => {
-    const url = inputRef.current?.value?.trim()
-    if (!url) return
-
-    setAdding(true)
-    setAddError(null)
-    setAddSuccess(null)
-
-    try {
-      const response = await fetch("/api/github/sync/add-repo", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${userId}`,
-        },
-        body: JSON.stringify({ url }),
-      })
-
-      const data = (await response.json()) as {
-        error?: string
-        details?: string
-        owner?: string
-        repo?: string
-        pullRequests?: number
-        webhookStatus?: string
-      }
-
-      if (!response.ok) {
-        throw new Error(data.details || data.error || "Failed to add repository")
-      }
-
+  const addRepo = useMutation({
+    ...syncAddRepoMutation(userId),
+    onSuccess: (data: AddRepoResponse) => {
       if (inputRef.current) inputRef.current.value = ""
-      setAddSuccess(`Added ${data.owner}/${data.repo} (${data.pullRequests} open PRs)`)
-
       setTimeout(() => {
         void navigate({
           to: "/$owner/$repo",
           params: { owner: data.owner!, repo: data.repo! },
         })
       }, 1200)
-    } catch (err) {
-      setAddError(err instanceof Error ? err.message : "Failed to add repository")
-    } finally {
-      setAdding(false)
-    }
+    },
+  })
+  const adding = addRepo.isPending
+  const addError = addRepo.error?.message ?? null
+  const addSuccess = addRepo.data
+    ? `Added ${addRepo.data.owner}/${addRepo.data.repo} (${addRepo.data.pullRequests} open PRs)`
+    : null
+
+  const handleAddRepo = () => {
+    const url = inputRef.current?.value?.trim()
+    if (!url) return
+    addRepo.mutate({ url })
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

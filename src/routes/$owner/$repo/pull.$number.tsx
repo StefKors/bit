@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useRef, useState, useSyncExternalStore } from "react"
+import { useMutation } from "@tanstack/react-query"
 import {
   GitPullRequestIcon,
   GitMergeIcon,
@@ -18,6 +19,7 @@ import { PRThreeColumnLayout } from "@/features/pr/PRThreeColumnLayout"
 import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { syncPrMutation } from "@/lib/mutations"
 import { getPRLayoutMode, subscribePRLayoutMode } from "@/lib/pr-layout-preference"
 import {
   type PRFilters,
@@ -64,13 +66,15 @@ function PRDetailPage() {
   const search = Route.useSearch()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<TabType>("conversation")
-  const [syncing, setSyncing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [diffOptions, setDiffOptions] = useState<DiffOptions>(defaultDiffOptions)
 
   const repoName = repo
   const prNumber = parseInt(number, 10)
   const fullName = `${owner}/${repoName}`
+  const prSync = useMutation(syncPrMutation(user?.id ?? "", owner, repoName, prNumber, true))
+  const syncing = prSync.isPending
+  const error = prSync.error?.message ?? null
+
   const prLayoutMode = useSyncExternalStore(subscribePRLayoutMode, getPRLayoutMode, () => "default")
   const isFullScreenLayout = prLayoutMode === "full-screen-3-column"
   const containerClassName = isFullScreenLayout
@@ -122,48 +126,7 @@ function PRDetailPage() {
 
   if (needsInitialSync && !syncing && !autoSyncTriggered.current && user?.id) {
     autoSyncTriggered.current = true
-    setSyncing(true)
-    fetch(`/api/github/sync/${owner}/${repoName}/pull/${prNumber}?force=true`, {
-      method: "POST",
-      credentials: "include",
-      headers: { Authorization: `Bearer ${user.id}` },
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = (await res.json()) as { error?: string }
-          setError(data.error || "Auto-sync failed")
-        }
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : "Auto-sync error")
-      })
-      .finally(() => setSyncing(false))
-  }
-
-  const handleSync = async () => {
-    setSyncing(true)
-    setError(null)
-
-    try {
-      const response = await fetch(
-        `/api/github/sync/${owner}/${repoName}/pull/${prNumber}?force=true`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { Authorization: `Bearer ${user?.id}` },
-        },
-      )
-
-      const data = (await response.json()) as { error?: string }
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to sync")
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sync")
-    } finally {
-      setSyncing(false)
-    }
+    prSync.mutate()
   }
 
   const handlePRFiltersChange = (newFilters: PRFilters) => {
@@ -195,7 +158,7 @@ function PRDetailPage() {
               variant="success"
               leadingIcon={<SyncIcon size={16} />}
               loading={syncing}
-              onClick={() => void handleSync()}
+              onClick={() => prSync.mutate()}
             >
               {syncing ? "Syncing..." : "Sync this PR"}
             </Button>
@@ -302,7 +265,8 @@ function PRDetailPage() {
           currentUserLogin={user?.login ?? null}
           syncing={syncing}
           needsInitialSync={needsInitialSync}
-          onSync={() => void handleSync()}
+          onSync={() => prSync.mutate()}
+          prNumber={prNumber}
           diffOptions={diffOptions}
           onDiffOptionsChange={setDiffOptions}
           formatTimeAgo={formatTimeAgo}
@@ -369,7 +333,7 @@ function PRDetailPage() {
                   variant="success"
                   leadingIcon={<SyncIcon size={16} />}
                   loading={syncing}
-                  onClick={() => void handleSync()}
+                  onClick={() => prSync.mutate()}
                 >
                   {syncing ? "Syncing..." : "Sync Details"}
                 </Button>

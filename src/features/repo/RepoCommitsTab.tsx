@@ -1,7 +1,9 @@
-import { useState, useMemo, useRef } from "react"
+import { useMemo, useRef } from "react"
+import { useMutation } from "@tanstack/react-query"
 import { GitCommitIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { syncCommitsMutation } from "@/lib/mutations"
 import { Avatar } from "@/components/Avatar"
 import styles from "./RepoCommitsTab.module.css"
 
@@ -46,8 +48,10 @@ export const RepoCommitsTab = ({
 }: RepoCommitsTabProps) => {
   const { user } = useAuth()
   const [owner, repo] = fullName.split("/")
-  const [syncing, setSyncing] = useState(false)
   const initialSyncTriggered = useRef(false)
+
+  const commitsSync = useMutation(syncCommitsMutation(user?.id ?? "", owner, repo, branch))
+  const syncing = commitsSync.isPending
 
   const { data: repoData } = db.useQuery({
     repos: {
@@ -67,34 +71,11 @@ export const RepoCommitsTab = ({
     return data?.[0]?.repoCommits ?? []
   }, [repoData])
 
-  const handleSync = async () => {
-    setSyncing(true)
-    try {
-      const response = await fetch(`/api/github/sync/${owner}/${repo}/commits?ref=${branch}`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${user?.id}`,
-        },
-      })
-
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string }
-        throw new Error(data.error || "Failed to sync")
-      }
-    } catch (err) {
-      console.error("Error syncing commits:", err)
-    } finally {
-      setSyncing(false)
-    }
-  }
-
-  // Auto-sync on first visit when webhooks are installed but no commits yet
   const hasWebhooks = webhookStatus === "installed"
   const commitsEmpty = repoData !== undefined && commits.length === 0
   if (hasWebhooks && commitsEmpty && user?.id && !initialSyncTriggered.current && !syncing) {
     initialSyncTriggered.current = true
-    void handleSync()
+    commitsSync.mutate()
   }
 
   if (commits.length === 0) {
@@ -107,7 +88,7 @@ export const RepoCommitsTab = ({
             {syncing ? "Syncing commit history..." : "No commits have been synced yet."}
           </p>
           {!syncing && (
-            <button className={styles.syncButton} onClick={() => void handleSync()}>
+            <button className={styles.syncButton} onClick={() => commitsSync.mutate()}>
               Sync Commits
             </button>
           )}
@@ -125,7 +106,7 @@ export const RepoCommitsTab = ({
         <span className={styles.commitCount}>{commits.length} commits</span>
         <button
           className={styles.syncButtonSmall}
-          onClick={() => void handleSync()}
+          onClick={() => commitsSync.mutate()}
           disabled={syncing}
         >
           {syncing ? "Syncing..." : "Sync"}
