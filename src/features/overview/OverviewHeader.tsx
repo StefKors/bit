@@ -17,6 +17,7 @@ type OverviewHeaderProps = {
   syncError?: string
   githubJustConnected: boolean
   oauthError?: string
+  revokeUrl?: string
   error: string | null
   onSync: () => void
   onConnectGitHub: () => void
@@ -47,6 +48,7 @@ export const OverviewHeader = ({
   syncError,
   githubJustConnected,
   oauthError,
+  revokeUrl,
   error,
   onSync,
   onConnectGitHub,
@@ -121,7 +123,27 @@ export const OverviewHeader = ({
         </div>
       )}
 
-      {oauthError && <div className={styles.errorMessage}>{oauthError}</div>}
+      {oauthError && (
+        <div className={styles.errorMessage}>
+          {oauthError}
+          {revokeUrl ? (
+            <>
+              {" "}
+              <a
+                href={revokeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.revokeLink}
+              >
+                Revoke the app on GitHub
+              </a>
+              , then click Connect GitHub again to approve all permissions.
+            </>
+          ) : (
+            " Please reconnect and approve all requested permissions."
+          )}
+        </div>
+      )}
 
       {error && !isAuthInvalid && <div className={styles.errorMessage}>{error}</div>}
 

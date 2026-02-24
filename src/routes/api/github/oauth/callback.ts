@@ -233,12 +233,18 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           )
 
           if (!permReport.allGranted) {
+            const params = new URLSearchParams()
+            params.set("error", `Missing GitHub permissions (${missingScopesSummary}).`)
+            if (GITHUB_CLIENT_ID) {
+              params.set(
+                "revokeUrl",
+                `https://github.com/settings/connections/applications/${GITHUB_CLIENT_ID}`,
+              )
+            }
             return new Response(null, {
               status: 302,
               headers: {
-                Location: `/?error=${encodeURIComponent(
-                  `Missing GitHub permissions (${missingScopesSummary}). Please reconnect and approve all requested permissions to access organization repos and configure webhooks.`,
-                )}`,
+                Location: `/?${params.toString()}`,
               },
             })
           }

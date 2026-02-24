@@ -40,6 +40,7 @@ function OverviewPage() {
   const githubJustInstalled = search.github === "installed"
   const oauthError = search.error
   const oauthMessage = search.message
+  const revokeUrl = search.revokeUrl
 
   // Check if user has GitHub connected by looking at their login field
   const isGitHubConnected = Boolean((user as { login?: string } | undefined)?.login)
@@ -243,6 +244,7 @@ function OverviewPage() {
         syncError={syncError}
         githubJustConnected={githubJustConnected}
         oauthError={oauthError}
+        revokeUrl={revokeUrl}
         error={error}
         onSync={() => void handleSync()}
         onConnectGitHub={handleConnectGitHub}
@@ -290,5 +292,6 @@ export const Route = createFileRoute("/")({
     github: search.github as string | undefined,
     error: search.error as string | undefined,
     message: search.message as string | undefined,
+    revokeUrl: search.revokeUrl as string | undefined,
   }),
 })

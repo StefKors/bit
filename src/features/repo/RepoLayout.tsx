@@ -125,7 +125,15 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
           <h3 className={styles.emptyTitle}>Repository not found</h3>
           <p className={styles.emptyText}>
             This repository hasn't been synced yet.{" "}
-            <Link to="/" search={{ github: undefined, error: undefined, message: undefined }}>
+            <Link
+              to="/"
+              search={{
+                github: undefined,
+                error: undefined,
+                message: undefined,
+                revokeUrl: undefined,
+              }}
+            >
               Go back to overview
             </Link>{" "}
             and sync your repositories.

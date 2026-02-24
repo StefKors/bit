@@ -149,7 +149,8 @@ describe("GET /api/github/oauth/callback", () => {
     const res = await handler({ request })
 
     expect(res.status).toBe(302)
-    expect(res.headers.get("Location")).toContain("Missing%20GitHub%20permissions")
+    expect(res.headers.get("Location")).toContain("error=Missing")
+    expect(res.headers.get("Location")).toContain("permissions")
     expect(mockPerformInitialSync).not.toHaveBeenCalled()
   })
 })

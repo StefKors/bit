@@ -69,6 +69,16 @@
   font-size: 0.9rem;
 }
 
+.revokeLink {
+  color: inherit;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.revokeLink:hover {
+  text-decoration: underline;
+}
+
 .syncStatus {
   margin-bottom: 1rem;
 }

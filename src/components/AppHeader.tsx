@@ -46,7 +46,12 @@ export const AppHeader = ({ onOpenCommandMenu }: AppHeaderProps) => {
         <div className={styles.left}>
           <Link
             to="/"
-            search={{ github: undefined, error: undefined, message: undefined }}
+            search={{
+              github: undefined,
+              error: undefined,
+              message: undefined,
+              revokeUrl: undefined,
+            }}
             className={styles.logo}
           >
             <img
