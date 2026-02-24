@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useRef, useState } from "react"
+import { useRef, useState, useSyncExternalStore } from "react"
 import {
   GitPullRequestIcon,
   GitMergeIcon,
@@ -18,7 +18,7 @@ import { PRThreeColumnLayout } from "@/features/pr/PRThreeColumnLayout"
 import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
-import { isFullScreenPRLayoutEnabled } from "@/lib/pr-layout-preference"
+import { getPRLayoutMode, subscribePRLayoutMode } from "@/lib/pr-layout-preference"
 import styles from "@/pages/PRDetailPage.module.css"
 
 type TabType = "conversation" | "commits" | "files"
@@ -59,7 +59,8 @@ function PRDetailPage() {
   const repoName = repo
   const prNumber = parseInt(number, 10)
   const fullName = `${owner}/${repoName}`
-  const isFullScreenLayout = isFullScreenPRLayoutEnabled()
+  const prLayoutMode = useSyncExternalStore(subscribePRLayoutMode, getPRLayoutMode, () => "default")
+  const isFullScreenLayout = prLayoutMode === "full-screen-3-column"
   const containerClassName = isFullScreenLayout
     ? `${styles.container} ${styles.containerFullScreen}`
     : styles.container
@@ -67,24 +68,28 @@ function PRDetailPage() {
   const { data: repoListData, isLoading: isRepoLoading } = db.useQuery({
     repos: {
       $: { where: { fullName } },
-      pullRequests: {},
+      pullRequests: {
+        $: { order: { githubUpdatedAt: "desc" } },
+      },
     },
   })
   const repoData = repoListData?.repos?.[0] ?? null
-  const repoId = repoData?.id ?? "__missing_repo_id__"
   const repoPRs = repoData?.pullRequests ?? []
 
-  const { data: prDetailsData, isLoading: isPrDetailsLoading } = db.useQuery({
-    pullRequests: {
-      $: { where: { repoId, number: prNumber } },
-      prFiles: {},
-      prReviews: {},
-      prComments: {},
-      prCommits: {},
-      prEvents: {},
+  const { data: prDetailsRepoData, isLoading: isPrDetailsLoading } = db.useQuery({
+    repos: {
+      $: { where: { fullName } },
+      pullRequests: {
+        $: { where: { number: prNumber } },
+        prFiles: {},
+        prReviews: {},
+        prComments: {},
+        prCommits: {},
+        prEvents: {},
+      },
     },
   })
-  const pr = prDetailsData?.pullRequests?.[0] ?? null
+  const pr = prDetailsRepoData?.repos?.[0]?.pullRequests?.[0] ?? null
 
   const autoSyncTriggered = useRef(false)
   const prHasDetails = Boolean(
@@ -132,7 +137,7 @@ function PRDetailPage() {
     }
   }
 
-  if (isRepoLoading || (repoData && isPrDetailsLoading && !pr)) {
+  if (isRepoLoading || isPrDetailsLoading) {
     return <div className={containerClassName} />
   }
 

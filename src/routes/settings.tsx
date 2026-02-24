@@ -216,6 +216,7 @@ function SettingsPage() {
             <button
               type="button"
               className={`${styles.toggleSwitch} ${isFullScreenPRLayout ? styles.toggleSwitchOn : ""}`}
+              aria-label="Enable full-screen PR workspace"
               aria-pressed={isFullScreenPRLayout}
               onClick={handlePRLayoutToggle}
             >

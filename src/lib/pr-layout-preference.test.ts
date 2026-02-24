@@ -39,4 +39,13 @@ describe("pr-layout-preference", () => {
     expect(getPRLayoutMode(storage)).toBe("full-screen-3-column")
     expect(isFullScreenPRLayoutEnabled(storage)).toBe(true)
   })
+
+  it("round-trips default mode through storage", () => {
+    const storage = createStorage()
+
+    setPRLayoutMode("default", storage)
+
+    expect(getPRLayoutMode(storage)).toBe("default")
+    expect(isFullScreenPRLayoutEnabled(storage)).toBe(false)
+  })
 })

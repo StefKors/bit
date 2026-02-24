@@ -90,7 +90,6 @@ export const PRThreeColumnLayout = ({
   const isDraft = pr.draft
   const repoFullName = `${owner}/${repoName}`
 
-  const sortedPrs = [...prs].sort((a, b) => (b.githubUpdatedAt ?? 0) - (a.githubUpdatedAt ?? 0))
   const prFiles = pr.prFiles ?? []
   const prReviews = pr.prReviews ?? []
   const prComments = pr.prComments ?? []
@@ -153,14 +152,14 @@ export const PRThreeColumnLayout = ({
         <section className={`${styles.column} ${styles.listColumn}`}>
           <header className={styles.columnHeader}>
             <h2 className={styles.columnTitle}>Pull Requests</h2>
-            <span className={styles.columnCount}>{sortedPrs.length}</span>
+            <span className={styles.columnCount}>{prs.length}</span>
           </header>
           <div className={styles.columnBody}>
-            {sortedPrs.length === 0 ? (
+            {prs.length === 0 ? (
               <div className={styles.emptyState}>No pull requests in this repository.</div>
             ) : (
               <div className={styles.prList}>
-                {sortedPrs.map((repoPr) => (
+                {prs.map((repoPr) => (
                   <PRListItem
                     key={repoPr.id}
                     pr={repoPr}
