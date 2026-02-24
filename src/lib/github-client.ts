@@ -12,6 +12,14 @@ import {
   selectReposForPullSync,
   type RepoActivitySnapshot,
 } from "./sync-ingest"
+import {
+  SYNC_FRESHNESS_MS,
+  RATE_LIMIT_MAX_RETRIES,
+  RATE_LIMIT_BASE_DELAY_MS,
+  TRANSACT_CHUNK_SIZE,
+  WEBHOOK_REGISTRATION_CONCURRENCY,
+  INITIAL_SYNC_PR_CONCURRENCY,
+} from "./sync-config"
 
 export interface RateLimitInfo {
   remaining: number
@@ -46,13 +54,6 @@ export interface PullRequestDashboardItem {
 interface RepositorySyncItem extends RepoActivitySnapshot {
   githubId: number
 }
-
-const SYNC_FRESHNESS_MS = 5 * 60 * 1000
-const RATE_LIMIT_MAX_RETRIES = 3
-const RATE_LIMIT_BASE_DELAY_MS = 1000
-const TRANSACT_CHUNK_SIZE = 100
-const WEBHOOK_REGISTRATION_CONCURRENCY = 6
-const INITIAL_SYNC_PR_CONCURRENCY = 4
 
 export function isGitHubAuthError(error: unknown): boolean {
   return error instanceof RequestError && error.status === 401

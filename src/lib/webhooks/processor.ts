@@ -20,9 +20,7 @@ import { handleCheckRunWebhook, handleCheckSuiteWebhook } from "./ci-cd"
 import { handleStatusWebhook } from "./ci-cd"
 import { handleWorkflowRunWebhook, handleWorkflowJobWebhook } from "./ci-cd"
 import { log } from "@/lib/logger"
-
-const MAX_ATTEMPTS = 5
-const BASE_DELAY_MS = 1000
+import { WEBHOOK_MAX_ATTEMPTS, WEBHOOK_BASE_DELAY_MS } from "@/lib/sync-config"
 
 export const EXTENDED_WEBHOOK_EVENTS = [
   "public",
@@ -108,7 +106,7 @@ export type EnqueueResult = {
   queueItemId?: string
 }
 
-export const calculateBackoff = (attempt: number, baseDelay = BASE_DELAY_MS): number => {
+export const calculateBackoff = (attempt: number, baseDelay = WEBHOOK_BASE_DELAY_MS): number => {
   const exponential = baseDelay * 2 ** attempt
   const jitter = Math.floor(Math.random() * baseDelay)
   return exponential + jitter
@@ -150,7 +148,7 @@ export const enqueueWebhook = async (
       payload: rawPayload,
       status: "pending",
       attempts: 0,
-      maxAttempts: MAX_ATTEMPTS,
+      maxAttempts: WEBHOOK_MAX_ATTEMPTS,
       nextRetryAt: now,
       createdAt: now,
       updatedAt: now,
