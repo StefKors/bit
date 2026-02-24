@@ -41,6 +41,7 @@ vi.mock("@/lib/webhooks/index", () => ({
   handlePullRequestEventWebhook: vi.fn().mockResolvedValue(undefined),
   handleIssueWebhook: vi.fn().mockResolvedValue(undefined),
   handleIssueCommentWebhook: vi.fn().mockResolvedValue(undefined),
+  handleExtendedWebhook: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock("@/lib/webhooks/ci-cd", () => ({
@@ -65,9 +66,14 @@ import {
   processQueueItem,
   dispatchWebhookEvent,
   calculateBackoff,
+  EXTENDED_WEBHOOK_EVENTS,
   type WebhookQueueItem,
 } from "./processor"
-import { handlePushWebhook, handlePullRequestWebhook } from "@/lib/webhooks/index"
+import {
+  handlePushWebhook,
+  handlePullRequestWebhook,
+  handleExtendedWebhook,
+} from "@/lib/webhooks/index"
 import { handleCheckRunWebhook } from "@/lib/webhooks/ci-cd"
 
 describe("calculateBackoff", () => {
@@ -146,6 +152,12 @@ describe("dispatchWebhookEvent", () => {
     const payload = { action: "completed", check_run: {} }
     await dispatchWebhookEvent(mockDb, "check_run", payload)
     expect(handleCheckRunWebhook).toHaveBeenCalledWith(mockDb, payload)
+  })
+
+  it.each(EXTENDED_WEBHOOK_EVENTS)("dispatches %s event to extended handler", async (eventName) => {
+    const payload = { action: "updated", repository: { full_name: "owner/repo" } }
+    await dispatchWebhookEvent(mockDb, eventName, payload)
+    expect(handleExtendedWebhook).toHaveBeenCalledWith(mockDb, payload, eventName)
   })
 
   it("handles unknown events without throwing", async () => {

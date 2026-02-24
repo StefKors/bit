@@ -14,6 +14,7 @@ import {
   handlePullRequestEventWebhook,
   handleIssueWebhook,
   handleIssueCommentWebhook,
+  handleExtendedWebhook,
 } from "./index"
 import { handleCheckRunWebhook, handleCheckSuiteWebhook } from "./ci-cd"
 import { handleStatusWebhook } from "./ci-cd"
@@ -22,6 +23,64 @@ import { log } from "@/lib/logger"
 
 const MAX_ATTEMPTS = 5
 const BASE_DELAY_MS = 1000
+
+export const EXTENDED_WEBHOOK_EVENTS = [
+  "public",
+  "repository_import",
+  "repository_dispatch",
+  "pull_request_review_thread",
+  "deployment",
+  "deployment_status",
+  "deployment_protection_rule",
+  "deployment_review",
+  "workflow_dispatch",
+  "code_scanning_alert",
+  "dependabot_alert",
+  "secret_scanning_alert",
+  "secret_scanning_alert_location",
+  "security_advisory",
+  "repository_vulnerability_alert",
+  "security_and_analysis",
+  "member",
+  "membership",
+  "org_block",
+  "team",
+  "team_add",
+  "installation",
+  "installation_repositories",
+  "installation_target",
+  "github_app_authorization",
+  "discussion",
+  "discussion_comment",
+  "project",
+  "project_card",
+  "project_column",
+  "projects_v2_item",
+  "branch_protection_rule",
+  "branch_protection_configuration",
+  "merge_group",
+  "deploy_key",
+  "release",
+  "watch",
+  "label",
+  "milestone",
+  "meta",
+  "page_build",
+  "commit_comment",
+  "gollum",
+  "package",
+  "registry_package",
+  "sponsorship",
+  "marketplace_purchase",
+  "custom_property",
+  "custom_property_values",
+] as const satisfies readonly WebhookEventName[]
+
+const extendedWebhookEventSet = new Set<WebhookEventName>(EXTENDED_WEBHOOK_EVENTS)
+
+const isExtendedWebhookEvent = (
+  event: WebhookEventName,
+): event is (typeof EXTENDED_WEBHOOK_EVENTS)[number] => extendedWebhookEventSet.has(event)
 
 export type WebhookQueueItem = {
   id: string
@@ -103,6 +162,11 @@ export const dispatchWebhookEvent = async (
   event: WebhookEventName,
   payload: WebhookPayload,
 ): Promise<void> => {
+  if (isExtendedWebhookEvent(event)) {
+    await handleExtendedWebhook(db, payload, event)
+    return
+  }
+
   switch (event) {
     case "push":
       await handlePushWebhook(db, payload)
@@ -165,8 +229,10 @@ export const dispatchWebhookEvent = async (
     case "ping":
       log.info("Received ping webhook - webhook is configured correctly")
       break
-    default:
-      log.info(`Unhandled webhook event: ${event}`)
+    default: {
+      const unhandledEvent = String(event)
+      log.info(`Unhandled webhook event: ${unhandledEvent}`)
+    }
   }
 }
 
