@@ -45,6 +45,11 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
       message: "Pull request successfully merged",
       sha: "abc123",
     }),
+    updatePullRequestState: vi.fn().mockResolvedValue({
+      number: 1,
+      state: "closed",
+      merged: false,
+    }),
     ...overrides,
   })
 

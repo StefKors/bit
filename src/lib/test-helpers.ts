@@ -153,7 +153,7 @@ export type RouteHandler = (ctx: RouteHandlerContext) => Response | Promise<Resp
 /** Extracts a route handler for testing. Accepts any TanStack Router route. */
 export function getRouteHandler(
   route: unknown,
-  method: "GET" | "POST" | "DELETE",
+  method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE",
 ): RouteHandler | undefined {
   const r = route as { options?: { server?: { handlers?: Record<string, RouteHandler> } } }
   return r.options?.server?.handlers?.[method]

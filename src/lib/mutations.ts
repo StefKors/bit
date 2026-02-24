@@ -206,3 +206,40 @@ export const mergePRMutation = (userId: string, owner: string, repo: string, num
       return data
     },
   })
+
+export interface UpdatePRStateResponse {
+  number: number
+  state: "open" | "closed"
+  merged: boolean
+  error?: string
+  code?: string
+}
+
+export const updatePRStateMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "state", owner, repo, number],
+    mutationFn: async (state: "open" | "closed"): Promise<UpdatePRStateResponse> => {
+      const res = await fetch(`/api/github/pr/state/${owner}/${repo}/${number}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({ state }),
+      })
+      const data = (await res.json()) as UpdatePRStateResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to update pull request state")
+      }
+      return data
+    },
+  })

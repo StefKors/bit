@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { GitMergeIcon, AlertIcon, ChevronDownIcon } from "@primer/octicons-react"
 import { Button } from "@/components/Button"
-import { mergePRMutation } from "@/lib/mutations"
+import { mergePRMutation, updatePRStateMutation } from "@/lib/mutations"
 import styles from "./PRActionsBar.module.css"
 
 type MergeMethod = "merge" | "squash" | "rebase"
@@ -19,6 +19,7 @@ interface PRActionsBarProps {
   mergeableState?: string | null
   headSha: string
   onMergeSuccess?: () => void
+  onStateChange?: (nextState: "open" | "closed") => void
 }
 
 export function PRActionsBar({
@@ -33,6 +34,7 @@ export function PRActionsBar({
   mergeableState,
   headSha,
   onMergeSuccess,
+  onStateChange,
 }: PRActionsBarProps) {
   const [selectedMethod, setSelectedMethod] = useState<MergeMethod>("merge")
   const [showMethodDropdown, setShowMethodDropdown] = useState(false)
@@ -49,14 +51,52 @@ export function PRActionsBar({
     },
   })
 
-  const isMerging = merge.isPending
+  const updateState = useMutation({
+    ...updatePRStateMutation(userId, owner, repo, prNumber),
+    onSuccess: (result) => {
+      setError(null)
+      onStateChange?.(result.state)
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Failed to update pull request state")
+    },
+  })
 
-  // Don't show merge button if PR is not open or already merged
-  if (!isOpen || isMerged) {
+  const isMerging = merge.isPending
+  const isUpdatingState = updateState.isPending
+
+  if (isMerged) {
     return null
   }
 
-  // Show warning if PR is draft
+  const handleStateToggle = () => {
+    setError(null)
+    updateState.mutate(isOpen ? "closed" : "open")
+  }
+
+  if (!isOpen) {
+    return (
+      <div className={styles.container}>
+        {error && (
+          <div className={styles.errorBanner}>
+            <AlertIcon size={16} />
+            <span>{error}</span>
+          </div>
+        )}
+        <div className={styles.mergeBar}>
+          <Button
+            variant="default"
+            loading={isUpdatingState}
+            disabled={isUpdatingState}
+            onClick={handleStateToggle}
+          >
+            {isUpdatingState ? "Reopening..." : "Reopen pull request"}
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   if (isDraft) {
     return (
       <div className={styles.container}>
@@ -148,11 +188,20 @@ export function PRActionsBar({
             <Button
               variant="success"
               loading={isMerging}
-              disabled={isMerging}
+              disabled={isMerging || isUpdatingState}
               onClick={handleMerge}
               className={styles.confirmButton}
             >
               {isMerging ? "Merging..." : "Merge pull request"}
+            </Button>
+            <Button
+              variant="danger"
+              loading={isUpdatingState}
+              disabled={isMerging || isUpdatingState}
+              onClick={handleStateToggle}
+              className={styles.closeButton}
+            >
+              {isUpdatingState ? "Closing..." : "Close pull request"}
             </Button>
           </div>
         )}
