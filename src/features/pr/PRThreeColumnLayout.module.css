@@ -166,6 +166,10 @@
 
 .diffColumnHeader {
   overflow-x: auto;
+  height: 42px;
+  min-height: 42px;
+  max-height: 42px;
+  padding: 0;
 }
 
 .columnTitle {
