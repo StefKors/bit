@@ -51,10 +51,9 @@ function SettingsPage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [prLayoutMode, setPrLayoutMode] = useState<PRLayoutMode>(() => getPRLayoutMode())
 
-  const { data: syncData } = db.useQuery({ syncStates: {} })
-  const { data: settingsData } = db.useQuery({ userSettings: {} })
-  const syncStates = syncData?.syncStates ?? []
-  const userSettingsRecord = settingsData?.userSettings?.[0] ?? null
+  const { data } = db.useQuery({ syncStates: {}, userSettings: {} })
+  const syncStates = data?.syncStates ?? []
+  const userSettingsRecord = data?.userSettings?.[0] ?? null
   const currentSyncMode: WebhookSyncMode =
     (userSettingsRecord?.webhookPrSyncBehavior as WebhookSyncMode) || "full"
 
