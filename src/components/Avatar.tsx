@@ -29,7 +29,7 @@ interface AvatarProps {
 
 export const Avatar = ({ size, src, name, isOnline, isOrganization }: AvatarProps) => {
   const initial = name?.charAt(0).toUpperCase()
-  const [hasError, sethasError] = useState(false)
+  const [hasError, setHasError] = useState(false)
 
   return (
     <div className={styles.avatarContainer} style={{ width: `${size}px`, height: `${size}px` }}>
@@ -37,7 +37,7 @@ export const Avatar = ({ size, src, name, isOnline, isOrganization }: AvatarProp
         <img
           src={src}
           onError={() => {
-            sethasError(true)
+            setHasError(true)
           }}
           alt={name ?? undefined}
           className={styles.avatar}
