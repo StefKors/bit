@@ -1,5 +1,5 @@
 import { id } from "@instantdb/admin"
-import type { WebhookDB, WebhookPayload, WebhookEventName } from "./types"
+import type { IssueCommentEvent, WebhookDB, WebhookEventName, WebhookPayload } from "./types"
 import {
   handlePullRequestWebhook,
   handlePullRequestReviewWebhook,
@@ -81,6 +81,9 @@ const extendedWebhookEventSet = new Set<WebhookEventName>(EXTENDED_WEBHOOK_EVENT
 const isExtendedWebhookEvent = (
   event: WebhookEventName,
 ): event is (typeof EXTENDED_WEBHOOK_EVENTS)[number] => extendedWebhookEventSet.has(event)
+
+const isIssueCommentEventPayload = (payload: WebhookPayload): payload is IssueCommentEvent =>
+  typeof payload === "object" && payload !== null && "issue" in payload && "comment" in payload
 
 export type WebhookQueueItem = {
   id: string
@@ -197,8 +200,7 @@ export const dispatchWebhookEvent = async (
       await handleIssueWebhook(db, payload)
       break
     case "issue_comment": {
-      const issue = payload.issue as Record<string, unknown> | undefined
-      if (issue?.pull_request) {
+      if (isIssueCommentEventPayload(payload) && payload.issue.pull_request) {
         await handleCommentWebhook(db, payload, event)
       } else {
         await handleIssueCommentWebhook(db, payload)
@@ -353,7 +355,7 @@ export const processPendingQueue = async (
   let failed = 0
 
   for (const item of dueItems) {
-    const result = await processQueueItem(db, item as unknown as WebhookQueueItem)
+    const result = await processQueueItem(db, item as WebhookQueueItem)
     if (result.success) {
       processed++
     } else {

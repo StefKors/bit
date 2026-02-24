@@ -165,6 +165,34 @@ describe("POST /api/github/sync/retry", () => {
     expect(body.succeeded).toBe(1)
   })
 
+  it("keeps malformed webhook delivery payloads in failed state", async () => {
+    const { adminDb } = await import("@/lib/instantAdmin")
+    vi.mocked(adminDb.query).mockResolvedValue({
+      webhookDeliveries: [{ id: "d1", event: "push", payload: "{invalid-json" }],
+    })
+
+    const handler = getRouteHandler(Route, "POST")
+    if (!handler) throw new Error("No POST handler")
+
+    const request = makeAuthRequest("http://localhost/api/github/sync/retry", "user-1")
+    const req = new Request(request.url, {
+      method: "POST",
+      body: JSON.stringify({ resourceType: "webhooks" }),
+      headers: { ...Object.fromEntries(request.headers), "Content-Type": "application/json" },
+    })
+    const res = await handler({ request: req })
+    const { status, body } = await parseJsonResponse<{
+      retried: number
+      succeeded: number
+      stillFailed: number
+    }>(res)
+
+    expect(status).toBe(200)
+    expect(body.retried).toBe(1)
+    expect(body.succeeded).toBe(0)
+    expect(body.stillFailed).toBe(1)
+  })
+
   it("returns 400 for unsupported resource type", async () => {
     const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")

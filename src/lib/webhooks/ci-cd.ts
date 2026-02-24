@@ -75,7 +75,7 @@ export const handleCheckRunWebhook = async (
   db: WebhookDB,
   payload: WebhookPayload,
 ): Promise<void> => {
-  const typed = payload as unknown as CheckRunEvent
+  const typed = payload as CheckRunEvent
   const { check_run, repository, sender } = typed
 
   if (!check_run || !repository) return
@@ -87,16 +87,12 @@ export const handleCheckRunWebhook = async (
 
   let repoRecords = repos || []
   if (repoRecords.length === 0) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender)
     if (!userId) {
       log.info("check_run: sender not registered, skipping", { sender: sender.login })
       return
     }
-    const repo = await ensureRepoFromWebhook(
-      db,
-      repository as unknown as Record<string, unknown>,
-      userId,
-    )
+    const repo = await ensureRepoFromWebhook(db, repository, userId)
     if (repo) repoRecords = [repo]
   }
 
@@ -131,7 +127,7 @@ export const handleCheckSuiteWebhook = async (
   db: WebhookDB,
   payload: WebhookPayload,
 ): Promise<void> => {
-  const typed = payload as unknown as CheckSuiteEvent
+  const typed = payload as CheckSuiteEvent
   const { check_suite, repository, sender } = typed
 
   if (!check_suite || !repository) return
@@ -143,16 +139,12 @@ export const handleCheckSuiteWebhook = async (
 
   let repoRecords = repos || []
   if (repoRecords.length === 0) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender)
     if (!userId) {
       log.info("check_suite: sender not registered, skipping", { sender: sender.login })
       return
     }
-    const repo = await ensureRepoFromWebhook(
-      db,
-      repository as unknown as Record<string, unknown>,
-      userId,
-    )
+    const repo = await ensureRepoFromWebhook(db, repository, userId)
     if (repo) repoRecords = [repo]
   }
 
@@ -183,7 +175,7 @@ export const handleStatusWebhook = async (
   db: WebhookDB,
   payload: WebhookPayload,
 ): Promise<void> => {
-  const typed = payload as unknown as StatusEvent
+  const typed = payload as StatusEvent
   const { sha, state, context, target_url, repository, sender } = typed
 
   if (!sha || !repository) return
@@ -195,16 +187,12 @@ export const handleStatusWebhook = async (
 
   let repoRecords = repos || []
   if (repoRecords.length === 0) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender)
     if (!userId) {
       log.info("status: sender not registered, skipping", { sender: sender.login })
       return
     }
-    const repo = await ensureRepoFromWebhook(
-      db,
-      repository as unknown as Record<string, unknown>,
-      userId,
-    )
+    const repo = await ensureRepoFromWebhook(db, repository, userId)
     if (repo) repoRecords = [repo]
   }
 
@@ -247,7 +235,7 @@ export const handleWorkflowRunWebhook = async (
   db: WebhookDB,
   payload: WebhookPayload,
 ): Promise<void> => {
-  const typed = payload as unknown as WorkflowRunEvent
+  const typed = payload as WorkflowRunEvent
   const { workflow_run, repository, sender } = typed
 
   if (!workflow_run || !repository) return
@@ -259,16 +247,12 @@ export const handleWorkflowRunWebhook = async (
 
   let repoRecords = repos || []
   if (repoRecords.length === 0) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender)
     if (!userId) {
       log.info("workflow_run: sender not registered, skipping", { sender: sender.login })
       return
     }
-    const repo = await ensureRepoFromWebhook(
-      db,
-      repository as unknown as Record<string, unknown>,
-      userId,
-    )
+    const repo = await ensureRepoFromWebhook(db, repository, userId)
     if (repo) repoRecords = [repo]
   }
 
@@ -320,7 +304,7 @@ export const handleWorkflowJobWebhook = async (
   db: WebhookDB,
   payload: WebhookPayload,
 ): Promise<void> => {
-  const typed = payload as unknown as WorkflowJobEvent
+  const typed = payload as WorkflowJobEvent
   const { workflow_job, repository, sender } = typed
 
   if (!workflow_job || !repository) return
@@ -332,16 +316,12 @@ export const handleWorkflowJobWebhook = async (
 
   let repoRecords = repos || []
   if (repoRecords.length === 0) {
-    const userId = await findUserBySender(db, sender as unknown as Record<string, unknown>)
+    const userId = await findUserBySender(db, sender)
     if (!userId) {
       log.info("workflow_job: sender not registered, skipping", { sender: sender.login })
       return
     }
-    const repo = await ensureRepoFromWebhook(
-      db,
-      repository as unknown as Record<string, unknown>,
-      userId,
-    )
+    const repo = await ensureRepoFromWebhook(db, repository, userId)
     if (repo) repoRecords = [repo]
   }
 

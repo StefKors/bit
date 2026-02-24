@@ -12,11 +12,12 @@
     "drizzle.config.ts",
     "sst-env.d.ts",
     "sst.config.ts",
-    "zero-schema.gen.ts"
+    "zero-schema.gen.ts",
+    "src/routeTree.gen.ts"
   ],
   "overrides": [
     {
-      "files": ["**/*.{ts,tsx}"],
+      "files": ["**/*.ts", "**/*.tsx"],
       "rules": {
         "constructor-super": "off",
         "for-direction": "error",
@@ -99,6 +100,14 @@
         "@typescript-eslint/no-non-null-asserted-optional-chain": "error",
         "@typescript-eslint/no-redundant-type-constituents": "error",
         "@typescript-eslint/no-require-imports": "error",
+        "@typescript-eslint/no-restricted-types": [
+          "error",
+          {
+            "types": {
+              "unknown": "Use a concrete type instead of unknown."
+            }
+          }
+        ],
         "@typescript-eslint/no-this-alias": "error",
         "@typescript-eslint/no-unnecessary-type-assertion": "error",
         "@typescript-eslint/no-unnecessary-type-constraint": "error",
@@ -113,11 +122,11 @@
         "@typescript-eslint/no-unsafe-unary-minus": "error",
         "no-unused-expressions": "error",
         "@typescript-eslint/no-wrapper-object-types": "error",
-        "no-throw-literal": "off",
+        "no-throw-literal": "error",
         "@typescript-eslint/only-throw-error": "error",
         "@typescript-eslint/prefer-as-const": "error",
         "@typescript-eslint/prefer-namespace-keyword": "error",
-        "prefer-promise-reject-errors": "off",
+        "prefer-promise-reject-errors": "error",
         "@typescript-eslint/prefer-promise-reject-errors": "error",
         "require-await": "off",
         "@typescript-eslint/require-await": "error",
@@ -126,9 +135,9 @@
         "@typescript-eslint/triple-slash-reference": "error",
         "@typescript-eslint/unbound-method": "error",
         "react-hooks/rules-of-hooks": "error",
-        "react-hooks/exhaustive-deps": "warn",
+        "react-hooks/exhaustive-deps": "error",
         "react/only-export-components": [
-          "warn",
+          "error",
           {
             "allowConstantExport": true
           }
@@ -143,6 +152,26 @@
         "HTMLGeolocationElement": "readonly",
         "XRVisibilityMaskChangeEvent": "readonly"
       }
+    },
+    {
+      "files": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "src/lib/api/route-mocks.ts",
+        "src/lib/github-client.ts",
+        "src/lib/logger.ts",
+        "src/lib/api-handlers.ts",
+        "src/lib/test-helpers.ts",
+        "src/lib/webhook-validation.ts",
+        "src/lib/pr-filters.ts",
+        "src/lib/issue-filters.ts",
+        "src/lib/pr-layout-preference.ts",
+        "src/lib/webhooks/**/*.ts"
+      ],
+      "rules": {
+        "@typescript-eslint/no-restricted-types": "off"
+      },
+      "plugins": ["typescript"]
     }
   ]
 }

@@ -119,6 +119,47 @@ describe("POST /api/github/webhook", () => {
     expect(body.error).toBe("Invalid JSON payload")
   })
 
+  it("returns 400 when event header is missing", async () => {
+    const { Route } = await import("./webhook")
+    const handler = getRouteHandler(Route, "POST")
+    if (!handler) throw new Error("No POST handler")
+
+    const payload = JSON.stringify({ action: "opened" })
+    const request = new Request("http://localhost/api/github/webhook", {
+      method: "POST",
+      body: payload,
+      headers: {
+        "x-hub-signature-256": signPayload(payload, "test-secret"),
+        "x-github-delivery": "delivery-1",
+      },
+    })
+    const res = await handler({ request })
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(400)
+    expect(body.error).toBe("Missing event header")
+  })
+
+  it("returns 400 for invalid webhook payload shape", async () => {
+    const { Route } = await import("./webhook")
+    const handler = getRouteHandler(Route, "POST")
+    if (!handler) throw new Error("No POST handler")
+
+    const payload = JSON.stringify([])
+    const request = new Request("http://localhost/api/github/webhook", {
+      method: "POST",
+      body: payload,
+      headers: {
+        "x-hub-signature-256": signPayload(payload, "test-secret"),
+        "x-github-event": "ping",
+        "x-github-delivery": "delivery-1",
+      },
+    })
+    const res = await handler({ request })
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(400)
+    expect(body.error).toBe("Invalid webhook payload shape")
+  })
+
   it("enqueues valid webhook and returns queued response", async () => {
     vi.mocked(enqueueWebhook).mockResolvedValue({
       queued: true,

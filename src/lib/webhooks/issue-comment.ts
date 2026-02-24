@@ -1,7 +1,13 @@
 import { id } from "@instantdb/admin"
-import type { WebhookDB, WebhookPayload } from "./types"
+import type { IssueCommentEvent, WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
 import { ensureIssueFromWebhook } from "./issue"
+
+const parseGithubTimestamp = (value?: string | null): number | null => {
+  if (!value) return null
+  const timestamp = Date.parse(value)
+  return Number.isFinite(timestamp) ? timestamp : null
+}
 
 /**
  * Handle issue_comment webhook events for actual issues (not PRs).
@@ -17,21 +23,16 @@ import { ensureIssueFromWebhook } from "./issue"
  * PR comments are handled by the comment.ts handler.
  */
 export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookPayload) => {
-  const action = payload.action as string
-  const comment = payload.comment as Record<string, unknown>
-  const issue = payload.issue as Record<string, unknown>
-  const repo = payload.repository as Record<string, unknown>
-  const sender = payload.sender as Record<string, unknown>
-
-  if (!comment || !issue || !repo) return
+  const typedPayload = payload as IssueCommentEvent
+  const { action, comment, issue, repository: repo, sender } = typedPayload
 
   // Skip if this is a PR comment (handled by comment.ts)
   if (issue.pull_request) {
     return
   }
 
-  const repoFullName = repo.full_name as string
-  const issueGithubId = issue.id as number
+  const repoFullName = repo.full_name
+  const issueGithubId = issue.id
 
   // Find the issue in our database by githubId
   const issuesResult = await db.query({
@@ -54,7 +55,7 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
     let repoRecords = reposResult.repos || []
 
     // If no users tracking repo, try to auto-track for sender
-    if (repoRecords.length === 0 && sender) {
+    if (repoRecords.length === 0) {
       const userId = await findUserBySender(db, sender)
       if (userId) {
         const newRepo = await ensureRepoFromWebhook(db, repo, userId)
@@ -74,13 +75,13 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
   }
 
   if (issueRecords.length === 0) {
-    console.log(`No users tracking issue ${repoFullName}#${issue.number as number}`)
+    console.log(`No users tracking issue ${repoFullName}#${issue.number}`)
     return
   }
 
   // Handle delete action
   if (action === "deleted") {
-    const commentGithubId = comment.id as number
+    const commentGithubId = comment.id
     // Find existing comment by githubId
     const existingResult = await db.query({
       issueComments: {
@@ -91,12 +92,12 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
     if (existingComment) {
       await db.transact(db.tx.issueComments[existingComment.id].delete())
     }
-    console.log(`Deleted issue comment for ${repoFullName}#${issue.number as number}`)
+    console.log(`Deleted issue comment for ${repoFullName}#${issue.number}`)
     return
   }
 
   for (const issueRecord of issueRecords) {
-    const commentGithubId = comment.id as number
+    const commentGithubId = comment.id
 
     // Find existing comment by githubId to get its UUID, or generate new one
     const existingResult = await db.query({
@@ -110,12 +111,12 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
     const commentData = {
       githubId: commentGithubId,
       issueId: issueRecord.id,
-      body: (comment.body as string) || null,
-      authorLogin: ((comment.user as Record<string, unknown>)?.login as string) || null,
-      authorAvatarUrl: ((comment.user as Record<string, unknown>)?.avatar_url as string) || null,
-      htmlUrl: comment.html_url as string,
-      githubCreatedAt: new Date(comment.created_at as string).getTime(),
-      githubUpdatedAt: new Date(comment.updated_at as string).getTime(),
+      body: comment.body || null,
+      authorLogin: comment.user?.login || null,
+      authorAvatarUrl: comment.user?.avatar_url || null,
+      htmlUrl: comment.html_url,
+      githubCreatedAt: parseGithubTimestamp(comment.created_at),
+      githubUpdatedAt: parseGithubTimestamp(comment.updated_at),
       userId: issueRecord.userId,
       createdAt: now,
       updatedAt: now,
@@ -124,7 +125,5 @@ export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookP
     await db.transact(db.tx.issueComments[commentId].update(commentData))
   }
 
-  console.log(
-    `Processed issue_comment.${action} for issue ${repoFullName}#${issue.number as number}`,
-  )
+  console.log(`Processed issue_comment.${action} for issue ${repoFullName}#${issue.number}`)
 }

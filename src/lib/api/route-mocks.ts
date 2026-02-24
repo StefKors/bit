@@ -13,8 +13,10 @@ export const mockRateLimit = {
   used: 1,
 }
 
+const toGitHubClient = (mock: Partial<GitHubClient>): GitHubClient => mock as never as GitHubClient
+
 export const createMockGitHubClient = (overrides: Record<string, unknown> = {}): GitHubClient =>
-  ({
+  toGitHubClient({
     getRateLimit: vi.fn().mockResolvedValue(mockRateLimit),
     getTokenScopes: vi.fn().mockResolvedValue(["repo", "read:org", "read:user", "user:email"]),
     fetchRepoTree: vi.fn().mockResolvedValue({ count: 10, rateLimit: mockRateLimit }),
@@ -39,7 +41,7 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
       results: [],
     }),
     ...overrides,
-  }) as unknown as GitHubClient
+  })
 
 const chainableTx = () => ({
   update: vi.fn().mockReturnValue({ link: vi.fn() }),

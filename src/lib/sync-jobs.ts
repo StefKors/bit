@@ -182,7 +182,5 @@ export const getPendingSyncJobs = async (userId: string, limit = 10): Promise<Sy
     },
   })
 
-  return ((syncJobs || []) as unknown as SyncJob[]).filter(
-    (job) => !job.nextRunAt || job.nextRunAt <= now,
-  )
+  return ((syncJobs || []) as SyncJob[]).filter((job) => !job.nextRunAt || job.nextRunAt <= now)
 }

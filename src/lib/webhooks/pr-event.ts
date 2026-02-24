@@ -1,5 +1,5 @@
 import { id } from "@instantdb/admin"
-import type { WebhookDB, WebhookPayload } from "./types"
+import type { PullRequestEvent, WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./utils"
 
 /**
@@ -35,14 +35,11 @@ const isTrackedEvent = (action: string): action is TrackedPREvent =>
  * labeling, assignments, review requests, and state changes.
  */
 export async function handlePullRequestEventWebhook(db: WebhookDB, payload: WebhookPayload) {
-  const action = payload.action as string
-  const pr = payload.pull_request as Record<string, unknown>
-  const repo = payload.repository as Record<string, unknown>
-  const sender = payload.sender as Record<string, unknown>
+  const typedPayload = payload as PullRequestEvent
+  const { action, pull_request: pr, repository: repo, sender } = typedPayload
+  if (!isTrackedEvent(action)) return
 
-  if (!pr || !repo || !isTrackedEvent(action)) return
-
-  const repoFullName = repo.full_name as string
+  const repoFullName = repo.full_name
 
   // Find users who have this repo synced
   const reposResult = await db.query({
@@ -54,7 +51,7 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
   let repoRecords = reposResult.repos || []
 
   // If no users tracking, try to auto-track for the webhook sender
-  if (repoRecords.length === 0 && sender) {
+  if (repoRecords.length === 0) {
     const userId = await findUserBySender(db, sender)
     if (userId) {
       const newRepo = await ensureRepoFromWebhook(db, repo, userId)
@@ -78,29 +75,29 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
     const eventId = id()
 
     const now = Date.now()
-    const baseEventData: Record<string, unknown> = {
+    const baseEventData: Record<string, string | number | boolean | null> = {
       pullRequestId: prRecord.id, // Use the actual PR record ID
       eventType: action,
-      actorLogin: (sender?.login as string) || null,
-      actorAvatarUrl: (sender?.avatar_url as string) || null,
+      actorLogin: sender.login || null,
+      actorAvatarUrl: sender.avatar_url || null,
       eventCreatedAt: now,
       userId: repoRecord.userId,
       createdAt: now,
       updatedAt: now,
     }
 
-    let eventData: Record<string, unknown> = { ...baseEventData }
+    let eventData: Record<string, string | number | boolean | null> = { ...baseEventData }
 
     // Add event-specific data
     switch (action) {
       case "labeled":
       case "unlabeled": {
-        const label = payload.label as Record<string, unknown>
+        const label = "label" in typedPayload ? typedPayload.label : null
         if (label) {
           eventData = {
             ...eventData,
-            labelName: (label.name as string) || null,
-            labelColor: (label.color as string) || null,
+            labelName: label.name || null,
+            labelColor: label.color || null,
           }
         }
         break
@@ -108,12 +105,12 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
 
       case "assigned":
       case "unassigned": {
-        const assignee = payload.assignee as Record<string, unknown>
+        const assignee = "assignee" in typedPayload ? typedPayload.assignee : null
         if (assignee) {
           eventData = {
             ...eventData,
-            assigneeLogin: (assignee.login as string) || null,
-            assigneeAvatarUrl: (assignee.avatar_url as string) || null,
+            assigneeLogin: assignee.login || null,
+            assigneeAvatarUrl: assignee.avatar_url || null,
           }
         }
         break
@@ -121,12 +118,13 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
 
       case "review_requested":
       case "review_request_removed": {
-        const requestedReviewer = payload.requested_reviewer as Record<string, unknown>
+        const requestedReviewer =
+          "requested_reviewer" in typedPayload ? typedPayload.requested_reviewer : null
         if (requestedReviewer) {
           eventData = {
             ...eventData,
-            requestedReviewerLogin: (requestedReviewer.login as string) || null,
-            requestedReviewerAvatarUrl: (requestedReviewer.avatar_url as string) || null,
+            requestedReviewerLogin: requestedReviewer.login || null,
+            requestedReviewerAvatarUrl: requestedReviewer.avatar_url || null,
           }
         }
         break
@@ -146,7 +144,7 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
           eventData: JSON.stringify({
             action,
             merged: pr.merged ?? false,
-            milestone: payload.milestone ?? null,
+            milestone: "milestone" in typedPayload ? typedPayload.milestone : null,
           }),
         }
         break
@@ -156,5 +154,5 @@ export async function handlePullRequestEventWebhook(db: WebhookDB, payload: Webh
     await db.transact(db.tx.prEvents[eventId].update(eventData))
   }
 
-  console.log(`Processed pull_request.${action} event for ${repoFullName}#${pr.number as number}`)
+  console.log(`Processed pull_request.${action} event for ${repoFullName}#${pr.number}`)
 }

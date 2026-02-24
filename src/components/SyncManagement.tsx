@@ -27,6 +27,14 @@ interface SyncManagementProps {
   onRetrySync: (resourceType: string, resourceId?: string) => void
 }
 
+type ParsedJsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | ParsedJsonValue[]
+  | { [key: string]: ParsedJsonValue }
+
 export function SyncManagement({ syncStates, onResetSync, onRetrySync }: SyncManagementProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
 
@@ -88,10 +96,10 @@ export function SyncManagement({ syncStates, onResetSync, onRetrySync }: SyncMan
     return name
   }
 
-  const parseETag = (etag?: string): unknown => {
+  const parseETag = (etag?: string): ParsedJsonValue => {
     if (!etag) return null
     try {
-      return JSON.parse(etag) as unknown
+      return JSON.parse(etag) as ParsedJsonValue
     } catch {
       return null
     }

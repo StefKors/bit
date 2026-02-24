@@ -1,6 +1,12 @@
 import { id } from "@instantdb/admin"
-import type { WebhookDB, WebhookPayload } from "./types"
+import type { PullRequestReviewEvent, WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./utils"
+
+const parseGithubTimestamp = (value?: string | null): number | null => {
+  if (!value) return null
+  const timestamp = Date.parse(value)
+  return Number.isFinite(timestamp) ? timestamp : null
+}
 
 /**
  * Handle pull_request_review webhook events.
@@ -12,16 +18,12 @@ import { findUserBySender, ensureRepoFromWebhook, ensurePRFromWebhook } from "./
  * - If sender not registered → logs and skips
  */
 export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: WebhookPayload) {
-  const review = payload.review as Record<string, unknown>
-  const pr = payload.pull_request as Record<string, unknown>
-  const repo = payload.repository as Record<string, unknown>
-  const sender = payload.sender as Record<string, unknown>
+  const typedPayload = payload as PullRequestReviewEvent
+  const { review, pull_request: pr, repository: repo, sender } = typedPayload
 
-  if (!review || !pr || !repo) return
-
-  const prGithubId = pr.id as number
-  const reviewGithubId = review.id as number
-  const repoFullName = repo.full_name as string
+  const prGithubId = pr.id
+  const reviewGithubId = review.id
+  const repoFullName = repo.full_name
 
   // Find the PR in our database by githubId
   const prResult = await db.query({
@@ -44,7 +46,7 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
     let repoRecords = reposResult.repos || []
 
     // If no users tracking repo, try to auto-track for sender
-    if (repoRecords.length === 0 && sender) {
+    if (repoRecords.length === 0) {
       const userId = await findUserBySender(db, sender)
       if (userId) {
         const newRepo = await ensureRepoFromWebhook(db, repo, userId)
@@ -76,12 +78,12 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
     const reviewData = {
       githubId: reviewGithubId,
       pullRequestId: prRecord.id,
-      state: review.state as string,
-      body: (review.body as string) || null,
-      authorLogin: ((review.user as Record<string, unknown>)?.login as string) || null,
-      authorAvatarUrl: ((review.user as Record<string, unknown>)?.avatar_url as string) || null,
-      htmlUrl: review.html_url as string,
-      submittedAt: review.submitted_at ? new Date(review.submitted_at as string).getTime() : null,
+      state: review.state,
+      body: review.body || null,
+      authorLogin: review.user?.login || null,
+      authorAvatarUrl: review.user?.avatar_url || null,
+      htmlUrl: review.html_url,
+      submittedAt: parseGithubTimestamp(review.submitted_at),
       userId: prRecord.userId,
       createdAt: now,
       updatedAt: now,
@@ -90,5 +92,5 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
     await db.transact(db.tx.prReviews[reviewId].update(reviewData))
   }
 
-  console.log(`Processed pull_request_review for PR #${pr.number as number}`)
+  console.log(`Processed pull_request_review for PR #${pr.number}`)
 }

@@ -286,7 +286,7 @@ function OverviewPage() {
 
 export const Route = createFileRoute("/")({
   component: OverviewPage,
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, string | number | boolean | null | undefined>) => ({
     github: search.github as string | undefined,
     error: search.error as string | undefined,
     message: search.message as string | undefined,

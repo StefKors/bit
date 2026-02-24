@@ -49,21 +49,23 @@ export const RepoCommitsTab = ({
   const [syncing, setSyncing] = useState(false)
   const initialSyncTriggered = useRef(false)
 
-  const commitsQuery = {
-    repoCommits: {
-      $: {
-        where: { repoId, ref: branch },
-        order: { committedAt: "desc" as const },
+  const { data: repoData } = db.useQuery({
+    repos: {
+      $: { where: { id: repoId }, limit: 1 },
+      repoCommits: {
+        $: {
+          where: { ref: branch },
+          order: { committedAt: "desc" },
+        },
       },
     },
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-  const { data: commitsData } = db.useQuery(commitsQuery as any)
+  })
 
   const commits = useMemo<RepoCommitData[]>(() => {
-    const data = (commitsData as { repoCommits?: RepoCommitData[] } | undefined)?.repoCommits
-    return data ?? []
-  }, [commitsData])
+    const data = (repoData as { repos?: Array<{ repoCommits?: RepoCommitData[] }> } | undefined)
+      ?.repos
+    return data?.[0]?.repoCommits ?? []
+  }, [repoData])
 
   const handleSync = async () => {
     setSyncing(true)
@@ -89,7 +91,7 @@ export const RepoCommitsTab = ({
 
   // Auto-sync on first visit when webhooks are installed but no commits yet
   const hasWebhooks = webhookStatus === "installed"
-  const commitsEmpty = commitsData !== undefined && commits.length === 0
+  const commitsEmpty = repoData !== undefined && commits.length === 0
   if (hasWebhooks && commitsEmpty && user?.id && !initialSyncTriggered.current && !syncing) {
     initialSyncTriggered.current = true
     void handleSync()

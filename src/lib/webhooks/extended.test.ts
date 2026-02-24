@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import type { WebhookDB, WebhookPayload } from "./types"
+import type { WebhookDB } from "./types"
 
 vi.mock("@instantdb/admin", () => {
   let counter = 0
@@ -149,7 +149,8 @@ const createMockDb = () => {
     },
   )
 
-  const db = { query, transact, tx } as unknown as WebhookDB
+  const mockDbBase = { query, transact, tx }
+  const db = mockDbBase as never as WebhookDB
 
   return { db, store, query, transact }
 }
@@ -185,7 +186,7 @@ describe("handleExtendedWebhook", () => {
         updated_at: "2026-01-10T10:00:00Z",
         pushed_at: "2026-01-11T11:00:00Z",
       },
-    } as unknown as WebhookPayload
+    }
 
     await handleExtendedWebhook(db, payload, "public")
 
@@ -208,7 +209,7 @@ describe("handleExtendedWebhook", () => {
         name: "widgets",
         owner: { login: "acme" },
       },
-    } as unknown as WebhookPayload
+    }
 
     await handleExtendedWebhook(db, payload, "release")
 
@@ -241,7 +242,7 @@ describe("handleExtendedWebhook", () => {
       thread: {
         id: 444,
       },
-    } as unknown as WebhookPayload
+    }
 
     await handleExtendedWebhook(db, payload, "pull_request_review_thread")
 
@@ -283,7 +284,7 @@ describe("handleExtendedWebhook", () => {
         owner: { login: "acme" },
       },
       issue: issuePayload,
-    } as unknown as WebhookPayload
+    }
 
     await handleExtendedWebhook(db, payload, "discussion")
 
@@ -310,7 +311,7 @@ describe("handleExtendedWebhook", () => {
         name: "Acme Inc.",
         description: "Acme org",
       },
-    } as unknown as WebhookPayload
+    }
 
     await handleExtendedWebhook(db, payload, "team")
 
