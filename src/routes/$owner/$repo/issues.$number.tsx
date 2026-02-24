@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import { IssueOpenedIcon, IssueClosedIcon, SkipIcon, SyncIcon } from "@primer/octicons-react"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Button } from "@/components/Button"
@@ -49,7 +49,7 @@ const IssueDetailPage = () => {
   const repoData = reposData?.repos?.[0] ?? null
   const issue = repoData?.issues?.[0] ?? null
 
-  const handleSync = useCallback(async () => {
+  const handleSync = async () => {
     setSyncing(true)
     setError(null)
 
@@ -72,7 +72,7 @@ const IssueDetailPage = () => {
     } finally {
       setSyncing(false)
     }
-  }, [owner, repoName, issueNumber, user?.id])
+  }
 
   if (issue === undefined) {
     return (
