@@ -23,8 +23,6 @@ interface FileTreeProps {
   repo: string
   branch: string
   currentPath?: string
-  onSync?: () => void
-  syncing?: boolean
   variant?: "default" | "sidebar"
   /** When true and entries are empty, show loading state instead of "No files synced yet" */
   isLoading?: boolean
@@ -95,8 +93,6 @@ export function FileTree({
   repo,
   branch,
   currentPath,
-  onSync,
-  syncing,
   variant = "default",
   isLoading = false,
 }: FileTreeProps) {
@@ -113,12 +109,7 @@ export function FileTree({
           ) : (
             <>
               <FileDirectoryIcon className={styles.emptyIcon} size={32} />
-              <p className={styles.emptyText}>No files synced yet</p>
-              {onSync && (
-                <button className={styles.syncButton} onClick={onSync} disabled={syncing}>
-                  {syncing ? "Syncing..." : "Sync Files"}
-                </button>
-              )}
+              <p className={styles.emptyText}>Files sync automatically when you open this page</p>
             </>
           )}
         </div>

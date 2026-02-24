@@ -84,9 +84,7 @@ export function RepoSection({
       <div className={styles.emptyState}>
         <FileDirectoryIcon className={styles.emptyIcon} size={48} />
         <h3 className={styles.emptyTitle}>No repositories synced</h3>
-        <p className={styles.emptyText}>
-          Click "Sync GitHub" to fetch your repositories from GitHub.
-        </p>
+        <p className={styles.emptyText}>Add repositories from Settings to get started.</p>
       </div>
     )
   }

@@ -39,7 +39,7 @@ export const PRFilesTab = ({ files, comments, diffOptions }: PRFilesTabProps) =>
       {files.length === 0 ? (
         <div className={styles.emptyState}>
           <p className={styles.emptyText}>
-            No files synced yet. Click "Sync Details" to fetch file changes.
+            No files synced yet. Files sync automatically when you open this tab.
           </p>
         </div>
       ) : (

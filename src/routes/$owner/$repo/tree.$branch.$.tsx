@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { useRef } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { FileIcon, FileDirectoryIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
@@ -17,6 +18,7 @@ function TreePage() {
 
   const treeSync = useMutation(syncTreeMutation(user?.id ?? "", owner, repo, branch))
   const syncing = treeSync.isPending
+  const autoSyncTriggered = useRef(false)
 
   const { data: reposData, isLoading } = db.useQuery({
     repos: {
@@ -32,8 +34,20 @@ function TreePage() {
 
   const repoData = reposData?.repos?.[0] ?? null
   const treeEntries = repoData?.repoTrees ?? []
+  const treeIsEmpty = treeEntries.length === 0
+  const hasWebhooks = repoData?.webhookStatus === "installed"
 
-  const handleSync = () => treeSync.mutate()
+  if (
+    repoData &&
+    hasWebhooks &&
+    treeIsEmpty &&
+    user?.id &&
+    !autoSyncTriggered.current &&
+    !syncing
+  ) {
+    autoSyncTriggered.current = true
+    treeSync.mutate()
+  }
 
   if (isLoading) {
     return (
@@ -128,7 +142,7 @@ function TreePage() {
         ]}
       />
 
-      <RepoHeader repo={repoForHeader} syncing={syncing} onSync={handleSync} />
+      <RepoHeader repo={repoForHeader} />
 
       <div className={styles.layout}>
         <div className={styles.sidebar}>
@@ -139,8 +153,6 @@ function TreePage() {
             branch={branch}
             currentPath={currentPath}
             variant="sidebar"
-            onSync={handleSync}
-            syncing={syncing}
           />
         </div>
 

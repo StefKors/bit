@@ -121,8 +121,6 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: 
         owner={owner}
         repo={repo}
         branch={branch}
-        onSync={() => treeSync.mutate()}
-        syncing={syncing}
         isLoading={treeLoading}
       />
 

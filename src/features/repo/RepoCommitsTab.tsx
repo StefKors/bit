@@ -85,13 +85,10 @@ export const RepoCommitsTab = ({
           <GitCommitIcon className={styles.emptyIcon} size={48} />
           <h3 className={styles.emptyTitle}>No commits</h3>
           <p className={styles.emptyText}>
-            {syncing ? "Syncing commit history..." : "No commits have been synced yet."}
+            {syncing
+              ? "Syncing commit history..."
+              : "Commits sync automatically when you open this tab."}
           </p>
-          {!syncing && (
-            <button className={styles.syncButton} onClick={() => commitsSync.mutate()}>
-              Sync Commits
-            </button>
-          )}
         </div>
       </div>
     )
@@ -104,13 +101,6 @@ export const RepoCommitsTab = ({
     <div className={styles.content}>
       <div className={styles.header}>
         <span className={styles.commitCount}>{commits.length} commits</span>
-        <button
-          className={styles.syncButtonSmall}
-          onClick={() => commitsSync.mutate()}
-          disabled={syncing}
-        >
-          {syncing ? "Syncing..." : "Sync"}
-        </button>
       </div>
       {grouped.map(([dateLabel, dateCommits]) => (
         <div key={dateLabel} className={styles.dateGroup}>

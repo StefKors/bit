@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useMutation } from "@tanstack/react-query"
 import { FileDirectoryIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
-import { syncTreeMutation } from "@/lib/mutations"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoHeader } from "@/features/repo/RepoHeader"
 import { FileTree, type TreeEntry } from "@/features/repo/FileTree"
@@ -16,9 +14,6 @@ function BlobPage() {
   const { user } = useAuth()
   const { owner, repo, branch, _splat: path } = Route.useParams()
   const fullName = `${owner}/${repo}`
-
-  const treeSync = useMutation(syncTreeMutation(user?.id ?? "", owner, repo, branch))
-  const syncing = treeSync.isPending
 
   const [fileContent, setFileContent] = useState<string | null>(null)
   const [fileLoading, setFileLoading] = useState(true)
@@ -82,8 +77,6 @@ function BlobPage() {
       cancelled = true
     }
   }, [owner, repo, path, branch, user?.id])
-
-  const handleSync = () => treeSync.mutate()
 
   if (isLoading) {
     return (
@@ -159,7 +152,7 @@ function BlobPage() {
         ]}
       />
 
-      <RepoHeader repo={repoForHeader} syncing={syncing} onSync={handleSync} />
+      <RepoHeader repo={repoForHeader} />
 
       <div className={styles.layout}>
         <div className={styles.sidebar}>
@@ -170,8 +163,6 @@ function BlobPage() {
             branch={branch}
             currentPath={path}
             variant="sidebar"
-            onSync={handleSync}
-            syncing={syncing}
           />
         </div>
 

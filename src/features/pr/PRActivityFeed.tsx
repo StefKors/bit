@@ -125,7 +125,7 @@ export const PRActivityFeed = ({
     return (
       <div className={styles.emptyState}>
         <p className={styles.emptyText}>
-          No activity yet. Click "Sync Details" to fetch the latest.
+          No activity yet. Activity syncs automatically when you open this PR.
         </p>
       </div>
     )

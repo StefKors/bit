@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { useRef } from "react"
 import { useMutation } from "@tanstack/react-query"
-import { IssueOpenedIcon, IssueClosedIcon, SkipIcon, SyncIcon } from "@primer/octicons-react"
+import { IssueOpenedIcon, IssueClosedIcon, SkipIcon } from "@primer/octicons-react"
 import { Breadcrumb } from "@/components/Breadcrumb"
-import { Button } from "@/components/Button"
 import { IssueConversationTab } from "@/features/issue/IssueConversationTab"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
@@ -34,8 +34,8 @@ const IssueDetailPage = () => {
   const issueNumber = parseInt(number, 10)
   const fullName = `${owner}/${repoName}`
 
+  const initialSyncTriggered = useRef(false)
   const issueSync = useMutation(syncIssueMutation(user?.id ?? "", owner, repoName, issueNumber))
-  const syncing = issueSync.isPending
   const error = issueSync.error?.message ?? null
 
   const { data: reposData } = db.useQuery({
@@ -83,6 +83,13 @@ const IssueDetailPage = () => {
   const isNotPlanned = issue.stateReason === "not_planned"
   const labels = issue.labels ? parseLabels(issue.labels) : []
   const issueComments = issue.issueComments ?? []
+
+  const commentsEmpty = issueComments.length === 0
+  const syncing = issueSync.isPending
+  if (user?.id && commentsEmpty && !initialSyncTriggered.current && !syncing && repoData && issue) {
+    initialSyncTriggered.current = true
+    issueSync.mutate()
+  }
 
   return (
     <div className={styles.container}>
@@ -160,16 +167,6 @@ const IssueDetailPage = () => {
             </div>
           )}
         </header>
-        <div className={styles.actions}>
-          <Button
-            variant="success"
-            leadingIcon={<SyncIcon size={16} />}
-            loading={syncing}
-            onClick={() => issueSync.mutate()}
-          >
-            {syncing ? "Syncing..." : "Sync Details"}
-          </Button>
-        </div>
       </div>
 
       {error && (

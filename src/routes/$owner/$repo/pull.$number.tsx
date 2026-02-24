@@ -4,14 +4,12 @@ import { useMutation } from "@tanstack/react-query"
 import {
   GitPullRequestIcon,
   GitMergeIcon,
-  SyncIcon,
   HistoryIcon,
   FileIcon,
   GitCommitIcon,
 } from "@primer/octicons-react"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Tabs } from "@/components/Tabs"
-import { Button } from "@/components/Button"
 import { PRActivityFeed } from "@/features/pr/PRActivityFeed"
 import { PRFilesTab } from "@/features/pr/PRFilesTab"
 import { PRCommitsTab } from "@/features/pr/PRCommitsTab"
@@ -163,16 +161,6 @@ function PRDetailPage() {
               Go back to pull requests
             </Link>
           </p>
-          <div style={{ marginTop: "1rem" }}>
-            <Button
-              variant="success"
-              leadingIcon={<SyncIcon size={16} />}
-              loading={syncing}
-              onClick={() => prSync.mutate()}
-            >
-              {syncing ? "Syncing..." : "Sync this PR"}
-            </Button>
-          </div>
           {error && (
             <div
               style={{
@@ -273,10 +261,6 @@ function PRDetailPage() {
           labels={labels}
           hasActiveFilters={hasActiveFilters}
           currentUserLogin={user?.login ?? null}
-          syncing={syncing}
-          needsInitialSync={needsInitialSync}
-          onSync={() => prSync.mutate()}
-          prNumber={prNumber}
           diffOptions={diffOptions}
           onDiffOptionsChange={setDiffOptions}
           formatTimeAgo={formatTimeAgo}
@@ -337,18 +321,6 @@ function PRDetailPage() {
                 </span>
               </div>
             </header>
-            {(needsInitialSync || syncing) && (
-              <div className={styles.actions}>
-                <Button
-                  variant="success"
-                  leadingIcon={<SyncIcon size={16} />}
-                  loading={syncing}
-                  onClick={() => prSync.mutate()}
-                >
-                  {syncing ? "Syncing..." : "Sync Details"}
-                </Button>
-              </div>
-            )}
           </div>
 
           <Tabs

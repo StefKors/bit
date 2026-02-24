@@ -1,14 +1,11 @@
 import {
   GitPullRequestIcon,
   GitMergeIcon,
-  SyncIcon,
   GitPullRequestClosedIcon,
   GitPullRequestDraftIcon,
 } from "@primer/octicons-react"
 import type { InstaQLEntity } from "@instantdb/core"
 import type { AppSchema } from "@/instant.schema"
-import { Button } from "@/components/Button"
-import { useSyncStatus } from "@/lib/sync-status"
 import { filtersToSearchParams, type Author, type PRFilters } from "@/lib/pr-filters"
 import { DiffOptionsBar, type DiffOptions } from "./DiffOptionsBar"
 import { PRActivityFeed } from "./PRActivityFeed"
@@ -44,10 +41,6 @@ type PRThreeColumnLayoutProps = {
   labels: string[]
   hasActiveFilters: boolean
   currentUserLogin?: string | null
-  syncing?: boolean
-  needsInitialSync: boolean
-  onSync: () => void
-  prNumber?: number
   diffOptions: DiffOptions
   onDiffOptionsChange: (options: DiffOptions) => void
   formatTimeAgo: (date: Date | number | null | undefined) => string
@@ -99,23 +92,10 @@ export const PRThreeColumnLayout = ({
   labels,
   hasActiveFilters,
   currentUserLogin,
-  syncing: syncingProp,
-  needsInitialSync,
-  onSync,
-  prNumber,
   diffOptions,
   onDiffOptionsChange,
   formatTimeAgo,
 }: PRThreeColumnLayoutProps) => {
-  const { isSyncing: isMutationSyncing } = useSyncStatus([
-    "sync",
-    "pr",
-    owner,
-    repoName,
-    prNumber ?? pr.number,
-  ])
-  const syncing = syncingProp ?? isMutationSyncing
-
   const isMerged = pr.merged
   const isClosed = pr.state === "closed"
   const isOpen = pr.state === "open"
@@ -171,18 +151,6 @@ export const PRThreeColumnLayout = ({
               </span>
             </div>
           </div>
-          {(needsInitialSync || syncing) && (
-            <div className={styles.actions}>
-              <Button
-                variant="success"
-                leadingIcon={<SyncIcon size={16} />}
-                loading={syncing}
-                onClick={() => onSync()}
-              >
-                {syncing ? "Syncing..." : "Sync Details"}
-              </Button>
-            </div>
-          )}
         </div>
       </div>
 

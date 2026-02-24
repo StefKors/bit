@@ -17,11 +17,16 @@ import { db } from "@/lib/instantDb"
 import {
   disconnectGitHubMutation,
   syncAddRepoMutation,
+  syncOverviewMutation,
+  syncResetMutation,
+  syncRetryMutation,
   type AddRepoResponse,
 } from "@/lib/mutations"
 import { getPRLayoutMode, setPRLayoutMode, type PRLayoutMode } from "@/lib/pr-layout-preference"
 import { Button } from "@/components/Button"
 import { Avatar } from "@/components/Avatar"
+import { SyncManagement } from "@/components/SyncManagement"
+import { WebhookManagement } from "@/features/overview"
 import styles from "@/pages/SettingsPage.module.css"
 
 type WebhookSyncMode = "minimal" | "full" | "full-force"
@@ -62,9 +67,18 @@ function SettingsPage() {
   const [success, setSuccess] = useState<string | null>(null)
   const error = disconnect.error?.message ?? null
 
-  const { data } = db.useQuery({ syncStates: {}, userSettings: {} })
+  const { data } = db.useQuery({
+    syncStates: {},
+    userSettings: {},
+    repos: { $: { limit: 500 } },
+  })
   const syncStates = data?.syncStates ?? []
+  const repos = data?.repos ?? []
   const userSettingsRecord = data?.userSettings?.[0] ?? null
+
+  const overviewSync = useMutation(syncOverviewMutation(user?.id ?? ""))
+  const resetSync = useMutation(syncResetMutation(user?.id ?? ""))
+  const retrySync = useMutation(syncRetryMutation(user?.id ?? ""))
   const currentSyncMode: WebhookSyncMode =
     (userSettingsRecord?.webhookPrSyncBehavior as WebhookSyncMode) || "full"
 
@@ -369,6 +383,45 @@ function SettingsPage() {
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Webhook Queue</h2>
           <WebhookQueueCard />
+        </section>
+      )}
+
+      {isGitHubConnected && !isAuthInvalid && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Sync Debug</h2>
+          <div className={styles.card}>
+            <div className={styles.preferenceRow}>
+              <div className={styles.preferenceInfo}>
+                <span className={styles.preferenceLabel}>Sync Overview</span>
+                <p className={styles.preferenceDescription}>
+                  Manually trigger a full overview sync (repos, orgs, PRs). Use for debugging.
+                </p>
+              </div>
+              <Button
+                variant="default"
+                size="small"
+                leadingIcon={<SyncIcon size={14} />}
+                loading={overviewSync.isPending}
+                onClick={() => overviewSync.mutate()}
+              >
+                Sync Overview
+              </Button>
+            </div>
+          </div>
+          <SyncManagement
+            syncStates={syncStates}
+            onResetSync={(type, resId) =>
+              resetSync.mutate({ resourceType: type, resourceId: resId })
+            }
+            onRetrySync={(type, resId) =>
+              retrySync.mutate({ resourceType: type, resourceId: resId })
+            }
+          />
+          {user?.id && (
+            <div style={{ marginTop: "1rem" }}>
+              <WebhookManagement repos={repos} userId={user.id} />
+            </div>
+          )}
         </section>
       )}
 

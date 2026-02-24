@@ -16,7 +16,7 @@ export const PRCommitsTab = ({ commits, formatTimeAgo }: PRCommitsTabProps) => {
       {commits.length === 0 ? (
         <div className={styles.emptyState}>
           <p className={styles.emptyText}>
-            No commits synced yet. Click "Sync Details" to fetch commits.
+            No commits synced yet. Commits sync automatically when you open this tab.
           </p>
         </div>
       ) : (

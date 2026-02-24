@@ -67,7 +67,7 @@ export const IssueConversationTab = ({
       {!issueBody && sortedComments.length === 0 && (
         <div className={styles.emptyState}>
           <p className={styles.emptyText}>
-            No comments yet. Click "Sync Details" to fetch the latest.
+            No comments yet. Comments sync automatically when you open this issue.
           </p>
         </div>
       )}

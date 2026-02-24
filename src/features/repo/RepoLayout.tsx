@@ -1,10 +1,7 @@
 import { type ReactNode } from "react"
 import { Link, useParams } from "@tanstack/react-router"
-import { useMutation } from "@tanstack/react-query"
 import { FileDirectoryIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
-import { useAuth } from "@/lib/hooks/useAuth"
-import { syncRepoMutation } from "@/lib/mutations"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { RepoHeader } from "./RepoHeader"
 import { RepoTabs } from "./RepoTabs"
@@ -69,14 +66,11 @@ interface RepoLayoutProps {
 }
 
 export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
-  const { user } = useAuth()
   const params = useParams({ strict: false })
 
   const owner = params.owner || ""
   const repoName = params.repo || ""
   const fullName = `${owner}/${repoName}`
-
-  const repoSync = useMutation(syncRepoMutation(user?.id ?? "", owner, repoName))
 
   const { data: reposData, isLoading } = db.useQuery({
     repos: {
@@ -88,8 +82,6 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
   })
 
   const repoRaw = reposData?.repos?.[0] ?? null
-  const syncing = repoSync.isPending
-  const error = repoSync.error?.message ?? null
 
   if (isLoading) {
     return <div className={styles.container} />
@@ -114,7 +106,7 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
             >
               Go back to overview
             </Link>{" "}
-            and sync your repositories.
+            and add repositories from Settings.
           </p>
         </div>
       </div>
@@ -150,9 +142,7 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
         ]}
       />
 
-      <RepoHeader repo={repo} syncing={syncing} onSync={() => repoSync.mutate()} />
-
-      {error && <div className={styles.error}>{error}</div>}
+      <RepoHeader repo={repo} />
 
       <RepoTabs
         prs={repo.pullRequests as Parameters<typeof RepoTabs>[0]["prs"]}

@@ -4,14 +4,11 @@ import {
   StarIcon,
   RepoForkedIcon,
   IssueOpenedIcon,
-  SyncIcon,
   DotFillIcon,
   BroadcastIcon,
   GitPullRequestIcon,
   ClockIcon,
 } from "@primer/octicons-react"
-import { Button } from "@/components/Button"
-import { useSyncStatus } from "@/lib/sync-status"
 import styles from "./RepoHeader.module.css"
 
 const languageColors: Record<string, string> = {
@@ -43,8 +40,6 @@ interface RepoLike {
 
 interface RepoHeaderProps {
   repo: RepoLike
-  syncing?: boolean
-  onSync: () => void | Promise<void>
 }
 
 const formatTimeAgo = (timestamp: number): string => {
@@ -97,11 +92,7 @@ const WebhookBadge = ({ status, error }: { status?: string | null; error?: strin
   )
 }
 
-export function RepoHeader({ repo, syncing: syncingProp, onSync }: RepoHeaderProps) {
-  const [owner = "", repoName = ""] = repo.fullName?.split("/") ?? []
-  const { isSyncing: isMutationSyncing } = useSyncStatus(["sync", "repo", owner, repoName])
-  const syncing = syncingProp ?? isMutationSyncing
-
+export function RepoHeader({ repo }: RepoHeaderProps) {
   const prCount = repo.pullRequests?.length ?? 0
   const issueCount = repo.issues?.length ?? 0
   const hasPRs = prCount > 0
@@ -171,17 +162,6 @@ export function RepoHeader({ repo, syncing: syncingProp, onSync }: RepoHeaderPro
             </span>
           )}
         </div>
-      </div>
-
-      <div className={styles.headerActions}>
-        <Button
-          variant="success"
-          leadingIcon={<SyncIcon size={16} />}
-          loading={syncing}
-          onClick={() => void onSync()}
-        >
-          {syncing ? "Syncing..." : "Sync"}
-        </Button>
       </div>
     </header>
   )

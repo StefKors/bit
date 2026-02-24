@@ -19,11 +19,7 @@ type OverviewHeaderProps = {
   oauthError?: string
   revokeUrl?: string
   error: string | null
-  onSync: () => void
   onConnectGitHub: () => void
-  showSyncManagement: boolean
-  onToggleSyncManagement: () => void
-  hasSyncErrors: boolean
 }
 
 const formatLastSynced = (timestamp: number) => {
@@ -50,11 +46,7 @@ export const OverviewHeader = ({
   oauthError,
   revokeUrl,
   error,
-  onSync,
   onConnectGitHub,
-  showSyncManagement,
-  onToggleSyncManagement,
-  hasSyncErrors,
 }: OverviewHeaderProps) => {
   const rateLimitLow = rateLimit && rateLimit.remaining < 100
 
@@ -81,24 +73,7 @@ export const OverviewHeader = ({
             >
               Reconnect GitHub
             </Button>
-          ) : isGitHubConnected ? (
-            <>
-              {hasSyncErrors && (
-                <Button variant="danger" onClick={onToggleSyncManagement}>
-                  {showSyncManagement ? "Hide Sync Issues" : "Show Sync Issues"}
-                </Button>
-              )}
-              <Button
-                variant="success"
-                leadingIcon={<SyncIcon size={16} />}
-                loading={isSyncing}
-                disabled={isSyncing}
-                onClick={onSync}
-              >
-                {isSyncing ? "Syncing..." : "Sync GitHub"}
-              </Button>
-            </>
-          ) : (
+          ) : isGitHubConnected ? null : (
             <Button
               variant="primary"
               leadingIcon={<MarkGithubIcon size={16} />}
