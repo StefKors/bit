@@ -399,6 +399,7 @@ function PRDetailPage() {
 
             {activeTab === "files" && (
               <PRFilesTab
+                key={`${owner}/${repoName}#${prNumber}`}
                 files={prFiles}
                 comments={prComments}
                 diffOptions={diffOptions}

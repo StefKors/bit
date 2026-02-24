@@ -551,6 +551,46 @@ export const discardDraftReviewMutation = (
     },
   })
 
+type ToggleFileViewedResponse = {
+  viewedFiles: string[]
+  path: string
+  viewed: boolean
+  error?: string
+  code?: string
+}
+
+export const toggleFileViewedMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "files", "viewed", owner, repo, number],
+    mutationFn: async (vars: {
+      path: string
+      viewed: boolean
+    }): Promise<ToggleFileViewedResponse> => {
+      const res = await fetch(`/api/github/viewed/${owner}/${repo}/${number}`, {
+        method: vars.viewed ? "POST" : "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({ path: vars.path }),
+      })
+      const data = (await res.json()) as ToggleFileViewedResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to update viewed file state")
+      }
+      return data
+    },
+  })
+
 type ReviewCommentResponse = {
   id: number
   body: string

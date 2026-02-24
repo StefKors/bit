@@ -31,7 +31,7 @@ todos:
     status: completed
   - id: phase-3-3
     content: "Phase 3.3: Mark Files as Viewed - API route, local tracking utility, PRFilesTab checkbox UI, tests"
-    status: pending
+    status: completed
   - id: phase-3-4
     content: "Phase 3.4: Re-request Review - API endpoint, mutation, UI button in activity feed, tests"
     status: pending

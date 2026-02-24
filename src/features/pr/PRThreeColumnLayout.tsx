@@ -201,6 +201,7 @@ export const PRThreeColumnLayout = ({
           </header>
           <div className={styles.columnBody}>
             <PRFilesTab
+              key={`${owner}/${repoName}#${pr.number}`}
               files={prFiles}
               comments={prComments}
               diffOptions={diffOptions}
