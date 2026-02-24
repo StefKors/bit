@@ -163,3 +163,20 @@
 .statusDraft {
   color: #848d97;
 }
+
+@media (max-width: 640px) {
+  .prItem {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .prMeta {
+    flex-wrap: wrap;
+  }
+
+  .prActions {
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+}

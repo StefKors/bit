@@ -56,7 +56,13 @@ export const AppHeader = ({ onOpenCommandMenu }: AppHeaderProps) => {
             />
           </Link>
 
-          {breadcrumbItems.length > 0 && <Breadcrumb items={breadcrumbItems} variant="compact" />}
+          {breadcrumbItems.length > 0 && (
+            <Breadcrumb
+              items={breadcrumbItems}
+              variant="compact"
+              className={styles.headerBreadcrumb}
+            />
+          )}
         </div>
 
         <div className={styles.right}>

@@ -4,6 +4,8 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
 }
 
 .card {
@@ -87,4 +89,15 @@
 .message {
   color: rgba(var(--bit-rgb-fg), 0.7);
   margin: 0;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
 }

@@ -118,3 +118,35 @@
     transform: rotate(360deg);
   }
 }
+
+@media (max-width: 768px) {
+  .header {
+    align-items: stretch;
+    margin-bottom: 1.5rem;
+  }
+
+  .headerActions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .rateLimit {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .successMessage,
+  .errorMessage,
+  .syncStatusSyncing,
+  .syncStatusError,
+  .syncStatusInfo {
+    font-size: 0.85rem;
+    padding: 0.75rem;
+  }
+}
