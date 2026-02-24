@@ -35,9 +35,15 @@
 }
 
 .filterIconButtonActive {
-  color: rgb(var(--bit-rgb-accent-red));
-  border-color: rgba(var(--bit-rgb-accent-red), 0.28);
+  color: rgba(var(--bit-rgb-fg), 0.55);
+  border-color: rgba(var(--bit-rgb-fg), 0.12);
+  background: rgba(var(--bit-rgb-fg), 0.04);
+}
+
+.filterIconButtonActive:hover {
   background: rgba(var(--bit-rgb-accent-red), 0.08);
+  border-color: rgba(var(--bit-rgb-accent-red), 0.3);
+  color: rgb(var(--bit-rgb-accent-red));
 }
 
 .sortGroup {
@@ -51,8 +57,9 @@
   align-items: center;
   justify-content: center;
   gap: 0.15rem;
-  padding: 0.4rem 0.35rem;
-  min-width: 32px;
+  height: 30px;
+  padding: 0 0.35rem;
+  min-width: 30px;
   background: rgba(var(--bit-rgb-fg), 0.04);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
   border-radius: var(--bit-radius-md);
@@ -83,7 +90,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.4rem 0.6rem;
+  min-height: 30px;
+  padding: 0 0.6rem;
   background: rgba(var(--bit-rgb-fg), 0.04);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
   border-radius: var(--bit-radius-md);

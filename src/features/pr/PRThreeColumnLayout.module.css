@@ -125,6 +125,10 @@
   flex-shrink: 0;
 }
 
+.actions :global(button) {
+  min-height: 30px;
+}
+
 .columns {
   display: grid;
   grid-template-columns: minmax(250px, 0.95fr) minmax(0, 2.25fr) minmax(300px, 1fr);
@@ -191,7 +195,7 @@
 .listBody {
   flex: 1;
   overflow: auto;
-  padding: 0.5rem;
+  padding: 0;
 }
 
 .diffsColumn {
