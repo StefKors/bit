@@ -1018,6 +1018,35 @@ export class GitHubClient {
     return { deleted: true }
   }
 
+  async createPullRequestReview(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    options: {
+      event: "APPROVE" | "REQUEST_CHANGES" | "COMMENT"
+      body?: string
+    },
+  ): Promise<{ id: number; state: string; body: string | null; htmlUrl: string | null }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.pulls.createReview({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        event: options.event,
+        body: options.body,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      id: response.data.id,
+      state: response.data.state,
+      body: response.data.body ?? null,
+      htmlUrl: response.data.html_url ?? null,
+    }
+  }
+
   // Merge a pull request
   async mergePullRequest(
     owner: string,

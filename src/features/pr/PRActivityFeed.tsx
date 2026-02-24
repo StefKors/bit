@@ -27,7 +27,8 @@ import {
 } from "@primer/octicons-react"
 import styles from "./PRActivityFeed.module.css"
 import { CommentComposer } from "./CommentComposer"
-import { createCommentMutation } from "@/lib/mutations"
+import { createCommentMutation, submitReviewMutation } from "@/lib/mutations"
+import { ReviewComposer } from "./ReviewComposer"
 
 interface PRAuthor {
   login: string | null | undefined
@@ -135,8 +136,12 @@ export const PRActivityFeed = ({
   timelineItems.sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0))
 
   const canComment = Boolean(userId && owner && repo && prNumber)
+  const canReview = Boolean(userId && owner && repo && prNumber)
   const createComment = useMutation(
     createCommentMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
+  )
+  const submitReview = useMutation(
+    submitReviewMutation(userId ?? "", owner ?? "", repo ?? "", prNumber ?? 0),
   )
 
   if (timelineItems.length === 0) {
@@ -164,6 +169,16 @@ export const PRActivityFeed = ({
                 onSuccess: () => onCommentCreated?.(),
               },
             )
+          }}
+        />
+      )}
+      {canReview && (
+        <ReviewComposer
+          isSubmitting={submitReview.isPending}
+          onSubmit={(input) => {
+            submitReview.mutate(input, {
+              onSuccess: () => onCommentCreated?.(),
+            })
           }}
         />
       )}

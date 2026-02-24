@@ -67,6 +67,12 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
       htmlUrl: "https://github.com/test/repo/pull/1#issuecomment-1",
     }),
     deleteIssueComment: vi.fn().mockResolvedValue({ deleted: true }),
+    createPullRequestReview: vi.fn().mockResolvedValue({
+      id: 1,
+      state: "COMMENTED",
+      body: "Looks good",
+      htmlUrl: "https://github.com/test/repo/pull/1#pullrequestreview-1",
+    }),
     ...overrides,
   })
 

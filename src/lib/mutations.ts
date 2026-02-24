@@ -406,3 +406,39 @@ export const deleteCommentMutation = (
       return data
     },
   })
+
+type SubmitReviewResponse = {
+  id: number
+  state: string
+  body: string | null
+  htmlUrl: string | null
+  error?: string
+  code?: string
+}
+
+export const submitReviewMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "reviews", "submit", owner, repo, number],
+    mutationFn: async (vars: {
+      event: "APPROVE" | "REQUEST_CHANGES" | "COMMENT"
+      body?: string
+    }): Promise<SubmitReviewResponse> => {
+      const res = await fetch(`/api/github/reviews/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as SubmitReviewResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to submit review")
+      }
+      return data
+    },
+  })
