@@ -63,7 +63,7 @@ const buildIssueData = (issue: Issue, repoId: string, userId: string, now: numbe
  * - If sender not registered → logs and skips
  */
 export const handleIssueWebhook = async (db: WebhookDB, payload: WebhookPayload) => {
-  const typedPayload = payload as unknown as IssuesEvent
+  const typedPayload = payload as IssuesEvent
   const { action, issue, repository: repo, sender } = typedPayload
 
   // Skip if this is a pull request (PRs show up as issues too)
@@ -124,10 +124,11 @@ export const handleIssueWebhook = async (db: WebhookDB, payload: WebhookPayload)
  */
 export const ensureIssueFromWebhook = async (
   db: WebhookDB,
-  issue: Issue,
+  issue: Issue | Record<string, unknown>,
   repoRecord: RepoRecord,
 ): Promise<IssueRecord | null> => {
-  const githubId = issue.id
+  const typedIssue = issue as Issue
+  const githubId = typedIssue.id
 
   // Check if issue already exists by githubId
   const existingResult = await db.query({
@@ -145,7 +146,7 @@ export const ensureIssueFromWebhook = async (
   const issueId = id()
 
   const now = Date.now()
-  const issueData = buildIssueData(issue, repoRecord.id, repoRecord.userId, now)
+  const issueData = buildIssueData(typedIssue, repoRecord.id, repoRecord.userId, now)
 
   await db.transact(db.tx.issues[issueId].update(issueData))
 
@@ -157,7 +158,7 @@ export const ensureIssueFromWebhook = async (
   })
 
   const inserted = insertedResult.issues || []
-  console.log(`Auto-tracked issue #${issue.number} for repo ${repoRecord.fullName}`)
+  console.log(`Auto-tracked issue #${typedIssue.number} for repo ${repoRecord.fullName}`)
 
   return (inserted[0] as IssueRecord) ?? null
 }

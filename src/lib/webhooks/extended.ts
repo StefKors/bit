@@ -1,13 +1,5 @@
 import { id } from "@instantdb/admin"
-import type {
-  Issue,
-  Organization,
-  PRRecord,
-  RepoRecord,
-  WebhookDB,
-  WebhookEventName,
-  WebhookPayload,
-} from "./types"
+import type { PRRecord, RepoRecord, WebhookDB, WebhookEventName, WebhookPayload } from "./types"
 import { findUserBySender, ensurePRFromWebhook, ensureRepoFromWebhook } from "./utils"
 import { ensureOrgFromWebhook } from "./organization"
 import { ensureIssueFromWebhook } from "./issue"
@@ -24,6 +16,7 @@ const isRecord = (value: unknown): value is UnknownRecord =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
 const toRecord = (value: unknown): UnknownRecord | null => (isRecord(value) ? value : null)
+const toPayloadRecord = (value: WebhookPayload): UnknownRecord => toRecord(value) ?? {}
 
 const toStringOrNull = (value: unknown): string | null =>
   typeof value === "string" && value.length > 0 ? value : null
@@ -141,9 +134,14 @@ const getTrackedOrgs = async (
   if (orgRecords.length === 0 && sender) {
     const userId = await findUserBySender(db, sender)
     if (userId) {
-      const createdOrg = await ensureOrgFromWebhook(db, organization as unknown as Organization, userId)
+      const createdOrg = await ensureOrgFromWebhook(db, organization, userId)
       if (createdOrg && isRecord(createdOrg) && typeof createdOrg.id === "string") {
-        orgRecords = [createdOrg as unknown as OrganizationRecord]
+        orgRecords = [
+          {
+            id: createdOrg.id,
+            login: typeof createdOrg.login === "string" ? createdOrg.login : undefined,
+          },
+        ]
       }
     }
   }
@@ -175,10 +173,11 @@ const syncOrganizationMetadata = async (
 }
 
 const extractEventGithubId = (payload: WebhookPayload): number | null => {
+  const payloadRecord = toPayloadRecord(payload)
   const idKeys = ["id", "thread", "comment", "review", "deployment", "deployment_status"]
 
   for (const key of idKeys) {
-    const value = payload[key]
+    const value = payloadRecord[key]
     if (typeof value === "number" && Number.isFinite(value)) {
       return value
     }
@@ -195,6 +194,7 @@ const extractEventGithubId = (payload: WebhookPayload): number | null => {
 }
 
 const extractEventCreatedAt = (payload: WebhookPayload): number | null => {
+  const payloadRecord = toPayloadRecord(payload)
   const timestampKeys = [
     "updated_at",
     "created_at",
@@ -204,7 +204,7 @@ const extractEventCreatedAt = (payload: WebhookPayload): number | null => {
   ]
 
   for (const key of timestampKeys) {
-    const value = payload[key]
+    const value = payloadRecord[key]
     if (typeof value === "string") {
       const timestamp = toTimestampOrNull(value)
       if (timestamp !== null) {
@@ -234,14 +234,15 @@ const createPREventFromWebhook = async (
   payload: WebhookPayload,
   event: WebhookEventName,
 ): Promise<void> => {
+  const payloadRecord = toPayloadRecord(payload)
   const now = Date.now()
-  const action = toStringOrNull(payload.action)
+  const action = toStringOrNull(payloadRecord.action)
 
   const serializedEvent = JSON.stringify({
     event,
     action,
-    ref: toStringOrNull(payload.ref),
-    state: toStringOrNull(payload.state),
+    ref: toStringOrNull(payloadRecord.ref),
+    state: toStringOrNull(payloadRecord.state),
     senderLogin: toStringOrNull(sender?.login),
   })
 
@@ -271,7 +272,7 @@ const ensureIssueTracking = async (
   if (issue.pull_request) return
 
   for (const repoRecord of repoRecords) {
-    await ensureIssueFromWebhook(db, issue as unknown as Issue, repoRecord)
+    await ensureIssueFromWebhook(db, issue, repoRecord)
   }
 }
 
@@ -304,11 +305,17 @@ export const handleExtendedWebhook = async (
   payload: WebhookPayload,
   event: WebhookEventName,
 ): Promise<void> => {
-  const repository = toRecord(payload.repository)
-  const organization = toRecord(payload.organization)
-  const pullRequest = toRecord(payload.pull_request)
-  const issue = toRecord(payload.issue)
-  const sender = toRecord(payload.sender)
+  const payloadRecord = toRecord(payload)
+  if (!payloadRecord) {
+    log.info("Extended webhook skipped due non-object payload", { event })
+    return
+  }
+
+  const repository = toRecord(payloadRecord.repository)
+  const organization = toRecord(payloadRecord.organization)
+  const pullRequest = toRecord(payloadRecord.pull_request)
+  const issue = toRecord(payloadRecord.issue)
+  const sender = toRecord(payloadRecord.sender)
 
   let repoRecords: RepoRecord[] = []
   if (repository) {
@@ -335,7 +342,7 @@ export const handleExtendedWebhook = async (
 
   log.info("Extended webhook processed", {
     event,
-    action: toStringOrNull(payload.action),
+    action: toStringOrNull(payloadRecord.action),
     repository: toStringOrNull(repository?.full_name),
     organization: toStringOrNull(organization?.login),
   })

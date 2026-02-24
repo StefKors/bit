@@ -103,10 +103,10 @@ export type {
   Issue,
 } from "@octokit/webhooks-types"
 
-export type WebhookDB = typeof adminDb
+export type WebhookDB = Pick<typeof adminDb, "query" | "transact" | "tx">
 
 // Webhook payload enters as untrusted JSON and is narrowed per-handler.
-export type WebhookPayload = Record<string, unknown>
+export type WebhookPayload = unknown
 
 export type RepoRecord = InstaQLEntity<AppSchema, "repos">
 export type PRRecord = InstaQLEntity<AppSchema, "pullRequests">

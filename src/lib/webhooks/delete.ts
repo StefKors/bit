@@ -7,7 +7,7 @@ import type { WebhookDB, WebhookPayload, DeleteEvent } from "./types"
  * Removes cached tree data for the deleted ref.
  */
 export async function handleDeleteWebhook(db: WebhookDB, payload: WebhookPayload) {
-  const deletePayload = payload as unknown as DeleteEvent
+  const deletePayload = payload as DeleteEvent
   const { repository: repo } = deletePayload
   const repoFullName = repo.full_name
   const refType = deletePayload.ref_type // 'branch' or 'tag'

@@ -23,7 +23,7 @@ const parseGithubTimestamp = (value?: string | null): number | null => {
  * PR comments are handled by the comment.ts handler.
  */
 export const handleIssueCommentWebhook = async (db: WebhookDB, payload: WebhookPayload) => {
-  const typedPayload = payload as unknown as IssueCommentEvent
+  const typedPayload = payload as IssueCommentEvent
   const { action, comment, issue, repository: repo, sender } = typedPayload
 
   // Skip if this is a PR comment (handled by comment.ts)

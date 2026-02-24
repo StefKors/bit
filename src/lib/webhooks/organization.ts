@@ -2,6 +2,12 @@ import { id } from "@instantdb/admin"
 import type { Organization, OrganizationEvent, WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender } from "./utils"
 
+const toStringOrNull = (value: unknown): string | null =>
+  typeof value === "string" && value.length > 0 ? value : null
+
+const toNumberOrNull = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null
+
 /**
  * Handle organization webhook events.
  *
@@ -16,7 +22,7 @@ import { findUserBySender } from "./utils"
  * - If sender not registered → logs and skips
  */
 export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookPayload) {
-  const orgPayload = payload as unknown as OrganizationEvent
+  const orgPayload = payload as OrganizationEvent
   const org = orgPayload.organization
   const sender = orgPayload.sender
   const action = orgPayload.action
@@ -83,9 +89,22 @@ export async function handleOrganizationWebhook(db: WebhookDB, payload: WebhookP
  * Create or update an organization record from webhook payload data.
  * Used for auto-tracking orgs when webhooks arrive.
  */
-export async function ensureOrgFromWebhook(db: WebhookDB, org: Organization, userId: string) {
-  const githubId = org.id
-  const login = org.login
+export async function ensureOrgFromWebhook(
+  db: WebhookDB,
+  org: Organization | Record<string, unknown>,
+  userId: string,
+) {
+  const rawOrg = org as Record<string, unknown>
+  const githubId = toNumberOrNull(rawOrg.id)
+  const login = toStringOrNull(rawOrg.login)
+
+  if (!githubId || !login) {
+    console.log("ensureOrgFromWebhook: Missing required organization fields", {
+      hasGithubId: Boolean(githubId),
+      hasLogin: Boolean(login),
+    })
+    return null
+  }
 
   // Check if org already exists by githubId
   const existingResult = await db.query({
@@ -103,14 +122,14 @@ export async function ensureOrgFromWebhook(db: WebhookDB, org: Organization, use
   const orgId = id()
 
   const now = Date.now()
-  const orgName = "name" in org && typeof org.name === "string" ? org.name : null
+  const orgName = toStringOrNull(rawOrg.name)
   const orgData = {
     githubId,
     login,
     name: orgName,
-    description: org.description || null,
-    avatarUrl: org.avatar_url || null,
-    url: org.url || null,
+    description: toStringOrNull(rawOrg.description),
+    avatarUrl: toStringOrNull(rawOrg.avatar_url),
+    url: toStringOrNull(rawOrg.url),
     userId,
     syncedAt: now,
     createdAt: now,

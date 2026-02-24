@@ -82,10 +82,8 @@ const isExtendedWebhookEvent = (
   event: WebhookEventName,
 ): event is (typeof EXTENDED_WEBHOOK_EVENTS)[number] => extendedWebhookEventSet.has(event)
 
-const isIssueCommentEventPayload = (
-  payload: WebhookPayload,
-): payload is WebhookPayload & IssueCommentEvent =>
-  "issue" in payload && "comment" in payload
+const isIssueCommentEventPayload = (payload: WebhookPayload): payload is IssueCommentEvent =>
+  typeof payload === "object" && payload !== null && "issue" in payload && "comment" in payload
 
 export type WebhookQueueItem = {
   id: string

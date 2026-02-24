@@ -75,7 +75,7 @@ export const handleCheckRunWebhook = async (
   db: WebhookDB,
   payload: WebhookPayload,
 ): Promise<void> => {
-  const typed = payload as unknown as CheckRunEvent
+  const typed = payload as CheckRunEvent
   const { check_run, repository, sender } = typed
 
   if (!check_run || !repository) return
@@ -127,7 +127,7 @@ export const handleCheckSuiteWebhook = async (
   db: WebhookDB,
   payload: WebhookPayload,
 ): Promise<void> => {
-  const typed = payload as unknown as CheckSuiteEvent
+  const typed = payload as CheckSuiteEvent
   const { check_suite, repository, sender } = typed
 
   if (!check_suite || !repository) return
@@ -175,7 +175,7 @@ export const handleStatusWebhook = async (
   db: WebhookDB,
   payload: WebhookPayload,
 ): Promise<void> => {
-  const typed = payload as unknown as StatusEvent
+  const typed = payload as StatusEvent
   const { sha, state, context, target_url, repository, sender } = typed
 
   if (!sha || !repository) return
@@ -235,7 +235,7 @@ export const handleWorkflowRunWebhook = async (
   db: WebhookDB,
   payload: WebhookPayload,
 ): Promise<void> => {
-  const typed = payload as unknown as WorkflowRunEvent
+  const typed = payload as WorkflowRunEvent
   const { workflow_run, repository, sender } = typed
 
   if (!workflow_run || !repository) return
@@ -304,7 +304,7 @@ export const handleWorkflowJobWebhook = async (
   db: WebhookDB,
   payload: WebhookPayload,
 ): Promise<void> => {
-  const typed = payload as unknown as WorkflowJobEvent
+  const typed = payload as WorkflowJobEvent
   const { workflow_job, repository, sender } = typed
 
   if (!workflow_job || !repository) return

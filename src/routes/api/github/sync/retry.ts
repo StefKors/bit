@@ -30,10 +30,8 @@ const retryRequestBodySchema = z.object({
   resourceId: z.string().optional(),
 })
 
-const isIssueCommentPayload = (
-  payload: WebhookPayload,
-): payload is WebhookPayload & IssueCommentEvent =>
-  "issue" in payload && "comment" in payload
+const isIssueCommentPayload = (payload: WebhookPayload): payload is IssueCommentEvent =>
+  typeof payload === "object" && payload !== null && "issue" in payload && "comment" in payload
 
 async function processWebhookPayload(
   event: WebhookEventName,

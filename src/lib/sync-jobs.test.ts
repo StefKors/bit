@@ -131,7 +131,7 @@ describe("failSyncJob", () => {
           maxAttempts: 3,
         },
       ],
-    } as unknown as { syncJobs: SyncJob[] })
+    } as { syncJobs: SyncJob[] })
 
     await failSyncJob("job-1", "Network error")
     expect(mockedAdminDb.transact).toHaveBeenCalled()
@@ -146,14 +146,14 @@ describe("failSyncJob", () => {
           maxAttempts: 3,
         },
       ],
-    } as unknown as { syncJobs: SyncJob[] })
+    } as { syncJobs: SyncJob[] })
 
     await failSyncJob("job-1", "Persistent error")
     expect(mockedAdminDb.transact).toHaveBeenCalled()
   })
 
   it("does nothing when job not found", async () => {
-    mockedAdminDb.query.mockResolvedValueOnce({ syncJobs: [] } as unknown as {
+    mockedAdminDb.query.mockResolvedValueOnce({ syncJobs: [] } as {
       syncJobs: SyncJob[]
     })
 
@@ -185,7 +185,7 @@ describe("getPendingSyncJobs", () => {
         { id: "job-1", state: "pending", nextRunAt: now - 1000 },
         { id: "job-2", state: "pending", nextRunAt: now + 60000 },
       ],
-    } as unknown as { syncJobs: SyncJob[] })
+    } as { syncJobs: SyncJob[] })
 
     const jobs = await getPendingSyncJobs("user-1")
     expect(jobs).toHaveLength(1)
@@ -195,14 +195,14 @@ describe("getPendingSyncJobs", () => {
   it("returns jobs without nextRunAt", async () => {
     mockedAdminDb.query.mockResolvedValueOnce({
       syncJobs: [{ id: "job-1", state: "pending" }],
-    } as unknown as { syncJobs: SyncJob[] })
+    } as { syncJobs: SyncJob[] })
 
     const jobs = await getPendingSyncJobs("user-1")
     expect(jobs).toHaveLength(1)
   })
 
   it("returns empty array when no pending jobs", async () => {
-    mockedAdminDb.query.mockResolvedValueOnce({ syncJobs: [] } as unknown as {
+    mockedAdminDb.query.mockResolvedValueOnce({ syncJobs: [] } as {
       syncJobs: SyncJob[]
     })
 

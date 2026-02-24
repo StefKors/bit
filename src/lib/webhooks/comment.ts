@@ -27,7 +27,7 @@ export async function handleCommentWebhook(
   payload: WebhookPayload,
   eventType: "issue_comment" | "pull_request_review_comment",
 ) {
-  const typedPayload = payload as unknown as IssueCommentEvent | PullRequestReviewCommentEvent
+  const typedPayload = payload as IssueCommentEvent | PullRequestReviewCommentEvent
   const repo = typedPayload.repository
   const sender = typedPayload.sender
 

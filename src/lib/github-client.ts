@@ -992,7 +992,7 @@ export class GitHubClient {
         { owner, repo, sha: branch, per_page: 100 },
         (response) => {
           const rateLimit = this.extractRateLimit(
-            response.headers as unknown as Record<string, string | undefined>,
+            response.headers as Record<string, string | undefined>,
           )
           this.lastRateLimit = rateLimit
           return response.data
@@ -1009,7 +1009,7 @@ export class GitHubClient {
     const now = Date.now()
 
     const commitEntries = buildCommitEntries(
-      allCommits as unknown as GitHubCommit[],
+      allCommits as GitHubCommit[],
       repoRecord.id,
       branch,
       now,

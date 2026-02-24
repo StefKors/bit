@@ -23,7 +23,7 @@ const parseGithubTimestamp = (value?: string | null): number | null => {
  * - If sender not registered → logs and skips
  */
 export async function handleRepositoryWebhook(db: WebhookDB, payload: WebhookPayload) {
-  const repoPayload = payload as unknown as RepositoryEvent
+  const repoPayload = payload as RepositoryEvent
   const repo = repoPayload.repository
   const sender = repoPayload.sender
   const action = repoPayload.action
@@ -105,7 +105,7 @@ export async function handleRepositoryWebhook(db: WebhookDB, payload: WebhookPay
  * - If sender not registered → logs and skips
  */
 export async function handleStarWebhook(db: WebhookDB, payload: WebhookPayload) {
-  const starPayload = payload as unknown as StarEvent
+  const starPayload = payload as StarEvent
   const repo = starPayload.repository
   const sender = starPayload.sender
   const action = starPayload.action
@@ -165,7 +165,7 @@ export async function handleStarWebhook(db: WebhookDB, payload: WebhookPayload) 
  * - If forker is registered → auto-creates the forked repo for them
  */
 export async function handleForkWebhook(db: WebhookDB, payload: WebhookPayload) {
-  const forkPayload = payload as unknown as ForkEvent
+  const forkPayload = payload as ForkEvent
   const repo = forkPayload.repository // The original repo being forked
   const forkee = forkPayload.forkee // The newly created fork
   const sender = forkPayload.sender

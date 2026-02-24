@@ -14,7 +14,7 @@ import { findUserBySender, ensureRepoFromWebhook } from "./utils"
  * - If sender not registered → logs and skips
  */
 export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) {
-  const pushPayload = payload as unknown as PushEvent
+  const pushPayload = payload as PushEvent
   const { repository: repo, sender, ref } = pushPayload
   const repoFullName = repo.full_name
   const pushedAt = Date.now()

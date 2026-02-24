@@ -86,7 +86,7 @@ const createMockDb = () => {
     return Promise.resolve()
   })
 
-  const mockDb = {
+  const mockDbBase = {
     query: mockQuery,
     transact: mockTransact,
     tx: new Proxy(
@@ -109,7 +109,8 @@ const createMockDb = () => {
           ),
       },
     ),
-  } as unknown as WebhookDB
+  }
+  const mockDb = mockDbBase as never as WebhookDB
 
   return { db: mockDb, store, mockQuery, mockTransact }
 }

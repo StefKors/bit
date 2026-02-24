@@ -18,7 +18,7 @@ const parseGithubTimestamp = (value?: string | null): number | null => {
  * - If sender not registered → logs and skips
  */
 export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: WebhookPayload) {
-  const typedPayload = payload as unknown as PullRequestReviewEvent
+  const typedPayload = payload as PullRequestReviewEvent
   const { review, pull_request: pr, repository: repo, sender } = typedPayload
 
   const prGithubId = pr.id
