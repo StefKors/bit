@@ -1,8 +1,9 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { resolveUserAvatarUrl } from "@/lib/avatar"
+import { shouldResumeInitialSync } from "@/lib/initial-sync"
 import { RepoSection } from "@/features/repo/RepoSection"
 import {
   InitialSyncCard,
@@ -28,12 +29,40 @@ type InitialSyncProgress = {
   error?: string
 }
 
+type OverviewSyncResponse = {
+  error?: string
+  code?: string
+  rateLimit?: { remaining: number; limit: number; reset: string }
+}
+
+const startOverviewSync = async (userId: string): Promise<OverviewSyncResponse> => {
+  const response = await fetch("/api/github/sync/overview", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      Authorization: `Bearer ${userId}`,
+    },
+  })
+
+  const data = (await response.json()) as OverviewSyncResponse
+
+  if (!response.ok) {
+    if (data.code === "auth_invalid") {
+      throw new Error("Your GitHub connection has expired. Please reconnect to continue syncing.")
+    }
+    throw new Error(data.error || "Failed to sync")
+  }
+
+  return data
+}
+
 function OverviewPage() {
   const { user } = useAuth()
   const search = useSearch({ from: "/" })
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [showSyncManagement, setShowSyncManagement] = useState(false)
+  const autoResumeAttemptedRef = useRef(false)
 
   // Check if GitHub was just connected or installed
   const githubJustConnected = search.github === "connected"
@@ -60,6 +89,11 @@ function OverviewPage() {
 
   const tokenSyncState = syncStates.find((s) => s.resourceType === "github:token")
   const isAuthInvalid = tokenSyncState?.syncStatus === "auth_invalid"
+  const shouldAutoResumeInitialSync =
+    isGitHubConnected &&
+    !isAuthInvalid &&
+    !isInitialSyncComplete &&
+    shouldResumeInitialSync(initialSyncState)
 
   const overviewSyncState = syncStates.find((s) => s.resourceType === "overview")
   const isSyncing = overviewSyncState?.syncStatus === "syncing"
@@ -113,31 +147,11 @@ function OverviewPage() {
   const hasSyncErrors = syncStates.some((state) => state.syncStatus === "error" || state.syncError)
 
   const handleSync = async () => {
+    if (!user?.id) return
     setError(null)
 
     try {
-      const response = await fetch("/api/github/sync/overview", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${user?.id}`,
-        },
-      })
-
-      const data = (await response.json()) as {
-        error?: string
-        code?: string
-        rateLimit?: { remaining: number; limit: number; reset: string }
-      }
-
-      if (!response.ok) {
-        if (data.code === "auth_invalid") {
-          setError("Your GitHub connection has expired. Please reconnect to continue syncing.")
-          return
-        }
-        throw new Error(data.error || "Failed to sync")
-      }
-
+      const data = await startOverviewSync(user.id)
       if (data.rateLimit) {
         setRateLimit({
           remaining: data.rateLimit.remaining,
@@ -228,6 +242,32 @@ function OverviewPage() {
       }
     })()
   }
+
+  useEffect(() => {
+    if (!shouldAutoResumeInitialSync) {
+      autoResumeAttemptedRef.current = false
+      return
+    }
+    if (autoResumeAttemptedRef.current) return
+    autoResumeAttemptedRef.current = true
+    if (!user?.id) return
+
+    void (async () => {
+      try {
+        setError(null)
+        const data = await startOverviewSync(user.id)
+        if (data.rateLimit) {
+          setRateLimit({
+            remaining: data.rateLimit.remaining,
+            limit: data.rateLimit.limit,
+            reset: new Date(data.rateLimit.reset),
+          })
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to sync")
+      }
+    })()
+  }, [shouldAutoResumeInitialSync, user?.id])
 
   if (!user) {
     return <div>Loading...</div>
