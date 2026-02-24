@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/Button"
 import { Markdown } from "@/components/Markdown"
 import { updatePRMutation } from "@/lib/mutations"
+import { ChecksList, type PullRequestCheck } from "./ChecksList"
 import styles from "./PRHeader.module.css"
 
 type PullRequestState = "open" | "closed"
@@ -32,6 +33,7 @@ type PRHeaderProps = {
   githubCreatedAt?: Date | number | null
   mergedAt?: Date | number | null
   closedAt?: Date | number | null
+  checks?: readonly PullRequestCheck[]
   onUpdated?: () => void
   formatTimeAgo: (date: Date | number | null | undefined) => string
 }
@@ -96,6 +98,7 @@ export const PRHeader = ({
   githubCreatedAt,
   mergedAt,
   closedAt,
+  checks = [],
   onUpdated,
   formatTimeAgo,
 }: PRHeaderProps) => {
@@ -249,6 +252,10 @@ export const PRHeader = ({
           <Markdown content={body} />
         </div>
       )}
+
+      <div className={styles.checks}>
+        <ChecksList checks={checks} />
+      </div>
     </header>
   )
 }

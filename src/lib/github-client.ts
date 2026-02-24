@@ -194,6 +194,47 @@ export class GitHubClient {
     return []
   }
 
+  async listCheckRuns(
+    owner: string,
+    repo: string,
+    ref: string,
+  ): Promise<{
+    checks: Array<{
+      githubId: number
+      name: string
+      status: string
+      conclusion: string | null
+      detailsUrl: string | null
+      htmlUrl: string | null
+      startedAt: number | null
+      completedAt: number | null
+    }>
+  }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.checks.listForRef({
+        owner,
+        repo,
+        ref,
+        per_page: 100,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      checks: response.data.check_runs.map((checkRun) => ({
+        githubId: checkRun.id,
+        name: checkRun.name,
+        status: checkRun.status,
+        conclusion: checkRun.conclusion,
+        detailsUrl: checkRun.details_url ?? null,
+        htmlUrl: checkRun.html_url ?? null,
+        startedAt: checkRun.started_at ? new Date(checkRun.started_at).getTime() : null,
+        completedAt: checkRun.completed_at ? new Date(checkRun.completed_at).getTime() : null,
+      })),
+    }
+  }
+
   // Update sync state in database
   async updateSyncState(
     resourceType: string,
@@ -906,6 +947,48 @@ export class GitHubClient {
           .link({ user: this.userId })
           .link({ pullRequest: prId }),
       )
+    }
+
+    if (prData.head.sha) {
+      const checksResult = await this.listCheckRuns(owner, repo, prData.head.sha)
+      for (const check of checksResult.checks) {
+        const { prChecks } = await adminDb.query({
+          prChecks: {
+            $: {
+              where: {
+                githubId: check.githubId,
+                sourceType: "check_run",
+                repoId: repoRecord.id,
+              },
+              limit: 1,
+            },
+          },
+        })
+        const existingCheck = prChecks?.[0]
+        const checkId = existingCheck?.id || id()
+
+        await adminDb.transact(
+          adminDb.tx.prChecks[checkId]
+            .update({
+              githubId: check.githubId,
+              name: check.name,
+              status: check.status,
+              conclusion: check.conclusion ?? undefined,
+              detailsUrl: check.detailsUrl ?? undefined,
+              htmlUrl: check.htmlUrl ?? undefined,
+              startedAt: check.startedAt ?? undefined,
+              completedAt: check.completedAt ?? undefined,
+              headSha: prData.head.sha,
+              sourceType: "check_run",
+              repoId: repoRecord.id,
+              pullRequestId: prId,
+              createdAt: existingCheck?.createdAt ?? now,
+              updatedAt: now,
+            })
+            .link({ repo: repoRecord.id })
+            .link({ pullRequest: prId }),
+        )
+      }
     }
 
     // Get final rate limit status

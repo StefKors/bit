@@ -1,0 +1,72 @@
+.container {
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-md);
+  background: var(--bit-color-panel-bg);
+  padding: 0.75rem;
+}
+
+.title {
+  margin: 0 0 0.55rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--bit-color-heading);
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(var(--bit-rgb-fg), 0.52);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+}
+
+.name {
+  min-width: 0;
+  flex: 1;
+  color: rgba(var(--bit-rgb-fg), 0.8);
+}
+
+.badge {
+  border-radius: var(--bit-radius-sm);
+  padding: 0.08rem 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.success {
+  background: rgba(var(--bit-rgb-accent-green-bright), 0.15);
+  color: var(--bit-color-accent-green-bright);
+}
+
+.failure {
+  background: rgba(var(--bit-rgb-accent-red), 0.15);
+  color: var(--bit-color-accent-red);
+}
+
+.pending {
+  background: rgba(var(--bit-rgb-accent-orange), 0.15);
+  color: var(--bit-color-accent-orange);
+}
+
+.link {
+  color: var(--bit-color-accent-blue);
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}

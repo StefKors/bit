@@ -117,6 +117,7 @@ function PRDetailPage() {
       $: { where: { fullName } },
       pullRequests: {
         $: { order: { githubUpdatedAt: "desc" } },
+        prChecks: {},
       },
     },
   })
@@ -138,6 +139,7 @@ function PRDetailPage() {
         prComments: {},
         prCommits: {},
         prEvents: {},
+        prChecks: {},
       },
     },
   })
@@ -226,6 +228,7 @@ function PRDetailPage() {
   const prComments = pr.prComments ?? []
   const prCommits = pr.prCommits ?? []
   const prEvents = pr.prEvents ?? []
+  const prChecks = pr.prChecks ?? []
   const prReviewers = parseStringArray(pr.reviewers ?? pr.reviewRequestedBy)
   const prLabels = parseLabelArray(pr.labels)
 
@@ -325,6 +328,7 @@ function PRDetailPage() {
               githubCreatedAt={pr.githubCreatedAt}
               mergedAt={pr.mergedAt}
               closedAt={pr.closedAt}
+              checks={prChecks}
               onUpdated={() => prSync.mutate()}
               formatTimeAgo={formatTimeAgo}
             />

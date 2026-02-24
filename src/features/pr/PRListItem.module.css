@@ -131,7 +131,7 @@
 .statusIndicators {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.3rem;
 }
 
 .statusDot {
@@ -139,6 +139,14 @@
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.checkPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  color: rgba(var(--bit-rgb-fg), 0.62);
 }
 
 .draftBadge {

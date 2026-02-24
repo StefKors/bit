@@ -135,6 +135,10 @@
   background: var(--bit-color-panel-bg);
 }
 
+.checks {
+  margin-top: 0.75rem;
+}
+
 .editForm {
   display: flex;
   flex-direction: column;

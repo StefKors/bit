@@ -52,7 +52,7 @@ todos:
     status: completed
   - id: phase-5-1
     content: "Phase 5.1: Check Runs Display - Webhook handler, API route, ChecksList component, update PRListItem, schema updates, tests"
-    status: pending
+    status: completed
   - id: phase-5-2
     content: "Phase 5.2: Merge Conflicts Indicator - GitHub client update for mergeable state, PRHeader warning UI, webhook updates, tests"
     status: pending

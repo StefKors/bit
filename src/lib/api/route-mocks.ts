@@ -19,6 +19,20 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
   toGitHubClient({
     getRateLimit: vi.fn().mockResolvedValue(mockRateLimit),
     getTokenScopes: vi.fn().mockResolvedValue(["repo", "read:org", "read:user", "user:email"]),
+    listCheckRuns: vi.fn().mockResolvedValue({
+      checks: [
+        {
+          githubId: 1,
+          name: "CI / test",
+          status: "completed",
+          conclusion: "success",
+          detailsUrl: "https://example.com/check/1",
+          htmlUrl: "https://github.com/test/repo/actions/runs/1",
+          startedAt: 1700000000000,
+          completedAt: 1700000100000,
+        },
+      ],
+    }),
     fetchRepoTree: vi.fn().mockResolvedValue({ count: 10, rateLimit: mockRateLimit }),
     fetchRepoCommits: vi.fn().mockResolvedValue({ count: 5, rateLimit: mockRateLimit }),
     fetchPullRequests: vi.fn().mockResolvedValue({
