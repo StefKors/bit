@@ -423,6 +423,72 @@ export const setLabelsMutation = (userId: string, owner: string, repo: string, n
     },
   })
 
+type DraftStateResponse = {
+  number: number
+  state: "open" | "closed"
+  draft: boolean
+  error?: string
+  code?: string
+}
+
+export const convertToDraftMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "draft", "convert", owner, repo, number],
+    mutationFn: async (): Promise<DraftStateResponse> => {
+      const res = await fetch(`/api/github/pr/draft/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({ action: "convert_to_draft" }),
+      })
+      const data = (await res.json()) as DraftStateResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to convert pull request to draft")
+      }
+      return data
+    },
+  })
+
+export const markReadyForReviewMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "draft", "ready", owner, repo, number],
+    mutationFn: async (): Promise<DraftStateResponse> => {
+      const res = await fetch(`/api/github/pr/draft/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({ action: "ready_for_review" }),
+      })
+      const data = (await res.json()) as DraftStateResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to mark pull request as ready")
+      }
+      return data
+    },
+  })
+
 type DeleteBranchResponse = {
   deleted: boolean
   error?: string

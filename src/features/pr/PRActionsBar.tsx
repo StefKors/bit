@@ -3,7 +3,9 @@ import { useMutation } from "@tanstack/react-query"
 import { GitMergeIcon, AlertIcon, ChevronDownIcon } from "@primer/octicons-react"
 import { Button } from "@/components/Button"
 import {
+  convertToDraftMutation,
   deleteBranchMutation,
+  markReadyForReviewMutation,
   mergePRMutation,
   restoreBranchMutation,
   updatePRStateMutation,
@@ -71,6 +73,28 @@ export function PRActionsBar({
 
   const isMerging = merge.isPending
   const isUpdatingState = updateState.isPending
+
+  const convertToDraft = useMutation({
+    ...convertToDraftMutation(userId, owner, repo, prNumber),
+    onSuccess: (result) => {
+      setError(null)
+      onStateChange?.(result.state)
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Failed to convert pull request to draft")
+    },
+  })
+
+  const markReadyForReview = useMutation({
+    ...markReadyForReviewMutation(userId, owner, repo, prNumber),
+    onSuccess: (result) => {
+      setError(null)
+      onStateChange?.(result.state)
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Failed to mark pull request as ready")
+    },
+  })
 
   const deleteBranch = useMutation({
     ...deleteBranchMutation(userId, owner, repo),
@@ -173,6 +197,18 @@ export function PRActionsBar({
         <div className={styles.draftBanner}>
           <AlertIcon size={16} className={styles.draftIcon} />
           <span>This pull request is still a draft</span>
+          <Button
+            variant="primary"
+            size="small"
+            loading={markReadyForReview.isPending}
+            disabled={markReadyForReview.isPending || isUpdatingState}
+            onClick={() => {
+              setError(null)
+              markReadyForReview.mutate()
+            }}
+          >
+            Ready for review
+          </Button>
         </div>
       </div>
     )
@@ -258,16 +294,28 @@ export function PRActionsBar({
             <Button
               variant="success"
               loading={isMerging}
-              disabled={isMerging || isUpdatingState}
+              disabled={isMerging || isUpdatingState || convertToDraft.isPending}
               onClick={handleMerge}
               className={styles.confirmButton}
             >
               {isMerging ? "Merging..." : "Merge pull request"}
             </Button>
             <Button
+              variant="default"
+              loading={convertToDraft.isPending}
+              disabled={isMerging || isUpdatingState || convertToDraft.isPending}
+              onClick={() => {
+                setError(null)
+                convertToDraft.mutate()
+              }}
+              className={styles.closeButton}
+            >
+              {convertToDraft.isPending ? "Converting..." : "Convert to draft"}
+            </Button>
+            <Button
               variant="danger"
               loading={isUpdatingState}
-              disabled={isMerging || isUpdatingState}
+              disabled={isMerging || isUpdatingState || convertToDraft.isPending}
               onClick={handleStateToggle}
               className={styles.closeButton}
             >

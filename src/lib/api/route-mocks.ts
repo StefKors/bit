@@ -50,6 +50,16 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
       state: "closed",
       merged: false,
     }),
+    convertPullRequestToDraft: vi.fn().mockResolvedValue({
+      number: 1,
+      state: "open",
+      draft: true,
+    }),
+    markPullRequestReadyForReview: vi.fn().mockResolvedValue({
+      number: 1,
+      state: "open",
+      draft: false,
+    }),
     updatePullRequest: vi.fn().mockResolvedValue({
       number: 1,
       title: "Updated title",

@@ -988,6 +988,52 @@ export class GitHubClient {
     }
   }
 
+  async convertPullRequestToDraft(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+  ): Promise<{ number: number; state: "open" | "closed"; draft: boolean }> {
+    await withRateLimitRetry(() =>
+      this.octokit.request("POST /repos/{owner}/{repo}/pulls/{pull_number}/convert-to-draft", {
+        owner,
+        repo,
+        pull_number: pullNumber,
+      }),
+    )
+
+    const rateLimit = await this.getRateLimit()
+    this.lastRateLimit = rateLimit
+
+    return {
+      number: pullNumber,
+      state: "open",
+      draft: true,
+    }
+  }
+
+  async markPullRequestReadyForReview(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+  ): Promise<{ number: number; state: "open" | "closed"; draft: boolean }> {
+    await withRateLimitRetry(() =>
+      this.octokit.request("POST /repos/{owner}/{repo}/pulls/{pull_number}/ready_for_review", {
+        owner,
+        repo,
+        pull_number: pullNumber,
+      }),
+    )
+
+    const rateLimit = await this.getRateLimit()
+    this.lastRateLimit = rateLimit
+
+    return {
+      number: pullNumber,
+      state: "open",
+      draft: false,
+    }
+  }
+
   // Delete a branch from a repository.
   async deleteBranch(owner: string, repo: string, branch: string): Promise<{ deleted: boolean }> {
     await withRateLimitRetry(() =>
