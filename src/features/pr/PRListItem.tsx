@@ -23,6 +23,7 @@ export interface PullRequestLike {
   reviewComments?: number | null
   githubCreatedAt?: Date | number | string | null
   githubUpdatedAt?: Date | number | string | null
+  prChecks?: Array<{ status?: string | null; conclusion?: string | null }> | null
 }
 
 interface PRListItemProps {
@@ -51,7 +52,15 @@ function getCIStatus(pr: {
   state: string
   merged?: boolean | null
   draft?: boolean | null
+  prChecks?: Array<{ status?: string | null; conclusion?: string | null }> | null
 }): CIStatus {
+  const checksSummary = getChecksSummary(pr.prChecks)
+  if (checksSummary) {
+    if (checksSummary.failure > 0) return "failure"
+    if (checksSummary.pending > 0) return "pending"
+    return "success"
+  }
+
   if (pr.draft) {
     return "pending"
   }
@@ -62,6 +71,45 @@ function getCIStatus(pr: {
     return "failure"
   }
   return "success"
+}
+
+const getChecksSummary = (
+  checks: Array<{ status?: string | null; conclusion?: string | null }> | null | undefined,
+): { success: number; failure: number; pending: number; total: number } | null => {
+  if (!checks || checks.length === 0) return null
+
+  let success = 0
+  let failure = 0
+  let pending = 0
+  for (const check of checks) {
+    if (check.status !== "completed") {
+      pending++
+      continue
+    }
+
+    switch (check.conclusion) {
+      case "success":
+      case "neutral":
+      case "skipped":
+        success++
+        break
+      case "failure":
+      case "timed_out":
+      case "action_required":
+      case "cancelled":
+        failure++
+        break
+      default:
+        pending++
+    }
+  }
+
+  return {
+    success,
+    failure,
+    pending,
+    total: checks.length,
+  }
 }
 
 function formatDate(date: Date | number | string | null | undefined): string {
@@ -154,6 +202,7 @@ const StatusIcon = ({ status }: { status: PRStatus }) => {
 
 export function PRListItem({ pr, repoFullName, isApproved, searchParams }: PRListItemProps) {
   const totalComments = (pr.comments ?? 0) + (pr.reviewComments ?? 0)
+  const checksSummary = getChecksSummary(pr.prChecks)
   const ciStatus = getCIStatus(pr)
   const prStatus = getPRStatus(pr)
 
@@ -212,7 +261,30 @@ export function PRListItem({ pr, repoFullName, isApproved, searchParams }: PRLis
             </div>
           )}
           <div className={styles.statusIndicators}>
-            <StatusDot status={ciStatus} />
+            {checksSummary ? (
+              <>
+                {checksSummary.success > 0 && (
+                  <span className={styles.checkPill}>
+                    <StatusDot status="success" />
+                    {checksSummary.success}
+                  </span>
+                )}
+                {checksSummary.pending > 0 && (
+                  <span className={styles.checkPill}>
+                    <StatusDot status="pending" />
+                    {checksSummary.pending}
+                  </span>
+                )}
+                {checksSummary.failure > 0 && (
+                  <span className={styles.checkPill}>
+                    <StatusDot status="failure" />
+                    {checksSummary.failure}
+                  </span>
+                )}
+              </>
+            ) : (
+              <StatusDot status={ciStatus} />
+            )}
           </div>
         </div>
       </div>

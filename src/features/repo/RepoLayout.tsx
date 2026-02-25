@@ -76,7 +76,9 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
     repos: {
       $: { where: { fullName } },
       organization: {},
-      pullRequests: {},
+      pullRequests: {
+        prChecks: {},
+      },
       issues: {},
     },
   })

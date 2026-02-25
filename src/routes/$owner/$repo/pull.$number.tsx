@@ -1,13 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useRef, useState, useSyncExternalStore } from "react"
 import { useMutation } from "@tanstack/react-query"
-import {
-  GitPullRequestIcon,
-  GitMergeIcon,
-  HistoryIcon,
-  FileIcon,
-  GitCommitIcon,
-} from "@primer/octicons-react"
+import { GitPullRequestIcon, HistoryIcon, FileIcon, GitCommitIcon } from "@primer/octicons-react"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Tabs } from "@/components/Tabs"
 import { PRActivityFeed } from "@/features/pr/PRActivityFeed"
@@ -15,6 +9,9 @@ import { PRActionsBar } from "@/features/pr/PRActionsBar"
 import { PRFilesTab } from "@/features/pr/PRFilesTab"
 import { PRCommitsTab } from "@/features/pr/PRCommitsTab"
 import { PRThreeColumnLayout } from "@/features/pr/PRThreeColumnLayout"
+import { PRHeader } from "@/features/pr/PRHeader"
+import { LabelPicker } from "@/features/pr/LabelPicker"
+import { ReviewerPicker } from "@/features/pr/ReviewerPicker"
 import { DiffOptionsBar, type DiffOptions } from "@/features/pr/DiffOptionsBar"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
@@ -59,6 +56,41 @@ function formatTimeAgo(date: Date | number | null | undefined): string {
   return d.toLocaleDateString()
 }
 
+const parseStringArray = (value: string | null | undefined): string[] => {
+  if (!value) return []
+  try {
+    const parsed = JSON.parse(value) as Array<string | number | boolean | null>
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter((entry): entry is string => typeof entry === "string")
+  } catch {
+    return []
+  }
+}
+
+const parseLabelArray = (
+  value: string | null | undefined,
+): Array<{ name: string; color: string | null }> => {
+  if (!value) return []
+  try {
+    const parsed = JSON.parse(value) as Array<{
+      name?: string | number | boolean | null
+      color?: string | number | boolean | null
+    }>
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .filter(
+        (entry): entry is { name: string; color?: string | number | boolean | null } =>
+          typeof entry === "object" && entry !== null && typeof entry.name === "string",
+      )
+      .map((entry) => ({
+        name: entry.name,
+        color: typeof entry.color === "string" ? entry.color : null,
+      }))
+  } catch {
+    return []
+  }
+}
+
 function PRDetailPage() {
   const { user } = useAuth()
   const { owner, repo, number } = Route.useParams()
@@ -85,6 +117,7 @@ function PRDetailPage() {
       $: { where: { fullName } },
       pullRequests: {
         $: { order: { githubUpdatedAt: "desc" } },
+        prChecks: {},
       },
     },
   })
@@ -106,6 +139,7 @@ function PRDetailPage() {
         prComments: {},
         prCommits: {},
         prEvents: {},
+        prChecks: {},
       },
     },
   })
@@ -181,15 +215,22 @@ function PRDetailPage() {
   }
 
   const isMerged = pr.merged
-  const isClosed = pr.state === "closed"
   const isOpen = pr.state === "open"
   const isDraft = pr.draft
+  const prTitle = typeof pr.title === "string" ? pr.title : ""
+  const prBody = typeof pr.body === "string" ? pr.body : null
+  const prState = pr.state === "closed" ? "closed" : "open"
+  const prDraft = Boolean(pr.draft)
+  const prMerged = Boolean(pr.merged)
 
   const prFiles = pr.prFiles ?? []
   const prReviews = pr.prReviews ?? []
   const prComments = pr.prComments ?? []
   const prCommits = pr.prCommits ?? []
   const prEvents = pr.prEvents ?? []
+  const prChecks = pr.prChecks ?? []
+  const prReviewers = parseStringArray(pr.reviewers ?? pr.reviewRequestedBy)
+  const prLabels = parseLabelArray(pr.labels)
 
   return (
     <div className={containerClassName}>
@@ -261,6 +302,7 @@ function PRDetailPage() {
           authors={authors}
           labels={labels}
           hasActiveFilters={hasActiveFilters}
+          currentUserId={user?.id ?? null}
           currentUserLogin={user?.login ?? null}
           diffOptions={diffOptions}
           onDiffOptionsChange={setDiffOptions}
@@ -269,59 +311,31 @@ function PRDetailPage() {
       ) : (
         <>
           <div className={styles.headerContainer}>
-            <header className={styles.header}>
-              <div className={styles.titleRow}>
-                {isMerged ? (
-                  <GitMergeIcon className={`${styles.prIcon} ${styles.prIconMerged}`} size={24} />
-                ) : (
-                  <GitPullRequestIcon
-                    className={`${styles.prIcon} ${isClosed ? styles.prIconClosed : styles.prIconOpen}`}
-                    size={24}
-                  />
-                )}
-                <h1 className={styles.title}>
-                  {pr.title}
-                  <span className={styles.prNumber}> #{pr.number}</span>
-                  {isDraft ? (
-                    <span className={`${styles.statusBadge} ${styles.statusDraft}`}>Draft</span>
-                  ) : isMerged ? (
-                    <span className={`${styles.statusBadge} ${styles.statusMerged}`}>Merged</span>
-                  ) : isClosed ? (
-                    <span className={`${styles.statusBadge} ${styles.statusClosed}`}>Closed</span>
-                  ) : (
-                    <span className={`${styles.statusBadge} ${styles.statusOpen}`}>Open</span>
-                  )}
-                </h1>
-              </div>
-
-              <div className={styles.meta}>
-                {pr.authorLogin && (
-                  <span className={styles.metaItem}>
-                    {pr.authorAvatarUrl && (
-                      <img
-                        src={pr.authorAvatarUrl}
-                        alt={pr.authorLogin}
-                        className={styles.authorAvatar}
-                      />
-                    )}
-                    <strong>{pr.authorLogin}</strong>
-                  </span>
-                )}
-                <span className={styles.metaItem}>
-                  wants to merge into
-                  <span className={styles.branchInfo}>{pr.baseRef}</span>
-                  from
-                  <span className={styles.branchInfo}>{pr.headRef}</span>
-                </span>
-                <span className={styles.metaItem}>
-                  {isOpen
-                    ? `opened ${formatTimeAgo(pr.githubCreatedAt)}`
-                    : isMerged
-                      ? `merged ${formatTimeAgo(pr.mergedAt)}`
-                      : `closed ${formatTimeAgo(pr.closedAt)}`}
-                </span>
-              </div>
-            </header>
+            <PRHeader
+              userId={user?.id}
+              owner={owner}
+              repo={repoName}
+              prNumber={prNumber}
+              title={prTitle}
+              body={prBody}
+              state={prState}
+              draft={prDraft}
+              merged={prMerged}
+              authorLogin={pr.authorLogin}
+              authorAvatarUrl={pr.authorAvatarUrl}
+              baseRef={pr.baseRef}
+              headRef={pr.headRef}
+              githubCreatedAt={pr.githubCreatedAt}
+              mergedAt={pr.mergedAt}
+              closedAt={pr.closedAt}
+              mergeable={
+                typeof pr.mergeable === "boolean" || pr.mergeable === null ? pr.mergeable : null
+              }
+              mergeableState={typeof pr.mergeableState === "string" ? pr.mergeableState : null}
+              checks={prChecks}
+              onUpdated={() => prSync.mutate()}
+              formatTimeAgo={formatTimeAgo}
+            />
           </div>
 
           {user?.id && (
@@ -333,6 +347,8 @@ function PRDetailPage() {
               isOpen={isOpen}
               isDraft={isDraft}
               isMerged={isMerged}
+              isLocked={Boolean(pr.locked)}
+              lockReason={typeof pr.lockReason === "string" ? pr.lockReason : null}
               mergeable={pr.mergeable}
               mergeableState={pr.mergeableState}
               headRef={pr.headRef ?? ""}
@@ -340,6 +356,27 @@ function PRDetailPage() {
               onMergeSuccess={() => prSync.mutate()}
               onStateChange={() => prSync.mutate()}
             />
+          )}
+
+          {user?.id && (
+            <div className={styles.managementBar}>
+              <ReviewerPicker
+                userId={user.id}
+                owner={owner}
+                repo={repoName}
+                prNumber={prNumber}
+                reviewers={prReviewers}
+                onUpdated={() => prSync.mutate()}
+              />
+              <LabelPicker
+                userId={user.id}
+                owner={owner}
+                repo={repoName}
+                prNumber={prNumber}
+                labels={prLabels}
+                onUpdated={() => prSync.mutate()}
+              />
+            </div>
           )}
 
           <Tabs
@@ -397,7 +434,18 @@ function PRDetailPage() {
             )}
 
             {activeTab === "files" && (
-              <PRFilesTab files={prFiles} comments={prComments} diffOptions={diffOptions} />
+              <PRFilesTab
+                key={`${owner}/${repoName}#${prNumber}`}
+                files={prFiles}
+                comments={prComments}
+                diffOptions={diffOptions}
+                userId={user?.id}
+                owner={owner}
+                repo={repoName}
+                prNumber={prNumber}
+                headSha={pr.headSha ?? undefined}
+                onCommentCreated={() => prSync.mutate()}
+              />
             )}
           </div>
         </>

@@ -3,9 +3,13 @@ import { useMutation } from "@tanstack/react-query"
 import { GitMergeIcon, AlertIcon, ChevronDownIcon } from "@primer/octicons-react"
 import { Button } from "@/components/Button"
 import {
+  convertToDraftMutation,
   deleteBranchMutation,
+  lockPRMutation,
+  markReadyForReviewMutation,
   mergePRMutation,
   restoreBranchMutation,
+  unlockPRMutation,
   updatePRStateMutation,
 } from "@/lib/mutations"
 import styles from "./PRActionsBar.module.css"
@@ -20,6 +24,8 @@ interface PRActionsBarProps {
   isOpen: boolean
   isDraft: boolean
   isMerged: boolean
+  isLocked?: boolean
+  lockReason?: string | null
   mergeable?: boolean | null
   mergeableState?: string | null
   headRef: string
@@ -36,6 +42,8 @@ export function PRActionsBar({
   isOpen,
   isDraft,
   isMerged,
+  isLocked = false,
+  lockReason = null,
   mergeable,
   mergeableState,
   headRef,
@@ -72,6 +80,28 @@ export function PRActionsBar({
   const isMerging = merge.isPending
   const isUpdatingState = updateState.isPending
 
+  const convertToDraft = useMutation({
+    ...convertToDraftMutation(userId, owner, repo, prNumber),
+    onSuccess: (result) => {
+      setError(null)
+      onStateChange?.(result.state)
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Failed to convert pull request to draft")
+    },
+  })
+
+  const markReadyForReview = useMutation({
+    ...markReadyForReviewMutation(userId, owner, repo, prNumber),
+    onSuccess: (result) => {
+      setError(null)
+      onStateChange?.(result.state)
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Failed to mark pull request as ready")
+    },
+  })
+
   const deleteBranch = useMutation({
     ...deleteBranchMutation(userId, owner, repo),
     onSuccess: () => {
@@ -92,8 +122,34 @@ export function PRActionsBar({
     },
   })
 
+  const lockConversation = useMutation({
+    ...lockPRMutation(userId, owner, repo, prNumber),
+    onSuccess: () => {
+      setError(null)
+      onStateChange?.(isOpen ? "open" : "closed")
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Failed to lock conversation")
+    },
+  })
+
+  const unlockConversation = useMutation({
+    ...unlockPRMutation(userId, owner, repo, prNumber),
+    onSuccess: () => {
+      setError(null)
+      onStateChange?.(isOpen ? "open" : "closed")
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Failed to unlock conversation")
+    },
+  })
+
   if (isMerged) {
-    const isBranchActionPending = deleteBranch.isPending || restoreBranch.isPending
+    const isBranchActionPending =
+      deleteBranch.isPending ||
+      restoreBranch.isPending ||
+      lockConversation.isPending ||
+      unlockConversation.isPending
     const canRestore = deleteBranch.isSuccess
     const canDelete = headRef.length > 0
     const canRestoreBranch = canRestore && headSha.length > 0
@@ -133,6 +189,21 @@ export function PRActionsBar({
                 {restoreBranch.isPending ? "Restoring..." : "Restore branch"}
               </Button>
             )}
+            <Button
+              variant="default"
+              loading={lockConversation.isPending || unlockConversation.isPending}
+              disabled={isBranchActionPending}
+              onClick={() => {
+                setError(null)
+                if (isLocked) {
+                  unlockConversation.mutate()
+                } else {
+                  lockConversation.mutate({ lockReason: "resolved" })
+                }
+              }}
+            >
+              {isLocked ? "Unlock conversation" : "Lock conversation"}
+            </Button>
           </div>
         </div>
       </div>
@@ -154,14 +225,36 @@ export function PRActionsBar({
           </div>
         )}
         <div className={styles.mergeBar}>
-          <Button
-            variant="default"
-            loading={isUpdatingState}
-            disabled={isUpdatingState}
-            onClick={handleStateToggle}
-          >
-            {isUpdatingState ? "Reopening..." : "Reopen pull request"}
-          </Button>
+          <div className={styles.mergeActions}>
+            <Button
+              variant="default"
+              loading={isUpdatingState}
+              disabled={
+                isUpdatingState || lockConversation.isPending || unlockConversation.isPending
+              }
+              onClick={handleStateToggle}
+            >
+              {isUpdatingState ? "Reopening..." : "Reopen pull request"}
+            </Button>
+            <Button
+              variant="default"
+              loading={lockConversation.isPending || unlockConversation.isPending}
+              disabled={
+                isUpdatingState || lockConversation.isPending || unlockConversation.isPending
+              }
+              onClick={() => {
+                setError(null)
+                if (isLocked) {
+                  unlockConversation.mutate()
+                } else {
+                  lockConversation.mutate({ lockReason: "resolved" })
+                }
+              }}
+              title={lockReason ? `Lock reason: ${lockReason}` : undefined}
+            >
+              {isLocked ? "Unlock conversation" : "Lock conversation"}
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -173,6 +266,44 @@ export function PRActionsBar({
         <div className={styles.draftBanner}>
           <AlertIcon size={16} className={styles.draftIcon} />
           <span>This pull request is still a draft</span>
+          <Button
+            variant="primary"
+            size="small"
+            loading={markReadyForReview.isPending}
+            disabled={
+              markReadyForReview.isPending ||
+              isUpdatingState ||
+              lockConversation.isPending ||
+              unlockConversation.isPending
+            }
+            onClick={() => {
+              setError(null)
+              markReadyForReview.mutate()
+            }}
+          >
+            Ready for review
+          </Button>
+          <Button
+            variant="default"
+            size="small"
+            loading={lockConversation.isPending || unlockConversation.isPending}
+            disabled={
+              markReadyForReview.isPending ||
+              lockConversation.isPending ||
+              unlockConversation.isPending
+            }
+            onClick={() => {
+              setError(null)
+              if (isLocked) {
+                unlockConversation.mutate()
+              } else {
+                lockConversation.mutate({ lockReason: "resolved" })
+              }
+            }}
+            title={lockReason ? `Lock reason: ${lockReason}` : undefined}
+          >
+            {isLocked ? "Unlock conversation" : "Lock conversation"}
+          </Button>
         </div>
       </div>
     )
@@ -258,16 +389,69 @@ export function PRActionsBar({
             <Button
               variant="success"
               loading={isMerging}
-              disabled={isMerging || isUpdatingState}
+              disabled={
+                isMerging ||
+                isUpdatingState ||
+                convertToDraft.isPending ||
+                lockConversation.isPending ||
+                unlockConversation.isPending
+              }
               onClick={handleMerge}
               className={styles.confirmButton}
             >
               {isMerging ? "Merging..." : "Merge pull request"}
             </Button>
             <Button
+              variant="default"
+              loading={convertToDraft.isPending}
+              disabled={
+                isMerging ||
+                isUpdatingState ||
+                convertToDraft.isPending ||
+                lockConversation.isPending ||
+                unlockConversation.isPending
+              }
+              onClick={() => {
+                setError(null)
+                convertToDraft.mutate()
+              }}
+              className={styles.closeButton}
+            >
+              {convertToDraft.isPending ? "Converting..." : "Convert to draft"}
+            </Button>
+            <Button
+              variant="default"
+              loading={lockConversation.isPending || unlockConversation.isPending}
+              disabled={
+                isMerging ||
+                isUpdatingState ||
+                convertToDraft.isPending ||
+                lockConversation.isPending ||
+                unlockConversation.isPending
+              }
+              onClick={() => {
+                setError(null)
+                if (isLocked) {
+                  unlockConversation.mutate()
+                } else {
+                  lockConversation.mutate({ lockReason: "resolved" })
+                }
+              }}
+              title={lockReason ? `Lock reason: ${lockReason}` : undefined}
+              className={styles.closeButton}
+            >
+              {isLocked ? "Unlock conversation" : "Lock conversation"}
+            </Button>
+            <Button
               variant="danger"
               loading={isUpdatingState}
-              disabled={isMerging || isUpdatingState}
+              disabled={
+                isMerging ||
+                isUpdatingState ||
+                convertToDraft.isPending ||
+                lockConversation.isPending ||
+                unlockConversation.isPending
+              }
               onClick={handleStateToggle}
               className={styles.closeButton}
             >

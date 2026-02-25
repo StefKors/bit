@@ -15,7 +15,13 @@ vi.mock("@/lib/logger", () => ({
 
 const mockQuery = vi.fn()
 const mockTransact = vi.fn().mockResolvedValue(undefined)
-const mockUpdate = vi.fn().mockReturnThis()
+const createMockTxChain = () => {
+  const chain = {
+    link: vi.fn(() => chain),
+  }
+  return chain
+}
+const mockUpdate = vi.fn(() => createMockTxChain())
 
 const mockDbBase = {
   query: mockQuery,

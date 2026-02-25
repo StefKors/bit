@@ -40,6 +40,7 @@ type PRThreeColumnLayoutProps = {
   authors: Author[]
   labels: string[]
   hasActiveFilters: boolean
+  currentUserId?: string | null
   currentUserLogin?: string | null
   diffOptions: DiffOptions
   onDiffOptionsChange: (options: DiffOptions) => void
@@ -91,6 +92,7 @@ export const PRThreeColumnLayout = ({
   authors,
   labels,
   hasActiveFilters,
+  currentUserId,
   currentUserLogin,
   diffOptions,
   onDiffOptionsChange,
@@ -198,7 +200,17 @@ export const PRThreeColumnLayout = ({
             <DiffOptionsBar options={diffOptions} onChange={onDiffOptionsChange} />
           </header>
           <div className={styles.columnBody}>
-            <PRFilesTab files={prFiles} comments={prComments} diffOptions={diffOptions} />
+            <PRFilesTab
+              key={`${owner}/${repoName}#${pr.number}`}
+              files={prFiles}
+              comments={prComments}
+              diffOptions={diffOptions}
+              userId={currentUserId ?? undefined}
+              owner={owner}
+              repo={repoName}
+              prNumber={pr.number}
+              headSha={pr.headSha ?? undefined}
+            />
           </div>
         </section>
 

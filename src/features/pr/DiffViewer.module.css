@@ -217,6 +217,29 @@
   overflow: hidden;
 }
 
+.commentThreadResolved {
+  border-color: rgba(var(--bit-rgb-accent-green-bright), 0.4);
+}
+
+.threadHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  background: rgba(var(--bit-rgb-fg), 0.02);
+}
+
+.threadStatus {
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+  font-weight: 500;
+}
+
+.threadStatusResolved {
+  color: var(--bit-color-accent-green-bright);
+}
+
 .comment {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.06);
@@ -224,6 +247,10 @@
 
 .comment:last-child {
   border-bottom: none;
+}
+
+.commentResolved {
+  opacity: 0.7;
 }
 
 .commentHeader {
@@ -270,6 +297,72 @@
   margin: 0.5rem 0;
   padding: 0.5rem 0.75rem;
   font-size: 0.8rem;
+}
+
+.annotationContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inlineComposer {
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.12);
+  background: rgba(var(--bit-rgb-fg), 0.02);
+  border-radius: var(--bit-radius-md);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inlineComposerMeta {
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+}
+
+.composerModeRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.composerModeButton {
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.18);
+  border-radius: var(--bit-radius-sm);
+  background: transparent;
+  color: rgba(var(--bit-rgb-fg), 0.7);
+  font-size: 0.75rem;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+}
+
+.composerModeButtonActive {
+  background: rgba(var(--bit-rgb-accent-blue), 0.16);
+  border-color: rgba(var(--bit-rgb-accent-blue), 0.4);
+  color: var(--bit-color-link);
+}
+
+.inlineComposerTextarea {
+  width: 100%;
+  min-height: 80px;
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.2);
+  border-radius: var(--bit-radius-sm);
+  background: var(--bit-color-panel-bg);
+  color: var(--bit-color-text);
+  padding: 0.5rem;
+  resize: vertical;
+  font-family: var(--bit-font-sans);
+  font-size: 0.85rem;
+}
+
+.inlineComposerError {
+  font-size: 0.75rem;
+  color: var(--bit-color-accent-red);
+}
+
+.inlineComposerActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
 }
 
 /* ─────────────────────────────────────────────────────────────

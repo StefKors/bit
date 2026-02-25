@@ -19,6 +19,20 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
   toGitHubClient({
     getRateLimit: vi.fn().mockResolvedValue(mockRateLimit),
     getTokenScopes: vi.fn().mockResolvedValue(["repo", "read:org", "read:user", "user:email"]),
+    listCheckRuns: vi.fn().mockResolvedValue({
+      checks: [
+        {
+          githubId: 1,
+          name: "CI / test",
+          status: "completed",
+          conclusion: "success",
+          detailsUrl: "https://example.com/check/1",
+          htmlUrl: "https://github.com/test/repo/actions/runs/1",
+          startedAt: 1700000000000,
+          completedAt: 1700000100000,
+        },
+      ],
+    }),
     fetchRepoTree: vi.fn().mockResolvedValue({ count: 10, rateLimit: mockRateLimit }),
     fetchRepoCommits: vi.fn().mockResolvedValue({ count: 5, rateLimit: mockRateLimit }),
     fetchPullRequests: vi.fn().mockResolvedValue({
@@ -50,6 +64,24 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
       state: "closed",
       merged: false,
     }),
+    convertPullRequestToDraft: vi.fn().mockResolvedValue({
+      number: 1,
+      state: "open",
+      draft: true,
+    }),
+    markPullRequestReadyForReview: vi.fn().mockResolvedValue({
+      number: 1,
+      state: "open",
+      draft: false,
+    }),
+    updatePullRequest: vi.fn().mockResolvedValue({
+      number: 1,
+      title: "Updated title",
+      body: "Updated body",
+      state: "open",
+      draft: false,
+      githubUpdatedAt: Date.now(),
+    }),
     deleteBranch: vi.fn().mockResolvedValue({ deleted: true }),
     restoreBranch: vi.fn().mockResolvedValue({
       restored: true,
@@ -72,6 +104,60 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
       state: "COMMENTED",
       body: "Looks good",
       htmlUrl: "https://github.com/test/repo/pull/1#pullrequestreview-1",
+    }),
+    submitPullRequestReview: vi.fn().mockResolvedValue({
+      id: 1,
+      state: "COMMENTED",
+      body: "Looks good",
+      htmlUrl: "https://github.com/test/repo/pull/1#pullrequestreview-1",
+    }),
+    discardPendingReview: vi.fn().mockResolvedValue({
+      discarded: true,
+    }),
+    requestReviewers: vi.fn().mockResolvedValue({
+      requestedReviewers: ["reviewer-a"],
+      requestedTeams: [],
+    }),
+    removeRequestedReviewers: vi.fn().mockResolvedValue({
+      requestedReviewers: [],
+      requestedTeams: [],
+    }),
+    addLabels: vi.fn().mockResolvedValue({
+      labels: [{ name: "bug", color: "d73a4a" }],
+    }),
+    removeLabel: vi.fn().mockResolvedValue({
+      labels: [],
+    }),
+    setLabels: vi.fn().mockResolvedValue({
+      labels: [],
+    }),
+    lockIssue: vi.fn().mockResolvedValue({
+      locked: true,
+      lockReason: "resolved",
+    }),
+    unlockIssue: vi.fn().mockResolvedValue({
+      locked: false,
+      lockReason: null,
+    }),
+    createReviewComment: vi.fn().mockResolvedValue({
+      id: 1,
+      body: "Inline comment",
+      htmlUrl: "https://github.com/test/repo/pull/1#discussion_r1",
+      path: "src/index.ts",
+      line: 1,
+      side: "RIGHT",
+    }),
+    updateReviewComment: vi.fn().mockResolvedValue({
+      id: 1,
+      resolved: true,
+    }),
+    createSuggestedChange: vi.fn().mockResolvedValue({
+      id: 1,
+      body: "```suggestion\nconst value = 1\n```",
+      htmlUrl: "https://github.com/test/repo/pull/1#discussion_r1",
+      path: "src/index.ts",
+      line: 1,
+      side: "RIGHT",
     }),
     ...overrides,
   })

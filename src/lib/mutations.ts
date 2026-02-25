@@ -244,6 +244,306 @@ export const updatePRStateMutation = (
     },
   })
 
+export interface UpdatePRResponse {
+  number: number
+  title: string
+  body: string | null
+  state: "open" | "closed"
+  draft: boolean
+  githubUpdatedAt: number | null
+  error?: string
+  code?: string
+}
+
+export const updatePRMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "update", owner, repo, number],
+    mutationFn: async (vars: { title?: string; body?: string }): Promise<UpdatePRResponse> => {
+      const res = await fetch(`/api/github/pr/update/${owner}/${repo}/${number}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as UpdatePRResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to update pull request")
+      }
+      return data
+    },
+  })
+
+type ReviewersResponse = {
+  requestedReviewers: string[]
+  requestedTeams: string[]
+  error?: string
+  code?: string
+}
+
+export const addReviewersMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "reviewers", "add", owner, repo, number],
+    mutationFn: async (vars: {
+      reviewers: string[]
+      teamReviewers?: string[]
+    }): Promise<ReviewersResponse> => {
+      const res = await fetch(`/api/github/pr/reviewers/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as ReviewersResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to request reviewers")
+      }
+      return data
+    },
+  })
+
+export const removeReviewersMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "reviewers", "remove", owner, repo, number],
+    mutationFn: async (vars: {
+      reviewers: string[]
+      teamReviewers?: string[]
+    }): Promise<ReviewersResponse> => {
+      const res = await fetch(`/api/github/pr/reviewers/${owner}/${repo}/${number}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as ReviewersResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to remove reviewers")
+      }
+      return data
+    },
+  })
+
+type LabelsResponse = {
+  labels: Array<{ name: string; color: string | null }>
+  error?: string
+  code?: string
+}
+
+export const addLabelsMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "labels", "add", owner, repo, number],
+    mutationFn: async (vars: { labels: string[] }): Promise<LabelsResponse> => {
+      const res = await fetch(`/api/github/pr/labels/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as LabelsResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to add labels")
+      }
+      return data
+    },
+  })
+
+export const removeLabelMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "labels", "remove", owner, repo, number],
+    mutationFn: async (vars: { label: string }): Promise<LabelsResponse> => {
+      const res = await fetch(`/api/github/pr/labels/${owner}/${repo}/${number}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as LabelsResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to remove label")
+      }
+      return data
+    },
+  })
+
+export const setLabelsMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "labels", "set", owner, repo, number],
+    mutationFn: async (vars: { labels: string[] }): Promise<LabelsResponse> => {
+      const res = await fetch(`/api/github/pr/labels/${owner}/${repo}/${number}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as LabelsResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to replace labels")
+      }
+      return data
+    },
+  })
+
+type DraftStateResponse = {
+  number: number
+  state: "open" | "closed"
+  draft: boolean
+  error?: string
+  code?: string
+}
+
+export const convertToDraftMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "draft", "convert", owner, repo, number],
+    mutationFn: async (): Promise<DraftStateResponse> => {
+      const res = await fetch(`/api/github/pr/draft/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({ action: "convert_to_draft" }),
+      })
+      const data = (await res.json()) as DraftStateResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to convert pull request to draft")
+      }
+      return data
+    },
+  })
+
+export const markReadyForReviewMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "draft", "ready", owner, repo, number],
+    mutationFn: async (): Promise<DraftStateResponse> => {
+      const res = await fetch(`/api/github/pr/draft/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({ action: "ready_for_review" }),
+      })
+      const data = (await res.json()) as DraftStateResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to mark pull request as ready")
+      }
+      return data
+    },
+  })
+
+type LockPRResponse = {
+  locked: boolean
+  lockReason: string | null
+  error?: string
+  code?: string
+}
+
+export const lockPRMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "lock", owner, repo, number],
+    mutationFn: async (vars: {
+      lockReason?: "off-topic" | "too heated" | "resolved" | "spam"
+    }): Promise<LockPRResponse> => {
+      const res = await fetch(`/api/github/pr/lock/${owner}/${repo}/${number}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as LockPRResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to lock conversation")
+      }
+      return data
+    },
+  })
+
+export const unlockPRMutation = (userId: string, owner: string, repo: string, number: number) =>
+  mutationOptions({
+    mutationKey: ["pr", "unlock", owner, repo, number],
+    mutationFn: async (): Promise<LockPRResponse> => {
+      const res = await fetch(`/api/github/pr/lock/${owner}/${repo}/${number}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${userId}`,
+        },
+      })
+      const data = (await res.json()) as LockPRResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to unlock conversation")
+      }
+      return data
+    },
+  })
+
 type DeleteBranchResponse = {
   deleted: boolean
   error?: string
@@ -438,6 +738,345 @@ export const submitReviewMutation = (userId: string, owner: string, repo: string
           throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
         }
         throw new Error(data.error || "Failed to submit review")
+      }
+      return data
+    },
+  })
+
+export const createDraftReviewMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "reviews", "create-draft", owner, repo, number],
+    mutationFn: async (vars: { body?: string }): Promise<SubmitReviewResponse> => {
+      const res = await fetch(`/api/github/reviews/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({
+          action: "create_draft",
+          body: vars.body,
+        }),
+      })
+      const data = (await res.json()) as SubmitReviewResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to create draft review")
+      }
+      return data
+    },
+  })
+
+export const submitDraftReviewMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "reviews", "submit-draft", owner, repo, number],
+    mutationFn: async (vars: {
+      reviewId: number
+      event: "APPROVE" | "REQUEST_CHANGES" | "COMMENT"
+      body?: string
+    }): Promise<SubmitReviewResponse> => {
+      const res = await fetch(`/api/github/reviews/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({
+          action: "submit_draft",
+          reviewId: vars.reviewId,
+          event: vars.event,
+          body: vars.body,
+        }),
+      })
+      const data = (await res.json()) as SubmitReviewResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to submit draft review")
+      }
+      return data
+    },
+  })
+
+type DiscardDraftReviewResponse = {
+  discarded: boolean
+  error?: string
+  code?: string
+}
+
+export const discardDraftReviewMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "reviews", "discard-draft", owner, repo, number],
+    mutationFn: async (vars: { reviewId: number }): Promise<DiscardDraftReviewResponse> => {
+      const res = await fetch(`/api/github/reviews/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({
+          action: "discard_draft",
+          reviewId: vars.reviewId,
+        }),
+      })
+      const data = (await res.json()) as DiscardDraftReviewResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to discard draft review")
+      }
+      return data
+    },
+  })
+
+type ReRequestReviewResponse = {
+  requestedReviewers: string[]
+  requestedTeams: string[]
+  error?: string
+  code?: string
+}
+
+export const reRequestReviewMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "reviews", "re-request", owner, repo, number],
+    mutationFn: async (vars: {
+      reviewers: string[]
+      teamReviewers?: string[]
+    }): Promise<ReRequestReviewResponse> => {
+      const res = await fetch(`/api/github/reviews/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({
+          action: "re_request",
+          reviewers: vars.reviewers,
+          teamReviewers: vars.teamReviewers,
+        }),
+      })
+      const data = (await res.json()) as ReRequestReviewResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to re-request review")
+      }
+      return data
+    },
+  })
+
+type ToggleFileViewedResponse = {
+  viewedFiles: string[]
+  path: string
+  viewed: boolean
+  error?: string
+  code?: string
+}
+
+export const toggleFileViewedMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "files", "viewed", owner, repo, number],
+    mutationFn: async (vars: {
+      path: string
+      viewed: boolean
+    }): Promise<ToggleFileViewedResponse> => {
+      const res = await fetch(`/api/github/viewed/${owner}/${repo}/${number}`, {
+        method: vars.viewed ? "POST" : "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({ path: vars.path }),
+      })
+      const data = (await res.json()) as ToggleFileViewedResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to update viewed file state")
+      }
+      return data
+    },
+  })
+
+type ReviewCommentResponse = {
+  id: number
+  body: string
+  htmlUrl: string | null
+  path: string | null
+  line: number | null
+  side: "LEFT" | "RIGHT" | null
+  error?: string
+  code?: string
+}
+
+export const createReviewCommentMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "review-comments", "create", owner, repo, number],
+    mutationFn: async (vars: {
+      body: string
+      path?: string
+      line?: number
+      side?: "LEFT" | "RIGHT"
+      commitId?: string
+      inReplyTo?: number
+    }): Promise<ReviewCommentResponse> => {
+      const res = await fetch(`/api/github/review-comments/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as ReviewCommentResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to create inline review comment")
+      }
+      return data
+    },
+  })
+
+export const createSuggestionMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "suggestions", "create", owner, repo, number],
+    mutationFn: async (vars: {
+      body?: string
+      suggestion: string
+      path: string
+      line: number
+      side: "LEFT" | "RIGHT"
+      commitId: string
+    }): Promise<ReviewCommentResponse> => {
+      const res = await fetch(`/api/github/suggestions/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as ReviewCommentResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to create suggested change")
+      }
+      return data
+    },
+  })
+
+type ResolveThreadResponse = {
+  commentId: number
+  resolved: boolean
+  error?: string
+  code?: string
+}
+
+export const resolveThreadMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "threads", "resolve", owner, repo, number],
+    mutationFn: async (vars: { commentId: number }): Promise<ResolveThreadResponse> => {
+      const res = await fetch(`/api/github/resolve/${owner}/${repo}/${number}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as ResolveThreadResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to resolve thread")
+      }
+      return data
+    },
+  })
+
+export const unresolveThreadMutation = (
+  userId: string,
+  owner: string,
+  repo: string,
+  number: number,
+) =>
+  mutationOptions({
+    mutationKey: ["pr", "threads", "unresolve", owner, repo, number],
+    mutationFn: async (vars: { commentId: number }): Promise<ResolveThreadResponse> => {
+      const res = await fetch(`/api/github/resolve/${owner}/${repo}/${number}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as ResolveThreadResponse
+      if (!res.ok) {
+        if (data.code === "auth_invalid") {
+          throw new Error("Your GitHub connection has expired. Please reconnect to continue.")
+        }
+        throw new Error(data.error || "Failed to unresolve thread")
       }
       return data
     },

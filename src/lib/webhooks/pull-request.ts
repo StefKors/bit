@@ -9,6 +9,23 @@ const parseGithubTimestamp = (value?: string | null): number | null => {
   return Number.isFinite(timestamp) ? timestamp : null
 }
 
+const serializeRequestedReviewers = (
+  reviewers: Array<{ login?: string | null } | { slug?: string | null }> | null | undefined,
+  teams: Array<{ slug?: string | null }> | null | undefined,
+): string | null => {
+  const allReviewers = [
+    ...(reviewers ?? [])
+      .map((reviewer) => ("login" in reviewer ? (reviewer.login ?? null) : null))
+      .filter((login): login is string => Boolean(login)),
+    ...(teams ?? [])
+      .map((team) => team.slug ?? null)
+      .filter((slug): slug is string => Boolean(slug))
+      .map((slug) => `team:${slug}`),
+  ]
+  if (allReviewers.length === 0) return null
+  return JSON.stringify(allReviewers)
+}
+
 /**
  * Handle pull_request webhook events.
  *
@@ -81,6 +98,8 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
       state: pr.state,
       draft: pr.draft || false,
       merged: pr.merged || false,
+      locked: pr.locked || false,
+      lockReason: pr.active_lock_reason || null,
       mergeable: pr.mergeable ?? null,
       mergeableState: pr.mergeable_state || null,
       authorLogin: pr.user?.login || null,
@@ -103,6 +122,7 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
           color: l.color,
         })),
       ),
+      reviewers: serializeRequestedReviewers(pr.requested_reviewers, pr.requested_teams),
       githubCreatedAt: parseGithubTimestamp(pr.created_at),
       githubUpdatedAt: parseGithubTimestamp(pr.updated_at),
       closedAt: parseGithubTimestamp(pr.closed_at),

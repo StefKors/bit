@@ -19,43 +19,43 @@ todos:
     status: completed
   - id: phase-2-3
     content: "Phase 2.3: Inline Review Comments - API route, GitHub client function, inline comment UI in DiffViewer, tests"
-    status: pending
+    status: completed
   - id: phase-2-4
     content: "Phase 2.4: Resolve Conversation Threads - API route for resolve/unresolve, mutation, CommentThread component updates, tests"
-    status: pending
+    status: completed
   - id: phase-3-1
     content: "Phase 3.1: Suggest Changes - API route, suggestion formatting, SuggestionBlock component, tests"
-    status: pending
+    status: completed
   - id: phase-3-2
     content: "Phase 3.2: Draft Review State - API support for draft reviews, ReviewComposer draft UI, mutations, tests"
-    status: pending
+    status: completed
   - id: phase-3-3
     content: "Phase 3.3: Mark Files as Viewed - API route, local tracking utility, PRFilesTab checkbox UI, tests"
-    status: pending
+    status: completed
   - id: phase-3-4
     content: "Phase 3.4: Re-request Review - API endpoint, mutation, UI button in activity feed, tests"
-    status: pending
+    status: completed
   - id: phase-4-1
     content: "Phase 4.1: Edit PR Title/Description - API route, PRHeader component with inline editing, tests"
-    status: pending
+    status: completed
   - id: phase-4-2
     content: "Phase 4.2: Assign Reviewers - API route, ReviewerPicker component with multi-select, tests"
-    status: pending
+    status: completed
   - id: phase-4-3
     content: "Phase 4.3: Add/Remove Labels - API route with POST/DELETE/PUT, LabelPicker component, tests"
-    status: pending
+    status: completed
   - id: phase-4-4
     content: "Phase 4.4: Mark Draft/Ready - API route, mutation, button in PRActionsBar, tests"
-    status: pending
+    status: completed
   - id: phase-4-5
     content: "Phase 4.5: Lock/Unlock Conversation - API route, mutation, dropdown menu item, tests"
-    status: pending
+    status: completed
   - id: phase-5-1
     content: "Phase 5.1: Check Runs Display - Webhook handler, API route, ChecksList component, update PRListItem, schema updates, tests"
-    status: pending
+    status: completed
   - id: phase-5-2
     content: "Phase 5.2: Merge Conflicts Indicator - GitHub client update for mergeable state, PRHeader warning UI, webhook updates, tests"
-    status: pending
+    status: completed
   - id: phase-5-3
     content: "Phase 5.3: Update Branch Button - API route, GitHub client function, mutation, PRActionsBar button, tests"
     status: pending
@@ -92,17 +92,17 @@ flowchart TB
         UI[PR Detail UI Components]
         Mutations[React Query Mutations]
     end
-    
+
     subgraph Backend["Backend (TanStack Router API)"]
         Routes[API Route Handlers]
         GitHubAPI[GitHub API Client]
     end
-    
+
     subgraph DataLayer["Data Layer"]
         InstantDB[(InstantDB)]
         Webhooks[Webhook Handlers]
     end
-    
+
     UI --> Mutations
     Mutations --> Routes
     Routes --> GitHubAPI
@@ -110,8 +110,6 @@ flowchart TB
     GitHubAPI --> InstantDB
     Webhooks --> InstantDB
 ```
-
-
 
 ---
 
@@ -328,7 +326,7 @@ flowchart TB
 - `src/lib/github-client.ts` - Add helper
   - `createSuggestedChange()` - Formats body with
 
-```suggestion code blocks
+````suggestion code blocks
 
 - `src/features/pr/SuggestionBlock.tsx` - New component
   - Render suggestions in diff view
@@ -681,7 +679,7 @@ milestoneId: "string",
 locked: "boolean",
 lockReason: "string",
 viewedFiles: "string", // JSON array of paths
-```
+````
 
 ---
 
@@ -739,12 +737,12 @@ describe("POST /api/github/pr/merge", () => {
     // Assert InstantDB updated
     // Assert response structure
   })
-  
+
   it("returns 409 on merge conflict", async () => {
     // Mock GitHub API returning 405
     // Assert 409 response with meaningful error
   })
-  
+
   it("returns 401 without valid auth", async () => {
     // No auth header
     // Assert 401 response
@@ -876,4 +874,3 @@ describe("POST /api/github/pr/merge", () => {
 - All happy paths and error cases are tested
 - Webhook handlers maintain real-time sync for all new features
 - Zero regression in existing read-only PR functionality
-

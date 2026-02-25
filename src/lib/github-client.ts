@@ -60,6 +60,41 @@ export function isGitHubAuthError(error: unknown): boolean {
   return error instanceof RequestError && error.status === 401
 }
 
+export function formatSuggestedChangeBody(
+  commentBody: string | undefined,
+  suggestion: string,
+): string {
+  const normalizedComment = commentBody?.trim()
+  const normalizedSuggestion = suggestion.replaceAll("\r\n", "\n").replace(/\n+$/, "")
+  const suggestionBlock = `\`\`\`suggestion\n${normalizedSuggestion}\n\`\`\``
+
+  if (!normalizedComment) return suggestionBlock
+  return `${normalizedComment}\n\n${suggestionBlock}`
+}
+
+const parsePullNumberFromUrl = (pullRequestUrl: string | undefined): number | null => {
+  if (!pullRequestUrl) return null
+  const match = pullRequestUrl.match(/\/pulls\/(\d+)$/)
+  if (!match) return null
+  const value = Number.parseInt(match[1] ?? "", 10)
+  return Number.isNaN(value) ? null : value
+}
+
+const combineRequestedReviewers = (
+  requestedReviewers: Array<{ login?: string | null }> | null | undefined,
+  requestedTeams: Array<{ slug?: string | null }> | null | undefined,
+): string[] => {
+  const reviewers = (requestedReviewers ?? [])
+    .map((reviewer) => reviewer.login ?? null)
+    .filter((login): login is string => Boolean(login))
+  const teams = (requestedTeams ?? [])
+    .map((team) => team.slug ?? null)
+    .filter((slug): slug is string => Boolean(slug))
+    .map((slug) => `team:${slug}`)
+
+  return [...reviewers, ...teams]
+}
+
 export async function handleGitHubAuthError(userId: string): Promise<void> {
   const { syncStates } = await adminDb.query({
     syncStates: {
@@ -165,6 +200,47 @@ export class GitHubClient {
       return scopes.split(",").map((s) => s.trim())
     }
     return []
+  }
+
+  async listCheckRuns(
+    owner: string,
+    repo: string,
+    ref: string,
+  ): Promise<{
+    checks: Array<{
+      githubId: number
+      name: string
+      status: string
+      conclusion: string | null
+      detailsUrl: string | null
+      htmlUrl: string | null
+      startedAt: number | null
+      completedAt: number | null
+    }>
+  }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.checks.listForRef({
+        owner,
+        repo,
+        ref,
+        per_page: 100,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      checks: response.data.check_runs.map((checkRun) => ({
+        githubId: checkRun.id,
+        name: checkRun.name,
+        status: checkRun.status,
+        conclusion: checkRun.conclusion,
+        detailsUrl: checkRun.details_url ?? null,
+        htmlUrl: checkRun.html_url ?? null,
+        startedAt: checkRun.started_at ? new Date(checkRun.started_at).getTime() : null,
+        completedAt: checkRun.completed_at ? new Date(checkRun.completed_at).getTime() : null,
+      })),
+    }
   }
 
   // Update sync state in database
@@ -514,6 +590,8 @@ export class GitHubClient {
       state: pr.state,
       draft: pr.draft || false,
       merged: pr.merged_at !== null,
+      locked: pr.locked || false,
+      lockReason: pr.active_lock_reason || undefined,
       authorLogin: pr.user?.login || undefined,
       authorAvatarUrl: pr.user?.avatar_url || undefined,
       headRef: pr.head.ref,
@@ -523,6 +601,9 @@ export class GitHubClient {
       htmlUrl: pr.html_url,
       diffUrl: pr.diff_url,
       labels: JSON.stringify(pr.labels.map((l) => ({ name: l.name, color: l.color }))),
+      reviewers: JSON.stringify(
+        combineRequestedReviewers(pr.requested_reviewers, pr.requested_teams),
+      ),
       githubCreatedAt: pr.created_at ? new Date(pr.created_at).getTime() : undefined,
       githubUpdatedAt: pr.updated_at ? new Date(pr.updated_at).getTime() : undefined,
       closedAt: pr.closed_at ? new Date(pr.closed_at).getTime() : undefined,
@@ -632,6 +713,8 @@ export class GitHubClient {
           state: prData.state,
           draft: prData.draft || false,
           merged: prData.merged,
+          locked: prData.locked || false,
+          lockReason: prData.active_lock_reason || undefined,
           mergeable: prData.mergeable ?? undefined,
           mergeableState: prData.mergeable_state || undefined,
           authorLogin: prData.user?.login || undefined,
@@ -649,6 +732,9 @@ export class GitHubClient {
           comments: prData.comments,
           reviewComments: prData.review_comments,
           labels: JSON.stringify(prData.labels.map((l) => ({ name: l.name, color: l.color }))),
+          reviewers: JSON.stringify(
+            combineRequestedReviewers(prData.requested_reviewers, prData.requested_teams),
+          ),
           githubCreatedAt: prData.created_at ? new Date(prData.created_at).getTime() : undefined,
           githubUpdatedAt: prData.updated_at ? new Date(prData.updated_at).getTime() : undefined,
           closedAt: prData.closed_at ? new Date(prData.closed_at).getTime() : undefined,
@@ -774,6 +860,7 @@ export class GitHubClient {
             githubUpdatedAt: comment.updated_at
               ? new Date(comment.updated_at).getTime()
               : undefined,
+            resolved: existingComments?.[0]?.resolved ?? false,
             pullRequestId: prId,
             createdAt: now,
             updatedAt: now,
@@ -816,6 +903,7 @@ export class GitHubClient {
           line: comment.line ?? comment.original_line ?? undefined,
           side: comment.side || undefined,
           diffHunk: comment.diff_hunk || undefined,
+          resolved: existingReviewComments?.[0]?.resolved ?? false,
           githubCreatedAt: comment.created_at ? new Date(comment.created_at).getTime() : undefined,
           githubUpdatedAt: comment.updated_at ? new Date(comment.updated_at).getTime() : undefined,
           pullRequestId: prId,
@@ -869,6 +957,48 @@ export class GitHubClient {
       )
     }
 
+    if (prData.head.sha) {
+      const checksResult = await this.listCheckRuns(owner, repo, prData.head.sha)
+      for (const check of checksResult.checks) {
+        const { prChecks } = await adminDb.query({
+          prChecks: {
+            $: {
+              where: {
+                githubId: check.githubId,
+                sourceType: "check_run",
+                repoId: repoRecord.id,
+              },
+              limit: 1,
+            },
+          },
+        })
+        const existingCheck = prChecks?.[0]
+        const checkId = existingCheck?.id || id()
+
+        await adminDb.transact(
+          adminDb.tx.prChecks[checkId]
+            .update({
+              githubId: check.githubId,
+              name: check.name,
+              status: check.status,
+              conclusion: check.conclusion ?? undefined,
+              detailsUrl: check.detailsUrl ?? undefined,
+              htmlUrl: check.htmlUrl ?? undefined,
+              startedAt: check.startedAt ?? undefined,
+              completedAt: check.completedAt ?? undefined,
+              headSha: prData.head.sha,
+              sourceType: "check_run",
+              repoId: repoRecord.id,
+              pullRequestId: prId,
+              createdAt: existingCheck?.createdAt ?? now,
+              updatedAt: now,
+            })
+            .link({ repo: repoRecord.id })
+            .link({ pullRequest: prId }),
+        )
+      }
+    }
+
     // Get final rate limit status
     const rateLimit = await this.getRateLimit()
     await this.updateSyncState("pr-detail", `${owner}/${repo}/${pullNumber}`, rateLimit)
@@ -879,6 +1009,49 @@ export class GitHubClient {
   // Get last rate limit info
   getLastRateLimit(): RateLimitInfo | null {
     return this.lastRateLimit
+  }
+
+  // Update pull request state (open/closed)
+  async updatePullRequest(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    options: {
+      title?: string
+      body?: string
+      state?: "open" | "closed"
+    },
+  ): Promise<{
+    number: number
+    title: string
+    body: string | null
+    state: "open" | "closed"
+    draft: boolean
+    githubUpdatedAt: number | null
+  }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.pulls.update({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        title: options.title,
+        body: options.body,
+        state: options.state,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      number: response.data.number,
+      title: response.data.title,
+      body: response.data.body ?? null,
+      state: response.data.state,
+      draft: response.data.draft || false,
+      githubUpdatedAt: response.data.updated_at
+        ? new Date(response.data.updated_at).getTime()
+        : null,
+    }
   }
 
   // Update pull request state (open/closed)
@@ -907,6 +1080,52 @@ export class GitHubClient {
       number: response.data.number,
       state: response.data.state,
       merged: response.data.merged_at !== null,
+    }
+  }
+
+  async convertPullRequestToDraft(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+  ): Promise<{ number: number; state: "open" | "closed"; draft: boolean }> {
+    await withRateLimitRetry(() =>
+      this.octokit.request("POST /repos/{owner}/{repo}/pulls/{pull_number}/convert-to-draft", {
+        owner,
+        repo,
+        pull_number: pullNumber,
+      }),
+    )
+
+    const rateLimit = await this.getRateLimit()
+    this.lastRateLimit = rateLimit
+
+    return {
+      number: pullNumber,
+      state: "open",
+      draft: true,
+    }
+  }
+
+  async markPullRequestReadyForReview(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+  ): Promise<{ number: number; state: "open" | "closed"; draft: boolean }> {
+    await withRateLimitRetry(() =>
+      this.octokit.request("POST /repos/{owner}/{repo}/pulls/{pull_number}/ready_for_review", {
+        owner,
+        repo,
+        pull_number: pullNumber,
+      }),
+    )
+
+    const rateLimit = await this.getRateLimit()
+    this.lastRateLimit = rateLimit
+
+    return {
+      number: pullNumber,
+      state: "open",
+      draft: false,
     }
   }
 
@@ -1018,20 +1237,254 @@ export class GitHubClient {
     return { deleted: true }
   }
 
+  async createReviewComment(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    options: {
+      body: string
+      path?: string
+      line?: number
+      side?: "LEFT" | "RIGHT"
+      commitId?: string
+      inReplyTo?: number
+    },
+  ): Promise<{
+    id: number
+    body: string
+    htmlUrl: string | null
+    path: string | null
+    line: number | null
+    side: "LEFT" | "RIGHT" | null
+  }> {
+    const response = await withRateLimitRetry(() => {
+      if (options.inReplyTo) {
+        return this.octokit.rest.pulls.createReplyForReviewComment({
+          owner,
+          repo,
+          pull_number: pullNumber,
+          comment_id: options.inReplyTo,
+          body: options.body,
+        })
+      }
+
+      if (!options.path || !options.commitId || !options.line || !options.side) {
+        throw new Error("path, commitId, line, and side are required for inline comments")
+      }
+
+      return this.octokit.rest.pulls.createReviewComment({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        body: options.body,
+        path: options.path,
+        line: options.line,
+        side: options.side,
+        commit_id: options.commitId,
+      })
+    })
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      id: response.data.id,
+      body: response.data.body ?? "",
+      htmlUrl: response.data.html_url ?? null,
+      path: response.data.path ?? null,
+      line: response.data.line ?? response.data.original_line ?? null,
+      side: (response.data.side as "LEFT" | "RIGHT" | null) ?? null,
+    }
+  }
+
+  async updateReviewComment(
+    owner: string,
+    repo: string,
+    commentId: number,
+    options: { resolved: boolean },
+  ): Promise<{ id: number; resolved: boolean }> {
+    const commentResponse = await withRateLimitRetry(() =>
+      this.octokit.rest.pulls.getReviewComment({
+        owner,
+        repo,
+        comment_id: commentId,
+      }),
+    )
+
+    this.extractRateLimit(commentResponse.headers as Record<string, string | undefined>)
+    const pullNumber = parsePullNumberFromUrl(commentResponse.data.pull_request_url ?? undefined)
+    if (!pullNumber) {
+      throw new Error("Could not determine pull request number for review comment")
+    }
+
+    const threadLookup = await this.octokit.graphql<{
+      repository: {
+        pullRequest: {
+          reviewThreads: {
+            nodes: Array<{
+              id: string
+              comments: { nodes: Array<{ databaseId: number | null }> }
+            }>
+          }
+        } | null
+      } | null
+    }>(
+      `
+      query FindReviewThread($owner: String!, $repo: String!, $pullNumber: Int!) {
+        repository(owner: $owner, name: $repo) {
+          pullRequest(number: $pullNumber) {
+            reviewThreads(first: 100) {
+              nodes {
+                id
+                comments(first: 100) {
+                  nodes {
+                    databaseId
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      `,
+      {
+        owner,
+        repo,
+        pullNumber,
+      },
+    )
+
+    const threadId =
+      threadLookup.repository?.pullRequest?.reviewThreads.nodes.find((thread) =>
+        thread.comments.nodes.some((comment) => comment.databaseId === commentId),
+      )?.id ?? null
+
+    if (!threadId) {
+      throw new Error(`Could not find review thread for comment ${commentId}`)
+    }
+
+    if (options.resolved) {
+      await this.octokit.graphql(
+        `
+        mutation ResolveReviewThread($threadId: ID!) {
+          resolveReviewThread(input: { threadId: $threadId }) {
+            thread {
+              id
+              isResolved
+            }
+          }
+        }
+        `,
+        { threadId },
+      )
+    } else {
+      await this.octokit.graphql(
+        `
+        mutation UnresolveReviewThread($threadId: ID!) {
+          unresolveReviewThread(input: { threadId: $threadId }) {
+            thread {
+              id
+              isResolved
+            }
+          }
+        }
+        `,
+        { threadId },
+      )
+    }
+
+    return {
+      id: commentResponse.data.id,
+      resolved: options.resolved,
+    }
+  }
+
+  async createSuggestedChange(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    options: {
+      path: string
+      line: number
+      side: "LEFT" | "RIGHT"
+      commitId: string
+      suggestion: string
+      body?: string
+    },
+  ): Promise<{
+    id: number
+    body: string
+    htmlUrl: string | null
+    path: string | null
+    line: number | null
+    side: "LEFT" | "RIGHT" | null
+  }> {
+    const formattedBody = formatSuggestedChangeBody(options.body, options.suggestion)
+    return this.createReviewComment(owner, repo, pullNumber, {
+      body: formattedBody,
+      path: options.path,
+      line: options.line,
+      side: options.side,
+      commitId: options.commitId,
+    })
+  }
+
   async createPullRequestReview(
     owner: string,
     repo: string,
     pullNumber: number,
+    options: {
+      event?: "APPROVE" | "REQUEST_CHANGES" | "COMMENT"
+      body?: string
+      draft?: boolean
+    },
+  ): Promise<{ id: number; state: string; body: string | null; htmlUrl: string | null }> {
+    const request: {
+      owner: string
+      repo: string
+      pull_number: number
+      event?: "APPROVE" | "REQUEST_CHANGES" | "COMMENT"
+      body?: string
+    } = {
+      owner,
+      repo,
+      pull_number: pullNumber,
+      body: options.body,
+    }
+    if (!options.draft && !options.event) {
+      throw new Error("event is required when creating a non-draft review")
+    }
+    if (!options.draft && options.event) {
+      request.event = options.event
+    }
+
+    const response = await withRateLimitRetry(() => this.octokit.rest.pulls.createReview(request))
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      id: response.data.id,
+      state: response.data.state,
+      body: response.data.body ?? null,
+      htmlUrl: response.data.html_url ?? null,
+    }
+  }
+
+  async submitPullRequestReview(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    reviewId: number,
     options: {
       event: "APPROVE" | "REQUEST_CHANGES" | "COMMENT"
       body?: string
     },
   ): Promise<{ id: number; state: string; body: string | null; htmlUrl: string | null }> {
     const response = await withRateLimitRetry(() =>
-      this.octokit.rest.pulls.createReview({
+      this.octokit.rest.pulls.submitReview({
         owner,
         repo,
         pull_number: pullNumber,
+        review_id: reviewId,
         event: options.event,
         body: options.body,
       }),
@@ -1044,6 +1497,204 @@ export class GitHubClient {
       state: response.data.state,
       body: response.data.body ?? null,
       htmlUrl: response.data.html_url ?? null,
+    }
+  }
+
+  async discardPendingReview(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    reviewId: number,
+  ): Promise<{ discarded: boolean }> {
+    await withRateLimitRetry(() =>
+      this.octokit.rest.pulls.deletePendingReview({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        review_id: reviewId,
+      }),
+    )
+
+    const rateLimit = await this.getRateLimit()
+    this.lastRateLimit = rateLimit
+
+    return { discarded: true }
+  }
+
+  async requestReviewers(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    options: { reviewers: string[]; teamReviewers?: string[] },
+  ): Promise<{ requestedReviewers: string[]; requestedTeams: string[] }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.pulls.requestReviewers({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        reviewers: options.reviewers,
+        team_reviewers: options.teamReviewers,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      requestedReviewers: (response.data.requested_reviewers ?? [])
+        .map((reviewer) => reviewer?.login)
+        .filter((login): login is string => Boolean(login)),
+      requestedTeams: (response.data.requested_teams ?? [])
+        .map((team) => team?.slug)
+        .filter((slug): slug is string => Boolean(slug)),
+    }
+  }
+
+  async removeRequestedReviewers(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    options: { reviewers: string[]; teamReviewers?: string[] },
+  ): Promise<{ requestedReviewers: string[]; requestedTeams: string[] }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.pulls.removeRequestedReviewers({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        reviewers: options.reviewers,
+        team_reviewers: options.teamReviewers,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      requestedReviewers: (response.data.requested_reviewers ?? [])
+        .map((reviewer) => reviewer?.login)
+        .filter((login): login is string => Boolean(login)),
+      requestedTeams: (response.data.requested_teams ?? [])
+        .map((team) => team?.slug)
+        .filter((slug): slug is string => Boolean(slug)),
+    }
+  }
+
+  async addLabels(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    labels: string[],
+  ): Promise<{ labels: Array<{ name: string; color: string | null }> }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.issues.addLabels({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        labels,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      labels: response.data.map((label) => ({
+        name: label.name,
+        color: label.color ?? null,
+      })),
+    }
+  }
+
+  async removeLabel(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    label: string,
+  ): Promise<{ labels: Array<{ name: string; color: string | null }> }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.issues.removeLabel({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        name: label,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      labels: response.data.map((nextLabel) => ({
+        name: nextLabel.name,
+        color: nextLabel.color ?? null,
+      })),
+    }
+  }
+
+  async setLabels(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    labels: string[],
+  ): Promise<{ labels: Array<{ name: string; color: string | null }> }> {
+    const response = await withRateLimitRetry(() =>
+      this.octokit.rest.issues.setLabels({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        labels,
+      }),
+    )
+
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    return {
+      labels: response.data.map((label) => ({
+        name: label.name,
+        color: label.color ?? null,
+      })),
+    }
+  }
+
+  async lockIssue(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    options: { lockReason?: "off-topic" | "too heated" | "resolved" | "spam" } = {},
+  ): Promise<{ locked: boolean; lockReason: string | null }> {
+    await withRateLimitRetry(() =>
+      this.octokit.rest.issues.lock({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        lock_reason: options.lockReason,
+      }),
+    )
+
+    const rateLimit = await this.getRateLimit()
+    this.lastRateLimit = rateLimit
+
+    return {
+      locked: true,
+      lockReason: options.lockReason ?? null,
+    }
+  }
+
+  async unlockIssue(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+  ): Promise<{ locked: boolean; lockReason: string | null }> {
+    await withRateLimitRetry(() =>
+      this.octokit.rest.issues.unlock({
+        owner,
+        repo,
+        issue_number: issueNumber,
+      }),
+    )
+
+    const rateLimit = await this.getRateLimit()
+    this.lastRateLimit = rateLimit
+
+    return {
+      locked: false,
+      lockReason: null,
     }
   }
 

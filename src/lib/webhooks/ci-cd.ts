@@ -59,13 +59,17 @@ const upsertPrCheck = async (
   const now = Date.now()
   const checkId = existing?.[0]?.id ?? id()
 
-  await db.transact(
-    db.tx.prChecks[checkId].update({
+  const checkTx = db.tx.prChecks[checkId]
+    .update({
       ...data,
       conclusion: data.conclusion ?? undefined,
       createdAt: existing?.[0]?.createdAt ?? now,
       updatedAt: now,
-    }),
+    })
+    .link({ repo: data.repoId })
+
+  await db.transact(
+    data.pullRequestId ? checkTx.link({ pullRequest: data.pullRequestId }) : checkTx,
   )
 
   return checkId
