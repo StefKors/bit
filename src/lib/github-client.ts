@@ -72,6 +72,14 @@ export function formatSuggestedChangeBody(
   return `${normalizedComment}\n\n${suggestionBlock}`
 }
 
+const parsePullNumberFromUrl = (pullRequestUrl: string | undefined): number | null => {
+  if (!pullRequestUrl) return null
+  const match = pullRequestUrl.match(/\/pulls\/(\d+)$/)
+  if (!match) return null
+  const value = Number.parseInt(match[1] ?? "", 10)
+  return Number.isNaN(value) ? null : value
+}
+
 const combineRequestedReviewers = (
   requestedReviewers: Array<{ login?: string | null }> | null | undefined,
   requestedTeams: Array<{ slug?: string | null }> | null | undefined,
@@ -1294,7 +1302,7 @@ export class GitHubClient {
     commentId: number,
     options: { resolved: boolean },
   ): Promise<{ id: number; resolved: boolean }> {
-    const response = await withRateLimitRetry(() =>
+    const commentResponse = await withRateLimitRetry(() =>
       this.octokit.rest.pulls.getReviewComment({
         owner,
         repo,
@@ -1302,10 +1310,90 @@ export class GitHubClient {
       }),
     )
 
-    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+    this.extractRateLimit(commentResponse.headers as Record<string, string | undefined>)
+    const pullNumber = parsePullNumberFromUrl(commentResponse.data.pull_request_url ?? undefined)
+    if (!pullNumber) {
+      throw new Error("Could not determine pull request number for review comment")
+    }
+
+    const threadLookup = await this.octokit.graphql<{
+      repository: {
+        pullRequest: {
+          reviewThreads: {
+            nodes: Array<{
+              id: string
+              comments: { nodes: Array<{ databaseId: number | null }> }
+            }>
+          }
+        } | null
+      } | null
+    }>(
+      `
+      query FindReviewThread($owner: String!, $repo: String!, $pullNumber: Int!) {
+        repository(owner: $owner, name: $repo) {
+          pullRequest(number: $pullNumber) {
+            reviewThreads(first: 100) {
+              nodes {
+                id
+                comments(first: 100) {
+                  nodes {
+                    databaseId
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      `,
+      {
+        owner,
+        repo,
+        pullNumber,
+      },
+    )
+
+    const threadId =
+      threadLookup.repository?.pullRequest?.reviewThreads.nodes.find((thread) =>
+        thread.comments.nodes.some((comment) => comment.databaseId === commentId),
+      )?.id ?? null
+
+    if (!threadId) {
+      throw new Error(`Could not find review thread for comment ${commentId}`)
+    }
+
+    if (options.resolved) {
+      await this.octokit.graphql(
+        `
+        mutation ResolveReviewThread($threadId: ID!) {
+          resolveReviewThread(input: { threadId: $threadId }) {
+            thread {
+              id
+              isResolved
+            }
+          }
+        }
+        `,
+        { threadId },
+      )
+    } else {
+      await this.octokit.graphql(
+        `
+        mutation UnresolveReviewThread($threadId: ID!) {
+          unresolveReviewThread(input: { threadId: $threadId }) {
+            thread {
+              id
+              isResolved
+            }
+          }
+        }
+        `,
+        { threadId },
+      )
+    }
 
     return {
-      id: response.data.id,
+      id: commentResponse.data.id,
       resolved: options.resolved,
     }
   }
