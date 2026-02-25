@@ -1450,6 +1450,9 @@ export class GitHubClient {
       pull_number: pullNumber,
       body: options.body,
     }
+    if (!options.draft && !options.event) {
+      throw new Error("event is required when creating a non-draft review")
+    }
     if (!options.draft && options.event) {
       request.event = options.event
     }

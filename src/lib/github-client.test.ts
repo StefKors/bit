@@ -19,6 +19,22 @@ describe("formatSuggestedChangeBody", () => {
 })
 
 describe("GitHubClient review actions", () => {
+  it("requires event when creating a non-draft review", async () => {
+    const createReview = vi.fn()
+    const client = new GitHubClient("token", "user-1")
+    Reflect.set(client, "octokit", {
+      rest: { pulls: { createReview } },
+      graphql: vi.fn(),
+    })
+
+    await expect(
+      client.createPullRequestReview("owner", "repo", 1, {
+        body: "missing event",
+      }),
+    ).rejects.toThrow("event is required when creating a non-draft review")
+    expect(createReview).not.toHaveBeenCalled()
+  })
+
   it("resolves a review thread via GraphQL for a review comment", async () => {
     const graphql = vi.fn((query: string) => {
       if (query.includes("query FindReviewThread")) {
