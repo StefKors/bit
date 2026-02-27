@@ -1,12 +1,15 @@
-import { useMemo, useRef } from "react"
+import { useRef, useState } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { GitCommitIcon, SyncIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { Button } from "@/components/Button"
+import { InfiniteScroll } from "@/components/InfiniteScroll"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { syncCommitsMutation } from "@/lib/mutations"
 import { Avatar } from "@/components/Avatar"
 import styles from "./RepoCommitsTab.module.css"
+
+const PAGE_SIZE = 100
 
 interface RepoCommitsTabProps {
   repoId: string
@@ -53,30 +56,27 @@ export const RepoCommitsTab = ({
   const [owner, repo] = fullName.split("/")
   const initialSyncTriggered = useRef(false)
   const staleSyncTriggered = useRef(false)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   const commitsSync = useMutation(syncCommitsMutation(user?.id ?? "", owner, repo, branch))
   const syncing = commitsSync.isPending
 
-  const { data: repoData } = db.useQuery({
-    repos: {
-      $: { where: { id: repoId }, limit: 1 },
-      repoCommits: {
-        $: {
-          where: { ref: branch },
-          order: { committedAt: "desc" },
-        },
+  const { data: commitData, isLoading } = db.useQuery({
+    repoCommits: {
+      $: {
+        where: { ref: branch, repoId },
+        order: { committedAt: "desc" },
+        limit: visibleCount,
       },
     },
   })
 
-  const commits = useMemo<RepoCommitData[]>(() => {
-    const data = (repoData as { repos?: Array<{ repoCommits?: RepoCommitData[] }> } | undefined)
-      ?.repos
-    return data?.[0]?.repoCommits ?? []
-  }, [repoData])
+  const commits = (commitData?.repoCommits ?? []) as RepoCommitData[]
+  const hasMore = commits.length >= visibleCount
+  const dataLoaded = commitData !== undefined
 
   const hasWebhooks = webhookStatus === "installed"
-  const commitsEmpty = repoData !== undefined && commits.length === 0
+  const commitsEmpty = dataLoaded && commits.length === 0
   const newestCommittedAt =
     commits.length > 0 ? Math.max(...commits.map((c) => c.committedAt ?? 0)) : 0
   const commitsStale =
@@ -114,7 +114,9 @@ export const RepoCommitsTab = ({
   return (
     <div className={styles.content}>
       <div className={styles.header}>
-        <span className={styles.commitCount}>{commits.length} commits</span>
+        <span className={styles.commitCount}>
+          {hasMore ? `${commits.length}+` : commits.length} commits
+        </span>
         {user?.id && (
           <Button
             variant="invisible"
@@ -129,19 +131,27 @@ export const RepoCommitsTab = ({
           </Button>
         )}
       </div>
-      {grouped.map(([dateLabel, dateCommits]) => (
-        <div key={dateLabel} className={styles.dateGroup}>
-          <div className={styles.dateHeader}>
-            <GitCommitIcon size={14} />
-            <span>{dateLabel}</span>
+      <InfiniteScroll
+        hasMore={hasMore}
+        loading={isLoading}
+        onLoadMore={() => {
+          setVisibleCount((prev) => prev + PAGE_SIZE)
+        }}
+      >
+        {grouped.map(([dateLabel, dateCommits]) => (
+          <div key={dateLabel} className={styles.dateGroup}>
+            <div className={styles.dateHeader}>
+              <GitCommitIcon size={14} />
+              <span>{dateLabel}</span>
+            </div>
+            <div className={styles.commitsList}>
+              {dateCommits.map((commit) => (
+                <CommitItem key={commit.id} commit={commit} />
+              ))}
+            </div>
           </div>
-          <div className={styles.commitsList}>
-            {dateCommits.map((commit) => (
-              <CommitItem key={commit.id} commit={commit} />
-            ))}
-          </div>
-        </div>
-      ))}
+        ))}
+      </InfiniteScroll>
     </div>
   )
 }
