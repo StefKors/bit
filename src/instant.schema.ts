@@ -186,8 +186,9 @@ export const schema = i.schema({
       committerName: i.string().optional(),
       committerEmail: i.string().optional(),
       htmlUrl: i.string().optional(),
-      // Denormalized ID for efficient filtering
+      // Denormalized IDs for efficient filtering
       pullRequestId: i.string().indexed(),
+      userId: i.string().optional().indexed(),
       committedAt: i.number().optional().indexed(),
       createdAt: i.number(),
       updatedAt: i.number(),
@@ -230,8 +231,9 @@ export const schema = i.schema({
       assigneeAvatarUrl: i.string().optional(),
       requestedReviewerLogin: i.string().optional(),
       requestedReviewerAvatarUrl: i.string().optional(),
-      // Denormalized ID for efficient filtering
+      // Denormalized IDs for efficient filtering
       pullRequestId: i.string().indexed(),
+      userId: i.string().optional().indexed(),
       // Timestamps
       eventCreatedAt: i.number().optional().indexed(),
       createdAt: i.number(),
