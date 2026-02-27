@@ -20,7 +20,7 @@ type Comment = InstaQLEntity<AppSchema, "prComments">
 type AnnotationSide = "additions" | "deletions"
 type ReviewSide = "LEFT" | "RIGHT"
 
-type ComposeTarget = {
+interface ComposeTarget {
   line: number
   side: ReviewSide
 }

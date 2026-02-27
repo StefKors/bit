@@ -29,7 +29,7 @@ type DetailedPullRequest = PullRequest & {
   prCommits?: readonly PrCommit[]
 }
 
-type PRThreeColumnLayoutProps = {
+interface PRThreeColumnLayoutProps {
   owner: string
   repoName: string
   pr: DetailedPullRequest

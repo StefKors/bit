@@ -1,6 +1,6 @@
 export const INITIAL_SYNC_STALE_MS = 5 * 60 * 1000
 
-export type InitialSyncStateLike = {
+export interface InitialSyncStateLike {
   syncStatus?: string
   updatedAt?: number
   createdAt?: number

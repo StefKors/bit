@@ -5,7 +5,7 @@ import { adminDb } from "@/lib/instantAdmin"
 import { log } from "@/lib/logger"
 import { RequestError } from "octokit"
 
-type CheckItem = {
+interface CheckItem {
   githubId: number
   name: string
   status: string

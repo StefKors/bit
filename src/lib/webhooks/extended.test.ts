@@ -47,7 +47,7 @@ import { ensureOrgFromWebhook } from "./organization"
 import { ensureIssueFromWebhook } from "./issue"
 import { ensurePRFromWebhook, ensureRepoFromWebhook } from "./utils"
 
-type QueryTableConfig = {
+interface QueryTableConfig {
   $?: { where?: Record<string, unknown>; limit?: number }
 }
 

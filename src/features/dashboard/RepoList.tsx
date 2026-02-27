@@ -3,7 +3,7 @@ import { RepoIcon, LockIcon, StarIcon, RepoForkedIcon } from "@primer/octicons-r
 import { formatTimeAgo } from "@/lib/dashboard-utils"
 import styles from "./RepoList.module.css"
 
-type RepoEntry = {
+interface RepoEntry {
   id: string
   name: string
   fullName: string
@@ -70,7 +70,7 @@ const RepoRow = ({ repo }: { repo: RepoEntry }) => (
   </Link>
 )
 
-type RepoListProps = {
+interface RepoListProps {
   repos: RepoEntry[]
   maxItems?: number
 }

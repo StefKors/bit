@@ -4,7 +4,7 @@ export type RepoType = "all" | "source" | "fork"
 export type RepoSortBy = "updated" | "name" | "stars" | "forks"
 export type SortDirection = "asc" | "desc"
 
-export type RepoFilters = {
+export interface RepoFilters {
   search: string
   type: RepoType
   language: string | null
@@ -33,7 +33,7 @@ export const SORT_OPTIONS: { value: RepoSortBy; label: string }[] = [
   { value: "forks", label: "Forks" },
 ]
 
-export type FilterableRepo = {
+export interface FilterableRepo {
   id: string
   name: string
   fullName?: string

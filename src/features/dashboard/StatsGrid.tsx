@@ -8,7 +8,7 @@ import {
 } from "@primer/octicons-react"
 import styles from "./StatsGrid.module.css"
 
-type StatCardProps = {
+interface StatCardProps {
   label: string
   value: number
   icon: React.ReactNode
@@ -27,7 +27,7 @@ const StatCard = ({ label, value, icon, color }: StatCardProps) => (
   </div>
 )
 
-type StatsGridProps = {
+interface StatsGridProps {
   openPRs: number
   pendingReviews: number
   totalRepos: number

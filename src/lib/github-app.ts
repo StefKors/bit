@@ -5,7 +5,7 @@ import { adminDb } from "@/lib/instantAdmin"
 const GITHUB_APP_ID = process.env.GITHUB_APP_ID
 const GITHUB_APP_PRIVATE_KEY = process.env.GITHUB_APP_PRIVATE_KEY?.replace(/\\n/g, "\n")
 
-type CachedToken = {
+interface CachedToken {
   token: string
   expiresAt: number
 }
@@ -31,7 +31,7 @@ async function createAppJWT(): Promise<string> {
     .sign(privateKey)
 }
 
-type InstallationTokenResponse = {
+interface InstallationTokenResponse {
   token: string
   expires_at: string
 }
@@ -125,6 +125,8 @@ export async function storeInstallationId(userId: string, installationId: string
   )
 }
 
+// payload is untrusted JSON from webhook - unknown is appropriate
+// eslint-disable-next-line @typescript-eslint/no-restricted-types
 export function extractInstallationId(payload: unknown): number | null {
   if (typeof payload !== "object" || payload === null) return null
   const installation = (payload as { installation?: { id?: number } }).installation

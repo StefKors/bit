@@ -1,4 +1,4 @@
-type WebhookRegistrationConfig = {
+interface WebhookRegistrationConfig {
   enabled: boolean
   webhookUrl: string | null
   reason?: string

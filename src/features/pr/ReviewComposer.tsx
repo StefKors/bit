@@ -4,7 +4,7 @@ import styles from "./ReviewComposer.module.css"
 
 type ReviewEvent = "APPROVE" | "REQUEST_CHANGES" | "COMMENT"
 
-type ReviewComposerProps = {
+interface ReviewComposerProps {
   reviewId: number | null
   onSubmit: (input: { event: ReviewEvent; body: string }) => void
   onStartDraft: (body: string) => void

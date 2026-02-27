@@ -15,7 +15,7 @@ import {
 } from "@/lib/repo-filters"
 import styles from "./RepoFiltersBar.module.css"
 
-export type RepoFiltersBarProps = {
+export interface RepoFiltersBarProps {
   filters: RepoFilters
   onFiltersChange: (filters: RepoFilters) => void
   languages: string[]
@@ -165,7 +165,7 @@ export const RepoFiltersBar = ({
   )
 }
 
-type FilterDropdownProps = {
+interface FilterDropdownProps {
   label: string
   value: string
   isActive: boolean
@@ -187,7 +187,7 @@ const FilterDropdown = ({ label, value, isActive, children }: FilterDropdownProp
   </Menu.Root>
 )
 
-type FilterMenuItemProps = {
+interface FilterMenuItemProps {
   selected: boolean
   onClick: () => void
   children: React.ReactNode

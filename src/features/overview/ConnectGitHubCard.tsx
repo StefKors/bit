@@ -2,7 +2,7 @@ import { MarkGithubIcon, CheckCircleFillIcon } from "@primer/octicons-react"
 import { Button } from "@/components/Button"
 import styles from "./ConnectGitHubCard.module.css"
 
-type ConnectGitHubCardProps = {
+interface ConnectGitHubCardProps {
   onConnect: () => void
   justInstalled?: boolean
   message?: string

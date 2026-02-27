@@ -7,7 +7,6 @@ const jsonResponse = <T>(data: T, status = 200) =>
     headers: { "Content-Type": "application/json" },
   })
 
-// @ts-expect-error Route will be registered when route tree is regenerated
 export const Route = createFileRoute("/api/cerebras/status")({
   server: {
     handlers: {

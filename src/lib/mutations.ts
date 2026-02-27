@@ -1,6 +1,9 @@
 import { mutationOptions } from "@tanstack/react-query"
 
-type SyncResponse = { error?: string; code?: string }
+interface SyncResponse {
+  error?: string
+  code?: string
+}
 
 const postSync = async (
   url: string,
@@ -279,7 +282,7 @@ export const updatePRMutation = (userId: string, owner: string, repo: string, nu
     },
   })
 
-type ReviewersResponse = {
+interface ReviewersResponse {
   requestedReviewers: string[]
   requestedTeams: string[]
   error?: string
@@ -345,7 +348,7 @@ export const removeReviewersMutation = (
     },
   })
 
-type LabelsResponse = {
+interface LabelsResponse {
   labels: Array<{ name: string; color: string | null }>
   error?: string
   code?: string
@@ -423,7 +426,7 @@ export const setLabelsMutation = (userId: string, owner: string, repo: string, n
     },
   })
 
-type DraftStateResponse = {
+interface DraftStateResponse {
   number: number
   state: "open" | "closed"
   draft: boolean
@@ -489,7 +492,7 @@ export const markReadyForReviewMutation = (
     },
   })
 
-type LockPRResponse = {
+interface LockPRResponse {
   locked: boolean
   lockReason: string | null
   error?: string
@@ -544,13 +547,13 @@ export const unlockPRMutation = (userId: string, owner: string, repo: string, nu
     },
   })
 
-type DeleteBranchResponse = {
+interface DeleteBranchResponse {
   deleted: boolean
   error?: string
   code?: string
 }
 
-type RestoreBranchResponse = {
+interface RestoreBranchResponse {
   restored: boolean
   ref: string
   sha: string
@@ -606,7 +609,7 @@ export const restoreBranchMutation = (userId: string, owner: string, repo: strin
     },
   })
 
-type CommentResponse = {
+interface CommentResponse {
   id: number
   body: string
   htmlUrl: string | null
@@ -614,7 +617,7 @@ type CommentResponse = {
   code?: string
 }
 
-type DeleteCommentResponse = {
+interface DeleteCommentResponse {
   deleted: boolean
   error?: string
   code?: string
@@ -707,7 +710,7 @@ export const deleteCommentMutation = (
     },
   })
 
-type SubmitReviewResponse = {
+interface SubmitReviewResponse {
   id: number
   state: string
   body: string | null
@@ -813,7 +816,7 @@ export const submitDraftReviewMutation = (
     },
   })
 
-type DiscardDraftReviewResponse = {
+interface DiscardDraftReviewResponse {
   discarded: boolean
   error?: string
   code?: string
@@ -851,7 +854,7 @@ export const discardDraftReviewMutation = (
     },
   })
 
-type ReRequestReviewResponse = {
+interface ReRequestReviewResponse {
   requestedReviewers: string[]
   requestedTeams: string[]
   error?: string
@@ -894,7 +897,7 @@ export const reRequestReviewMutation = (
     },
   })
 
-type ToggleFileViewedResponse = {
+interface ToggleFileViewedResponse {
   viewedFiles: string[]
   path: string
   viewed: boolean
@@ -934,7 +937,7 @@ export const toggleFileViewedMutation = (
     },
   })
 
-type ReviewCommentResponse = {
+interface ReviewCommentResponse {
   id: number
   body: string
   htmlUrl: string | null
@@ -1017,7 +1020,7 @@ export const createSuggestionMutation = (
     },
   })
 
-type ResolveThreadResponse = {
+interface ResolveThreadResponse {
   commentId: number
   resolved: boolean
   error?: string

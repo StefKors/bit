@@ -2,13 +2,13 @@ import { ClockIcon, SyncIcon, MarkGithubIcon, CheckCircleIcon } from "@primer/oc
 import { Button } from "@/components/Button"
 import styles from "./OverviewHeader.module.css"
 
-type RateLimitInfo = {
+interface RateLimitInfo {
   remaining: number
   limit: number
   reset: Date
 }
 
-type OverviewHeaderProps = {
+interface OverviewHeaderProps {
   isGitHubConnected: boolean
   isAuthInvalid?: boolean
   isSyncing: boolean

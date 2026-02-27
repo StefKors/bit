@@ -97,7 +97,7 @@ const isExtendedWebhookEvent = (
 const isIssueCommentEventPayload = (payload: WebhookPayload): payload is IssueCommentEvent =>
   typeof payload === "object" && payload !== null && "issue" in payload && "comment" in payload
 
-export type WebhookQueueItem = {
+export interface WebhookQueueItem {
   id: string
   deliveryId: string
   event: string
@@ -114,7 +114,7 @@ export type WebhookQueueItem = {
   updatedAt: number
 }
 
-export type EnqueueResult = {
+export interface EnqueueResult {
   queued: boolean
   duplicate: boolean
   queueItemId?: string
@@ -122,7 +122,7 @@ export type EnqueueResult = {
 
 type QueueSkipReason = "retry_not_due" | "batch_limit_reached" | "stale_processing_recovered"
 
-export type ProcessPendingQueueResult = {
+export interface ProcessPendingQueueResult {
   processed: number
   failed: number
   total: number

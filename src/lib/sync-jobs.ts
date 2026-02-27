@@ -12,7 +12,7 @@ export type SyncJobType =
   | "issue_sync"
   | "commits_sync"
 
-export type CreateSyncJobInput = {
+export interface CreateSyncJobInput {
   jobType: SyncJobType
   resourceType: string
   resourceId?: string
@@ -22,7 +22,7 @@ export type CreateSyncJobInput = {
   maxAttempts?: number
 }
 
-export type SyncJob = {
+export interface SyncJob {
   id: string
   jobType: string
   resourceType: string

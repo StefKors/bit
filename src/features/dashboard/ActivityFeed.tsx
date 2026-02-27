@@ -59,7 +59,7 @@ const ActivityRow = ({ item }: { item: ActivityItem }) => {
   return content
 }
 
-type ActivityFeedProps = {
+interface ActivityFeedProps {
   items: ActivityItem[]
   maxItems?: number
 }

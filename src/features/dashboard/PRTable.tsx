@@ -10,7 +10,7 @@ import { Avatar } from "@/components/Avatar"
 import { formatTimeAgo } from "@/lib/dashboard-utils"
 import styles from "./PRTable.module.css"
 
-type PREntry = {
+interface PREntry {
   id: string
   number: number
   title: string
@@ -101,7 +101,7 @@ const PRRow = ({ pr }: { pr: PREntry }) => {
   )
 }
 
-type PRTableProps = {
+interface PRTableProps {
   prs: PREntry[]
   emptyText?: string
 }

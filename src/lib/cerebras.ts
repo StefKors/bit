@@ -1,4 +1,5 @@
 import Cerebras from "@cerebras/cerebras_cloud_sdk"
+import type { ChatCompletionCreateParamsNonStreaming } from "@cerebras/cerebras_cloud_sdk/resources/chat"
 
 export const CEREBRAS_MODELS = [
   {
@@ -42,7 +43,7 @@ export const isCerebrasConfigured = (): boolean => {
   return Boolean(process.env.CEREBRAS_API_KEY)
 }
 
-export type ChatMessage = {
+export interface ChatMessage {
   role: "system" | "user" | "assistant"
   content: string
 }
@@ -61,11 +62,14 @@ export const chatCompletion = async (
     throw new Error(`Invalid Cerebras model: "${model}". Valid models are: ${validModels}`)
   }
 
-  const response = await client.chat.completions.create({
-    messages,
+  type Message = NonNullable<ChatCompletionCreateParamsNonStreaming["messages"]>[number]
+  const params: ChatCompletionCreateParamsNonStreaming = {
+    messages: messages as Message[],
     model,
     max_completion_tokens: 1024,
-  })
+    stream: false,
+  }
+  const response = await client.chat.completions.create(params)
 
   const choices = response.choices as Array<{ message?: { content?: string } }> | undefined
   return choices?.[0]?.message?.content ?? ""

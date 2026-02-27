@@ -1,4 +1,4 @@
-type PRLike = {
+interface PRLike {
   id: string
   state: string
   draft?: boolean | null
@@ -37,7 +37,7 @@ type PRLike = {
   repo?: { fullName: string } | null
 }
 
-type RepoLike = {
+interface RepoLike {
   id: string
   name: string
   fullName: string
@@ -60,7 +60,7 @@ type RepoLike = {
   }>
 }
 
-export type ActivityItem = {
+export interface ActivityItem {
   id: string
   type: "pr_opened" | "pr_merged" | "pr_closed" | "review" | "comment" | "commit"
   title: string
@@ -73,7 +73,7 @@ export type ActivityItem = {
   metadata?: Record<string, string>
 }
 
-export type NextAction = {
+export interface NextAction {
   id: string
   type: "failing_ci" | "review_requested" | "stale_pr" | "draft_pr" | "open_issue"
   priority: "high" | "medium" | "low"

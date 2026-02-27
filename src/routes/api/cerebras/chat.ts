@@ -35,7 +35,6 @@ function parseMessages(raw: object | null | undefined): ChatMessage[] | null {
   return out.length > 0 ? out : null
 }
 
-// @ts-expect-error Route will be registered when route tree is regenerated
 export const Route = createFileRoute("/api/cerebras/chat")({
   server: {
     handlers: {

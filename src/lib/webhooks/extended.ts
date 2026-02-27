@@ -7,7 +7,7 @@ import { log } from "@/lib/logger"
 
 type UnknownRecord = Record<string, unknown>
 
-type OrganizationRecord = {
+interface OrganizationRecord {
   id: string
   login?: string
 }

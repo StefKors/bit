@@ -3,7 +3,7 @@ import { Button } from "@/components/Button"
 import { Markdown } from "@/components/Markdown"
 import styles from "./CommentComposer.module.css"
 
-type CommentComposerProps = {
+interface CommentComposerProps {
   onSubmit: (body: string) => void
   isSubmitting: boolean
 }

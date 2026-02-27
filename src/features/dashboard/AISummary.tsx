@@ -2,7 +2,7 @@ import { useState, useRef } from "react"
 import { SparkleIcon, PaperAirplaneIcon } from "@primer/octicons-react"
 import styles from "./AISummary.module.css"
 
-type AISummaryProps = {
+interface AISummaryProps {
   aiEnabled: boolean
   aiConfigured: boolean
   aiModel: string

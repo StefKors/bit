@@ -49,7 +49,7 @@ import {
 } from "./processor"
 import { handlePushWebhook } from "@/lib/webhooks/index"
 
-type QueryTableConfig = {
+interface QueryTableConfig {
   $?: { where?: Record<string, unknown>; limit?: number }
 }
 

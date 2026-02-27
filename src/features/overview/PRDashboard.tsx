@@ -1,7 +1,7 @@
 import { PRListItem } from "@/features/pr/PRListItem"
 import styles from "./PRDashboard.module.css"
 
-type PR = {
+interface PR {
   id: string
   number: number
   title: string
@@ -17,7 +17,7 @@ type PR = {
   repo?: { fullName: string } | null
 }
 
-type PRDashboardProps = {
+interface PRDashboardProps {
   authoredPRs: PR[]
   reviewRequestedPRs: PR[]
 }

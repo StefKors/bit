@@ -12,6 +12,9 @@ import {
   PlusIcon,
   RepoIcon,
   CpuIcon,
+  PersonIcon,
+  DatabaseIcon,
+  ColumnsIcon,
 } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { db } from "@/lib/instantDb"
@@ -32,6 +35,7 @@ import { WebhookManagement } from "@/features/overview"
 import styles from "@/pages/SettingsPage.module.css"
 
 type WebhookSyncMode = "minimal" | "full" | "full-force"
+type Section = "github" | "repos" | "webhooks" | "interface" | "ai" | "data" | "account"
 
 const SYNC_MODE_OPTIONS: { value: WebhookSyncMode; label: string; description: string }[] = [
   {
@@ -63,9 +67,20 @@ const AI_MODEL_OPTIONS = CEREBRAS_MODELS.map((m) => ({
 const GITHUB_APP_SLUG = "bit-backend"
 const GITHUB_APP_INSTALLATIONS_URL = "https://github.com/settings/installations"
 
+const SIDEBAR_ITEMS: { id: Section; label: string; icon: React.ReactNode }[] = [
+  { id: "github", label: "GitHub", icon: <MarkGithubIcon size={16} /> },
+  { id: "repos", label: "Repositories", icon: <RepoIcon size={16} /> },
+  { id: "webhooks", label: "Webhooks", icon: <SyncIcon size={16} /> },
+  { id: "interface", label: "Interface", icon: <ColumnsIcon size={16} /> },
+  { id: "ai", label: "AI Features", icon: <CpuIcon size={16} /> },
+  { id: "data", label: "Data & Storage", icon: <DatabaseIcon size={16} /> },
+  { id: "account", label: "Account", icon: <PersonIcon size={16} /> },
+]
+
 function SettingsPage() {
   const { user } = useAuth()
-  const [prLayoutMode, setPrLayoutMode] = useState<PRLayoutMode>(() => getPRLayoutMode())
+  const [activeSection, setActiveSection] = useState<Section>("github")
+  const [prLayoutMode, setPrLayoutModeState] = useState<PRLayoutMode>(() => getPRLayoutMode())
 
   const disconnect = useMutation({
     ...disconnectGitHubMutation(user?.id ?? ""),
@@ -89,11 +104,12 @@ function SettingsPage() {
   const overviewSync = useMutation(syncOverviewMutation(user?.id ?? ""))
   const resetSync = useMutation(syncResetMutation(user?.id ?? ""))
   const retrySync = useMutation(syncRetryMutation(user?.id ?? ""))
+
   const currentSyncMode: WebhookSyncMode =
     (userSettingsRecord?.webhookPrSyncBehavior as WebhookSyncMode) || "full"
-
   const currentAiEnabled = userSettingsRecord?.aiEnabled !== false
   const currentAiModel = (userSettingsRecord?.aiModel as string) || DEFAULT_MODEL
+  const webhookLogsEnabled = userSettingsRecord?.webhookLogsEnabled !== false
 
   const tokenState = syncStates.find((s) => s.resourceType === "github:token")
   const isGitHubConnected = Boolean(tokenState)
@@ -107,16 +123,31 @@ function SettingsPage() {
     ? `https://github.com/apps/${GITHUB_APP_SLUG}/installations/new?${new URLSearchParams({ state: user.id }).toString()}`
     : `https://github.com/apps/${GITHUB_APP_SLUG}/installations/new`
 
+  // eslint-disable-next-line @typescript-eslint/no-restricted-types -- partial update accepts arbitrary field values
+  const updateSettings = (fields: Record<string, unknown>) => {
+    if (!user?.id) return
+    const now = Date.now()
+    const settingsId = userSettingsRecord?.id || id()
+    void db.transact(
+      db.tx.userSettings[settingsId]
+        .update({
+          ...fields,
+          userId: user.id,
+          createdAt: userSettingsRecord?.createdAt ?? now,
+          updatedAt: now,
+        })
+        .link({ user: user.id }),
+    )
+  }
+
   const handleConnectGitHub = () => {
     if (!user?.id) return
     setSuccess(null)
-
     const connectUrl = `/api/github/oauth?${new URLSearchParams({ userId: user.id }).toString()}`
     if (!isGitHubConnected) {
       window.location.href = connectUrl
       return
     }
-
     void (async () => {
       try {
         const response = await fetch("/api/github/oauth", {
@@ -127,7 +158,6 @@ function SettingsPage() {
           },
           body: JSON.stringify({ userId: user.id }),
         })
-
         if (!response.ok) {
           let errorMessage = "Failed to prepare GitHub reconnect"
           try {
@@ -138,329 +168,56 @@ function SettingsPage() {
           }
           throw new Error(errorMessage)
         }
-
         window.location.href = connectUrl
       } catch {
-        // navigation will happen on success; errors are non-critical
+        // navigation will happen on success
       }
     })()
   }
 
-  const handlePRLayoutToggle = () => {
-    const nextMode: PRLayoutMode = isFullScreenPRLayout ? "default" : "full-screen-3-column"
-    setPrLayoutMode(nextMode)
-    setPRLayoutMode(nextMode)
-  }
-
-  const handleInstallGitHubApp = () => {
-    window.location.href = githubAppInstallUrl
-  }
-
-  const handleManageGitHubApp = () => {
-    window.location.href = GITHUB_APP_INSTALLATIONS_URL
-  }
-
-  const handleRemoveGitHubApp = () => {
-    window.location.href = GITHUB_APP_INSTALLATIONS_URL
-  }
-
-  const handleSyncModeChange = (mode: WebhookSyncMode) => {
-    if (!user?.id) return
-    const now = Date.now()
-    const settingsId = userSettingsRecord?.id || id()
-    void db.transact(
-      db.tx.userSettings[settingsId]
-        .update({
-          webhookPrSyncBehavior: mode,
-          userId: user.id,
-          createdAt: userSettingsRecord?.createdAt ?? now,
-          updatedAt: now,
-        })
-        .link({ user: user.id }),
-    )
-  }
-
-  const handleAiToggle = () => {
-    if (!user?.id) return
-    const now = Date.now()
-    const settingsId = userSettingsRecord?.id || id()
-    void db.transact(
-      db.tx.userSettings[settingsId]
-        .update({
-          aiEnabled: !currentAiEnabled,
-          userId: user.id,
-          createdAt: userSettingsRecord?.createdAt ?? now,
-          updatedAt: now,
-        })
-        .link({ user: user.id }),
-    )
-  }
-
-  const handleAiModelChange = (model: string) => {
-    if (!user?.id) return
-    const now = Date.now()
-    const settingsId = userSettingsRecord?.id || id()
-    void db.transact(
-      db.tx.userSettings[settingsId]
-        .update({
-          aiModel: model,
-          userId: user.id,
-          createdAt: userSettingsRecord?.createdAt ?? now,
-          updatedAt: now,
-        })
-        .link({ user: user.id }),
-    )
-  }
-
   if (!user) return null
 
-  return (
-    <div className={styles.container}>
-      <h1 className={styles.pageTitle}>Settings</h1>
-
-      {error && <div className={styles.errorBanner}>{error}</div>}
-      {success && <div className={styles.successBanner}>{success}</div>}
-
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>GitHub Connection</h2>
-
-        {isGitHubConnected ? (
-          <div className={styles.card}>
-            <div className={styles.connectionHeader}>
-              <div className={styles.connectionInfo}>
-                <Avatar src={user.avatarUrl} name={user.name || user.login} size={48} />
-                <div className={styles.connectionDetails}>
-                  <span className={styles.connectionName}>{user.name || user.login}</span>
-                  <span className={styles.connectionLogin}>@{user.login}</span>
-                </div>
-              </div>
-
-              {isAuthInvalid ? (
-                <div className={styles.statusBadgeDanger}>
-                  <AlertIcon size={14} />
-                  Expired
-                </div>
-              ) : (
-                <div className={styles.statusBadgeSuccess}>
-                  <CheckCircleFillIcon size={14} />
-                  Connected
-                </div>
-              )}
-            </div>
-
-            {isAuthInvalid && (
-              <div className={styles.warningBanner}>
-                <AlertIcon size={16} />
-                <div>
-                  <strong>Connection expired</strong>
-                  <p>
-                    Your GitHub token is no longer valid. Reconnect to resume syncing repositories
-                    and pull requests.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {Boolean(lastSyncedAt) && !isAuthInvalid && (
-              <div className={styles.metaRow}>
-                <SyncIcon size={14} />
-                Last synced {formatTimeAgo(lastSyncedAt!)}
-              </div>
-            )}
-
-            {user.htmlUrl && (
-              <div className={styles.metaRow}>
-                <LinkExternalIcon size={14} />
-                <a
-                  href={user.htmlUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.link}
-                >
-                  {user.htmlUrl}
-                </a>
-              </div>
-            )}
-
-            <div className={styles.cardActions}>
-              <Button
-                variant={isAuthInvalid ? "primary" : "default"}
-                leadingIcon={<MarkGithubIcon size={16} />}
-                onClick={handleConnectGitHub}
-              >
-                {isAuthInvalid ? "Reconnect GitHub" : "Reconnect"}
-              </Button>
-              <Button
-                variant="danger"
-                leadingIcon={<TrashIcon size={16} />}
-                loading={disconnecting}
-                onClick={() => {
-                  disconnect.mutate()
-                }}
-              >
-                Disconnect
-              </Button>
-            </div>
-
-            <div className={styles.permissionsHint}>
-              <AlertIcon size={14} />
-              <p>
-                Organization access can still depend on GitHub org policies. If repos or webhooks
-                are missing after reconnecting, ask an org admin to approve this OAuth app and
-                authorize the token for org SAML SSO.
-              </p>
-            </div>
-
-            <div className={styles.appActions}>
-              <Button variant="default" onClick={handleInstallGitHubApp}>
-                Install GitHub App
-              </Button>
-              <Button variant="default" onClick={handleManageGitHubApp}>
-                Manage GitHub App
-              </Button>
-              <Button variant="danger" onClick={handleRemoveGitHubApp}>
-                Remove GitHub App
-              </Button>
-            </div>
-            <p className={styles.appActionsHint}>
-              Manage and remove open GitHub installations. Use Install if you need to grant access
-              to additional orgs or repositories.
-            </p>
-          </div>
+  const renderContent = () => {
+    switch (activeSection) {
+      case "github":
+        return (
+          <GitHubSection
+            user={user}
+            isGitHubConnected={isGitHubConnected}
+            isAuthInvalid={isAuthInvalid}
+            lastSyncedAt={lastSyncedAt}
+            disconnecting={disconnecting}
+            githubAppInstallUrl={githubAppInstallUrl}
+            onConnect={handleConnectGitHub}
+            onDisconnect={() => disconnect.mutate()}
+          />
+        )
+      case "repos":
+        return isGitHubConnected && !isAuthInvalid ? (
+          <ReposSection userId={user.id} />
         ) : (
           <div className={styles.card}>
-            <div className={styles.emptyConnection}>
-              <MarkGithubIcon size={40} className={styles.emptyIcon} />
-              <h3 className={styles.emptyTitle}>No GitHub account connected</h3>
-              <p className={styles.emptyDescription}>
-                Connect your GitHub account to sync repositories, pull requests, and receive
-                real-time updates.
-              </p>
-              <Button
-                variant="primary"
-                size="large"
-                leadingIcon={<MarkGithubIcon size={20} />}
-                onClick={handleConnectGitHub}
-              >
-                Connect GitHub
-              </Button>
-              <div className={styles.appActions}>
-                <Button variant="default" onClick={handleInstallGitHubApp}>
-                  Install GitHub App
-                </Button>
-                <Button variant="default" onClick={handleManageGitHubApp}>
-                  Manage GitHub App
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {isGitHubConnected && !isAuthInvalid && (
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Add Repository</h2>
-          <AddRepoCard userId={user.id} />
-        </section>
-      )}
-
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Pull Request View</h2>
-        <div className={styles.card}>
-          <div className={styles.preferenceRow}>
-            <div className={styles.preferenceInfo}>
-              <span className={styles.preferenceLabel}>Enable full-screen PR workspace</span>
-              <p className={styles.preferenceDescription}>
-                Shows pull requests in a 3-column layout with PR list, diffs, and activity.
-              </p>
-            </div>
-            <button
-              type="button"
-              className={`${styles.toggleSwitch} ${isFullScreenPRLayout ? styles.toggleSwitchOn : ""}`}
-              aria-label="Enable full-screen PR workspace"
-              aria-pressed={isFullScreenPRLayout}
-              onClick={handlePRLayoutToggle}
-            >
-              <span className={styles.toggleThumb} />
-            </button>
-          </div>
-          <p className={styles.preferenceHint}>
-            This applies to repository pull request detail pages.
-          </p>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Webhook Sync Behavior</h2>
-        <div className={styles.card}>
-          <div className={styles.preferenceInfo}>
-            <span className={styles.preferenceLabel}>PR detail sync mode</span>
             <p className={styles.preferenceDescription}>
-              Controls how much data is fetched when GitHub webhook events arrive for pull requests.
+              Connect your GitHub account first to add repositories.
             </p>
           </div>
-          <div className={styles.radioGroup}>
-            {SYNC_MODE_OPTIONS.map((option) => (
-              <label
-                key={option.value}
-                className={`${styles.radioOption} ${currentSyncMode === option.value ? styles.radioOptionSelected : ""}`}
-              >
-                <input
-                  type="radio"
-                  name="webhookSyncMode"
-                  className={styles.radioInput}
-                  value={option.value}
-                  checked={currentSyncMode === option.value}
-                  onChange={() => {
-                    handleSyncModeChange(option.value)
-                  }}
-                />
-                <div className={styles.radioContent}>
-                  <span className={styles.radioLabel}>{option.label}</span>
-                  <p className={styles.radioDescription}>{option.description}</p>
-                </div>
-              </label>
-            ))}
-          </div>
-          <p className={styles.preferenceHint}>
-            Changes take effect immediately for incoming webhooks.
-          </p>
-        </div>
-      </section>
-
-      {isGitHubConnected && !isAuthInvalid && (
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Webhook Queue</h2>
-          <WebhookQueueCard />
-        </section>
-      )}
-
-      {isGitHubConnected && !isAuthInvalid && (
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Sync Debug</h2>
-          <div className={styles.card}>
-            <div className={styles.preferenceRow}>
-              <div className={styles.preferenceInfo}>
-                <span className={styles.preferenceLabel}>Sync Overview</span>
-                <p className={styles.preferenceDescription}>
-                  Manually trigger a full overview sync (repos, orgs, PRs). Use for debugging.
-                </p>
-              </div>
-              <Button
-                variant="default"
-                size="small"
-                leadingIcon={<SyncIcon size={14} />}
-                loading={overviewSync.isPending}
-                onClick={() => {
-                  overviewSync.mutate()
-                }}
-              >
-                Sync Overview
-              </Button>
-            </div>
-          </div>
-          <SyncManagement
-            syncStates={syncStates}
+        )
+      case "webhooks":
+        return (
+          <WebhooksSection
+            currentSyncMode={currentSyncMode}
+            onSyncModeChange={(mode) => {
+              updateSettings({ webhookPrSyncBehavior: mode })
+            }}
+            isGitHubConnected={isGitHubConnected}
+            isAuthInvalid={isAuthInvalid}
+            syncStates={syncStates as SyncStateItem[]}
+            repos={repos as RepoItem[]}
+            userId={user.id}
+            overviewSyncPending={overviewSync.isPending}
+            onOverviewSync={() => {
+              overviewSync.mutate()
+            }}
             onResetSync={(type, resId) => {
               resetSync.mutate({ resourceType: type, resourceId: resId })
             }}
@@ -468,114 +225,251 @@ function SettingsPage() {
               retrySync.mutate({ resourceType: type, resourceId: resId })
             }}
           />
-          {user?.id && (
-            <div style={{ marginTop: "1rem" }}>
-              <WebhookManagement repos={repos} userId={user.id} />
-            </div>
-          )}
-        </section>
-      )}
+        )
+      case "interface":
+        return (
+          <InterfaceSection
+            isFullScreen={isFullScreenPRLayout}
+            onToggle={() => {
+              const next: PRLayoutMode = isFullScreenPRLayout ? "default" : "full-screen-3-column"
+              setPrLayoutModeState(next)
+              setPRLayoutMode(next)
+            }}
+          />
+        )
+      case "ai":
+        return (
+          <AISection
+            enabled={currentAiEnabled}
+            model={currentAiModel}
+            onToggle={() => updateSettings({ aiEnabled: !currentAiEnabled })}
+            onModelChange={(model) => updateSettings({ aiModel: model })}
+          />
+        )
+      case "data":
+        return (
+          <DataSection
+            webhookLogsEnabled={webhookLogsEnabled}
+            onToggleLogs={() => updateSettings({ webhookLogsEnabled: !webhookLogsEnabled })}
+          />
+        )
+      case "account":
+        return <AccountSection email={user.email} />
+      default:
+        return null
+    }
+  }
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>AI Features (Cerebras)</h2>
-        <div className={styles.card}>
-          <div className={styles.preferenceRow}>
-            <div className={styles.preferenceInfo}>
-              <span className={styles.preferenceLabel}>
-                <span
-                  style={{
-                    marginRight: "0.375rem",
-                    display: "inline-flex",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  <CpuIcon size={16} />
-                </span>
-                Enable AI-powered insights
-              </span>
-              <p className={styles.preferenceDescription}>
-                Uses Cerebras Cloud to generate activity summaries, action suggestions, and enable
-                the AI chat assistant on the dashboard.
-              </p>
-            </div>
+  return (
+    <div className={styles.layout}>
+      <nav className={styles.sidebar}>
+        <div className={styles.sidebarTitle}>Settings</div>
+        <div className={styles.sidebarNav}>
+          {SIDEBAR_ITEMS.map((item) => (
             <button
+              key={item.id}
               type="button"
-              className={`${styles.toggleSwitch} ${currentAiEnabled ? styles.toggleSwitchOn : ""}`}
-              aria-label="Enable AI features"
-              aria-pressed={currentAiEnabled}
-              onClick={handleAiToggle}
+              className={`${styles.sidebarItem} ${activeSection === item.id ? styles.sidebarItemActive : ""}`}
+              onClick={() => setActiveSection(item.id)}
             >
-              <span className={styles.toggleThumb} />
+              <span className={styles.sidebarIcon}>{item.icon}</span>
+              {item.label}
             </button>
-          </div>
-
-          <div className={styles.preferenceRow} style={{ marginTop: "1rem" }}>
-            <div className={styles.preferenceInfo}>
-              <span className={styles.preferenceLabel}>Model</span>
-              <p className={styles.preferenceDescription}>
-                Choose the Cerebras model for AI features. Faster models use fewer resources.
-              </p>
-            </div>
-          </div>
-          <div className={styles.radioGroup}>
-            {AI_MODEL_OPTIONS.map((option) => (
-              <label
-                key={option.value}
-                className={`${styles.radioOption} ${currentAiModel === option.value ? styles.radioOptionSelected : ""}`}
-              >
-                <input
-                  type="radio"
-                  name="aiModel"
-                  className={styles.radioInput}
-                  value={option.value}
-                  checked={currentAiModel === option.value}
-                  onChange={() => {
-                    handleAiModelChange(option.value)
-                  }}
-                />
-                <div className={styles.radioContent}>
-                  <span className={styles.radioLabel}>{option.label}</span>
-                  <p className={styles.radioDescription}>{option.description}</p>
-                </div>
-              </label>
-            ))}
-          </div>
-
-          <div className={styles.permissionsHint}>
-            <AlertIcon size={14} />
-            <p>
-              The API key is configured via the <code>CEREBRAS_API_KEY</code> environment variable
-              on the server. Visit{" "}
-              <a
-                href="https://cloud.cerebras.ai/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.link}
-              >
-                cloud.cerebras.ai
-              </a>{" "}
-              to get your key.
-            </p>
-          </div>
+          ))}
         </div>
-      </section>
-
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Account</h2>
-        <div className={styles.card}>
-          <div className={styles.accountRow}>
-            <div>
-              <span className={styles.accountLabel}>Email</span>
-              <span className={styles.accountValue}>{user.email}</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      </nav>
+      <main className={styles.content}>
+        <h1 className={styles.pageTitle}>
+          {SIDEBAR_ITEMS.find((i) => i.id === activeSection)?.label ?? "Settings"}
+        </h1>
+        {error && <div className={styles.errorBanner}>{error}</div>}
+        {success && <div className={styles.successBanner}>{success}</div>}
+        {renderContent()}
+      </main>
     </div>
   )
 }
 
-function AddRepoCard({ userId }: { userId: string }) {
+/* ------------------------------------------------------------------ */
+/*  GitHub Section                                                     */
+/* ------------------------------------------------------------------ */
+
+interface GitHubSectionProps {
+  user: {
+    name?: string | null
+    login?: string | null
+    avatarUrl?: string | null
+    htmlUrl?: string | null
+  }
+  isGitHubConnected: boolean
+  isAuthInvalid: boolean
+  lastSyncedAt: number | undefined | null
+  disconnecting: boolean
+  githubAppInstallUrl: string
+  onConnect: () => void
+  onDisconnect: () => void
+}
+
+const GitHubSection = ({
+  user,
+  isGitHubConnected,
+  isAuthInvalid,
+  lastSyncedAt,
+  disconnecting,
+  githubAppInstallUrl,
+  onConnect,
+  onDisconnect,
+}: GitHubSectionProps) => {
+  if (!isGitHubConnected) {
+    return (
+      <div className={styles.card}>
+        <div className={styles.emptyConnection}>
+          <MarkGithubIcon size={40} className={styles.emptyIcon} />
+          <h3 className={styles.emptyTitle}>No GitHub account connected</h3>
+          <p className={styles.emptyDescription}>
+            Connect your GitHub account to sync repositories, pull requests, and receive real-time
+            updates.
+          </p>
+          <Button
+            variant="primary"
+            size="large"
+            leadingIcon={<MarkGithubIcon size={20} />}
+            onClick={onConnect}
+          >
+            Connect GitHub
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className={styles.card}>
+        <div className={styles.connectionHeader}>
+          <div className={styles.connectionInfo}>
+            <Avatar src={user.avatarUrl} name={user.name || user.login} size={48} />
+            <div className={styles.connectionDetails}>
+              <span className={styles.connectionName}>{user.name || user.login}</span>
+              <span className={styles.connectionLogin}>@{user.login}</span>
+            </div>
+          </div>
+          {isAuthInvalid ? (
+            <div className={styles.statusBadgeDanger}>
+              <AlertIcon size={14} />
+              Expired
+            </div>
+          ) : (
+            <div className={styles.statusBadgeSuccess}>
+              <CheckCircleFillIcon size={14} />
+              Connected
+            </div>
+          )}
+        </div>
+
+        {isAuthInvalid && (
+          <div className={styles.warningBanner}>
+            <AlertIcon size={16} />
+            <div>
+              <strong>Connection expired</strong>
+              <p>
+                Your GitHub token is no longer valid. Reconnect to resume syncing repositories and
+                pull requests.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {Boolean(lastSyncedAt) && !isAuthInvalid && (
+          <div className={styles.metaRow}>
+            <SyncIcon size={14} />
+            Last synced {formatTimeAgo(lastSyncedAt!)}
+          </div>
+        )}
+
+        {user.htmlUrl && (
+          <div className={styles.metaRow}>
+            <LinkExternalIcon size={14} />
+            <a
+              href={user.htmlUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.link}
+            >
+              {user.htmlUrl}
+            </a>
+          </div>
+        )}
+
+        <div className={styles.cardActions}>
+          <Button
+            variant={isAuthInvalid ? "primary" : "default"}
+            leadingIcon={<MarkGithubIcon size={16} />}
+            onClick={onConnect}
+          >
+            {isAuthInvalid ? "Reconnect GitHub" : "Reconnect"}
+          </Button>
+          <Button
+            variant="danger"
+            leadingIcon={<TrashIcon size={16} />}
+            loading={disconnecting}
+            onClick={onDisconnect}
+          >
+            Disconnect
+          </Button>
+        </div>
+      </div>
+
+      <div className={styles.card}>
+        <div className={styles.preferenceInfo}>
+          <span className={styles.preferenceLabel}>GitHub App</span>
+          <p className={styles.preferenceDescription}>
+            Manage GitHub App installations. Install to grant access to additional orgs or repos.
+          </p>
+        </div>
+        <div className={styles.appActions}>
+          <Button
+            variant="default"
+            onClick={() => {
+              window.location.href = githubAppInstallUrl
+            }}
+          >
+            Install
+          </Button>
+          <Button
+            variant="default"
+            onClick={() => {
+              window.location.href = GITHUB_APP_INSTALLATIONS_URL
+            }}
+          >
+            Manage
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              window.location.href = GITHUB_APP_INSTALLATIONS_URL
+            }}
+          >
+            Remove
+          </Button>
+        </div>
+        <div className={styles.permissionsHint}>
+          <AlertIcon size={14} />
+          <p>
+            Organization access can depend on GitHub org policies. If repos or webhooks are missing,
+            ask an org admin to approve the OAuth app and authorize the token for org SAML SSO.
+          </p>
+        </div>
+      </div>
+    </>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Repos Section                                                      */
+/* ------------------------------------------------------------------ */
+
+const ReposSection = ({ userId }: { userId: string }) => {
   const navigate = useNavigate()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -603,22 +497,24 @@ function AddRepoCard({ userId }: { userId: string }) {
     addRepo.mutate({ url })
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleAddRepo()
-    }
-  }
-
   return (
     <div className={styles.card}>
-      <div className={styles.addRepoRow}>
+      <div className={styles.preferenceInfo}>
+        <span className={styles.preferenceLabel}>Add Repository</span>
+        <p className={styles.preferenceDescription}>
+          Paste a GitHub URL or type owner/repo to track a specific repository.
+        </p>
+      </div>
+      <div className={styles.addRepoRow} style={{ marginTop: "0.75rem" }}>
         <RepoIcon size={16} className={styles.addRepoIcon} />
         <input
           ref={inputRef}
           type="text"
           className={styles.addRepoInput}
           placeholder="https://github.com/owner/repo or owner/repo"
-          onKeyDown={handleKeyDown}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleAddRepo()
+          }}
           disabled={adding}
         />
         <Button
@@ -626,23 +522,388 @@ function AddRepoCard({ userId }: { userId: string }) {
           size="small"
           leadingIcon={<PlusIcon size={16} />}
           loading={adding}
-          onClick={() => {
-            handleAddRepo()
-          }}
+          onClick={handleAddRepo}
         >
           Add
         </Button>
       </div>
       {addError && <div className={styles.addRepoError}>{addError}</div>}
       {addSuccess && <div className={styles.addRepoSuccess}>{addSuccess}</div>}
-      <p className={styles.addRepoHint}>
-        Paste a GitHub URL or type owner/repo to track a specific repository.
-      </p>
     </div>
   )
 }
 
-type QueueItem = {
+/* ------------------------------------------------------------------ */
+/*  Webhooks Section                                                   */
+/* ------------------------------------------------------------------ */
+
+interface SyncStateItem {
+  id: string
+  resourceType: string
+  resourceId?: string
+  lastSyncedAt?: number
+  lastEtag?: string
+  syncStatus?: string
+  syncError?: string
+  rateLimitRemaining?: number
+  rateLimitReset?: number
+}
+
+interface RepoItem {
+  id: string
+  fullName: string
+  webhookStatus?: string | null
+  webhookError?: string | null
+}
+
+interface WebhooksSectionProps {
+  currentSyncMode: WebhookSyncMode
+  onSyncModeChange: (mode: WebhookSyncMode) => void
+  isGitHubConnected: boolean
+  isAuthInvalid: boolean
+  syncStates: SyncStateItem[]
+  repos: RepoItem[]
+  userId: string
+  overviewSyncPending: boolean
+  onOverviewSync: () => void
+  onResetSync: (resourceType: string, resourceId?: string) => void
+  onRetrySync: (resourceType: string, resourceId?: string) => void
+}
+
+const WebhooksSection = ({
+  currentSyncMode,
+  onSyncModeChange,
+  isGitHubConnected,
+  isAuthInvalid,
+  syncStates,
+  repos,
+  userId,
+  overviewSyncPending,
+  onOverviewSync,
+  onResetSync,
+  onRetrySync,
+}: WebhooksSectionProps) => (
+  <>
+    <section className={styles.section}>
+      <h2 className={styles.sectionTitle}>Sync Behavior</h2>
+      <div className={styles.card}>
+        <div className={styles.preferenceInfo}>
+          <span className={styles.preferenceLabel}>PR detail sync mode</span>
+          <p className={styles.preferenceDescription}>
+            Controls how much data is fetched when GitHub webhook events arrive for pull requests.
+          </p>
+        </div>
+        <div className={styles.radioGroup} style={{ marginTop: "0.75rem" }}>
+          {SYNC_MODE_OPTIONS.map((option) => (
+            <label
+              key={option.value}
+              className={`${styles.radioOption} ${currentSyncMode === option.value ? styles.radioOptionSelected : ""}`}
+            >
+              <input
+                type="radio"
+                name="webhookSyncMode"
+                className={styles.radioInput}
+                value={option.value}
+                checked={currentSyncMode === option.value}
+                onChange={() => {
+                  onSyncModeChange(option.value)
+                }}
+              />
+              <div className={styles.radioContent}>
+                <span className={styles.radioLabel}>{option.label}</span>
+                <p className={styles.radioDescription}>{option.description}</p>
+              </div>
+            </label>
+          ))}
+        </div>
+        <p className={styles.preferenceHint}>
+          Changes take effect immediately for incoming webhooks.
+        </p>
+      </div>
+    </section>
+
+    {isGitHubConnected && !isAuthInvalid && (
+      <>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Queue</h2>
+          <WebhookQueueCard />
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Debug</h2>
+          <div className={styles.card}>
+            <div className={styles.preferenceRow}>
+              <div className={styles.preferenceInfo}>
+                <span className={styles.preferenceLabel}>Sync Overview</span>
+                <p className={styles.preferenceDescription}>
+                  Manually trigger a full overview sync (repos, orgs, PRs).
+                </p>
+              </div>
+              <Button
+                variant="default"
+                size="small"
+                leadingIcon={<SyncIcon size={14} />}
+                loading={overviewSyncPending}
+                onClick={onOverviewSync}
+              >
+                Sync
+              </Button>
+            </div>
+          </div>
+          <SyncManagement
+            syncStates={syncStates}
+            onResetSync={onResetSync}
+            onRetrySync={onRetrySync}
+          />
+          <div style={{ marginTop: "0.75rem" }}>
+            <WebhookManagement repos={repos} userId={userId} />
+          </div>
+        </section>
+      </>
+    )}
+  </>
+)
+
+/* ------------------------------------------------------------------ */
+/*  Interface Section                                                  */
+/* ------------------------------------------------------------------ */
+
+const InterfaceSection = ({
+  isFullScreen,
+  onToggle,
+}: {
+  isFullScreen: boolean
+  onToggle: () => void
+}) => (
+  <div className={styles.card}>
+    <div className={styles.preferenceRow}>
+      <div className={styles.preferenceInfo}>
+        <span className={styles.preferenceLabel}>Full-screen PR workspace</span>
+        <p className={styles.preferenceDescription}>
+          Shows pull requests in a 3-column layout with PR list, diffs, and activity feed.
+        </p>
+      </div>
+      <button
+        type="button"
+        className={`${styles.toggleSwitch} ${isFullScreen ? styles.toggleSwitchOn : ""}`}
+        aria-label="Enable full-screen PR workspace"
+        aria-pressed={isFullScreen}
+        onClick={onToggle}
+      >
+        <span className={styles.toggleThumb} />
+      </button>
+    </div>
+    <p className={styles.preferenceHint}>Applies to repository pull request detail pages.</p>
+  </div>
+)
+
+/* ------------------------------------------------------------------ */
+/*  AI Section                                                         */
+/* ------------------------------------------------------------------ */
+
+interface AISectionProps {
+  enabled: boolean
+  model: string
+  onToggle: () => void
+  onModelChange: (model: string) => void
+}
+
+const AISection = ({ enabled, model, onToggle, onModelChange }: AISectionProps) => (
+  <>
+    <div className={styles.card}>
+      <div className={styles.preferenceRow}>
+        <div className={styles.preferenceInfo}>
+          <span className={styles.preferenceLabel}>Enable AI-powered insights</span>
+          <p className={styles.preferenceDescription}>
+            Uses Cerebras Cloud to generate activity summaries, action suggestions, and enable the
+            AI chat assistant on the dashboard.
+          </p>
+        </div>
+        <button
+          type="button"
+          className={`${styles.toggleSwitch} ${enabled ? styles.toggleSwitchOn : ""}`}
+          aria-label="Enable AI features"
+          aria-pressed={enabled}
+          onClick={onToggle}
+        >
+          <span className={styles.toggleThumb} />
+        </button>
+      </div>
+    </div>
+
+    <div className={styles.card}>
+      <div className={styles.preferenceInfo}>
+        <span className={styles.preferenceLabel}>Model</span>
+        <p className={styles.preferenceDescription}>
+          Choose the Cerebras model for AI features. Faster models use fewer resources.
+        </p>
+      </div>
+      <div className={styles.radioGroup} style={{ marginTop: "0.75rem" }}>
+        {AI_MODEL_OPTIONS.map((option) => (
+          <label
+            key={option.value}
+            className={`${styles.radioOption} ${model === option.value ? styles.radioOptionSelected : ""}`}
+          >
+            <input
+              type="radio"
+              name="aiModel"
+              className={styles.radioInput}
+              value={option.value}
+              checked={model === option.value}
+              onChange={() => {
+                onModelChange(option.value)
+              }}
+            />
+            <div className={styles.radioContent}>
+              <span className={styles.radioLabel}>{option.label}</span>
+              <p className={styles.radioDescription}>{option.description}</p>
+            </div>
+          </label>
+        ))}
+      </div>
+      <div className={styles.permissionsHint}>
+        <AlertIcon size={14} />
+        <p>
+          The API key is configured via the <code>CEREBRAS_API_KEY</code> environment variable on
+          the server. Visit{" "}
+          <a
+            href="https://cloud.cerebras.ai/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.link}
+          >
+            cloud.cerebras.ai
+          </a>{" "}
+          to get your key.
+        </p>
+      </div>
+    </div>
+  </>
+)
+
+/* ------------------------------------------------------------------ */
+/*  Data & Storage Section                                             */
+/* ------------------------------------------------------------------ */
+
+interface DataSectionProps {
+  webhookLogsEnabled: boolean
+  onToggleLogs: () => void
+}
+
+const DataSection = ({ webhookLogsEnabled, onToggleLogs }: DataSectionProps) => {
+  const [purging, setPurging] = useState(false)
+  const [purgeResult, setPurgeResult] = useState<string | null>(null)
+  const [purgeError, setPurgeError] = useState<string | null>(null)
+
+  const handlePurge = async () => {
+    setPurging(true)
+    setPurgeResult(null)
+    setPurgeError(null)
+    try {
+      const res = await fetch("/api/github/webhook-queue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "purge-all" }),
+      })
+      const data = (await res.json()) as {
+        ok?: boolean
+        deleted?: number
+        deliveriesDeleted?: number
+        error?: string
+      }
+      if (!res.ok) throw new Error(data.error || "Purge failed")
+      const queueCount = data.deleted ?? 0
+      const deliveryCount = data.deliveriesDeleted ?? 0
+      setPurgeResult(`Purged ${queueCount} queue items and ${deliveryCount} delivery records.`)
+    } catch (err) {
+      setPurgeError(err instanceof Error ? err.message : "Purge failed")
+    } finally {
+      setPurging(false)
+    }
+  }
+
+  return (
+    <>
+      <div className={styles.card}>
+        <div className={styles.preferenceRow}>
+          <div className={styles.preferenceInfo}>
+            <span className={styles.preferenceLabel}>Keep webhook debug logs</span>
+            <p className={styles.preferenceDescription}>
+              Processed webhook queue items and delivery records are retained for debugging. Disable
+              to keep the database lean.
+            </p>
+          </div>
+          <button
+            type="button"
+            className={`${styles.toggleSwitch} ${webhookLogsEnabled ? styles.toggleSwitchOn : ""}`}
+            aria-label="Keep webhook debug logs"
+            aria-pressed={webhookLogsEnabled}
+            onClick={onToggleLogs}
+          >
+            <span className={styles.toggleThumb} />
+          </button>
+        </div>
+        <p className={styles.preferenceHint}>
+          {webhookLogsEnabled
+            ? "Processed items are kept for 7 days, dead-letter items for 30 days."
+            : "Processed items and delivery records are deleted immediately after processing."}
+        </p>
+      </div>
+
+      <div className={styles.card}>
+        <div className={styles.preferenceRow}>
+          <div className={styles.preferenceInfo}>
+            <span className={styles.preferenceLabel}>Purge webhook data</span>
+            <p className={styles.preferenceDescription}>
+              Delete all processed and dead-letter queue items and delivery records now. Failed
+              items pending retry are kept.
+            </p>
+          </div>
+          <Button
+            variant="danger"
+            size="small"
+            leadingIcon={<TrashIcon size={14} />}
+            loading={purging}
+            onClick={() => void handlePurge()}
+          >
+            Purge
+          </Button>
+        </div>
+        {purgeResult && (
+          <div className={styles.successBanner} style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+            {purgeResult}
+          </div>
+        )}
+        {purgeError && (
+          <div className={styles.errorBanner} style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+            {purgeError}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Account Section                                                    */
+/* ------------------------------------------------------------------ */
+
+const AccountSection = ({ email }: { email?: string | null }) => (
+  <div className={styles.card}>
+    <div className={styles.accountRow}>
+      <div>
+        <span className={styles.accountLabel}>Email</span>
+        <span className={styles.accountValue}>{email ?? "—"}</span>
+      </div>
+    </div>
+  </div>
+)
+
+/* ------------------------------------------------------------------ */
+/*  Webhook Queue Card (reused from webhooks section)                  */
+/* ------------------------------------------------------------------ */
+
+interface QueueItem {
   id: string
   deliveryId: string
   event: string
@@ -655,7 +916,7 @@ type QueueItem = {
   failedAt?: number
 }
 
-function WebhookQueueCard() {
+const WebhookQueueCard = () => {
   const [items, setItems] = useState<QueueItem[]>([])
   const [loading, setLoading] = useState(false)
   const [loaded, setLoaded] = useState(false)
@@ -711,7 +972,11 @@ function WebhookQueueCard() {
         </Button>
       </div>
 
-      {queueError && <div className={styles.errorBanner}>{queueError}</div>}
+      {queueError && (
+        <div className={styles.errorBanner} style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+          {queueError}
+        </div>
+      )}
 
       {loaded && items.length === 0 && (
         <p className={styles.preferenceHint}>No dead-letter or failed items in the queue.</p>
@@ -740,57 +1005,25 @@ function WebhookQueueCard() {
             </div>
           )}
 
-          <div className={styles.accountRow} style={{ flexDirection: "column", gap: "0.5rem" }}>
+          <div style={{ marginTop: "0.75rem" }}>
             {items.map((item) => (
-              <div
-                key={item.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "0.5rem 0",
-                  borderBottom: "1px solid rgba(var(--bit-rgb-fg), 0.06)",
-                }}
-              >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+              <div key={item.id} className={styles.queueItemRow}>
+                <div className={styles.queueItemInfo}>
+                  <div className={styles.queueItemMeta}>
                     <span
-                      style={{
-                        fontSize: "0.75rem",
-                        fontWeight: 600,
-                        color:
-                          item.status === "dead_letter"
-                            ? "var(--bit-color-danger)"
-                            : "var(--bit-color-warning)",
-                        textTransform: "uppercase",
-                      }}
+                      className={`${styles.queueItemStatus} ${item.status === "dead_letter" ? styles.queueItemStatusDead : styles.queueItemStatusFailed}`}
                     >
                       {item.status === "dead_letter" ? "dead" : "failed"}
                     </span>
-                    <code style={{ fontSize: "0.8rem" }}>
+                    <code className={styles.queueItemEvent}>
                       {item.event}
                       {item.action ? `.${item.action}` : ""}
                     </code>
-                    <span style={{ fontSize: "0.75rem", opacity: 0.5 }}>
-                      {formatTimeAgo(item.createdAt)}
-                    </span>
+                    <span className={styles.queueItemTime}>{formatTimeAgo(item.createdAt)}</span>
                   </div>
-                  {item.lastError && (
-                    <p
-                      style={{
-                        fontSize: "0.75rem",
-                        opacity: 0.6,
-                        margin: "0.25rem 0 0",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {item.lastError}
-                    </p>
-                  )}
+                  {item.lastError && <p className={styles.queueItemError}>{item.lastError}</p>}
                 </div>
-                <div style={{ display: "flex", gap: "0.25rem", flexShrink: 0 }}>
+                <div className={styles.queueItemActions}>
                   <Button
                     variant="default"
                     size="small"
@@ -819,9 +1052,12 @@ function WebhookQueueCard() {
   )
 }
 
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
+
 const formatTimeAgo = (timestamp: number): string => {
-  const now = Date.now()
-  const diff = now - timestamp
+  const diff = Date.now() - timestamp
   const minutes = Math.floor(diff / 60000)
   const hours = Math.floor(diff / 3600000)
   const days = Math.floor(diff / 86400000)

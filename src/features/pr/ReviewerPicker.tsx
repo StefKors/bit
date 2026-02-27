@@ -4,7 +4,7 @@ import { Button } from "@/components/Button"
 import { addReviewersMutation, removeReviewersMutation } from "@/lib/mutations"
 import styles from "./ReviewerPicker.module.css"
 
-type ReviewerPickerProps = {
+interface ReviewerPickerProps {
   userId?: string
   owner?: string
   repo?: string

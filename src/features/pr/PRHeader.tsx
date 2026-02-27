@@ -16,7 +16,7 @@ import styles from "./PRHeader.module.css"
 
 type PullRequestState = "open" | "closed"
 
-type PRHeaderProps = {
+interface PRHeaderProps {
   userId?: string
   owner?: string
   repo?: string

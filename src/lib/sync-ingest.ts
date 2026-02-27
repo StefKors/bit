@@ -1,10 +1,10 @@
-export type RepoActivitySnapshot = {
+export interface RepoActivitySnapshot {
   fullName: string
   githubPushedAt?: number
   githubUpdatedAt?: number
 }
 
-export type PullSyncStateSnapshot = {
+export interface PullSyncStateSnapshot {
   resourceId?: string
   lastSyncedAt?: number
 }

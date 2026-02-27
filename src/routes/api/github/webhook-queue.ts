@@ -13,7 +13,7 @@ const jsonResponse = <T>(data: T, status = 200) =>
 const CLEANUP_PROCESSED_RETENTION_MS = 7 * 24 * 60 * 60 * 1000
 const CLEANUP_DEAD_LETTER_RETENTION_MS = 30 * 24 * 60 * 60 * 1000
 
-type QueueCleanupItem = {
+interface QueueCleanupItem {
   id: string
   status?: string
   createdAt: number
@@ -185,6 +185,41 @@ export const Route = createFileRoute("/api/github/webhook-queue")({
             )
             if (txs.length > 0) await adminDb.transact(txs)
             return jsonResponse({ ok: true, count: txs.length })
+          }
+
+          if (body.action === "purge-all") {
+            log.info("Webhook queue API: purging all processed and dead-letter data", {
+              op: "webhook-queue-purge-all",
+              entity: "webhookQueue+webhookDeliveries",
+            })
+
+            const [{ webhookQueue }, { webhookDeliveries }] = await Promise.all([
+              adminDb.query({
+                webhookQueue: {
+                  $: {
+                    where: {
+                      or: [{ status: "processed" }, { status: "dead_letter" }],
+                    },
+                  },
+                },
+              }),
+              adminDb.query({ webhookDeliveries: {} }),
+            ])
+
+            const queueTxs = (webhookQueue || []).map((item) =>
+              adminDb.tx.webhookQueue[item.id].delete(),
+            )
+            const deliveryTxs = (webhookDeliveries || []).map((item) =>
+              adminDb.tx.webhookDeliveries[item.id].delete(),
+            )
+            const allTxs = [...queueTxs, ...deliveryTxs]
+            if (allTxs.length > 0) await adminDb.transact(allTxs)
+
+            return jsonResponse({
+              ok: true,
+              deleted: queueTxs.length,
+              deliveriesDeleted: deliveryTxs.length,
+            })
           }
 
           if (body.action === "cleanup") {

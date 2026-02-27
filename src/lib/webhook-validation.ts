@@ -89,7 +89,7 @@ export const parseRateLimitHeaders = (
   return { remaining: remainingNum, resetAt, retryAfterMs }
 }
 
-export type LenientDecodeResult<T> = {
+export interface LenientDecodeResult<T> {
   parsed: T[]
   skipped: Array<{ index: number; error: string; raw: unknown }>
 }

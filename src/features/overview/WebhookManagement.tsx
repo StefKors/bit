@@ -18,14 +18,14 @@ import styles from "./WebhookManagement.module.css"
 
 type WebhookStatus = "installed" | "error" | "not_installed" | "no_access"
 
-type Repo = {
+interface Repo {
   id: string
   fullName: string
   webhookStatus?: string | null
   webhookError?: string | null
 }
 
-type WebhookManagementProps = {
+interface WebhookManagementProps {
   repos: Repo[]
   userId: string
 }

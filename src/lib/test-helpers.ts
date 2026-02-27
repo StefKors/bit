@@ -143,7 +143,7 @@ export const makeRepo = (opts: MockRepoOptions = {}) => {
 
 // ── Route handler test helper ──
 
-export type RouteHandlerContext = {
+export interface RouteHandlerContext {
   request: Request
   params?: Record<string, string>
 }

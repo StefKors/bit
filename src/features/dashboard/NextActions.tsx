@@ -77,7 +77,7 @@ const ActionRow = ({ action }: { action: NextAction }) => {
   return content
 }
 
-type NextActionsProps = {
+interface NextActionsProps {
   actions: NextAction[]
   maxItems?: number
 }

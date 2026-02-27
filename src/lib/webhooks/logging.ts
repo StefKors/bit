@@ -5,7 +5,7 @@
 
 import { log } from "@/lib/logger"
 
-type PayloadSummary = {
+interface PayloadSummary {
   repo?: string
   pr?: number
   issue?: number
@@ -16,7 +16,7 @@ type PayloadSummary = {
   [key: string]: unknown
 }
 
-type WebhookTraceContext = {
+interface WebhookTraceContext {
   deliveryId?: string
   event?: string
   action?: string

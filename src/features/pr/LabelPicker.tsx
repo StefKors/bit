@@ -4,12 +4,12 @@ import { Button } from "@/components/Button"
 import { addLabelsMutation, removeLabelMutation, setLabelsMutation } from "@/lib/mutations"
 import styles from "./LabelPicker.module.css"
 
-type Label = {
+interface Label {
   name: string
   color: string | null
 }
 
-type LabelPickerProps = {
+interface LabelPickerProps {
   userId?: string
   owner?: string
   repo?: string

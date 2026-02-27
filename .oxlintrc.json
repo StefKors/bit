@@ -109,6 +109,7 @@
         "@typescript-eslint/await-thenable": "error",
         "@typescript-eslint/ban-ts-comment": "error",
         "@typescript-eslint/consistent-type-imports": "warn",
+        "@typescript-eslint/consistent-type-definitions": "error",
         "no-array-constructor": "error",
         "@typescript-eslint/no-array-delete": "error",
         "@typescript-eslint/no-base-to-string": "error",

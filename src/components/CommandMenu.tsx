@@ -17,7 +17,7 @@ import styles from "./CommandMenu.module.css"
 
 type Page = "home" | { type: "repo"; repoId: string; fullName: string }
 
-export type CommandMenuHandle = {
+export interface CommandMenuHandle {
   open: () => void
   close: () => void
   toggle: () => void

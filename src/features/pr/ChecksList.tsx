@@ -1,6 +1,6 @@
 import styles from "./ChecksList.module.css"
 
-export type PullRequestCheck = {
+export interface PullRequestCheck {
   id: string
   name?: string | null
   status?: string | null
@@ -9,7 +9,7 @@ export type PullRequestCheck = {
   htmlUrl?: string | null
 }
 
-type ChecksListProps = {
+interface ChecksListProps {
   checks: readonly PullRequestCheck[]
 }
 

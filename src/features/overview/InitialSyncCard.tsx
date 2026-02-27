@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/Button"
 import styles from "./InitialSyncCard.module.css"
 
-type InitialSyncProgress = {
+interface InitialSyncProgress {
   step: "orgs" | "repos" | "webhooks" | "pullRequests" | "completed"
   orgs?: { total: number }
   repos?: { total: number }
@@ -20,7 +20,7 @@ type InitialSyncProgress = {
   error?: string
 }
 
-type SyncState = {
+interface SyncState {
   id: string
   resourceType: string
   resourceId?: string
@@ -34,7 +34,7 @@ type SyncState = {
 
 type SyncStepStatus = "completed" | "active" | "pending"
 
-type InitialSyncCardProps = {
+interface InitialSyncCardProps {
   progress: InitialSyncProgress | null
   syncStates: SyncState[]
   onResetSync: (resourceType: string, resourceId?: string) => void

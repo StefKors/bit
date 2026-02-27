@@ -1,7 +1,7 @@
 import { Markdown } from "@/components/Markdown"
 import styles from "./SuggestionBlock.module.css"
 
-type SuggestionParts = {
+interface SuggestionParts {
   before: string
   suggestion: string
   after: string
@@ -23,7 +23,7 @@ const parseSuggestionBody = (body: string): SuggestionParts | null => {
   }
 }
 
-type SuggestionBlockProps = {
+interface SuggestionBlockProps {
   body: string
 }
 

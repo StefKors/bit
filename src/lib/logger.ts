@@ -6,7 +6,12 @@
 
 type LogContext = Record<string, unknown>
 
-type FormattedError = { message: string; status?: number; code?: string; stack?: string }
+interface FormattedError {
+  message: string
+  status?: number
+  code?: string
+  stack?: string
+}
 
 const formatContext = (ctx: LogContext): string => {
   const parts: string[] = []

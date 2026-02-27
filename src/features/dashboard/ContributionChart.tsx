@@ -1,6 +1,6 @@
 import styles from "./ContributionChart.module.css"
 
-type ContributionChartProps = {
+interface ContributionChartProps {
   data: Array<{ date: string; count: number }>
 }
 
@@ -63,7 +63,7 @@ export const ContributionChart = ({ data }: ContributionChartProps) => {
   )
 }
 
-type LanguageBarProps = {
+interface LanguageBarProps {
   languages: Array<{ language: string; count: number; color: string }>
 }
 

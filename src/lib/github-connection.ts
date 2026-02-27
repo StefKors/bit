@@ -1,13 +1,13 @@
 import { adminDb } from "./instantAdmin"
 import { log } from "./logger"
 
-type TokenSyncState = {
+interface TokenSyncState {
   id: string
   lastEtag?: string
   updatedAt?: number
 }
 
-export type RevokeGrantResult = {
+export interface RevokeGrantResult {
   attempted: boolean
   revoked: boolean
   reason?: string

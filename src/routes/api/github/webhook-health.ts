@@ -21,7 +21,7 @@ type WebhookQueueAlertCode =
   | "processor_stale_warning"
   | "processor_stale_critical"
 
-type WebhookQueueHealthAlert = {
+interface WebhookQueueHealthAlert {
   code: WebhookQueueAlertCode
   level: Exclude<WebhookQueueHealthLevel, "ok">
   message: string
@@ -29,14 +29,14 @@ type WebhookQueueHealthAlert = {
   threshold: number
 }
 
-type WebhookQueueItem = {
+interface WebhookQueueItem {
   status?: string
   createdAt: number
   processedAt?: number
   failedAt?: number
 }
 
-export type WebhookQueueHealthSnapshot = {
+export interface WebhookQueueHealthSnapshot {
   health: WebhookQueueHealthLevel
   alerts: WebhookQueueHealthAlert[]
   queue: {
