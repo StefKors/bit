@@ -281,22 +281,30 @@ export const dispatchWebhookEvent = async (
       })
       await handleRepositoryWebhook(db, payload)
       break
-    case "pull_request":
+    case "pull_request": {
+      const prMeta = {
+        repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
+        pr: (payload as { pull_request?: { number?: number } }).pull_request?.number,
+        action: (payload as { action?: string }).action,
+      }
       logWebhookHandler(
         event,
         "handlePullRequestWebhook+handlePullRequestEventWebhook",
         ["pullRequests", "prEvents"],
-        {
-          repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
-          pr: (payload as { pull_request?: { number?: number } }).pull_request?.number,
-          action: (payload as { action?: string }).action,
-        },
+        prMeta,
       )
-      await Promise.all([
-        handlePullRequestWebhook(db, payload),
-        handlePullRequestEventWebhook(db, payload),
-      ])
+      await handlePullRequestWebhook(db, payload)
+      try {
+        await handlePullRequestEventWebhook(db, payload)
+      } catch (eventErr) {
+        log.warn("prEvent handler failed (non-blocking)", {
+          op: "webhook-handler-pr-event-error",
+          error: eventErr instanceof Error ? eventErr.message : String(eventErr),
+          ...prMeta,
+        })
+      }
       break
+    }
     case "pull_request_review":
       logWebhookHandler(event, "handlePullRequestReviewWebhook", ["prReviews"], {
         repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
