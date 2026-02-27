@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { FileDirectoryIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { syncTreeMutation } from "@/lib/mutations"
+import { SyncHint } from "@/components/SyncHint"
 import { Markdown } from "@/components/Markdown"
 import { FileTree, type TreeEntry } from "./FileTree"
 import styles from "./RepoCodeTab.module.css"
@@ -12,7 +13,6 @@ interface RepoCodeTabProps {
   fullName: string
   repoId: string
   defaultBranch: string
-  webhookStatus?: string | null
 }
 
 interface TreeEntryData {
@@ -24,7 +24,7 @@ interface TreeEntryData {
   size?: number
 }
 
-export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: RepoCodeTabProps) {
+export function RepoCodeTab({ fullName, repoId, defaultBranch }: RepoCodeTabProps) {
   const { user } = useAuth()
   const [owner, repo] = fullName.split("/")
   const branch = defaultBranch || "main"
@@ -34,7 +34,6 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: 
 
   const [readme, setReadme] = useState<string | null>(null)
   const [readmeLoading, setReadmeLoading] = useState(false)
-  const initialSyncTriggered = useRef(false)
 
   const { data: repoData, isLoading: treeLoading } = db.useQuery({
     repos: {
@@ -50,13 +49,7 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: 
     return data?.[0]?.repoTrees ?? []
   }, [repoData])
 
-  // Auto-sync files on first visit when webhooks are installed but tree is empty
-  const hasWebhooks = webhookStatus === "installed"
   const treeIsEmpty = repoData !== undefined && treeEntries.length === 0
-  if (hasWebhooks && treeIsEmpty && user?.id && !initialSyncTriggered.current && !syncing) {
-    initialSyncTriggered.current = true
-    treeSync.mutate()
-  }
 
   // Fetch README when tree is loaded
   useEffect(() => {
@@ -116,6 +109,15 @@ export function RepoCodeTab({ fullName, repoId, defaultBranch, webhookStatus }: 
 
   return (
     <div className={styles.content}>
+      {treeIsEmpty && user?.id && (
+        <SyncHint
+          message="No file tree synced yet. Files arrive via webhooks as you push."
+          loading={syncing}
+          onSync={() => {
+            treeSync.mutate()
+          }}
+        />
+      )}
       <FileTree
         entries={entries}
         owner={owner}

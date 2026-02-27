@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useRef } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { IssueOpenedIcon, IssueClosedIcon, SkipIcon } from "@primer/octicons-react"
 import { Breadcrumb } from "@/components/Breadcrumb"
+import { SyncHint } from "@/components/SyncHint"
 import { IssueConversationTab } from "@/features/issue/IssueConversationTab"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
@@ -34,7 +34,6 @@ const IssueDetailPage = () => {
   const issueNumber = parseInt(number, 10)
   const fullName = `${owner}/${repoName}`
 
-  const initialSyncTriggered = useRef(false)
   const issueSync = useMutation(syncIssueMutation(user?.id ?? "", owner, repoName, issueNumber))
   const error = issueSync.error?.message ?? null
 
@@ -86,10 +85,6 @@ const IssueDetailPage = () => {
 
   const commentsEmpty = issueComments.length === 0
   const syncing = issueSync.isPending
-  if (user?.id && commentsEmpty && !initialSyncTriggered.current && !syncing && repoData && issue) {
-    initialSyncTriggered.current = true
-    issueSync.mutate()
-  }
 
   return (
     <div className={styles.container}>
@@ -181,6 +176,16 @@ const IssueDetailPage = () => {
         >
           {error}
         </div>
+      )}
+
+      {commentsEmpty && user?.id && (
+        <SyncHint
+          message="Issue comments haven't been synced yet."
+          loading={syncing}
+          onSync={() => {
+            issueSync.mutate()
+          }}
+        />
       )}
 
       <div className={styles.content}>

@@ -13,7 +13,6 @@ function RepoPage() {
           fullName={fullName}
           repoId={repoData.id}
           defaultBranch={repoData.defaultBranch || "main"}
-          webhookStatus={repoData.webhookStatus}
         />
       )}
     </RepoLayout>

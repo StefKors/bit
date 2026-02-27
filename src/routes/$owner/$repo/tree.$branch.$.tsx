@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useRef } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { FileIcon, FileDirectoryIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { syncTreeMutation } from "@/lib/mutations"
 import { Breadcrumb } from "@/components/Breadcrumb"
+import { SyncHint } from "@/components/SyncHint"
 import { RepoHeader } from "@/features/repo/RepoHeader"
 import { FileTree, type TreeEntry } from "@/features/repo/FileTree"
 import styles from "@/features/repo/FileViewerPage.module.css"
@@ -18,7 +18,6 @@ function TreePage() {
 
   const treeSync = useMutation(syncTreeMutation(user?.id ?? "", owner, repo, branch))
   const syncing = treeSync.isPending
-  const autoSyncTriggered = useRef(false)
 
   const { data: reposData, isLoading } = db.useQuery({
     repos: {
@@ -35,19 +34,6 @@ function TreePage() {
   const repoData = reposData?.repos?.[0] ?? null
   const treeEntries = repoData?.repoTrees ?? []
   const treeIsEmpty = treeEntries.length === 0
-  const hasWebhooks = repoData?.webhookStatus === "installed"
-
-  if (
-    repoData &&
-    hasWebhooks &&
-    treeIsEmpty &&
-    user?.id &&
-    !autoSyncTriggered.current &&
-    !syncing
-  ) {
-    autoSyncTriggered.current = true
-    treeSync.mutate()
-  }
 
   if (isLoading) {
     return (
@@ -143,6 +129,16 @@ function TreePage() {
       />
 
       <RepoHeader repo={repoForHeader} />
+
+      {treeIsEmpty && user?.id && (
+        <SyncHint
+          message="No file tree synced yet. Files arrive via webhooks as you push."
+          loading={syncing}
+          onSync={() => {
+            treeSync.mutate()
+          }}
+        />
+      )}
 
       <div className={styles.layout}>
         <div className={styles.sidebar}>

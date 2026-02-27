@@ -1,9 +1,10 @@
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { GitCommitIcon, SyncIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { Button } from "@/components/Button"
 import { InfiniteScroll } from "@/components/InfiniteScroll"
+import { SyncHint } from "@/components/SyncHint"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { syncCommitsMutation } from "@/lib/mutations"
 import { Avatar } from "@/components/Avatar"
@@ -15,7 +16,6 @@ interface RepoCommitsTabProps {
   repoId: string
   fullName: string
   branch: string
-  webhookStatus?: string | null
   githubPushedAt?: number | null
 }
 
@@ -49,13 +49,10 @@ export const RepoCommitsTab = ({
   repoId,
   fullName,
   branch,
-  webhookStatus,
   githubPushedAt,
 }: RepoCommitsTabProps) => {
   const { user } = useAuth()
   const [owner, repo] = fullName.split("/")
-  const initialSyncTriggered = useRef(false)
-  const staleSyncTriggered = useRef(false)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   const commitsSync = useMutation(syncCommitsMutation(user?.id ?? "", owner, repo, branch))
@@ -73,36 +70,32 @@ export const RepoCommitsTab = ({
 
   const commits = (commitData?.repoCommits ?? []) as RepoCommitData[]
   const hasMore = commits.length >= visibleCount
-  const dataLoaded = commitData !== undefined
-
-  const hasWebhooks = webhookStatus === "installed"
-  const commitsEmpty = dataLoaded && commits.length === 0
   const newestCommittedAt =
     commits.length > 0 ? Math.max(...commits.map((c) => c.committedAt ?? 0)) : 0
   const commitsStale =
     commits.length > 0 && typeof githubPushedAt === "number" && githubPushedAt > newestCommittedAt
-
-  if (hasWebhooks && user?.id && !syncing) {
-    if (commitsEmpty && !initialSyncTriggered.current) {
-      initialSyncTriggered.current = true
-      commitsSync.mutate()
-    } else if (commitsStale && !staleSyncTriggered.current) {
-      staleSyncTriggered.current = true
-      commitsSync.mutate()
-    }
-  }
 
   if (commits.length === 0) {
     return (
       <div className={styles.content}>
         <div className={styles.emptyState}>
           <GitCommitIcon className={styles.emptyIcon} size={48} />
-          <h3 className={styles.emptyTitle}>No commits</h3>
+          <h3 className={styles.emptyTitle}>No commits synced yet</h3>
           <p className={styles.emptyText}>
-            {syncing
-              ? "Syncing commit history..."
-              : "Commits sync automatically when you open this tab."}
+            {syncing ? "Syncing commit history..." : "Commits arrive via webhooks as you push."}
           </p>
+          {user?.id && !syncing && (
+            <Button
+              variant="default"
+              size="small"
+              leadingIcon={<SyncIcon size={14} />}
+              onClick={() => {
+                commitsSync.mutate()
+              }}
+            >
+              Sync commits
+            </Button>
+          )}
         </div>
       </div>
     )
@@ -131,6 +124,15 @@ export const RepoCommitsTab = ({
           </Button>
         )}
       </div>
+      {commitsStale && user?.id && (
+        <SyncHint
+          message="New commits have been pushed since the last sync."
+          loading={syncing}
+          onSync={() => {
+            commitsSync.mutate()
+          }}
+        />
+      )}
       <InfiniteScroll
         hasMore={hasMore}
         loading={isLoading}

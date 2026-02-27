@@ -3,6 +3,7 @@ import { useRef, useState, useSyncExternalStore } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { GitPullRequestIcon, HistoryIcon, FileIcon, GitCommitIcon } from "@primer/octicons-react"
 import { Breadcrumb } from "@/components/Breadcrumb"
+import { SyncHint } from "@/components/SyncHint"
 import { Tabs } from "@/components/Tabs"
 import { PRActivityFeed } from "@/features/pr/PRActivityFeed"
 import { PRActionsBar } from "@/features/pr/PRActionsBar"
@@ -151,10 +152,9 @@ function PRDetailPage() {
   }
   const pr = freshPr ?? previousPrRef.current
 
-  const autoSyncTriggered = useRef(false)
   const dataLoaded = !isRepoLoading && !isPrDetailsLoading
 
-  const needsInitialSync =
+  const prDetailsMissing =
     dataLoaded &&
     Boolean(pr) &&
     (pr?.prFiles?.length ?? 0) === 0 &&
@@ -162,11 +162,6 @@ function PRDetailPage() {
     (pr?.prComments?.length ?? 0) === 0 &&
     (pr?.prCommits?.length ?? 0) === 0 &&
     (pr?.prEvents?.length ?? 0) === 0
-
-  if (needsInitialSync && !syncing && !autoSyncTriggered.current && user?.id) {
-    autoSyncTriggered.current = true
-    prSync.mutate()
-  }
 
   const handlePRFiltersChange = (newFilters: PRFilters) => {
     void navigate({
@@ -288,6 +283,16 @@ function PRDetailPage() {
         >
           {error}
         </div>
+      )}
+
+      {prDetailsMissing && user?.id && (
+        <SyncHint
+          message="PR details (files, reviews, comments) haven't been synced yet."
+          loading={syncing}
+          onSync={() => {
+            prSync.mutate()
+          }}
+        />
       )}
 
       {isFullScreenLayout ? (

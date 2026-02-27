@@ -13,7 +13,6 @@ function RepoCommitsPage() {
           repoId={repoData.id}
           fullName={fullName}
           branch={branch}
-          webhookStatus={repoData.webhookStatus}
           githubPushedAt={repoData.githubPushedAt}
         />
       )}

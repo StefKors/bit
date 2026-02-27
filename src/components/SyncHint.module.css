@@ -1,0 +1,16 @@
+.hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 1rem;
+  background: rgba(var(--bit-rgb-fg), 0.04);
+  border: 1px dashed rgba(var(--bit-rgb-fg), 0.12);
+  border-radius: var(--bit-radius-lg);
+  margin-bottom: 1rem;
+}
+
+.message {
+  font-size: 0.85rem;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+}
