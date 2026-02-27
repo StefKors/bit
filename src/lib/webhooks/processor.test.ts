@@ -115,6 +115,7 @@ describe("enqueueWebhook", () => {
     mockQuery.mockResolvedValueOnce({
       webhookDeliveries: [{ id: "existing", deliveryId: "delivery-1" }],
     })
+    mockQuery.mockResolvedValueOnce({ webhookQueue: [] })
 
     const result = await enqueueWebhook(mockDb, "delivery-1", "push", undefined, '{"ref":"main"}')
 

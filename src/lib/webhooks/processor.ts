@@ -156,21 +156,19 @@ export const enqueueWebhook = async (
   action: string | undefined,
   rawPayload: string,
 ): Promise<EnqueueResult> => {
-  const { webhookDeliveries: existing } = await db.query({
-    webhookDeliveries: {
-      $: { where: { deliveryId }, limit: 1 },
-    },
-  })
-  if (existing?.[0]) {
-    return { queued: false, duplicate: true }
-  }
-
-  const { webhookQueue: existingQueue } = await db.query({
-    webhookQueue: {
-      $: { where: { deliveryId }, limit: 1 },
-    },
-  })
-  if (existingQueue?.[0]) {
+  const [{ webhookDeliveries: existing }, { webhookQueue: existingQueue }] = await Promise.all([
+    db.query({
+      webhookDeliveries: {
+        $: { where: { deliveryId }, limit: 1 },
+      },
+    }),
+    db.query({
+      webhookQueue: {
+        $: { where: { deliveryId }, limit: 1 },
+      },
+    }),
+  ])
+  if (existing?.[0] || existingQueue?.[0]) {
     return { queued: false, duplicate: true }
   }
 

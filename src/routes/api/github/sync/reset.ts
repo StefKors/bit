@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { z } from "zod/v4"
 import { adminDb } from "@/lib/instantAdmin"
 import { revokeGitHubGrantForUser } from "@/lib/github-connection"
 import { log } from "@/lib/logger"
+
+const resetBodySchema = z.object({
+  resourceType: z.string().min(1, "resourceType is required"),
+  resourceId: z.string().optional(),
+})
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -21,15 +27,14 @@ export const Route = createFileRoute("/api/github/sync/reset")({
         }
 
         try {
-          const body = (await request.json()) as {
-            resourceType: string
-            resourceId?: string
+          const parsed = resetBodySchema.safeParse(await request.json())
+          if (!parsed.success) {
+            return jsonResponse(
+              { error: "Invalid request body", details: parsed.error.message },
+              400,
+            )
           }
-          const { resourceType, resourceId } = body
-
-          if (!resourceType) {
-            return jsonResponse({ error: "resourceType is required" }, 400)
-          }
+          const { resourceType, resourceId } = parsed.data
 
           const { syncStates } = await adminDb.query({
             syncStates: {

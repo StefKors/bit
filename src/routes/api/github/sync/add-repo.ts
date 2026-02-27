@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { z } from "zod/v4"
 import { createGitHubClient, isGitHubAuthError, handleGitHubAuthError } from "@/lib/github-client"
 import { log } from "@/lib/logger"
+
+const addRepoBodySchema = z.object({
+  url: z.string().min(1, "url is required"),
+})
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -45,12 +50,15 @@ export const Route = createFileRoute("/api/github/sync/add-repo")({
           return jsonResponse({ error: "Unauthorized" }, 401)
         }
 
-        const body = (await request.json()) as { url?: string }
-        if (!body.url) {
-          return jsonResponse({ error: "url is required" }, 400)
+        const bodyResult = addRepoBodySchema.safeParse(await request.json())
+        if (!bodyResult.success) {
+          return jsonResponse(
+            { error: "Invalid request body", details: bodyResult.error.message },
+            400,
+          )
         }
 
-        const parsed = parseGitHubUrl(body.url)
+        const parsed = parseGitHubUrl(bodyResult.data.url)
         if (!parsed) {
           return jsonResponse(
             {
@@ -68,9 +76,10 @@ export const Route = createFileRoute("/api/github/sync/add-repo")({
         }
 
         try {
-          const prsResult = await client.fetchPullRequests(parsed.owner, parsed.repo, "open")
-
-          const webhookResult = await client.registerRepoWebhook(parsed.owner, parsed.repo)
+          const [prsResult, webhookResult] = await Promise.all([
+            client.fetchPullRequests(parsed.owner, parsed.repo, "open"),
+            client.registerRepoWebhook(parsed.owner, parsed.repo),
+          ])
 
           return jsonResponse({
             owner: parsed.owner,

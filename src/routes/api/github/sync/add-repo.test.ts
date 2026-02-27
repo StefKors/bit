@@ -50,7 +50,7 @@ describe("POST /api/github/sync/add-repo", () => {
     const res = await handler({ request: req })
     const { status, body } = await parseJsonResponse<{ error: string }>(res)
     expect(status).toBe(400)
-    expect(body.error).toBe("url is required")
+    expect(body.error).toBe("Invalid request body")
   })
 
   it("returns 400 for invalid GitHub URL", async () => {

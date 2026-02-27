@@ -60,7 +60,7 @@ describe("POST /api/github/sync/reset", () => {
     const res = await handler({ request: req })
     const { status, body } = await parseJsonResponse<{ error: string }>(res)
     expect(status).toBe(400)
-    expect(body.error).toBe("resourceType is required")
+    expect(body.error).toBe("Invalid request body")
   })
 
   it("returns 401 when no auth header", async () => {
