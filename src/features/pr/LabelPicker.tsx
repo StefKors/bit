@@ -131,7 +131,9 @@ export const LabelPicker = ({
                 <button
                   type="button"
                   className={styles.removeChip}
-                  onClick={() => removeOneLabel(label.name)}
+                  onClick={() => {
+                    removeOneLabel(label.name)
+                  }}
                   disabled={isBusy}
                   aria-label={`Remove label ${label.name}`}
                 >
@@ -146,7 +148,9 @@ export const LabelPicker = ({
         <div className={styles.controls}>
           <input
             value={labelInput}
-            onChange={(event) => setLabelInput(event.currentTarget.value)}
+            onChange={(event) => {
+              setLabelInput(event.currentTarget.value)
+            }}
             className={styles.input}
             placeholder="Add label name"
           />

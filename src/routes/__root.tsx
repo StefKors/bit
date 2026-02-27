@@ -50,7 +50,9 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
     }
     updateFavicon()
     mediaQuery.addEventListener("change", updateFavicon)
-    return () => mediaQuery.removeEventListener("change", updateFavicon)
+    return () => {
+      mediaQuery.removeEventListener("change", updateFavicon)
+    }
   }, [])
 
   return (

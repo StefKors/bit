@@ -39,7 +39,9 @@ export const ReviewComposer = ({
             type="radio"
             name="review-event"
             checked={event === "APPROVE"}
-            onChange={() => setEvent("APPROVE")}
+            onChange={() => {
+              setEvent("APPROVE")
+            }}
           />
           Approve
         </label>
@@ -48,7 +50,9 @@ export const ReviewComposer = ({
             type="radio"
             name="review-event"
             checked={event === "REQUEST_CHANGES"}
-            onChange={() => setEvent("REQUEST_CHANGES")}
+            onChange={() => {
+              setEvent("REQUEST_CHANGES")
+            }}
           />
           Request changes
         </label>
@@ -57,7 +61,9 @@ export const ReviewComposer = ({
             type="radio"
             name="review-event"
             checked={event === "COMMENT"}
-            onChange={() => setEvent("COMMENT")}
+            onChange={() => {
+              setEvent("COMMENT")
+            }}
           />
           Comment
         </label>
@@ -67,7 +73,9 @@ export const ReviewComposer = ({
         className={styles.textarea}
         placeholder="Write a review comment"
         value={body}
-        onChange={(event) => setBody(event.target.value)}
+        onChange={(event) => {
+          setBody(event.target.value)
+        }}
         rows={4}
       />
 
@@ -78,7 +86,9 @@ export const ReviewComposer = ({
               variant="danger"
               disabled={isSubmitting}
               loading={isSubmitting}
-              onClick={() => onDiscardDraft(reviewId)}
+              onClick={() => {
+                onDiscardDraft(reviewId)
+              }}
             >
               Discard review
             </Button>
@@ -86,7 +96,9 @@ export const ReviewComposer = ({
               variant="default"
               disabled={!canSubmit}
               loading={isSubmitting}
-              onClick={() => onSubmitDraft({ reviewId, event, body: trimmedBody })}
+              onClick={() => {
+                onSubmitDraft({ reviewId, event, body: trimmedBody })
+              }}
             >
               Finish your review
             </Button>
@@ -97,7 +109,9 @@ export const ReviewComposer = ({
               variant="default"
               disabled={isSubmitting}
               loading={isSubmitting}
-              onClick={() => onStartDraft(trimmedBody)}
+              onClick={() => {
+                onStartDraft(trimmedBody)
+              }}
             >
               Start review
             </Button>
@@ -105,7 +119,9 @@ export const ReviewComposer = ({
               variant="default"
               disabled={!canSubmit}
               loading={isSubmitting}
-              onClick={() => onSubmit({ event, body: trimmedBody })}
+              onClick={() => {
+                onSubmit({ event, body: trimmedBody })
+              }}
             >
               Submit review
             </Button>

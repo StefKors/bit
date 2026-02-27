@@ -146,8 +146,12 @@ function OverviewPage() {
         <InitialSyncCard
           progress={initialSyncProgress}
           syncStates={syncStates}
-          onResetSync={(type, resId) => resetSync.mutate({ resourceType: type, resourceId: resId })}
-          onRetrySync={(type, resId) => retrySync.mutate({ resourceType: type, resourceId: resId })}
+          onResetSync={(type, resId) => {
+            resetSync.mutate({ resourceType: type, resourceId: resId })
+          }}
+          onRetrySync={(type, resId) => {
+            retrySync.mutate({ resourceType: type, resourceId: resId })
+          }}
         />
       )}
 

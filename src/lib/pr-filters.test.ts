@@ -16,7 +16,9 @@ import {
   DEFAULT_PR_FILTERS,
 } from "./pr-filters"
 
-beforeEach(() => resetCounters())
+beforeEach(() => {
+  resetCounters()
+})
 
 // ── parseLabels ──
 

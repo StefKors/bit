@@ -64,7 +64,9 @@ export const IssueFiltersBar = ({
             <FilterMenuItem
               key={option.value}
               selected={filters.status === option.value}
-              onClick={() => updateFilter("status", option.value)}
+              onClick={() => {
+                updateFilter("status", option.value)
+              }}
             >
               {option.label}
             </FilterMenuItem>
@@ -79,7 +81,9 @@ export const IssueFiltersBar = ({
           >
             <FilterMenuItem
               selected={filters.author === null}
-              onClick={() => updateFilter("author", null)}
+              onClick={() => {
+                updateFilter("author", null)
+              }}
             >
               Any
             </FilterMenuItem>
@@ -88,7 +92,9 @@ export const IssueFiltersBar = ({
               <FilterMenuItem
                 key={author.login}
                 selected={filters.author === author.login}
-                onClick={() => updateFilter("author", author.login)}
+                onClick={() => {
+                  updateFilter("author", author.login)
+                }}
               >
                 <Avatar src={author.avatarUrl} name={author.login} size={16} />
                 {author.login}
@@ -108,7 +114,9 @@ export const IssueFiltersBar = ({
                 key={label}
                 className={styles.menuItem}
                 checked={filters.labels.includes(label)}
-                onCheckedChange={() => toggleLabel(label)}
+                onCheckedChange={() => {
+                  toggleLabel(label)
+                }}
               >
                 <Menu.CheckboxItemIndicator className={styles.checkIndicator}>
                   ✓
@@ -137,7 +145,9 @@ export const IssueFiltersBar = ({
             <FilterMenuItem
               key={option.value}
               selected={filters.sortBy === option.value}
-              onClick={() => updateFilter("sortBy", option.value)}
+              onClick={() => {
+                updateFilter("sortBy", option.value)
+              }}
             >
               {option.label}
             </FilterMenuItem>

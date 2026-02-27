@@ -26,7 +26,12 @@ export const ErrorFallback = ({ error, reset }: ErrorComponentProps) => {
           <button className={styles.retryButton} onClick={reset}>
             Try again
           </button>
-          <button className={styles.homeButton} onClick={() => window.location.assign("/")}>
+          <button
+            className={styles.homeButton}
+            onClick={() => {
+              window.location.assign("/")
+            }}
+          >
             Go home
           </button>
         </div>

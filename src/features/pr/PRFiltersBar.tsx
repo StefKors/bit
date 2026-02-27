@@ -101,7 +101,9 @@ export const PRFiltersBar = ({
             <FilterMenuItem
               key={option.value}
               selected={filters.status === option.value}
-              onClick={() => updateFilter("status", option.value)}
+              onClick={() => {
+                updateFilter("status", option.value)
+              }}
             >
               {option.label}
             </FilterMenuItem>
@@ -124,7 +126,9 @@ export const PRFiltersBar = ({
                     <input
                       type="text"
                       value={authorSearch}
-                      onChange={(event) => setAuthorSearch(event.target.value)}
+                      onChange={(event) => {
+                        setAuthorSearch(event.target.value)
+                      }}
                       placeholder="Assign to..."
                       className={styles.authorSearchInput}
                     />
@@ -136,12 +140,12 @@ export const PRFiltersBar = ({
                       <FilterMenuItem
                         key={author.login}
                         selected={filters.author === author.login}
-                        onClick={() =>
+                        onClick={() => {
                           updateFilter(
                             "author",
                             filters.author === author.login ? null : author.login,
                           )
-                        }
+                        }}
                       >
                         <Avatar src={author.avatarUrl} name={author.login} size={16} />
                         {author.login}
@@ -165,7 +169,9 @@ export const PRFiltersBar = ({
                 key={label}
                 className={styles.menuItem}
                 checked={filters.labels.includes(label)}
-                onCheckedChange={() => toggleLabel(label)}
+                onCheckedChange={() => {
+                  toggleLabel(label)
+                }}
               >
                 <Menu.CheckboxItemIndicator className={styles.checkIndicator}>
                   ✓
@@ -185,7 +191,9 @@ export const PRFiltersBar = ({
             <FilterMenuItem
               key={option.value}
               selected={filters.draft === option.value}
-              onClick={() => updateFilter("draft", option.value)}
+              onClick={() => {
+                updateFilter("draft", option.value)
+              }}
             >
               {option.label}
             </FilterMenuItem>
@@ -214,7 +222,9 @@ export const PRFiltersBar = ({
                   <FilterMenuItem
                     key={option.value}
                     selected={filters.sortBy === option.value}
-                    onClick={() => setSortField(option.value)}
+                    onClick={() => {
+                      setSortField(option.value)
+                    }}
                   >
                     {option.label}
                   </FilterMenuItem>
@@ -222,13 +232,17 @@ export const PRFiltersBar = ({
                 <Menu.Separator className={styles.menuSeparator} />
                 <FilterMenuItem
                   selected={filters.sortDirection === "desc"}
-                  onClick={() => updateFilter("sortDirection", "desc")}
+                  onClick={() => {
+                    updateFilter("sortDirection", "desc")
+                  }}
                 >
                   Descending
                 </FilterMenuItem>
                 <FilterMenuItem
                   selected={filters.sortDirection === "asc"}
-                  onClick={() => updateFilter("sortDirection", "asc")}
+                  onClick={() => {
+                    updateFilter("sortDirection", "asc")
+                  }}
                 >
                   Ascending
                 </FilterMenuItem>

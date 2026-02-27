@@ -12,7 +12,9 @@ import {
   DEFAULT_ISSUE_FILTERS,
 } from "./issue-filters"
 
-beforeEach(() => resetCounters())
+beforeEach(() => {
+  resetCounters()
+})
 
 // ── parseLabels ──
 

@@ -333,7 +333,9 @@ function PRDetailPage() {
               }
               mergeableState={typeof pr.mergeableState === "string" ? pr.mergeableState : null}
               checks={prChecks}
-              onUpdated={() => prSync.mutate()}
+              onUpdated={() => {
+                prSync.mutate()
+              }}
               formatTimeAgo={formatTimeAgo}
             />
           </div>
@@ -353,8 +355,12 @@ function PRDetailPage() {
               mergeableState={pr.mergeableState}
               headRef={pr.headRef ?? ""}
               headSha={pr.headSha ?? ""}
-              onMergeSuccess={() => prSync.mutate()}
-              onStateChange={() => prSync.mutate()}
+              onMergeSuccess={() => {
+                prSync.mutate()
+              }}
+              onStateChange={() => {
+                prSync.mutate()
+              }}
             />
           )}
 
@@ -366,7 +372,9 @@ function PRDetailPage() {
                 repo={repoName}
                 prNumber={prNumber}
                 reviewers={prReviewers}
-                onUpdated={() => prSync.mutate()}
+                onUpdated={() => {
+                  prSync.mutate()
+                }}
               />
               <LabelPicker
                 userId={user.id}
@@ -374,14 +382,18 @@ function PRDetailPage() {
                 repo={repoName}
                 prNumber={prNumber}
                 labels={prLabels}
-                onUpdated={() => prSync.mutate()}
+                onUpdated={() => {
+                  prSync.mutate()
+                }}
               />
             </div>
           )}
 
           <Tabs
             value={activeTab}
-            onValueChange={(value) => setActiveTab(value as TabType)}
+            onValueChange={(value) => {
+              setActiveTab(value as TabType)
+            }}
             items={[
               {
                 value: "conversation",
@@ -424,7 +436,9 @@ function PRDetailPage() {
                 owner={owner}
                 repo={repoName}
                 prNumber={prNumber}
-                onCommentCreated={() => prSync.mutate()}
+                onCommentCreated={() => {
+                  prSync.mutate()
+                }}
                 formatTimeAgo={formatTimeAgo}
               />
             )}
@@ -444,7 +458,9 @@ function PRDetailPage() {
                 repo={repoName}
                 prNumber={prNumber}
                 headSha={pr.headSha ?? undefined}
-                onCommentCreated={() => prSync.mutate()}
+                onCommentCreated={() => {
+                  prSync.mutate()
+                }}
               />
             )}
           </div>

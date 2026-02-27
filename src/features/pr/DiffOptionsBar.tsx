@@ -69,7 +69,9 @@ const SegmentedControl = <T extends string>({
         role="radio"
         aria-checked={value === option.value}
         className={`${styles.segmentOption} ${value === option.value ? styles.active : ""}`}
-        onClick={() => onChange(option.value)}
+        onClick={() => {
+          onChange(option.value)
+        }}
         title={option.title ?? option.value}
       >
         {option.label}
@@ -89,7 +91,9 @@ export const DiffOptionsBar = ({ options, onChange }: DiffOptionsBarProps) => {
       <SegmentedControl
         value={options.diffStyle}
         title="Diff layout"
-        onChange={(v) => update("diffStyle", v)}
+        onChange={(v) => {
+          update("diffStyle", v)
+        }}
         options={[
           { value: "split", label: <ColumnsIcon size={14} />, title: "Split" },
           { value: "unified", label: <RowsIcon size={14} />, title: "Unified" },
@@ -101,7 +105,9 @@ export const DiffOptionsBar = ({ options, onChange }: DiffOptionsBarProps) => {
       {/* Line Numbers */}
       <ToggleButton
         active={!options.disableLineNumbers}
-        onClick={() => update("disableLineNumbers", !options.disableLineNumbers)}
+        onClick={() => {
+          update("disableLineNumbers", !options.disableLineNumbers)
+        }}
         title="Line numbers"
       >
         <ListOrderedIcon size={14} />
@@ -110,7 +116,9 @@ export const DiffOptionsBar = ({ options, onChange }: DiffOptionsBarProps) => {
       {/* Word Wrap */}
       <ToggleButton
         active={options.overflow === "wrap"}
-        onClick={() => update("overflow", options.overflow === "wrap" ? "scroll" : "wrap")}
+        onClick={() => {
+          update("overflow", options.overflow === "wrap" ? "scroll" : "wrap")
+        }}
         title="Word wrap"
       >
         <WrapIcon size={14} />
@@ -122,7 +130,9 @@ export const DiffOptionsBar = ({ options, onChange }: DiffOptionsBarProps) => {
       <SegmentedControl
         value={options.diffIndicators}
         title="Diff indicators"
-        onChange={(v) => update("diffIndicators", v)}
+        onChange={(v) => {
+          update("diffIndicators", v)
+        }}
         options={[
           { value: "bars", label: "Bars", title: "Bars" },
           { value: "classic", label: "+/-", title: "Classic (+/-)" },
@@ -136,7 +146,9 @@ export const DiffOptionsBar = ({ options, onChange }: DiffOptionsBarProps) => {
       <SegmentedControl
         value={options.lineDiffType}
         title="Highlighting mode"
-        onChange={(v) => update("lineDiffType", v)}
+        onChange={(v) => {
+          update("lineDiffType", v)
+        }}
         options={[
           { value: "word", label: "Word", title: "Word highlighting" },
           {
@@ -154,7 +166,9 @@ export const DiffOptionsBar = ({ options, onChange }: DiffOptionsBarProps) => {
       {/* Background */}
       <ToggleButton
         active={!options.disableBackground}
-        onClick={() => update("disableBackground", !options.disableBackground)}
+        onClick={() => {
+          update("disableBackground", !options.disableBackground)
+        }}
         title="Diff backgrounds"
       >
         <PaintbrushIcon size={14} />

@@ -21,14 +21,18 @@ export const CommentComposer = ({ onSubmit, isSubmitting }: CommentComposerProps
           <button
             type="button"
             className={`${styles.tab} ${!showPreview ? styles.tabActive : ""}`}
-            onClick={() => setShowPreview(false)}
+            onClick={() => {
+              setShowPreview(false)
+            }}
           >
             Write
           </button>
           <button
             type="button"
             className={`${styles.tab} ${showPreview ? styles.tabActive : ""}`}
-            onClick={() => setShowPreview(true)}
+            onClick={() => {
+              setShowPreview(true)
+            }}
           >
             Preview
           </button>
@@ -40,7 +44,9 @@ export const CommentComposer = ({ onSubmit, isSubmitting }: CommentComposerProps
           className={styles.textarea}
           placeholder="Leave a comment"
           value={body}
-          onChange={(event) => setBody(event.target.value)}
+          onChange={(event) => {
+            setBody(event.target.value)
+          }}
           rows={6}
         />
       ) : (
@@ -58,7 +64,9 @@ export const CommentComposer = ({ onSubmit, isSubmitting }: CommentComposerProps
           variant="primary"
           disabled={!canSubmit}
           loading={isSubmitting}
-          onClick={() => onSubmit(body.trim())}
+          onClick={() => {
+            onSubmit(body.trim())
+          }}
         >
           Comment
         </Button>

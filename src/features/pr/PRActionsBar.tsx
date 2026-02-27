@@ -351,7 +351,9 @@ export function PRActionsBar({
                 variant="success"
                 leadingIcon={<GitMergeIcon size={16} />}
                 trailingIcon={<ChevronDownIcon size={16} />}
-                onClick={() => setShowMethodDropdown(!showMethodDropdown)}
+                onClick={() => {
+                  setShowMethodDropdown(!showMethodDropdown)
+                }}
                 disabled={isMerging}
                 className={styles.mergeButton}
               >
@@ -465,7 +467,9 @@ export function PRActionsBar({
       {showMethodDropdown && (
         <div
           className={styles.dropdownOverlay}
-          onClick={() => setShowMethodDropdown(false)}
+          onClick={() => {
+            setShowMethodDropdown(false)
+          }}
           role="presentation"
         />
       )}

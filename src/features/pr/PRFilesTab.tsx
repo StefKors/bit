@@ -111,7 +111,9 @@ export const PRFilesTab = ({
               <input
                 type="checkbox"
                 checked={showOnlyUnviewed}
-                onChange={(event) => setShowOnlyUnviewed(event.target.checked)}
+                onChange={(event) => {
+                  setShowOnlyUnviewed(event.target.checked)
+                }}
               />
               Show only unviewed
             </label>
@@ -135,7 +137,9 @@ export const PRFilesTab = ({
                   headSha={headSha}
                   onCommentCreated={onCommentCreated}
                   isViewed={viewedSet.has(file.filename)}
-                  onToggleViewed={(viewed) => handleToggleViewed(file.filename, viewed)}
+                  onToggleViewed={(viewed) => {
+                    handleToggleViewed(file.filename, viewed)
+                  }}
                   viewedToggleDisabled={toggleViewedMutation.isPending}
                 />
               ))}
@@ -184,7 +188,9 @@ const FileItem = ({
           type="checkbox"
           checked={isViewed}
           disabled={viewedToggleDisabled}
-          onChange={(event) => onToggleViewed(event.target.checked)}
+          onChange={(event) => {
+            onToggleViewed(event.target.checked)
+          }}
         />
         Viewed
       </label>

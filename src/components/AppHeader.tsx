@@ -86,7 +86,9 @@ export const AppHeader = ({ onOpenCommandMenu }: AppHeaderProps) => {
             <button
               type="button"
               className={styles.avatarButton}
-              onClick={() => setUserMenuOpen((prev) => !prev)}
+              onClick={() => {
+                setUserMenuOpen((prev) => !prev)
+              }}
               aria-label="User menu"
               aria-expanded={userMenuOpen}
             >

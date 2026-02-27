@@ -201,13 +201,17 @@ export const PRHeader = ({
               <input
                 className={styles.titleInput}
                 value={draftTitle}
-                onChange={(event) => setDraftTitle(event.currentTarget.value)}
+                onChange={(event) => {
+                  setDraftTitle(event.currentTarget.value)
+                }}
                 placeholder="Pull request title"
               />
               <textarea
                 className={styles.bodyInput}
                 value={draftBody}
-                onChange={(event) => setDraftBody(event.currentTarget.value)}
+                onChange={(event) => {
+                  setDraftBody(event.currentTarget.value)
+                }}
                 placeholder="Describe your pull request"
                 rows={8}
               />
