@@ -421,6 +421,9 @@ export const schema = i.schema({
       // "full"    = webhook payload + fetch related PR details (default)
       // "full-force" = webhook payload + force-fetch related PR details
       webhookPrSyncBehavior: i.string().optional(),
+      // AI feature settings (Cerebras)
+      aiEnabled: i.boolean().optional(),
+      aiModel: i.string().optional(),
       userId: i.string().indexed(),
       createdAt: i.number(),
       updatedAt: i.number(),

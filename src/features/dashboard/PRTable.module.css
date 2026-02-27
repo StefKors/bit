@@ -1,0 +1,139 @@
+.table {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--bit-radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.1s ease;
+}
+
+.row:hover {
+  background: rgba(var(--bit-rgb-fg), 0.03);
+}
+
+.statusCol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.statusOpen {
+  color: var(--bit-color-accent-green);
+}
+
+.statusMerged {
+  color: var(--bit-color-accent-purple);
+}
+
+.statusClosed {
+  color: var(--bit-color-accent-red);
+}
+
+.statusDraft {
+  color: rgba(var(--bit-rgb-fg), 0.35);
+}
+
+.mainCol {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.prTitle {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--bit-color-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prMeta {
+  font-size: 0.68rem;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+  font-family: var(--bit-font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.authorCol {
+  flex-shrink: 0;
+}
+
+.ciCol {
+  flex-shrink: 0;
+  min-width: 60px;
+}
+
+.ciBadge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--bit-radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.ciPass {
+  background: rgba(var(--bit-rgb-accent-green), 0.1);
+  color: var(--bit-color-accent-green);
+}
+
+.ciFail {
+  background: rgba(var(--bit-rgb-accent-red), 0.1);
+  color: var(--bit-color-accent-red);
+}
+
+.ciPending {
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+.commentCol {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+  min-width: 28px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.commentIcon {
+  color: rgba(var(--bit-rgb-fg), 0.3);
+}
+
+.timeCol {
+  font-size: 0.68rem;
+  color: rgba(var(--bit-rgb-fg), 0.35);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 42px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  padding: 1rem;
+  text-align: center;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+}

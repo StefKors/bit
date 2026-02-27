@@ -29,6 +29,7 @@ export type WebhookQueueLifecycleStep =
   | "enqueued"
   | "selected"
   | "skipped_not_due"
+  | "recovered_stale"
   | "processing_started"
   | "retry_scheduled"
   | "dead_lettered"

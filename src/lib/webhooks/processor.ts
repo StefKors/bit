@@ -610,7 +610,7 @@ export const recoverStaleProcessingItems = async (
   await db.transact(txs)
 
   for (const item of staleItems) {
-    logWebhookQueueLifecycle("skipped_not_due", {
+    logWebhookQueueLifecycle("recovered_stale", {
       queueItemId: item.id,
       deliveryId: item.deliveryId,
       event: item.event,
@@ -618,7 +618,6 @@ export const recoverStaleProcessingItems = async (
       queueAgeMs: Math.max(0, now - item.createdAt),
       attempt: item.attempts,
       maxAttempts: item.maxAttempts,
-      reason: "stale_processing_recovered",
     })
   }
 

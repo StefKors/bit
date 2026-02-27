@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
+    "@cerebras/cerebras_cloud_sdk": "^1.64.1",
     "@instantdb/admin": "^0.22.142",
     "@instantdb/react": "^0.22.142",
     "@octokit/webhooks-types": "^7.6.1",

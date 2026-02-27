@@ -29,6 +29,7 @@ vi.mock("@/lib/instantAdmin", () => ({
 
 vi.mock("@/lib/webhooks/processor", () => ({
   enqueueWebhook: vi.fn(),
+  triggerWebhookProcessor: vi.fn(),
 }))
 
 vi.mock("@/lib/logger", () => ({

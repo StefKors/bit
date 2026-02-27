@@ -1,0 +1,100 @@
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.625rem;
+  border-radius: var(--bit-radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.1s ease;
+}
+
+.row:hover {
+  background: rgba(var(--bit-rgb-fg), 0.03);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.repoIcon {
+  color: rgba(var(--bit-rgb-fg), 0.35);
+}
+
+.lockIcon {
+  color: rgba(var(--bit-rgb-fg), 0.25);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.name {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--bit-color-link);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lang {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+}
+
+.langDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.65rem;
+  color: rgba(var(--bit-rgb-fg), 0.35);
+  font-variant-numeric: tabular-nums;
+}
+
+.time {
+  font-size: 0.65rem;
+  color: rgba(var(--bit-rgb-fg), 0.3);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  padding: 1rem;
+  text-align: center;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+}
