@@ -4,6 +4,7 @@ vi.mock("@instantdb/admin", () => {
   let counter = 0
   return {
     id: vi.fn(() => `mock-id-${++counter}`),
+    init: vi.fn(() => ({ query: vi.fn(), transact: vi.fn(), tx: {} })),
   }
 })
 
@@ -104,6 +105,12 @@ const createMockDb = () => {
                   store[t][id] = { id, ...data }
                   return { __table: t, __id: id, __data: data }
                 },
+                delete: () => {
+                  const t = typeof table === "string" ? table : ""
+                  const id = typeof itemId === "string" ? itemId : ""
+                  if (store[t]?.[id]) delete store[t][id]
+                  return { __table: t, __id: id, __op: "delete" }
+                },
               }),
             },
           ),
@@ -168,12 +175,12 @@ describe("Integration: Retry with eventual success", () => {
       updatedAt: Date.now(),
     }
 
-    const firstResult = await processQueueItem(db, item)
+    const firstResult = await processQueueItem(db, item, true)
     expect(firstResult.success).toBe(false)
 
     handler.mockResolvedValueOnce(undefined)
     const retryItem = { ...item, attempts: 1, status: "failed" }
-    const secondResult = await processQueueItem(db, retryItem)
+    const secondResult = await processQueueItem(db, retryItem, true)
     expect(secondResult.success).toBe(true)
   })
 })
@@ -200,7 +207,7 @@ describe("Integration: Dead-letter after max attempts", () => {
       updatedAt: Date.now(),
     }
 
-    const result = await processQueueItem(db, item)
+    const result = await processQueueItem(db, item, true)
     expect(result.success).toBe(false)
     expect(result.error).toBe("Persistent failure")
     expect(mockTransact).toHaveBeenCalled()

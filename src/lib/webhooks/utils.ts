@@ -326,6 +326,19 @@ export async function ensurePRFromWebhook(
 }
 
 /**
+ * Resolve whether to keep webhook queue items and delivery records for debugging.
+ * When false (lean mode), processed items are deleted immediately.
+ * Uses the first userSettings record; defaults to true when unset.
+ */
+export async function resolveWebhookLogsEnabled(db: WebhookDB): Promise<boolean> {
+  const { userSettings } = await db.query({
+    userSettings: { $: { limit: 1 } },
+  })
+  const setting = userSettings?.[0]?.webhookLogsEnabled
+  return setting !== false
+}
+
+/**
  * Resolve the webhook PR sync behavior mode for a given user.
  * Falls back to "full" when no setting exists.
  */

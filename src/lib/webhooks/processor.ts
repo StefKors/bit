@@ -16,6 +16,7 @@ import {
   handleIssueCommentWebhook,
   handleExtendedWebhook,
 } from "./index"
+import { resolveWebhookLogsEnabled } from "./utils"
 import { handleCheckRunWebhook, handleCheckSuiteWebhook } from "./ci-cd"
 import { handleStatusWebhook } from "./ci-cd"
 import { handleWorkflowRunWebhook, handleWorkflowJobWebhook } from "./ci-cd"
@@ -402,6 +403,7 @@ export const dispatchWebhookEvent = async (
 export const processQueueItem = async (
   db: WebhookDB,
   item: WebhookQueueItem,
+  keepLogs: boolean,
 ): Promise<{ success: boolean; error?: string }> => {
   const startedAt = Date.now()
   const queueAgeMs = Math.max(0, startedAt - item.createdAt)
@@ -461,12 +463,15 @@ export const processQueueItem = async (
     })
     const existingDelivery = webhookDeliveries?.[0]
 
+    const queueTx = keepLogs
+      ? db.tx.webhookQueue[item.id].update({
+          status: "processed",
+          processedAt: startedAt,
+          updatedAt: startedAt,
+        })
+      : db.tx.webhookQueue[item.id].delete()
     await db.transact([
-      db.tx.webhookQueue[item.id].update({
-        status: "processed",
-        processedAt: startedAt,
-        updatedAt: startedAt,
-      }),
+      queueTx,
       ...(existingDelivery ? [db.tx.webhookDeliveries[existingDelivery.id].delete()] : []),
     ])
 
@@ -657,6 +662,8 @@ export const processPendingQueue = async (
     reasonCounts.stale_processing_recovered += recoveredStaleProcessing
   }
 
+  const keepLogs = await resolveWebhookLogsEnabled(db)
+
   while (loops < maxLoops && Date.now() - startedAt < maxRunMs) {
     loops += 1
     const now = Date.now()
@@ -732,7 +739,7 @@ export const processPendingQueue = async (
     }
 
     for (const item of dueItems) {
-      const result = await processQueueItem(db, item)
+      const result = await processQueueItem(db, item, keepLogs)
       if (result.success) {
         processed += 1
       } else {

@@ -2,11 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 
 vi.mock("@instantdb/admin", () => ({
   id: vi.fn(() => `mock-id-${Date.now()}-${Math.random()}`),
+  init: vi.fn(() => ({ query: vi.fn(), transact: vi.fn(), tx: {} })),
 }))
 
 const mockQuery = vi.fn()
 const mockTransact = vi.fn().mockResolvedValue(undefined)
 const mockUpdate = vi.fn().mockReturnThis()
+const mockDelete = vi.fn().mockReturnThis()
 
 const mockDbBase = {
   query: mockQuery,
@@ -20,6 +22,7 @@ const mockDbBase = {
           {
             get: () => ({
               update: mockUpdate,
+              delete: mockDelete,
             }),
           },
         ),
@@ -192,7 +195,7 @@ describe("processQueueItem", () => {
   it("processes a queue item successfully", async () => {
     const item = makeQueueItem()
     mockQuery.mockResolvedValueOnce({ webhookDeliveries: [] })
-    const result = await processQueueItem(mockDb, item)
+    const result = await processQueueItem(mockDb, item, true)
 
     expect(result.success).toBe(true)
     expect(result.error).toBeUndefined()
@@ -207,7 +210,7 @@ describe("processQueueItem", () => {
     Reflect.apply(rejectOnce, handlePushWebhook, [new Error("Transient failure")])
 
     const item = makeQueueItem({ attempts: 4, maxAttempts: 5 })
-    const result = await processQueueItem(mockDb, item)
+    const result = await processQueueItem(mockDb, item, true)
 
     expect(result.success).toBe(false)
     expect(result.error).toBe("Transient failure")
@@ -221,10 +224,20 @@ describe("processQueueItem", () => {
     Reflect.apply(rejectOnce, handlePushWebhook, [new Error("Temporary error")])
 
     const item = makeQueueItem({ attempts: 1, maxAttempts: 5 })
-    const result = await processQueueItem(mockDb, item)
+    const result = await processQueueItem(mockDb, item, true)
 
     expect(result.success).toBe(false)
     expect(result.error).toBe("Temporary error")
+    expect(mockTransact).toHaveBeenCalled()
+  })
+
+  it("deletes queue item when keepLogs is false (lean mode)", async () => {
+    const item = makeQueueItem()
+    mockQuery.mockResolvedValueOnce({ webhookDeliveries: [] })
+    const result = await processQueueItem(mockDb, item, false)
+
+    expect(result.success).toBe(true)
+    expect(mockDelete).toHaveBeenCalled()
     expect(mockTransact).toHaveBeenCalled()
   })
 })
@@ -266,23 +279,26 @@ describe("processPendingQueue", () => {
 
   it("skips items that are not due yet and reports reason counts", async () => {
     const now = Date.now()
-    mockQuery.mockResolvedValueOnce({ webhookQueue: [] }).mockResolvedValueOnce({
-      webhookQueue: [
-        {
-          id: "not-due-1",
-          deliveryId: "delivery-nd-1",
-          event: "push",
-          action: "synchronize",
-          payload: JSON.stringify({ ref: "refs/heads/main" }),
-          status: "failed",
-          attempts: 1,
-          maxAttempts: 5,
-          nextRetryAt: now + 60_000,
-          createdAt: now - 30_000,
-          updatedAt: now - 5_000,
-        },
-      ],
-    })
+    mockQuery
+      .mockResolvedValueOnce({ webhookQueue: [] })
+      .mockResolvedValueOnce({ userSettings: [] })
+      .mockResolvedValueOnce({
+        webhookQueue: [
+          {
+            id: "not-due-1",
+            deliveryId: "delivery-nd-1",
+            event: "push",
+            action: "synchronize",
+            payload: JSON.stringify({ ref: "refs/heads/main" }),
+            status: "failed",
+            attempts: 1,
+            maxAttempts: 5,
+            nextRetryAt: now + 60_000,
+            createdAt: now - 30_000,
+            updatedAt: now - 5_000,
+          },
+        ],
+      })
 
     const result = await processPendingQueue(mockDb, 1)
 
@@ -310,6 +326,7 @@ describe("processPendingQueue", () => {
           },
         ],
       })
+      .mockResolvedValueOnce({ userSettings: [] })
       .mockResolvedValueOnce({
         webhookQueue: [
           {
