@@ -23,7 +23,9 @@ describe("formatContext", () => {
 
 describe("formatError", () => {
   it("extracts message from Error", () => {
-    expect(formatError(new Error("boom"))).toEqual({ message: "boom" })
+    const result = formatError(new Error("boom"))
+    expect(result.message).toBe("boom")
+    expect(typeof result.stack).toBe("string")
   })
 
   it("extracts status from error-like objects", () => {
@@ -49,13 +51,13 @@ describe("formatError", () => {
 
 describe("log", () => {
   it("log.info outputs formatted message", () => {
-    const spy = vi.spyOn(console, "log").mockImplementation(() => {})
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {})
     log.info("Sync started", { repo: "bit", branch: "main" })
     expect(spy).toHaveBeenCalledWith("[info] Sync started | repo=bit branch=main")
   })
 
   it("log.info works without context", () => {
-    const spy = vi.spyOn(console, "log").mockImplementation(() => {})
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {})
     log.info("Health check")
     expect(spy).toHaveBeenCalledWith("[info] Health check")
   })
