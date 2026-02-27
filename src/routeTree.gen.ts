@@ -20,6 +20,8 @@ import { Route as ApiGithubWebhookHealthRouteImport } from './routes/api/github/
 import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
 import { Route as ApiGithubRateLimitRouteImport } from './routes/api/github/rate-limit'
 import { Route as ApiGithubPermissionsRouteImport } from './routes/api/github/permissions'
+import { Route as ApiCerebrasStatusRouteImport } from './routes/api/cerebras/status'
+import { Route as ApiCerebrasChatRouteImport } from './routes/api/cerebras/chat'
 import { Route as OwnerRepoPullsRouteImport } from './routes/$owner/$repo/pulls'
 import { Route as OwnerRepoIssuesRouteImport } from './routes/$owner/$repo/issues'
 import { Route as ApiGithubOauthIndexRouteImport } from './routes/api/github/oauth/index'
@@ -110,6 +112,16 @@ const ApiGithubRateLimitRoute = ApiGithubRateLimitRouteImport.update({
 const ApiGithubPermissionsRoute = ApiGithubPermissionsRouteImport.update({
   id: '/api/github/permissions',
   path: '/api/github/permissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCerebrasStatusRoute = ApiCerebrasStatusRouteImport.update({
+  id: '/api/cerebras/status',
+  path: '/api/cerebras/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCerebrasChatRoute = ApiCerebrasChatRouteImport.update({
+  id: '/api/cerebras/chat',
+  path: '/api/cerebras/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OwnerRepoPullsRoute = OwnerRepoPullsRouteImport.update({
@@ -323,6 +335,8 @@ export interface FileRoutesByFullPath {
   '/$owner/': typeof OwnerIndexRoute
   '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
   '/$owner/$repo/pulls': typeof OwnerRepoPullsRoute
+  '/api/cerebras/chat': typeof ApiCerebrasChatRoute
+  '/api/cerebras/status': typeof ApiCerebrasStatusRoute
   '/api/github/permissions': typeof ApiGithubPermissionsRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
@@ -372,6 +386,8 @@ export interface FileRoutesByTo {
   '/$owner': typeof OwnerIndexRoute
   '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
   '/$owner/$repo/pulls': typeof OwnerRepoPullsRoute
+  '/api/cerebras/chat': typeof ApiCerebrasChatRoute
+  '/api/cerebras/status': typeof ApiCerebrasStatusRoute
   '/api/github/permissions': typeof ApiGithubPermissionsRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
@@ -422,6 +438,8 @@ export interface FileRoutesById {
   '/$owner/': typeof OwnerIndexRoute
   '/$owner/$repo/issues': typeof OwnerRepoIssuesRouteWithChildren
   '/$owner/$repo/pulls': typeof OwnerRepoPullsRoute
+  '/api/cerebras/chat': typeof ApiCerebrasChatRoute
+  '/api/cerebras/status': typeof ApiCerebrasStatusRoute
   '/api/github/permissions': typeof ApiGithubPermissionsRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
@@ -473,6 +491,8 @@ export interface FileRouteTypes {
     | '/$owner/'
     | '/$owner/$repo/issues'
     | '/$owner/$repo/pulls'
+    | '/api/cerebras/chat'
+    | '/api/cerebras/status'
     | '/api/github/permissions'
     | '/api/github/rate-limit'
     | '/api/github/webhook'
@@ -522,6 +542,8 @@ export interface FileRouteTypes {
     | '/$owner'
     | '/$owner/$repo/issues'
     | '/$owner/$repo/pulls'
+    | '/api/cerebras/chat'
+    | '/api/cerebras/status'
     | '/api/github/permissions'
     | '/api/github/rate-limit'
     | '/api/github/webhook'
@@ -571,6 +593,8 @@ export interface FileRouteTypes {
     | '/$owner/'
     | '/$owner/$repo/issues'
     | '/$owner/$repo/pulls'
+    | '/api/cerebras/chat'
+    | '/api/cerebras/status'
     | '/api/github/permissions'
     | '/api/github/rate-limit'
     | '/api/github/webhook'
@@ -621,6 +645,8 @@ export interface RootRouteChildren {
   OwnerIndexRoute: typeof OwnerIndexRoute
   OwnerRepoIssuesRoute: typeof OwnerRepoIssuesRouteWithChildren
   OwnerRepoPullsRoute: typeof OwnerRepoPullsRoute
+  ApiCerebrasChatRoute: typeof ApiCerebrasChatRoute
+  ApiCerebrasStatusRoute: typeof ApiCerebrasStatusRoute
   ApiGithubPermissionsRoute: typeof ApiGithubPermissionsRoute
   ApiGithubRateLimitRoute: typeof ApiGithubRateLimitRoute
   ApiGithubWebhookRoute: typeof ApiGithubWebhookRoute
@@ -736,6 +762,20 @@ declare module '@tanstack/react-router' {
       path: '/api/github/permissions'
       fullPath: '/api/github/permissions'
       preLoaderRoute: typeof ApiGithubPermissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cerebras/status': {
+      id: '/api/cerebras/status'
+      path: '/api/cerebras/status'
+      fullPath: '/api/cerebras/status'
+      preLoaderRoute: typeof ApiCerebrasStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cerebras/chat': {
+      id: '/api/cerebras/chat'
+      path: '/api/cerebras/chat'
+      fullPath: '/api/cerebras/chat'
+      preLoaderRoute: typeof ApiCerebrasChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$owner/$repo/pulls': {
@@ -1034,6 +1074,8 @@ const rootRouteChildren: RootRouteChildren = {
   OwnerIndexRoute: OwnerIndexRoute,
   OwnerRepoIssuesRoute: OwnerRepoIssuesRouteWithChildren,
   OwnerRepoPullsRoute: OwnerRepoPullsRoute,
+  ApiCerebrasChatRoute: ApiCerebrasChatRoute,
+  ApiCerebrasStatusRoute: ApiCerebrasStatusRoute,
   ApiGithubPermissionsRoute: ApiGithubPermissionsRoute,
   ApiGithubRateLimitRoute: ApiGithubRateLimitRoute,
   ApiGithubWebhookRoute: ApiGithubWebhookRoute,
