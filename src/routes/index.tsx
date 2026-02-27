@@ -1,5 +1,5 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { SyncIcon, LinkExternalIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
@@ -81,13 +81,12 @@ function DashboardPage() {
   const aiEnabled = userSettingsRecord?.aiEnabled !== false
   const aiModel = (userSettingsRecord?.aiModel as string) || "llama-4-scout-17b-16e"
 
-  if (!aiStatus.checked) {
-    setAiStatus({ configured: false, checked: true })
+  useEffect(() => {
     void fetch("/api/cerebras/status")
       .then((r) => r.json() as Promise<{ configured: boolean }>)
       .then((d) => setAiStatus({ configured: d.configured, checked: true }))
       .catch(() => setAiStatus({ configured: false, checked: true }))
-  }
+  }, [])
 
   const dataRepos = data?.repos
 
