@@ -13,8 +13,9 @@ export const Route = createFileRoute("/api/cerebras/status")({
     handlers: {
       GET: ({ request }) => {
         const authHeader = request.headers.get("Authorization")
-        const userId =
-          authHeader?.startsWith("Bearer ") ? authHeader.substring("Bearer ".length) : ""
+        const userId = authHeader?.startsWith("Bearer ")
+          ? authHeader.substring("Bearer ".length)
+          : ""
         if (!userId) {
           return jsonResponse({ error: "Unauthorized" }, 401)
         }
