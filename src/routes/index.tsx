@@ -5,6 +5,7 @@ import { SyncIcon, LinkExternalIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { resolveUserAvatarUrl } from "@/lib/avatar"
+import { DEFAULT_MODEL } from "@/lib/cerebras"
 import { parseInitialSyncProgress } from "@/lib/json-validators"
 import { syncResetMutation, syncRetryMutation } from "@/lib/mutations"
 import {
@@ -79,7 +80,7 @@ function DashboardPage() {
 
   const currentUserLogin = user?.login ?? user?.email?.split("@")[0] ?? ""
   const aiEnabled = userSettingsRecord?.aiEnabled !== false
-  const aiModel = (userSettingsRecord?.aiModel as string) || "llama-4-scout-17b-16e"
+  const aiModel = (userSettingsRecord?.aiModel as string) || DEFAULT_MODEL
 
   useEffect(() => {
     const userId = user?.id

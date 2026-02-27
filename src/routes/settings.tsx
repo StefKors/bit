@@ -23,6 +23,7 @@ import {
   syncRetryMutation,
   type AddRepoResponse,
 } from "@/lib/mutations"
+import { CEREBRAS_MODELS, DEFAULT_MODEL } from "@/lib/cerebras"
 import { getPRLayoutMode, setPRLayoutMode, type PRLayoutMode } from "@/lib/pr-layout-preference"
 import { Button } from "@/components/Button"
 import { Avatar } from "@/components/Avatar"
@@ -53,23 +54,11 @@ const SYNC_MODE_OPTIONS: { value: WebhookSyncMode; label: string; description: s
   },
 ]
 
-const AI_MODEL_OPTIONS = [
-  {
-    value: "llama-4-scout-17b-16e",
-    label: "Llama 4 Scout 17B",
-    description: "Fast and capable. Best balance of speed and quality for daily use.",
-  },
-  {
-    value: "llama3.3-70b",
-    label: "Llama 3.3 70B",
-    description: "Higher quality reasoning. Best for detailed analysis and complex questions.",
-  },
-  {
-    value: "llama3.1-8b",
-    label: "Llama 3.1 8B",
-    description: "Ultra-fast responses. Best for quick summaries and simple queries.",
-  },
-]
+const AI_MODEL_OPTIONS = CEREBRAS_MODELS.map((m) => ({
+  value: m.id,
+  label: m.label,
+  description: m.description,
+}))
 
 const GITHUB_APP_SLUG = "bit-backend"
 const GITHUB_APP_INSTALLATIONS_URL = "https://github.com/settings/installations"
@@ -104,7 +93,7 @@ function SettingsPage() {
     (userSettingsRecord?.webhookPrSyncBehavior as WebhookSyncMode) || "full"
 
   const currentAiEnabled = userSettingsRecord?.aiEnabled !== false
-  const currentAiModel = (userSettingsRecord?.aiModel as string) || "llama-4-scout-17b-16e"
+  const currentAiModel = (userSettingsRecord?.aiModel as string) || DEFAULT_MODEL
 
   const tokenState = syncStates.find((s) => s.resourceType === "github:token")
   const isGitHubConnected = Boolean(tokenState)

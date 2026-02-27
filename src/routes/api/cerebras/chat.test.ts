@@ -4,9 +4,9 @@ import { getRouteHandler, makeAuthRequest, parseJsonResponse } from "@/lib/test-
 vi.mock("@/lib/cerebras", () => ({
   isCerebrasConfigured: vi.fn(),
   chatCompletion: vi.fn(),
-  DEFAULT_MODEL: "llama-4-scout-17b-16e",
+  DEFAULT_MODEL: "gpt-oss-120b",
   isValidCerebrasModelId: vi.fn((m: string) =>
-    ["llama-4-scout-17b-16e", "llama3.3-70b", "llama3.1-8b"].includes(m),
+    ["gpt-oss-120b", "llama3.1-8b", "qwen-3-235b-a22b-instruct-2507", "zai-glm-4.7"].includes(m),
   ),
 }))
 

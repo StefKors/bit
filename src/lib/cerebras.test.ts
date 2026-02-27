@@ -16,6 +16,6 @@ describe("isValidCerebrasModelId", () => {
     expect(isValidCerebrasModelId("")).toBe(false)
     expect(isValidCerebrasModelId("gpt-4")).toBe(false)
     expect(isValidCerebrasModelId("llama-4-scout")).toBe(false)
-    expect(isValidCerebrasModelId("llama3.3-70b ")).toBe(false)
+    expect(isValidCerebrasModelId("gpt-oss-120b ")).toBe(false)
   })
 })

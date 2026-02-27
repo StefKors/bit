@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import {
   chatCompletion,
+  CEREBRAS_MODELS,
   isCerebrasConfigured,
   DEFAULT_MODEL,
   isValidCerebrasModelId,
@@ -73,7 +74,7 @@ export const Route = createFileRoute("/api/cerebras/chat")({
         if (!isValidCerebrasModelId(model)) {
           return jsonResponse(
             {
-              error: `Invalid model. Valid models: ${["llama-4-scout-17b-16e", "llama3.3-70b", "llama3.1-8b"].join(", ")}`,
+              error: `Invalid model. Valid models: ${CEREBRAS_MODELS.map((m) => m.id).join(", ")}`,
             },
             400,
           )
