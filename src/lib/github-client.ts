@@ -1969,6 +1969,13 @@ export class GitHubClient {
     const repoRecord = await this.ensureRepoRecord(owner, repo)
     const branch = ref || repoRecord.defaultBranch || "main"
 
+    log.info("Fetching repo commits", {
+      op: "fetch-repo-commits",
+      repo: `${owner}/${repo}`,
+      branch,
+      userId: this.userId,
+    })
+
     const allCommits = await withRateLimitRetry(() =>
       this.octokit.paginate(
         this.octokit.rest.repos.listCommits,

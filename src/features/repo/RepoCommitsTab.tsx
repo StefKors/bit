@@ -1,7 +1,8 @@
 import { useMemo, useRef } from "react"
 import { useMutation } from "@tanstack/react-query"
-import { GitCommitIcon } from "@primer/octicons-react"
+import { GitCommitIcon, SyncIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
+import { Button } from "@/components/Button"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { syncCommitsMutation } from "@/lib/mutations"
 import { Avatar } from "@/components/Avatar"
@@ -12,6 +13,7 @@ interface RepoCommitsTabProps {
   fullName: string
   branch: string
   webhookStatus?: string | null
+  githubPushedAt?: number | null
 }
 
 interface RepoCommitData {
@@ -45,10 +47,12 @@ export const RepoCommitsTab = ({
   fullName,
   branch,
   webhookStatus,
+  githubPushedAt,
 }: RepoCommitsTabProps) => {
   const { user } = useAuth()
   const [owner, repo] = fullName.split("/")
   const initialSyncTriggered = useRef(false)
+  const staleSyncTriggered = useRef(false)
 
   const commitsSync = useMutation(syncCommitsMutation(user?.id ?? "", owner, repo, branch))
   const syncing = commitsSync.isPending
@@ -73,9 +77,19 @@ export const RepoCommitsTab = ({
 
   const hasWebhooks = webhookStatus === "installed"
   const commitsEmpty = repoData !== undefined && commits.length === 0
-  if (hasWebhooks && commitsEmpty && user?.id && !initialSyncTriggered.current && !syncing) {
-    initialSyncTriggered.current = true
-    commitsSync.mutate()
+  const newestCommittedAt =
+    commits.length > 0 ? Math.max(...commits.map((c) => c.committedAt ?? 0)) : 0
+  const commitsStale =
+    commits.length > 0 && typeof githubPushedAt === "number" && githubPushedAt > newestCommittedAt
+
+  if (hasWebhooks && user?.id && !syncing) {
+    if (commitsEmpty && !initialSyncTriggered.current) {
+      initialSyncTriggered.current = true
+      commitsSync.mutate()
+    } else if (commitsStale && !staleSyncTriggered.current) {
+      staleSyncTriggered.current = true
+      commitsSync.mutate()
+    }
   }
 
   if (commits.length === 0) {
@@ -101,6 +115,19 @@ export const RepoCommitsTab = ({
     <div className={styles.content}>
       <div className={styles.header}>
         <span className={styles.commitCount}>{commits.length} commits</span>
+        {user?.id && (
+          <Button
+            variant="invisible"
+            size="small"
+            leadingIcon={<SyncIcon size={14} />}
+            loading={syncing}
+            onClick={() => {
+              commitsSync.mutate()
+            }}
+          >
+            {syncing ? "Syncing…" : "Sync"}
+          </Button>
+        )}
       </div>
       {grouped.map(([dateLabel, dateCommits]) => (
         <div key={dateLabel} className={styles.dateGroup}>

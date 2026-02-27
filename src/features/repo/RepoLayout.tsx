@@ -58,6 +58,7 @@ export interface RepoData {
   webhookStatus?: string | null
   webhookError?: string | null
   syncedAt?: number | null
+  githubPushedAt?: number | null
 }
 
 interface RepoLayoutProps {
@@ -132,6 +133,7 @@ export function RepoLayout({ activeTab, children }: RepoLayoutProps) {
     webhookStatus: repoRaw.webhookStatus,
     webhookError: repoRaw.webhookError,
     syncedAt: repoRaw.syncedAt,
+    githubPushedAt: repoRaw.githubPushedAt,
   }
 
   return (

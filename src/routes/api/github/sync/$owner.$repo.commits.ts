@@ -32,7 +32,11 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/commits")({
 
         try {
           const result = await client.fetchRepoCommits(owner, repo, ref)
-          log.info("Commit sync complete", { ...ctx, count: result.count })
+          log.info("Commit sync complete", {
+            ...ctx,
+            count: result.count,
+            branch: ref || "default",
+          })
 
           return jsonResponse({
             count: result.count,

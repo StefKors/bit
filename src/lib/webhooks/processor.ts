@@ -27,10 +27,12 @@ import {
   logWebhookPath,
   logWebhookQueueLifecycle,
 } from "./logging"
+import { mapWithConcurrency } from "@/lib/sync-ingest"
 import {
   WEBHOOK_MAX_ATTEMPTS,
   WEBHOOK_BASE_DELAY_MS,
   WEBHOOK_PROCESS_BATCH_SIZE,
+  WEBHOOK_PROCESS_CONCURRENCY,
   WEBHOOK_PROCESS_MAX_LOOPS,
   WEBHOOK_PROCESS_MAX_RUN_MS,
   WEBHOOK_PROCESS_SELECTION_MULTIPLIER,
@@ -738,8 +740,11 @@ export const processPendingQueue = async (
       break
     }
 
-    for (const item of dueItems) {
-      const result = await processQueueItem(db, item, keepLogs)
+    const concurrency = Math.max(1, WEBHOOK_PROCESS_CONCURRENCY)
+    const results = await mapWithConcurrency(dueItems, concurrency, (item) =>
+      processQueueItem(db, item, keepLogs),
+    )
+    for (const result of results) {
       if (result.success) {
         processed += 1
       } else {

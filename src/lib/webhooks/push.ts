@@ -1,4 +1,5 @@
 import { deterministicId } from "@/lib/deterministic-id"
+import { buildCommitEntryId } from "@/lib/sync-commits"
 import type { WebhookDB, WebhookPayload, PushEvent, RepoRecord } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, syncPRDetailsForWebhook } from "./utils"
 import { extractInstallationId } from "@/lib/github-app"
@@ -31,7 +32,8 @@ export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) 
     repo: repoFullName,
     ref: branch,
     commitsCount,
-    dataToUpdate: "repos.githubPushedAt, prCommits, pullRequests.commits, repoTrees (invalidate)",
+    dataToUpdate:
+      "repos.githubPushedAt, repoCommits, prCommits, pullRequests.commits, repoTrees (invalidate)",
   })
 
   // Find users who have this repo synced
@@ -92,8 +94,9 @@ export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) 
   // This ensures the tree is re-fetched on next view with fresh data
   await invalidateTreeCache(db, repoRecords, branch)
 
-  // Sync commits to any open PRs on this branch
+  // Sync pushed commits to repoCommits (repo commits tab) and to open PRs
   if (commits.length > 0) {
+    await syncCommitsToRepo(db, repoRecords, branch, commits)
     await syncCommitsToPRs(db, repoRecords, branch, commits, installationId)
   }
 
@@ -124,6 +127,58 @@ async function invalidateTreeCache(db: WebhookDB, repoRecords: RepoRecord[], bra
     if (treeEntries.length > 0) {
       const deleteTxs = treeEntries.map((entry) => db.tx.repoTrees[entry.id].delete())
       await db.transact(deleteTxs)
+    }
+  }
+}
+
+/**
+ * Sync pushed commits to repoCommits for the repo commits tab.
+ * Keeps branch commit history up-to-date when developers push.
+ */
+async function syncCommitsToRepo(
+  db: WebhookDB,
+  repoRecords: RepoRecord[],
+  branch: string,
+  commits: PushEvent["commits"],
+) {
+  for (const repoRecord of repoRecords) {
+    for (const commit of commits) {
+      const now = Date.now()
+      const commitId = buildCommitEntryId(repoRecord.id, branch, commit.id)
+      const commitData = {
+        sha: commit.id,
+        message: commit.message,
+        authorLogin: commit.author?.username ?? undefined,
+        authorAvatarUrl: undefined,
+        authorName: commit.author?.name ?? undefined,
+        authorEmail: commit.author?.email ?? undefined,
+        committerLogin: commit.committer?.username ?? undefined,
+        committerName: commit.committer?.name ?? undefined,
+        committerEmail: commit.committer?.email ?? undefined,
+        htmlUrl: commit.url,
+        ref: branch,
+        repoId: repoRecord.id,
+        committedAt: commit.timestamp ? new Date(commit.timestamp).getTime() : undefined,
+        createdAt: now,
+        updatedAt: now,
+      }
+
+      await db.transact(
+        db.tx.repoCommits[commitId]
+          .update(commitData)
+          .link({ user: repoRecord.userId })
+          .link({ repo: repoRecord.id }),
+      )
+    }
+
+    if (commits.length > 0) {
+      log.info("Webhook push: synced commits to repo", {
+        op: "webhook-handler-push",
+        entity: "repoCommits",
+        repo: repoRecord.fullName,
+        branch,
+        commitsCount: commits.length,
+      })
     }
   }
 }

@@ -14,6 +14,7 @@ function RepoCommitsPage() {
           fullName={fullName}
           branch={branch}
           webhookStatus={repoData.webhookStatus}
+          githubPushedAt={repoData.githubPushedAt}
         />
       )}
     </RepoLayout>
