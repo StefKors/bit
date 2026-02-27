@@ -134,6 +134,9 @@ export type ProcessPendingQueueResult = {
   reasonCounts: Record<QueueSkipReason, number>
 }
 
+let activeProcessorRun: Promise<void> | null = null
+let queuedProcessorRun = false
+
 const createReasonCounts = (): Record<QueueSkipReason, number> => ({
   retry_not_due: 0,
   batch_limit_reached: 0,
@@ -728,4 +731,37 @@ export const processPendingQueue = async (
   })
 
   return result
+}
+
+export const triggerWebhookProcessor = (db: WebhookDB): void => {
+  const startRun = (): void => {
+    activeProcessorRun = (async () => {
+      try {
+        await processPendingQueue(db)
+      } catch (error) {
+        log.error("Auto webhook processor run failed", error, {
+          op: "webhook-process-trigger",
+        })
+      } finally {
+        activeProcessorRun = null
+        if (queuedProcessorRun) {
+          queuedProcessorRun = false
+          startRun()
+        }
+      }
+    })()
+  }
+
+  if (activeProcessorRun) {
+    queuedProcessorRun = true
+    log.info("Webhook processor already running; queued follow-up run", {
+      op: "webhook-process-trigger",
+    })
+    return
+  }
+
+  log.info("Webhook processor auto-triggered", {
+    op: "webhook-process-trigger",
+  })
+  startRun()
 }
