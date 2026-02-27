@@ -20,8 +20,21 @@ import { handleCheckRunWebhook, handleCheckSuiteWebhook } from "./ci-cd"
 import { handleStatusWebhook } from "./ci-cd"
 import { handleWorkflowRunWebhook, handleWorkflowJobWebhook } from "./ci-cd"
 import { log } from "@/lib/logger"
-import { logWebhookProcessing, logWebhookHandler, logWebhookPath } from "./logging"
-import { WEBHOOK_MAX_ATTEMPTS, WEBHOOK_BASE_DELAY_MS } from "@/lib/sync-config"
+import {
+  logWebhookProcessing,
+  logWebhookHandler,
+  logWebhookPath,
+  logWebhookQueueLifecycle,
+} from "./logging"
+import {
+  WEBHOOK_MAX_ATTEMPTS,
+  WEBHOOK_BASE_DELAY_MS,
+  WEBHOOK_PROCESS_BATCH_SIZE,
+  WEBHOOK_PROCESS_MAX_LOOPS,
+  WEBHOOK_PROCESS_MAX_RUN_MS,
+  WEBHOOK_PROCESS_SELECTION_MULTIPLIER,
+  WEBHOOK_PROCESSING_TIMEOUT_MS,
+} from "@/lib/sync-config"
 
 export const EXTENDED_WEBHOOK_EVENTS = [
   "public",
@@ -107,6 +120,26 @@ export type EnqueueResult = {
   queueItemId?: string
 }
 
+type QueueSkipReason = "retry_not_due" | "batch_limit_reached" | "stale_processing_recovered"
+
+export type ProcessPendingQueueResult = {
+  processed: number
+  failed: number
+  total: number
+  selected: number
+  skippedNotDue: number
+  recoveredStaleProcessing: number
+  loops: number
+  timedOut: boolean
+  reasonCounts: Record<QueueSkipReason, number>
+}
+
+const createReasonCounts = (): Record<QueueSkipReason, number> => ({
+  retry_not_due: 0,
+  batch_limit_reached: 0,
+  stale_processing_recovered: 0,
+})
+
 export const calculateBackoff = (attempt: number, baseDelay = WEBHOOK_BASE_DELAY_MS): number => {
   const exponential = baseDelay * 2 ** attempt
   const jitter = Math.floor(Math.random() * baseDelay)
@@ -163,6 +196,16 @@ export const enqueueWebhook = async (
     }
     throw err
   }
+
+  logWebhookQueueLifecycle("enqueued", {
+    queueItemId,
+    deliveryId,
+    event,
+    action,
+    queueAgeMs: 0,
+    attempt: 0,
+    maxAttempts: WEBHOOK_MAX_ATTEMPTS,
+  })
 
   return { queued: true, duplicate: false, queueItemId }
 }
@@ -349,7 +392,9 @@ export const processQueueItem = async (
   db: WebhookDB,
   item: WebhookQueueItem,
 ): Promise<{ success: boolean; error?: string }> => {
-  const now = Date.now()
+  const startedAt = Date.now()
+  const queueAgeMs = Math.max(0, startedAt - item.createdAt)
+  const attempt = item.attempts + 1
 
   logWebhookPath("queue item picked", 0, {
     deliveryId: item.deliveryId,
@@ -357,12 +402,21 @@ export const processQueueItem = async (
     action: item.action,
     attempts: item.attempts,
   })
+  logWebhookQueueLifecycle("processing_started", {
+    queueItemId: item.id,
+    deliveryId: item.deliveryId,
+    event: item.event,
+    action: item.action,
+    queueAgeMs,
+    attempt,
+    maxAttempts: item.maxAttempts,
+  })
 
   await db.transact(
     db.tx.webhookQueue[item.id].update({
       status: "processing",
-      attempts: item.attempts + 1,
-      updatedAt: now,
+      attempts: attempt,
+      updatedAt: startedAt,
     }),
   )
 
@@ -389,15 +443,15 @@ export const processQueueItem = async (
     await db.transact([
       db.tx.webhookQueue[item.id].update({
         status: "processed",
-        processedAt: now,
-        updatedAt: now,
+        processedAt: startedAt,
+        updatedAt: startedAt,
       }),
       db.tx.webhookDeliveries[id()].update({
         deliveryId: item.deliveryId,
         event: item.event,
         action: item.action || undefined,
         status: "processed",
-        processedAt: now,
+        processedAt: startedAt,
       }),
     ])
 
@@ -411,21 +465,30 @@ export const processQueueItem = async (
     log.info("Webhook processed", {
       deliveryId: item.deliveryId,
       event: item.event,
-      attempt: item.attempts + 1,
+      attempt,
+    })
+    logWebhookQueueLifecycle("processed", {
+      queueItemId: item.id,
+      deliveryId: item.deliveryId,
+      event: item.event,
+      action: item.action,
+      queueAgeMs,
+      attempt,
+      maxAttempts: item.maxAttempts,
+      processingDurationMs: Date.now() - startedAt,
     })
 
     return { success: true }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
-    const newAttempts = item.attempts + 1
 
-    if (newAttempts >= item.maxAttempts) {
+    if (attempt >= item.maxAttempts) {
       await db.transact([
         db.tx.webhookQueue[item.id].update({
           status: "dead_letter",
           lastError: errorMessage,
-          failedAt: now,
-          updatedAt: now,
+          failedAt: startedAt,
+          updatedAt: startedAt,
         }),
         db.tx.webhookDeliveries[id()].update({
           deliveryId: item.deliveryId,
@@ -434,32 +497,53 @@ export const processQueueItem = async (
           status: "failed",
           error: errorMessage,
           payload: item.payload,
-          processedAt: now,
+          processedAt: startedAt,
         }),
       ])
 
       log.error("Webhook dead-lettered after max attempts", error, {
         deliveryId: item.deliveryId,
         event: item.event,
-        attempts: newAttempts,
+        attempts: attempt,
+      })
+      logWebhookQueueLifecycle("dead_lettered", {
+        queueItemId: item.id,
+        deliveryId: item.deliveryId,
+        event: item.event,
+        action: item.action,
+        queueAgeMs,
+        attempt,
+        maxAttempts: item.maxAttempts,
+        error: errorMessage,
       })
     } else {
-      const backoff = calculateBackoff(newAttempts)
+      const backoff = calculateBackoff(attempt)
       await db.transact(
         db.tx.webhookQueue[item.id].update({
           status: "failed",
           lastError: errorMessage,
-          failedAt: now,
-          nextRetryAt: now + backoff,
-          updatedAt: now,
+          failedAt: startedAt,
+          nextRetryAt: startedAt + backoff,
+          updatedAt: startedAt,
         }),
       )
 
       log.warn("Webhook processing failed, will retry", {
         deliveryId: item.deliveryId,
         event: item.event,
-        attempt: newAttempts,
+        attempt,
         nextRetryIn: `${backoff}ms`,
+      })
+      logWebhookQueueLifecycle("retry_scheduled", {
+        queueItemId: item.id,
+        deliveryId: item.deliveryId,
+        event: item.event,
+        action: item.action,
+        queueAgeMs,
+        attempt,
+        maxAttempts: item.maxAttempts,
+        timeUntilRetryMs: backoff,
+        error: errorMessage,
       })
     }
 
@@ -467,38 +551,181 @@ export const processQueueItem = async (
   }
 }
 
-export const processPendingQueue = async (
+export const recoverStaleProcessingItems = async (
   db: WebhookDB,
-  limit = 10,
-): Promise<{ processed: number; failed: number; total: number }> => {
-  const now = Date.now()
-
-  const { webhookQueue: pendingItems } = await db.query({
+  now = Date.now(),
+  timeoutMs = WEBHOOK_PROCESSING_TIMEOUT_MS,
+  limit = WEBHOOK_PROCESS_BATCH_SIZE,
+): Promise<number> => {
+  const cutoff = now - timeoutMs
+  const { webhookQueue } = await db.query({
     webhookQueue: {
       $: {
-        where: {
-          or: [{ status: "pending" }, { status: "failed" }],
-        },
+        where: { status: "processing" },
+        order: { createdAt: "asc" },
         limit,
       },
     },
   })
 
-  const dueItems = (pendingItems || []).filter(
-    (item) => !item.nextRetryAt || item.nextRetryAt <= now,
+  const staleItems = (webhookQueue || []).filter((item) => item.updatedAt <= cutoff)
+  if (staleItems.length === 0) return 0
+
+  const txs = staleItems.map((item) =>
+    db.tx.webhookQueue[item.id].update({
+      status: "failed",
+      lastError: "Recovered stale processing item",
+      failedAt: now,
+      nextRetryAt: now,
+      updatedAt: now,
+    }),
+  )
+  await db.transact(txs)
+
+  for (const item of staleItems) {
+    logWebhookQueueLifecycle("skipped_not_due", {
+      queueItemId: item.id,
+      deliveryId: item.deliveryId,
+      event: item.event,
+      action: item.action,
+      queueAgeMs: Math.max(0, now - item.createdAt),
+      attempt: item.attempts,
+      maxAttempts: item.maxAttempts,
+      reason: "stale_processing_recovered",
+    })
+  }
+
+  return staleItems.length
+}
+
+export const processPendingQueue = async (
+  db: WebhookDB,
+  limit = WEBHOOK_PROCESS_BATCH_SIZE,
+): Promise<ProcessPendingQueueResult> => {
+  const startedAt = Date.now()
+  const batchSize = Math.max(1, limit)
+  const maxLoops = Math.max(1, WEBHOOK_PROCESS_MAX_LOOPS)
+  const maxRunMs = Math.max(1000, WEBHOOK_PROCESS_MAX_RUN_MS)
+  const selectionLimit = Math.max(
+    batchSize,
+    batchSize * Math.max(1, WEBHOOK_PROCESS_SELECTION_MULTIPLIER),
   )
 
+  const reasonCounts = createReasonCounts()
   let processed = 0
   let failed = 0
+  let selected = 0
+  let skippedNotDue = 0
+  let loops = 0
 
-  for (const item of dueItems) {
-    const result = await processQueueItem(db, item as WebhookQueueItem)
-    if (result.success) {
-      processed++
-    } else {
-      failed++
+  const recoveredStaleProcessing = await recoverStaleProcessingItems(db)
+  if (recoveredStaleProcessing > 0) {
+    reasonCounts.stale_processing_recovered += recoveredStaleProcessing
+  }
+
+  while (loops < maxLoops && Date.now() - startedAt < maxRunMs) {
+    loops += 1
+    const now = Date.now()
+    const { webhookQueue } = await db.query({
+      webhookQueue: {
+        $: {
+          where: {
+            or: [{ status: "pending" }, { status: "failed" }],
+          },
+          order: { createdAt: "asc" },
+          limit: selectionLimit,
+        },
+      },
+    })
+
+    const candidates = (webhookQueue || []) as WebhookQueueItem[]
+    if (candidates.length === 0) break
+
+    const dueItems: WebhookQueueItem[] = []
+    for (const item of candidates) {
+      const queueAgeMs = Math.max(0, now - item.createdAt)
+      selected += 1
+      logWebhookQueueLifecycle("selected", {
+        queueItemId: item.id,
+        deliveryId: item.deliveryId,
+        event: item.event,
+        action: item.action,
+        queueAgeMs,
+        attempt: item.attempts,
+        maxAttempts: item.maxAttempts,
+      })
+
+      if (item.nextRetryAt && item.nextRetryAt > now) {
+        const timeUntilRetryMs = item.nextRetryAt - now
+        skippedNotDue += 1
+        reasonCounts.retry_not_due += 1
+        logWebhookQueueLifecycle("skipped_not_due", {
+          queueItemId: item.id,
+          deliveryId: item.deliveryId,
+          event: item.event,
+          action: item.action,
+          queueAgeMs,
+          attempt: item.attempts,
+          maxAttempts: item.maxAttempts,
+          reason: "retry_not_due",
+          timeUntilRetryMs,
+        })
+        continue
+      }
+
+      if (dueItems.length >= batchSize) {
+        skippedNotDue += 1
+        reasonCounts.batch_limit_reached += 1
+        logWebhookQueueLifecycle("skipped_not_due", {
+          queueItemId: item.id,
+          deliveryId: item.deliveryId,
+          event: item.event,
+          action: item.action,
+          queueAgeMs,
+          attempt: item.attempts,
+          maxAttempts: item.maxAttempts,
+          reason: "batch_limit_reached",
+        })
+        continue
+      }
+
+      dueItems.push(item)
+    }
+
+    if (dueItems.length === 0) {
+      // Nothing due in this selection window; stop and wait for retries to mature.
+      break
+    }
+
+    for (const item of dueItems) {
+      const result = await processQueueItem(db, item)
+      if (result.success) {
+        processed += 1
+      } else {
+        failed += 1
+      }
     }
   }
 
-  return { processed, failed, total: dueItems.length }
+  const timedOut = Date.now() - startedAt >= maxRunMs
+  const result: ProcessPendingQueueResult = {
+    processed,
+    failed,
+    total: processed + failed,
+    selected,
+    skippedNotDue,
+    recoveredStaleProcessing,
+    loops,
+    timedOut,
+    reasonCounts,
+  }
+
+  log.info("Webhook processor run summary", {
+    op: "webhook-process-summary",
+    entity: "webhookQueue",
+    ...result,
+    durationMs: Date.now() - startedAt,
+  })
+
+  return result
 }

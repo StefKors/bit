@@ -25,6 +25,15 @@ type WebhookTraceContext = {
   [key: string]: unknown
 }
 
+export type WebhookQueueLifecycleStep =
+  | "enqueued"
+  | "selected"
+  | "skipped_not_due"
+  | "processing_started"
+  | "retry_scheduled"
+  | "dead_lettered"
+  | "processed"
+
 const formatWebhookTracePrefix = (depth: number): string => {
   if (depth <= 0) return "|-"
   return `${"|  ".repeat(depth)}|-`
@@ -143,6 +152,17 @@ export function logWebhookPath(
 ): void {
   log.info(`${formatWebhookTracePrefix(depth)} ${step}`, {
     op: "webhook-path",
+    ...context,
+  })
+}
+
+export function logWebhookQueueLifecycle(
+  step: WebhookQueueLifecycleStep,
+  context: WebhookTraceContext = {},
+): void {
+  log.info(`queue:${step}`, {
+    op: "webhook-queue-lifecycle",
+    step,
     ...context,
   })
 }
