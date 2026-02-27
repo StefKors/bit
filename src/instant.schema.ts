@@ -423,6 +423,9 @@ export const schema = i.schema({
       // "full"    = webhook payload + fetch related PR details (default)
       // "full-force" = webhook payload + force-fetch related PR details
       webhookPrSyncBehavior: i.string().optional(),
+      // When false, processed webhook queue items and delivery records are
+      // deleted immediately instead of kept for debugging.
+      webhookLogsEnabled: i.boolean().optional(),
       // AI feature settings (Cerebras)
       aiEnabled: i.boolean().optional(),
       aiModel: i.string().optional(),
