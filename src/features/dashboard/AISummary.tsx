@@ -28,6 +28,12 @@ export const AISummary = ({
 
   const isAvailable = aiEnabled && aiConfigured
 
+  const MAX_CONTEXT_CHARS = 4000
+  const truncatedContext =
+    contextPrompt.length > MAX_CONTEXT_CHARS
+      ? contextPrompt.slice(0, MAX_CONTEXT_CHARS) + "\n[... truncated]"
+      : contextPrompt
+
   const generateSummary = async () => {
     setLoading(true)
     setError(null)
@@ -46,7 +52,7 @@ export const AISummary = ({
               content:
                 "You are a concise engineering assistant. Summarize the user's GitHub activity into 3-5 bullet points. Focus on what was accomplished and what needs attention. Be brief and actionable. Use plain text, no markdown headers.",
             },
-            { role: "user", content: contextPrompt },
+            { role: "user", content: truncatedContext },
           ],
         }),
       })
@@ -80,7 +86,7 @@ export const AISummary = ({
           messages: [
             {
               role: "system",
-              content: `You are a concise engineering assistant helping with GitHub activity analysis. Here is context about the user's current work:\n\n${contextPrompt}\n\nAnswer questions briefly and helpfully.`,
+              content: `You are a concise engineering assistant helping with GitHub activity analysis. Here is context about the user's current work:\n\n${truncatedContext}\n\nAnswer questions briefly and helpfully.`,
             },
             ...newHistory,
           ],
