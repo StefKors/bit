@@ -398,6 +398,7 @@ export const processQueueItem = async (
   const startedAt = Date.now()
   const queueAgeMs = Math.max(0, startedAt - item.createdAt)
   const attempt = item.attempts + 1
+  let failureStage: "payload_parse" | "dispatch_event" | "persist_success" = "payload_parse"
 
   logWebhookPath("queue item picked", 0, {
     deliveryId: item.deliveryId,
@@ -436,6 +437,7 @@ export const processQueueItem = async (
       event: item.event,
       action: item.action,
     })
+    failureStage = "dispatch_event"
     await dispatchWebhookEvent(db, item.event as WebhookEventName, payload)
     logWebhookPath("dispatch complete", 1, {
       deliveryId: item.deliveryId,
@@ -443,6 +445,7 @@ export const processQueueItem = async (
       action: item.action,
     })
 
+    failureStage = "persist_success"
     await db.transact([
       db.tx.webhookQueue[item.id].update({
         status: "processed",
@@ -505,9 +508,15 @@ export const processQueueItem = async (
       ])
 
       log.error("Webhook dead-lettered after max attempts", error, {
+        queueItemId: item.id,
         deliveryId: item.deliveryId,
         event: item.event,
+        action: item.action,
         attempts: attempt,
+        maxAttempts: item.maxAttempts,
+        failureStage,
+        queueAgeMs,
+        processingDurationMs: Date.now() - startedAt,
       })
       logWebhookQueueLifecycle("dead_lettered", {
         queueItemId: item.id,
@@ -518,24 +527,35 @@ export const processQueueItem = async (
         attempt,
         maxAttempts: item.maxAttempts,
         error: errorMessage,
+        failureStage,
+        processingDurationMs: Date.now() - startedAt,
       })
     } else {
       const backoff = calculateBackoff(attempt)
+      const nextRetryAt = startedAt + backoff
       await db.transact(
         db.tx.webhookQueue[item.id].update({
           status: "failed",
           lastError: errorMessage,
           failedAt: startedAt,
-          nextRetryAt: startedAt + backoff,
+          nextRetryAt,
           updatedAt: startedAt,
         }),
       )
 
-      log.warn("Webhook processing failed, will retry", {
+      log.warn("Webhook processing failed; retry scheduled", {
+        queueItemId: item.id,
         deliveryId: item.deliveryId,
         event: item.event,
+        action: item.action,
         attempt,
+        maxAttempts: item.maxAttempts,
+        failureStage,
+        error: errorMessage,
         nextRetryIn: `${backoff}ms`,
+        nextRetryAt,
+        queueAgeMs,
+        processingDurationMs: Date.now() - startedAt,
       })
       logWebhookQueueLifecycle("retry_scheduled", {
         queueItemId: item.id,
@@ -547,6 +567,9 @@ export const processQueueItem = async (
         maxAttempts: item.maxAttempts,
         timeUntilRetryMs: backoff,
         error: errorMessage,
+        failureStage,
+        nextRetryAt,
+        processingDurationMs: Date.now() - startedAt,
       })
     }
 
