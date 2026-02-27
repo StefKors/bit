@@ -1,6 +1,7 @@
 import { id } from "@instantdb/admin"
 import { createGitHubClient } from "@/lib/github-client"
 import { log } from "@/lib/logger"
+import { logWebhookPath } from "./logging"
 import type { PullRequest, RepoRecord, Repository, PRRecord, User, WebhookDB } from "./types"
 
 export type WebhookSyncMode = "minimal" | "full" | "full-force"
@@ -43,12 +44,23 @@ const parseGithubTimestamp = (value: unknown): number | null => {
 export async function findUserBySender(
   db: WebhookDB,
   sender: Pick<User, "id"> | { id?: unknown },
+  trace: {
+    event?: string
+    action?: string
+    repo?: string
+    deliveryId?: string
+  } = {},
 ): Promise<string | null> {
   const senderGithubId = toNumberOrNull((sender as UnknownRecord).id)
   if (!senderGithubId) {
-    console.log("findUserBySender: No sender ID in webhook payload")
+    logWebhookPath("sender lookup skipped: missing sender GitHub id", 3, trace)
     return null
   }
+
+  logWebhookPath("query user by sender githubId", 3, {
+    ...trace,
+    senderGithubId,
+  })
 
   const result = await db.query({
     $users: {
@@ -58,10 +70,18 @@ export async function findUserBySender(
 
   const users = result.$users || []
   if (users[0]) {
+    logWebhookPath("sender resolved to local user", 3, {
+      ...trace,
+      senderGithubId,
+      userId: users[0].id,
+    })
     return users[0].id
   }
 
-  console.log(`findUserBySender: No registered user for GitHub ID ${senderGithubId}`)
+  logWebhookPath("sender not registered", 3, {
+    ...trace,
+    senderGithubId,
+  })
   return null
 }
 
@@ -73,6 +93,12 @@ export async function ensureRepoFromWebhook(
   db: WebhookDB,
   repo: Repository | object,
   userId: string,
+  trace: {
+    event?: string
+    action?: string
+    repo?: string
+    deliveryId?: string
+  } = {},
 ): Promise<RepoRecord | null> {
   const rawRepo = repo as UnknownRecord
   const githubId = toNumberOrNull(rawRepo.id)
@@ -81,14 +107,25 @@ export async function ensureRepoFromWebhook(
   const ownerLogin = toStringOrNull(toRecord(rawRepo.owner)?.login)
 
   if (!githubId || !fullName || !name || !ownerLogin) {
-    console.log("ensureRepoFromWebhook: Missing required repository fields", {
+    log.warn("ensureRepoFromWebhook: Missing required repository fields", {
       hasGithubId: Boolean(githubId),
       hasFullName: Boolean(fullName),
       hasName: Boolean(name),
       hasOwnerLogin: Boolean(ownerLogin),
     })
+    logWebhookPath("repo ensure aborted: missing required fields", 3, {
+      ...trace,
+      userId,
+    })
     return null
   }
+
+  logWebhookPath("query repo by githubId", 3, {
+    ...trace,
+    userId,
+    githubId,
+    repo: fullName,
+  })
 
   // Check if repo already exists for this user by githubId
   const existingResult = await db.query({
@@ -99,6 +136,12 @@ export async function ensureRepoFromWebhook(
 
   const existing = existingResult.repos || []
   if (existing[0]) {
+    logWebhookPath("reuse existing repo record", 3, {
+      ...trace,
+      userId,
+      repoId: existing[0].id,
+      repo: fullName,
+    })
     return existing[0] as RepoRecord
   }
 
@@ -133,6 +176,13 @@ export async function ensureRepoFromWebhook(
   }
 
   await db.transact(db.tx.repos[repoId].update(repoData))
+  logWebhookPath("db upsert create -> repos", 3, {
+    ...trace,
+    userId,
+    repoId,
+    repo: fullName,
+    entity: "repos",
+  })
 
   // Fetch the inserted record
   const insertedResult = await db.query({
@@ -142,7 +192,7 @@ export async function ensureRepoFromWebhook(
   })
 
   const inserted = insertedResult.repos || []
-  console.log(`Auto-tracked repo ${fullName} for user ${userId}`)
+  log.info(`Auto-tracked repo ${fullName} for user ${userId}`)
 
   return (inserted[0] as RepoRecord) ?? null
 }
@@ -155,6 +205,12 @@ export async function ensurePRFromWebhook(
   db: WebhookDB,
   pr: PullRequest | object,
   repoRecord: RepoRecord,
+  trace: {
+    event?: string
+    action?: string
+    repo?: string
+    deliveryId?: string
+  } = {},
 ): Promise<PRRecord | null> {
   const rawPr = pr as UnknownRecord
   const githubId = toNumberOrNull(rawPr.id)
@@ -163,7 +219,7 @@ export async function ensurePRFromWebhook(
   const state = toStringOrNull(rawPr.state)
 
   if (!githubId || !prNumber || !title || !state) {
-    console.log("ensurePRFromWebhook: Missing required pull request fields", {
+    log.warn("ensurePRFromWebhook: Missing required pull request fields", {
       hasGithubId: Boolean(githubId),
       hasNumber: Boolean(prNumber),
       hasTitle: Boolean(title),
@@ -197,6 +253,13 @@ export async function ensurePRFromWebhook(
 
   const existing = existingResult.pullRequests || []
   if (existing[0]) {
+    logWebhookPath("reuse existing pullRequests record", 3, {
+      ...trace,
+      repoId: repoRecord.id,
+      pullRequestId: existing[0].id,
+      pr: prNumber,
+      entity: "pullRequests",
+    })
     return existing[0] as PRRecord
   }
 
@@ -241,6 +304,13 @@ export async function ensurePRFromWebhook(
   }
 
   await db.transact(db.tx.pullRequests[prId].update(prData))
+  logWebhookPath("db upsert create -> pullRequests", 3, {
+    ...trace,
+    repoId: repoRecord.id,
+    pullRequestId: prId,
+    pr: prNumber,
+    entity: "pullRequests",
+  })
 
   // Fetch the inserted record
   const insertedResult = await db.query({
@@ -250,7 +320,7 @@ export async function ensurePRFromWebhook(
   })
 
   const inserted = insertedResult.pullRequests || []
-  console.log(`Auto-tracked PR #${prNumber} for repo ${repoRecord.fullName}`)
+  log.info(`Auto-tracked PR #${prNumber} for repo ${repoRecord.fullName}`)
 
   return (inserted[0] as PRRecord) ?? null
 }
