@@ -11,6 +11,7 @@ import {
   LinkExternalIcon,
   PlusIcon,
   RepoIcon,
+  CpuIcon,
 } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { db } from "@/lib/instantDb"
@@ -52,6 +53,24 @@ const SYNC_MODE_OPTIONS: { value: WebhookSyncMode; label: string; description: s
   },
 ]
 
+const AI_MODEL_OPTIONS = [
+  {
+    value: "llama-4-scout-17b-16e",
+    label: "Llama 4 Scout 17B",
+    description: "Fast and capable. Best balance of speed and quality for daily use.",
+  },
+  {
+    value: "llama3.3-70b",
+    label: "Llama 3.3 70B",
+    description: "Higher quality reasoning. Best for detailed analysis and complex questions.",
+  },
+  {
+    value: "llama3.1-8b",
+    label: "Llama 3.1 8B",
+    description: "Ultra-fast responses. Best for quick summaries and simple queries.",
+  },
+]
+
 const GITHUB_APP_SLUG = "bit-backend"
 const GITHUB_APP_INSTALLATIONS_URL = "https://github.com/settings/installations"
 
@@ -81,6 +100,9 @@ function SettingsPage() {
   const retrySync = useMutation(syncRetryMutation(user?.id ?? ""))
   const currentSyncMode: WebhookSyncMode =
     (userSettingsRecord?.webhookPrSyncBehavior as WebhookSyncMode) || "full"
+
+  const currentAiEnabled = userSettingsRecord?.aiEnabled !== false
+  const currentAiModel = (userSettingsRecord?.aiModel as string) || "llama-4-scout-17b-16e"
 
   const tokenState = syncStates.find((s) => s.resourceType === "github:token")
   const isGitHubConnected = Boolean(tokenState)
@@ -159,6 +181,38 @@ function SettingsPage() {
       db.tx.userSettings[settingsId]
         .update({
           webhookPrSyncBehavior: mode,
+          userId: user.id,
+          createdAt: userSettingsRecord?.createdAt ?? now,
+          updatedAt: now,
+        })
+        .link({ user: user.id }),
+    )
+  }
+
+  const handleAiToggle = () => {
+    if (!user?.id) return
+    const now = Date.now()
+    const settingsId = userSettingsRecord?.id || id()
+    void db.transact(
+      db.tx.userSettings[settingsId]
+        .update({
+          aiEnabled: !currentAiEnabled,
+          userId: user.id,
+          createdAt: userSettingsRecord?.createdAt ?? now,
+          updatedAt: now,
+        })
+        .link({ user: user.id }),
+    )
+  }
+
+  const handleAiModelChange = (model: string) => {
+    if (!user?.id) return
+    const now = Date.now()
+    const settingsId = userSettingsRecord?.id || id()
+    void db.transact(
+      db.tx.userSettings[settingsId]
+        .update({
+          aiModel: model,
           userId: user.id,
           createdAt: userSettingsRecord?.createdAt ?? now,
           updatedAt: now,
@@ -424,6 +478,88 @@ function SettingsPage() {
           )}
         </section>
       )}
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>AI Features (Cerebras)</h2>
+        <div className={styles.card}>
+          <div className={styles.preferenceRow}>
+            <div className={styles.preferenceInfo}>
+              <span className={styles.preferenceLabel}>
+                <span
+                  style={{
+                    marginRight: "0.375rem",
+                    display: "inline-flex",
+                    verticalAlign: "middle",
+                  }}
+                >
+                  <CpuIcon size={16} />
+                </span>
+                Enable AI-powered insights
+              </span>
+              <p className={styles.preferenceDescription}>
+                Uses Cerebras Cloud to generate activity summaries, action suggestions, and enable
+                the AI chat assistant on the dashboard.
+              </p>
+            </div>
+            <button
+              type="button"
+              className={`${styles.toggleSwitch} ${currentAiEnabled ? styles.toggleSwitchOn : ""}`}
+              aria-label="Enable AI features"
+              aria-pressed={currentAiEnabled}
+              onClick={handleAiToggle}
+            >
+              <span className={styles.toggleThumb} />
+            </button>
+          </div>
+
+          <div className={styles.preferenceRow} style={{ marginTop: "1rem" }}>
+            <div className={styles.preferenceInfo}>
+              <span className={styles.preferenceLabel}>Model</span>
+              <p className={styles.preferenceDescription}>
+                Choose the Cerebras model for AI features. Faster models use fewer resources.
+              </p>
+            </div>
+          </div>
+          <div className={styles.radioGroup}>
+            {AI_MODEL_OPTIONS.map((option) => (
+              <label
+                key={option.value}
+                className={`${styles.radioOption} ${currentAiModel === option.value ? styles.radioOptionSelected : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="aiModel"
+                  className={styles.radioInput}
+                  value={option.value}
+                  checked={currentAiModel === option.value}
+                  onChange={() => handleAiModelChange(option.value)}
+                />
+                <div className={styles.radioContent}>
+                  <span className={styles.radioLabel}>{option.label}</span>
+                  <p className={styles.radioDescription}>{option.description}</p>
+                </div>
+              </label>
+            ))}
+          </div>
+
+          <div className={styles.permissionsHint}>
+            <AlertIcon size={14} />
+            <p>
+              The API key is configured via the <code>CEREBRAS_API_KEY</code> environment variable
+              on the server. Visit{" "}
+              <a
+                href="https://cloud.cerebras.ai/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.link}
+              >
+                cloud.cerebras.ai
+              </a>{" "}
+              to get your key.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Account</h2>
