@@ -1,0 +1,221 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  background: var(--bit-gradient-surface);
+  border: 1px solid rgba(var(--bit-rgb-accent-purple), 0.15);
+  border-radius: var(--bit-radius-xl);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.06);
+}
+
+.sparkle {
+  color: var(--bit-color-accent-purple);
+}
+
+.headerTitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--bit-color-heading);
+  flex: 1;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.actionBtn {
+  padding: 0.25rem 0.625rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-pill);
+  background: transparent;
+  color: rgba(var(--bit-rgb-fg), 0.6);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.actionBtn:hover {
+  border-color: rgba(var(--bit-rgb-accent-purple), 0.3);
+  background: rgba(var(--bit-rgb-accent-purple), 0.06);
+  color: var(--bit-color-accent-purple);
+}
+
+.actionBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.actionBtnActive {
+  border-color: rgba(var(--bit-rgb-accent-purple), 0.3);
+  background: rgba(var(--bit-rgb-accent-purple), 0.1);
+  color: var(--bit-color-accent-purple);
+}
+
+.error {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  color: var(--bit-color-accent-red);
+  background: rgba(var(--bit-rgb-accent-red), 0.06);
+}
+
+.unconfigured {
+  padding: 1rem;
+}
+
+.unconfiguredText {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+  text-align: center;
+}
+
+.summaryBody {
+  padding: 0.75rem 1rem;
+  min-height: 60px;
+}
+
+.summaryText {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: rgba(var(--bit-rgb-fg), 0.75);
+  white-space: pre-wrap;
+}
+
+.placeholder {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.35);
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.loading {
+  display: flex;
+  gap: 0.375rem;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.loadingDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bit-color-accent-purple);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.loadingDot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loadingDot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes pulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.chatBody {
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+}
+
+.chatMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.625rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 80px;
+  max-height: 220px;
+}
+
+.chatUser {
+  align-self: flex-end;
+  padding: 0.375rem 0.75rem;
+  background: rgba(var(--bit-rgb-accent-blue), 0.12);
+  border-radius: var(--bit-radius-lg) var(--bit-radius-lg) var(--bit-radius-sm) var(--bit-radius-lg);
+  font-size: 0.8rem;
+  color: var(--bit-color-heading);
+  max-width: 85%;
+}
+
+.chatAssistant {
+  align-self: flex-start;
+  padding: 0.375rem 0.75rem;
+  background: rgba(var(--bit-rgb-fg), 0.04);
+  border-radius: var(--bit-radius-lg) var(--bit-radius-lg) var(--bit-radius-lg) var(--bit-radius-sm);
+  font-size: 0.8rem;
+  color: rgba(var(--bit-rgb-fg), 0.75);
+  max-width: 85%;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.chatInput {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.06);
+}
+
+.input {
+  flex: 1;
+  padding: 0.375rem 0.625rem;
+  background: rgba(var(--bit-rgb-fg), 0.04);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  border-radius: var(--bit-radius-md);
+  color: var(--bit-color-heading);
+  font-size: 0.8rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input::placeholder {
+  color: rgba(var(--bit-rgb-fg), 0.3);
+}
+
+.input:focus {
+  border-color: rgba(var(--bit-rgb-accent-purple), 0.4);
+}
+
+.sendBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--bit-radius-md);
+  background: rgba(var(--bit-rgb-accent-purple), 0.15);
+  color: var(--bit-color-accent-purple);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.sendBtn:hover {
+  background: rgba(var(--bit-rgb-accent-purple), 0.25);
+}

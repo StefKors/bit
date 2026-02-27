@@ -1,0 +1,105 @@
+.feed {
+  display: flex;
+  flex-direction: column;
+}
+
+.link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--bit-radius-md);
+  transition: background 0.1s ease;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: rgba(var(--bit-rgb-fg), 0.03);
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(var(--bit-rgb-fg), 0.05);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.iconOpen {
+  color: var(--bit-color-accent-green);
+}
+
+.iconMerged {
+  color: var(--bit-color-accent-purple);
+}
+
+.iconClosed {
+  color: var(--bit-color-accent-red);
+}
+
+.iconReview {
+  color: var(--bit-color-accent-orange);
+}
+
+.iconComment {
+  color: var(--bit-color-accent-blue);
+}
+
+.iconCommit {
+  color: var(--bit-color-accent-green-bright);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.title {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--bit-color-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitle {
+  font-size: 0.72rem;
+  color: rgba(var(--bit-rgb-fg), 0.45);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--bit-font-mono);
+}
+
+.time {
+  font-size: 0.7rem;
+  color: rgba(var(--bit-rgb-fg), 0.35);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+}

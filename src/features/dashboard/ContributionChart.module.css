@@ -1,0 +1,138 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chartWrap {
+  overflow-x: auto;
+}
+
+.chart {
+  display: flex;
+  gap: 3px;
+  min-width: min-content;
+}
+
+.week {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  transition: outline-color 0.1s ease;
+}
+
+.cell:hover {
+  outline: 1px solid rgba(var(--bit-rgb-fg), 0.3);
+  outline-offset: 1px;
+}
+
+.intensity0 {
+  background: rgba(var(--bit-rgb-fg), 0.04);
+}
+
+.intensity1 {
+  background: rgba(var(--bit-rgb-accent-green), 0.25);
+}
+
+.intensity2 {
+  background: rgba(var(--bit-rgb-accent-green), 0.45);
+}
+
+.intensity3 {
+  background: rgba(var(--bit-rgb-accent-green), 0.7);
+}
+
+.intensity4 {
+  background: rgb(var(--bit-rgb-accent-green));
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.total {
+  font-size: 0.7rem;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.legendLabel {
+  font-size: 0.6rem;
+  color: rgba(var(--bit-rgb-fg), 0.35);
+  margin: 0 0.25rem;
+}
+
+.legendCell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+/* Language Bar */
+.langContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.langBar {
+  display: flex;
+  height: 8px;
+  border-radius: var(--bit-radius-pill);
+  overflow: hidden;
+  gap: 2px;
+}
+
+.langSegment {
+  min-width: 4px;
+  border-radius: 1px;
+  transition: opacity 0.15s ease;
+}
+
+.langSegment:hover {
+  opacity: 0.8;
+}
+
+.langLabels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.langLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+}
+
+.langDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.langName {
+  color: rgba(var(--bit-rgb-fg), 0.65);
+  font-weight: 500;
+}
+
+.langCount {
+  color: rgba(var(--bit-rgb-fg), 0.35);
+  font-variant-numeric: tabular-nums;
+}

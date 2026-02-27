@@ -191,6 +191,7 @@ describe("processQueueItem", () => {
 
   it("processes a queue item successfully", async () => {
     const item = makeQueueItem()
+    mockQuery.mockResolvedValueOnce({ webhookDeliveries: [] })
     const result = await processQueueItem(mockDb, item)
 
     expect(result.success).toBe(true)
@@ -326,6 +327,7 @@ describe("processPendingQueue", () => {
           },
         ],
       })
+      .mockResolvedValueOnce({ webhookDeliveries: [] })
       .mockResolvedValueOnce({ webhookQueue: [] })
 
     const result = await processPendingQueue(mockDb, 1)

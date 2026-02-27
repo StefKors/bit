@@ -446,22 +446,23 @@ export const processQueueItem = async (
     })
 
     failureStage = "persist_success"
+    const { webhookDeliveries } = await db.query({
+      webhookDeliveries: {
+        $: { where: { deliveryId: item.deliveryId }, limit: 1 },
+      },
+    })
+    const existingDelivery = webhookDeliveries?.[0]
+
     await db.transact([
       db.tx.webhookQueue[item.id].update({
         status: "processed",
         processedAt: startedAt,
         updatedAt: startedAt,
       }),
-      db.tx.webhookDeliveries[id()].update({
-        deliveryId: item.deliveryId,
-        event: item.event,
-        action: item.action || undefined,
-        status: "processed",
-        processedAt: startedAt,
-      }),
+      ...(existingDelivery ? [db.tx.webhookDeliveries[existingDelivery.id].delete()] : []),
     ])
 
-    logWebhookPath("queue+delivery records upserted", 1, {
+    logWebhookPath("queue processed + delivery cleanup complete", 1, {
       deliveryId: item.deliveryId,
       event: item.event,
       action: item.action,
@@ -609,7 +610,7 @@ export const recoverStaleProcessingItems = async (
   await db.transact(txs)
 
   for (const item of staleItems) {
-    logWebhookQueueLifecycle("skipped_not_due", {
+    logWebhookQueueLifecycle("recovered_stale", {
       queueItemId: item.id,
       deliveryId: item.deliveryId,
       event: item.event,
@@ -617,7 +618,6 @@ export const recoverStaleProcessingItems = async (
       queueAgeMs: Math.max(0, now - item.createdAt),
       attempt: item.attempts,
       maxAttempts: item.maxAttempts,
-      reason: "stale_processing_recovered",
     })
   }
 

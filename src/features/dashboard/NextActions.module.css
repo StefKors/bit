@@ -1,0 +1,79 @@
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: var(--bit-radius-md);
+  transition: background 0.1s ease;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: rgba(var(--bit-rgb-fg), 0.03);
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.title {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--bit-color-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitle {
+  font-size: 0.7rem;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+  font-family: var(--bit-font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.empty {
+  padding: 1rem;
+  text-align: center;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+}
