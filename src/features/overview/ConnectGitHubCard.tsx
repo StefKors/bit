@@ -23,15 +23,15 @@ export const ConnectGitHubCard = ({
         </div>
         <h2 className={styles.title}>Complete your GitHub connection</h2>
         <p className={styles.description}>
-          {message || "The GitHub App is installed. Click below to authorize and start syncing."}
+          {message || "The GitHub App is installed. Syncing will start automatically."}
         </p>
       </>
     ) : (
       <>
-        <h2 className={styles.title}>Connect your GitHub account</h2>
+        <h2 className={styles.title}>Install GitHub App</h2>
         <p className={styles.description}>
-          Connect your GitHub account to sync your repositories, pull requests, and receive
-          real-time webhook updates.
+          Install the GitHub App to sync your repositories, pull requests, and receive real-time
+          webhook updates.
         </p>
       </>
     )}
@@ -41,7 +41,7 @@ export const ConnectGitHubCard = ({
       leadingIcon={<MarkGithubIcon size={20} />}
       onClick={onConnect}
     >
-      {justInstalled ? "Authorize & Connect" : "Connect GitHub"}
+      Install GitHub App
     </Button>
   </div>
 )

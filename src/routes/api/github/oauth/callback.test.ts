@@ -24,8 +24,15 @@ vi.mock("@/lib/instantAdmin", () => ({
   },
 }))
 
-vi.mock("@/lib/sync-state", () => ({
-  findOrCreateSyncStateId: vi.fn().mockResolvedValue("sync-state-id"),
+vi.mock("@/lib/github-app", () => ({
+  storeInstallationId: vi.fn().mockResolvedValue(undefined),
+  getInstallationAccount: vi.fn().mockResolvedValue({
+    login: "testuser",
+    githubId: 1,
+    avatarUrl: "https://avatar",
+    htmlUrl: "https://github.com/testuser",
+  }),
+  getInstallationToken: vi.fn().mockResolvedValue("gh-token"),
 }))
 
 vi.mock("@/lib/github-client", () => ({
@@ -38,51 +45,15 @@ vi.mock("@/lib/logger", () => ({
   log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
-const mockFetch = vi.fn()
-vi.stubGlobal("fetch", mockFetch)
-
-const mockGitHubUserResponse = {
-  login: "testuser",
-  id: 1,
-  node_id: "node-1",
-  avatar_url: "https://avatar",
-  gravatar_id: "",
-  url: "https://api.github.com/user",
-  html_url: "https://github.com/testuser",
-  type: "User",
-  site_admin: false,
-}
-
-const mockOAuthExchange = (scope: string) => {
-  mockFetch
-    .mockResolvedValueOnce({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          access_token: "gh-token",
-          token_type: "bearer",
-          scope,
-        }),
-    })
-    .mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockGitHubUserResponse),
-      headers: new Headers({ "x-oauth-scopes": scope }),
-    })
-}
-
 describe("GET /api/github/oauth/callback", () => {
   beforeEach(() => {
-    vi.stubEnv("GITHUB_CLIENT_ID", "client-id")
-    vi.stubEnv("GITHUB_CLIENT_SECRET", "client-secret")
-    vi.stubEnv("GITHUB_APP_SLUG", "bit-backend")
+    vi.stubEnv("GITHUB_APP_ID", "123")
+    vi.stubEnv("GITHUB_APP_PRIVATE_KEY", "key")
     vi.resetModules()
-    mockFetch.mockReset()
     mockPerformInitialSync.mockReset().mockResolvedValue({ synced: true })
-    mockOAuthExchange("repo,read:org,read:user,user:email")
   })
 
-  it("redirects with error when OAuth error param present", async () => {
+  it("redirects with error when installation error param present", async () => {
     const { Route } = await import("./callback")
     const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
@@ -96,13 +67,13 @@ describe("GET /api/github/oauth/callback", () => {
     expect(res.headers.get("Location")).toContain("error=")
   })
 
-  it("redirects as connected when installation_id present but no code", async () => {
+  it("redirects as connected when installation_id and state present", async () => {
     const { Route } = await import("./callback")
     const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
 
     const request = new Request(
-      "http://localhost/api/github/oauth/callback?installation_id=123&setup_action=install",
+      "http://localhost/api/github/oauth/callback?installation_id=123&state=user-123&setup_action=install",
     )
     const res = await handler({ request })
 
@@ -110,7 +81,7 @@ describe("GET /api/github/oauth/callback", () => {
     expect(res.headers.get("Location")).toContain("github=connected")
   })
 
-  it("redirects with error when code or state missing", async () => {
+  it("redirects with error when installation or state missing", async () => {
     const { Route } = await import("./callback")
     const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
@@ -119,48 +90,6 @@ describe("GET /api/github/oauth/callback", () => {
     const res = await handler({ request })
 
     expect(res.status).toBe(302)
-    expect(res.headers.get("Location")).toContain("Missing+code+or+state")
-  })
-
-  it("redirects to GitHub App installation on successful OAuth", async () => {
-    const { Route } = await import("./callback")
-    const handler = getRouteHandler(Route, "GET")
-    if (!handler) throw new Error("No GET handler")
-
-    const request = new Request(
-      "http://localhost/api/github/oauth/callback?code=abc123&state=user-123",
-    )
-    const res = await handler({ request })
-
-    expect(res.status).toBe(302)
-    expect(res.headers.get("Location")).toContain(
-      "https://github.com/apps/bit-backend/installations/new",
-    )
-    expect(res.headers.get("Location")).toContain("state=user-123")
-    expect(mockPerformInitialSync).toHaveBeenCalledTimes(1)
-  })
-
-  it("redirects to GitHub App installation when required scopes are missing", async () => {
-    mockFetch.mockReset()
-    mockOAuthExchange("read:user,user:email")
-
-    const { Route } = await import("./callback")
-    const handler = getRouteHandler(Route, "GET")
-    if (!handler) throw new Error("No GET handler")
-
-    const request = new Request(
-      "http://localhost/api/github/oauth/callback?code=abc123&state=user-123",
-    )
-    const res = await handler({ request })
-
-    expect(res.status).toBe(302)
-    expect(res.headers.get("Location")).toContain(
-      "https://github.com/apps/bit-backend/installations/new",
-    )
-    expect(res.headers.get("Location")).toContain("message=OAuth+permissions+are+limited")
-    expect(res.headers.get("Location")).toContain(
-      "installationsUrl=https%3A%2F%2Fgithub.com%2Fsettings%2Finstallations",
-    )
-    expect(mockPerformInitialSync).not.toHaveBeenCalled()
+    expect(res.headers.get("Location")).toContain("Missing+installation+or+state")
   })
 })

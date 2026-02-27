@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Octokit } from "octokit"
 import { id } from "@instantdb/admin"
 import { adminDb } from "@/lib/instantAdmin"
-import { isGitHubAuthError, handleGitHubAuthError } from "@/lib/github-client"
+import { createGitHubClient, isGitHubAuthError, handleGitHubAuthError } from "@/lib/github-client"
 import { log } from "@/lib/logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
@@ -29,25 +28,11 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
           return jsonResponse({ error: "Invalid issue number" }, 400)
         }
 
-        const { syncStates } = await adminDb.query({
-          syncStates: {
-            $: {
-              where: {
-                resourceType: "github:token",
-                userId,
-              },
-            },
-          },
-        })
-
-        const tokenState = syncStates?.[0]
-        const accessToken = tokenState?.lastEtag
-
-        if (!accessToken) {
+        const client = await createGitHubClient(userId)
+        if (!client) {
           return jsonResponse({ error: "GitHub account not connected" }, 400)
         }
 
-        const octokit = new Octokit({ auth: accessToken })
         const fullName = `${owner}/${repo}`
 
         try {
@@ -62,13 +47,7 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
             return jsonResponse({ error: "Repository not found in database" }, 404)
           }
 
-          const issueResponse = await octokit.rest.issues.get({
-            owner,
-            repo,
-            issue_number: issueNumber,
-          })
-
-          const issueData = issueResponse.data
+          const issueData = await client.getIssue(owner, repo, issueNumber)
           const now = Date.now()
 
           const { issues: existingIssues } = await adminDb.query({
@@ -114,12 +93,7 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
               .link({ repo: repoRecord.id }),
           )
 
-          const allComments = await octokit.paginate(octokit.rest.issues.listComments, {
-            owner,
-            repo,
-            issue_number: issueNumber,
-            per_page: 100,
-          })
+          const allComments = await client.listIssueComments(owner, repo, issueNumber)
 
           for (const comment of allComments) {
             const { issueComments: existingComments } = await adminDb.query({

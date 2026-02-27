@@ -8,14 +8,10 @@ import {
 
 const mockGetReadme = vi.hoisted(() => vi.fn())
 
-vi.mock("octokit", () => ({
-  Octokit: class MockOctokit {
-    rest = {
-      repos: {
-        getReadme: mockGetReadme,
-      },
-    }
-  },
+vi.mock("@/lib/github-client", () => ({
+  createGitHubClient: vi.fn().mockResolvedValue({
+    getReadme: mockGetReadme,
+  }),
 }))
 
 vi.mock("@/lib/instantAdmin", () => ({
@@ -29,17 +25,11 @@ vi.mock("@/lib/instantAdmin", () => ({
 const { Route } = await import("./$owner.$repo")
 
 describe("GET /api/github/readme/:owner/:repo", () => {
-  beforeEach(async () => {
-    const { adminDb } = await import("@/lib/instantAdmin")
-    vi.mocked(adminDb.query).mockResolvedValue({
-      syncStates: [{ lastEtag: "token-123" }],
-    })
+  beforeEach(() => {
     mockGetReadme.mockResolvedValue({
-      data: {
-        content: Buffer.from("# Hello").toString("base64"),
-        name: "README.md",
-        path: "README.md",
-      },
+      content: "# Hello",
+      name: "README.md",
+      path: "README.md",
     })
   })
 
@@ -53,8 +43,8 @@ describe("GET /api/github/readme/:owner/:repo", () => {
   })
 
   it("returns 400 when GitHub account not connected", async () => {
-    const { adminDb } = await import("@/lib/instantAdmin")
-    vi.mocked(adminDb.query).mockResolvedValue({ syncStates: [] })
+    const { createGitHubClient } = await import("@/lib/github-client")
+    vi.mocked(createGitHubClient).mockResolvedValueOnce(null)
 
     const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
@@ -78,7 +68,7 @@ describe("GET /api/github/readme/:owner/:repo", () => {
   })
 
   it("returns content null for 404", async () => {
-    mockGetReadme.mockRejectedValueOnce({ status: 404 })
+    mockGetReadme.mockResolvedValueOnce(null)
 
     const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")

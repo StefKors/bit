@@ -6,16 +6,12 @@ import {
   parseJsonResponse,
 } from "@/lib/test-helpers"
 
-const mockGetContent = vi.hoisted(() => vi.fn())
+const mockGetFileContent = vi.hoisted(() => vi.fn())
 
-vi.mock("octokit", () => ({
-  Octokit: class MockOctokit {
-    rest = {
-      repos: {
-        getContent: mockGetContent,
-      },
-    }
-  },
+vi.mock("@/lib/github-client", () => ({
+  createGitHubClient: vi.fn().mockResolvedValue({
+    getFileContent: mockGetFileContent,
+  }),
 }))
 
 vi.mock("@/lib/instantAdmin", () => ({
@@ -29,20 +25,13 @@ vi.mock("@/lib/instantAdmin", () => ({
 const { Route } = await import("./$owner.$repo.$")
 
 describe("GET /api/github/file/:owner/:repo/*", () => {
-  beforeEach(async () => {
-    const { adminDb } = await import("@/lib/instantAdmin")
-    vi.mocked(adminDb.query).mockResolvedValue({
-      syncStates: [{ lastEtag: "token-123" }],
-    })
-    mockGetContent.mockResolvedValue({
-      data: {
-        type: "file",
-        content: Buffer.from("file content").toString("base64"),
-        sha: "abc123",
-        size: 12,
-        name: "foo.ts",
-        path: "src/foo.ts",
-      },
+  beforeEach(() => {
+    mockGetFileContent.mockResolvedValue({
+      content: "file content",
+      sha: "abc123",
+      size: 12,
+      name: "foo.ts",
+      path: "src/foo.ts",
     })
   })
 
@@ -59,8 +48,8 @@ describe("GET /api/github/file/:owner/:repo/*", () => {
   })
 
   it("returns 400 when GitHub account not connected", async () => {
-    const { adminDb } = await import("@/lib/instantAdmin")
-    vi.mocked(adminDb.query).mockResolvedValue({ syncStates: [] })
+    const { createGitHubClient } = await import("@/lib/github-client")
+    vi.mocked(createGitHubClient).mockResolvedValueOnce(null)
 
     const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
@@ -90,7 +79,7 @@ describe("GET /api/github/file/:owner/:repo/*", () => {
   })
 
   it("returns 400 when path is a directory", async () => {
-    mockGetContent.mockResolvedValueOnce({ data: [] })
+    mockGetFileContent.mockRejectedValueOnce(new Error("Path is a directory, not a file"))
 
     const handler = getRouteHandler(Route, "GET")
     if (!handler) throw new Error("No GET handler")
@@ -100,6 +89,8 @@ describe("GET /api/github/file/:owner/:repo/*", () => {
       request,
       params: { owner: "o", repo: "r", _splat: "dir" },
     })
-    expect(res.status).toBe(400)
+    const { status, body } = await parseJsonResponse<{ error: string }>(res)
+    expect(status).toBe(500)
+    expect(body.error).toBe("Failed to fetch file")
   })
 })

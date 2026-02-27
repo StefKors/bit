@@ -10,7 +10,6 @@ interface RateLimitInfo {
 
 interface OverviewHeaderProps {
   isGitHubConnected: boolean
-  isAuthInvalid?: boolean
   isSyncing: boolean
   rateLimit: RateLimitInfo | null
   lastSyncedAt?: number
@@ -37,7 +36,6 @@ const formatLastSynced = (timestamp: number) => {
 
 export const OverviewHeader = ({
   isGitHubConnected,
-  isAuthInvalid,
   isSyncing,
   rateLimit,
   lastSyncedAt,
@@ -65,21 +63,13 @@ export const OverviewHeader = ({
             </div>
           )}
 
-          {isGitHubConnected && isAuthInvalid ? (
-            <Button
-              variant="danger"
-              leadingIcon={<MarkGithubIcon size={16} />}
-              onClick={onConnectGitHub}
-            >
-              Reconnect GitHub
-            </Button>
-          ) : isGitHubConnected ? null : (
+          {isGitHubConnected ? null : (
             <Button
               variant="primary"
               leadingIcon={<MarkGithubIcon size={16} />}
               onClick={onConnectGitHub}
             >
-              Connect GitHub
+              Install GitHub App
             </Button>
           )}
         </div>
@@ -89,12 +79,6 @@ export const OverviewHeader = ({
         <div className={styles.successMessage}>
           <CheckCircleIcon size={16} />
           GitHub connected successfully! You can now sync your repositories.
-        </div>
-      )}
-
-      {isAuthInvalid && (
-        <div className={styles.errorMessage}>
-          Your GitHub connection has expired. Please reconnect to continue syncing.
         </div>
       )}
 
@@ -120,7 +104,7 @@ export const OverviewHeader = ({
         </div>
       )}
 
-      {error && !isAuthInvalid && <div className={styles.errorMessage}>{error}</div>}
+      {error && <div className={styles.errorMessage}>{error}</div>}
 
       {isGitHubConnected && (
         <div className={styles.syncStatus}>

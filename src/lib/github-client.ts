@@ -96,22 +96,8 @@ const combineRequestedReviewers = (
   return [...reviewers, ...teams]
 }
 
-export async function handleGitHubAuthError(userId: string): Promise<void> {
-  const { syncStates } = await adminDb.query({
-    syncStates: {
-      $: { where: { resourceType: "github:token", userId } },
-    },
-  })
-  const tokenState = syncStates?.[0]
-  if (tokenState) {
-    await adminDb.transact(
-      adminDb.tx.syncStates[tokenState.id].update({
-        syncStatus: "auth_invalid",
-        syncError: "GitHub token is no longer valid",
-        updatedAt: Date.now(),
-      }),
-    )
-  }
+export async function handleGitHubAuthError(_userId: string): Promise<void> {
+  // No-op: we use GitHub App installation only; no token to invalidate
 }
 
 function isRateLimitError(error: unknown): boolean {
@@ -201,6 +187,145 @@ export class GitHubClient {
       return scopes.split(",").map((s) => s.trim())
     }
     return []
+  }
+
+  async getFileContent(
+    owner: string,
+    repo: string,
+    path: string,
+    ref = "main",
+  ): Promise<{
+    content: string | null
+    sha: string
+    size: number
+    name: string
+    path: string
+  }> {
+    const response = await this.octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path,
+      ref,
+    })
+    if (Array.isArray(response.data)) {
+      throw new Error("Path is a directory, not a file")
+    }
+    if (response.data.type !== "file") {
+      throw new Error("Path is not a file")
+    }
+    const content = response.data.content
+      ? Buffer.from(response.data.content, "base64").toString("utf-8")
+      : null
+    return {
+      content,
+      sha: response.data.sha,
+      size: response.data.size,
+      name: response.data.name,
+      path: response.data.path,
+    }
+  }
+
+  async getIssue(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+  ): Promise<{
+    id: number
+    number: number
+    title: string
+    body: string | null
+    state: string
+    state_reason: string | null
+    user: { login?: string; avatar_url?: string } | null
+    html_url: string
+    labels: Array<{ name: string; color?: string }>
+    comments: number
+    created_at: string
+    updated_at: string
+    closed_at: string | null
+  }> {
+    const response = await this.octokit.rest.issues.get({
+      owner,
+      repo,
+      issue_number: issueNumber,
+    })
+    return response.data as {
+      id: number
+      number: number
+      title: string
+      body: string | null
+      state: string
+      state_reason: string | null
+      user: { login?: string; avatar_url?: string } | null
+      html_url: string
+      labels: Array<{ name: string; color?: string }>
+      comments: number
+      created_at: string
+      updated_at: string
+      closed_at: string | null
+    }
+  }
+
+  async listIssueComments(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+  ): Promise<
+    Array<{
+      id: number
+      body: string | null
+      user: { login?: string; avatar_url?: string } | null
+      html_url: string
+      created_at: string
+      updated_at: string
+    }>
+  > {
+    const comments = await this.octokit.paginate(this.octokit.rest.issues.listComments, {
+      owner,
+      repo,
+      issue_number: issueNumber,
+      per_page: 100,
+    })
+    return comments as Array<{
+      id: number
+      body: string | null
+      user: { login?: string; avatar_url?: string } | null
+      html_url: string
+      created_at: string
+      updated_at: string
+    }>
+  }
+
+  async getReadme(
+    owner: string,
+    repo: string,
+    ref?: string,
+  ): Promise<{ content: string | null; name: string; path: string } | null> {
+    try {
+      const response = await this.octokit.rest.repos.getReadme({
+        owner,
+        repo,
+        ref,
+      })
+      const content = response.data.content
+        ? Buffer.from(response.data.content, "base64").toString("utf-8")
+        : null
+      return {
+        content,
+        name: response.data.name,
+        path: response.data.path,
+      }
+    } catch (err) {
+      if (
+        err &&
+        typeof err === "object" &&
+        "status" in err &&
+        (err as { status: number }).status === 404
+      ) {
+        return null
+      }
+      throw err
+    }
   }
 
   async listCheckRuns(
@@ -2361,51 +2486,27 @@ export async function createGitHubClient(
   installationId?: number | null,
 ): Promise<GitHubClient | null> {
   try {
-    // 1. Try GitHub App installation token (preferred for webhook-triggered calls)
-    if (isGitHubAppConfigured()) {
-      let instId = installationId ?? null
-      if (!instId) {
-        instId = await getInstallationIdForUser(userId)
-      }
-      if (instId) {
-        const token = await getInstallationToken(instId)
-        if (token) {
-          return new GitHubClient(token, userId)
-        }
-        log.warn("Installation token generation failed, falling back to user OAuth token", {
-          userId,
-          installationId: instId,
-        })
-      }
-    }
-
-    // 2. Fall back to stored user OAuth token
-    const { syncStates } = await adminDb.query({
-      syncStates: {
-        $: {
-          where: {
-            resourceType: "github:token",
-            userId,
-          },
-        },
-      },
-    })
-
-    const tokenState = syncStates?.[0]
-
-    if (tokenState?.syncStatus === "auth_invalid") {
-      log.warn("GitHub token is known-invalid", { userId })
+    if (!isGitHubAppConfigured()) {
+      log.warn("GitHub App not configured", { userId })
       return null
     }
 
-    const accessToken = tokenState?.lastEtag
-
-    if (accessToken) {
-      return new GitHubClient(accessToken, userId)
+    let instId = installationId ?? null
+    if (!instId) {
+      instId = await getInstallationIdForUser(userId)
+    }
+    if (!instId) {
+      log.warn("No GitHub App installation for user", { userId })
+      return null
     }
 
-    log.warn("No GitHub access token available", { userId })
-    return null
+    const token = await getInstallationToken(instId)
+    if (!token) {
+      log.warn("Installation token generation failed", { userId, installationId: instId })
+      return null
+    }
+
+    return new GitHubClient(token, userId)
   } catch (err) {
     log.error("Failed to create GitHub client", err, { userId })
     return null

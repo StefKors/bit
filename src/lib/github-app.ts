@@ -125,6 +125,53 @@ export async function storeInstallationId(userId: string, installationId: string
   )
 }
 
+interface InstallationAccount {
+  login: string
+  id: number
+  avatar_url: string
+  html_url: string
+  type?: string
+}
+
+interface InstallationResponse {
+  id: number
+  account: InstallationAccount
+}
+
+export async function getInstallationAccount(
+  installationId: number,
+): Promise<{ login: string; githubId: number; avatarUrl: string; htmlUrl: string } | null> {
+  try {
+    const jwt = await createAppJWT()
+    const response = await fetch(`https://api.github.com/app/installations/${installationId}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    })
+    if (!response.ok) {
+      const body = await response.text()
+      log.error("Failed to get installation", `HTTP ${response.status}: ${body}`, {
+        installationId,
+      })
+      return null
+    }
+    const data = (await response.json()) as InstallationResponse
+    const account = data.account
+    if (!account?.login) return null
+    return {
+      login: account.login,
+      githubId: account.id,
+      avatarUrl: account.avatar_url ?? "",
+      htmlUrl: account.html_url ?? "",
+    }
+  } catch (err) {
+    log.error("Failed to get installation account", err, { installationId })
+    return null
+  }
+}
+
 // payload is untrusted JSON from webhook - unknown is appropriate
 // eslint-disable-next-line @typescript-eslint/no-restricted-types
 export function extractInstallationId(payload: unknown): number | null {

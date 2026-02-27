@@ -49,8 +49,6 @@ function DashboardPage() {
   const oauthError = search.error
   const oauthMessage = search.message
 
-  const isGitHubConnected = Boolean(user?.login)
-
   const { data } = db.useQuery({
     syncStates: {},
     repos: {
@@ -67,6 +65,8 @@ function DashboardPage() {
   })
 
   const syncStates = data?.syncStates ?? []
+  const hasInstallation = syncStates.some((s) => s.resourceType === "github:installation")
+  const isGitHubConnected = hasInstallation || Boolean(user?.login)
   const repos = data?.repos ?? []
   const userSettingsRecord = data?.userSettings?.[0] ?? null
   const initialSyncState = syncStates.find((s) => s.resourceType === "initial_sync")
@@ -210,8 +210,8 @@ function DashboardPage() {
 
   const handleConnectGitHub = () => {
     if (!user?.id) return
-    const connectUrl = `/api/github/oauth?${new URLSearchParams({ userId: user.id }).toString()}`
-    window.location.href = connectUrl
+    const installUrl = `https://github.com/apps/bit-backend/installations/new?${new URLSearchParams({ state: user.id }).toString()}`
+    window.location.href = installUrl
   }
 
   if (!user) {

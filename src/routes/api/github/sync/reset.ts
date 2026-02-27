@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { z } from "zod/v4"
 import { adminDb } from "@/lib/instantAdmin"
-import { revokeGitHubGrantForUser } from "@/lib/github-connection"
 import { log } from "@/lib/logger"
 
 const resetBodySchema = z.object({
@@ -85,14 +84,6 @@ export const Route = createFileRoute("/api/github/sync/reset")({
         }
 
         try {
-          const revokeResult = await revokeGitHubGrantForUser(userId)
-          if (revokeResult.attempted && !revokeResult.revoked) {
-            log.warn("Disconnect requested but OAuth grant revocation failed", {
-              userId,
-              reason: revokeResult.reason,
-            })
-          }
-
           const { syncStates } = await adminDb.query({
             syncStates: {
               $: {

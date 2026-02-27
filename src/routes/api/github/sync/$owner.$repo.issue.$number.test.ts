@@ -33,24 +33,19 @@ vi.mock("@/lib/instantAdmin", () => ({
   },
 }))
 
+const mockGetIssue = vi.hoisted(() => vi.fn())
+const mockListIssueComments = vi.hoisted(() => vi.fn().mockResolvedValue([]))
+
 vi.mock("@/lib/github-client", () => ({
+  createGitHubClient: vi.fn().mockImplementation((userId: string) => {
+    if (userId === "no-client") return Promise.resolve(null)
+    return Promise.resolve({
+      getIssue: mockGetIssue,
+      listIssueComments: mockListIssueComments,
+    })
+  }),
   isGitHubAuthError: vi.fn().mockReturnValue(false),
   handleGitHubAuthError: vi.fn().mockResolvedValue(undefined),
-}))
-
-const mockIssuesGet = vi.hoisted(() => vi.fn())
-const mockPaginate = vi.hoisted(() => vi.fn().mockResolvedValue([]))
-
-vi.mock("octokit", () => ({
-  Octokit: class MockOctokit {
-    rest = {
-      issues: {
-        get: mockIssuesGet,
-        listComments: vi.fn(),
-      },
-    }
-    paginate = mockPaginate
-  },
 }))
 
 vi.mock("@instantdb/admin", () => ({
@@ -62,29 +57,31 @@ const { Route } = await import("./$owner.$repo.issue.$number")
 describe("POST /api/github/sync/:owner/:repo/issue/:number", () => {
   beforeEach(async () => {
     const { adminDb } = await import("@/lib/instantAdmin")
+    const { createGitHubClient } = await import("@/lib/github-client")
+    vi.mocked(createGitHubClient).mockResolvedValue({
+      getIssue: mockGetIssue,
+      listIssueComments: mockListIssueComments,
+    } as never)
     vi.mocked(adminDb.query).mockImplementation((q: Record<string, unknown>) => {
-      if (q.syncStates) return Promise.resolve({ syncStates: [{ lastEtag: "token" }] })
       if (q.repos) return Promise.resolve({ repos: [{ id: "repo-1", fullName: "o/r" }] })
       if (q.issues) return Promise.resolve({ issues: [] })
       if (q.issueComments) return Promise.resolve({ issueComments: [] })
       return Promise.resolve({})
     })
-    mockIssuesGet.mockResolvedValue({
-      data: {
-        id: 1,
-        number: 42,
-        title: "Test issue",
-        body: "Body",
-        state: "open",
-        state_reason: null,
-        user: { login: "user", avatar_url: "https://avatar" },
-        html_url: "https://github.com/o/r/issues/42",
-        labels: [],
-        comments: 0,
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-        closed_at: null,
-      },
+    mockGetIssue.mockResolvedValue({
+      id: 1,
+      number: 42,
+      title: "Test issue",
+      body: "Body",
+      state: "open",
+      state_reason: null,
+      user: { login: "user", avatar_url: "https://avatar" },
+      html_url: "https://github.com/o/r/issues/42",
+      labels: [],
+      comments: 0,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      closed_at: null,
     })
   })
 
@@ -117,8 +114,8 @@ describe("POST /api/github/sync/:owner/:repo/issue/:number", () => {
   })
 
   it("returns 400 when GitHub account not connected", async () => {
-    const { adminDb } = await import("@/lib/instantAdmin")
-    vi.mocked(adminDb.query).mockResolvedValueOnce({ syncStates: [] })
+    const { createGitHubClient } = await import("@/lib/github-client")
+    vi.mocked(createGitHubClient).mockResolvedValueOnce(null)
 
     const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
@@ -136,7 +133,6 @@ describe("POST /api/github/sync/:owner/:repo/issue/:number", () => {
   it("returns 404 when repo not in database", async () => {
     const { adminDb } = await import("@/lib/instantAdmin")
     vi.mocked(adminDb.query).mockImplementation((q: Record<string, unknown>) => {
-      if (q.syncStates) return Promise.resolve({ syncStates: [{ lastEtag: "token" }] })
       if (q.repos) return Promise.resolve({ repos: [] })
       return Promise.resolve({})
     })

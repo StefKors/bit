@@ -111,9 +111,8 @@ function SettingsPage() {
   const currentAiModel = (userSettingsRecord?.aiModel as string) || DEFAULT_MODEL
   const webhookLogsEnabled = userSettingsRecord?.webhookLogsEnabled !== false
 
-  const tokenState = syncStates.find((s) => s.resourceType === "github:token")
-  const isGitHubConnected = Boolean(tokenState)
-  const isAuthInvalid = tokenState?.syncStatus === "auth_invalid"
+  const installationState = syncStates.find((s) => s.resourceType === "github:installation")
+  const isGitHubConnected = Boolean(installationState)
 
   const initialSyncState = syncStates.find((s) => s.resourceType === "initial_sync")
   const lastSyncedAt = initialSyncState?.lastSyncedAt
@@ -143,36 +142,7 @@ function SettingsPage() {
   const handleConnectGitHub = () => {
     if (!user?.id) return
     setSuccess(null)
-    const connectUrl = `/api/github/oauth?${new URLSearchParams({ userId: user.id }).toString()}`
-    if (!isGitHubConnected) {
-      window.location.href = connectUrl
-      return
-    }
-    void (async () => {
-      try {
-        const response = await fetch("/api/github/oauth", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user.id}`,
-          },
-          body: JSON.stringify({ userId: user.id }),
-        })
-        if (!response.ok) {
-          let errorMessage = "Failed to prepare GitHub reconnect"
-          try {
-            const payload = (await response.json()) as { error?: string }
-            errorMessage = payload.error || errorMessage
-          } catch {
-            errorMessage = `Reconnect request failed (${response.status})`
-          }
-          throw new Error(errorMessage)
-        }
-        window.location.href = connectUrl
-      } catch {
-        // navigation will happen on success
-      }
-    })()
+    window.location.href = githubAppInstallUrl
   }
 
   if (!user) return null
@@ -184,7 +154,6 @@ function SettingsPage() {
           <GitHubSection
             user={user}
             isGitHubConnected={isGitHubConnected}
-            isAuthInvalid={isAuthInvalid}
             lastSyncedAt={lastSyncedAt}
             disconnecting={disconnecting}
             githubAppInstallUrl={githubAppInstallUrl}
@@ -193,7 +162,7 @@ function SettingsPage() {
           />
         )
       case "repos":
-        return isGitHubConnected && !isAuthInvalid ? (
+        return isGitHubConnected ? (
           <ReposSection userId={user.id} />
         ) : (
           <div className={styles.card}>
@@ -210,7 +179,6 @@ function SettingsPage() {
               updateSettings({ webhookPrSyncBehavior: mode })
             }}
             isGitHubConnected={isGitHubConnected}
-            isAuthInvalid={isAuthInvalid}
             syncStates={syncStates as SyncStateItem[]}
             repos={repos as RepoItem[]}
             userId={user.id}
@@ -302,7 +270,6 @@ interface GitHubSectionProps {
     htmlUrl?: string | null
   }
   isGitHubConnected: boolean
-  isAuthInvalid: boolean
   lastSyncedAt: number | undefined | null
   disconnecting: boolean
   githubAppInstallUrl: string
@@ -313,7 +280,6 @@ interface GitHubSectionProps {
 const GitHubSection = ({
   user,
   isGitHubConnected,
-  isAuthInvalid,
   lastSyncedAt,
   disconnecting,
   githubAppInstallUrl,
@@ -325,9 +291,9 @@ const GitHubSection = ({
       <div className={styles.card}>
         <div className={styles.emptyConnection}>
           <MarkGithubIcon size={40} className={styles.emptyIcon} />
-          <h3 className={styles.emptyTitle}>No GitHub account connected</h3>
+          <h3 className={styles.emptyTitle}>Install GitHub App</h3>
           <p className={styles.emptyDescription}>
-            Connect your GitHub account to sync repositories, pull requests, and receive real-time
+            Install the GitHub App to sync repositories, pull requests, and receive real-time
             updates.
           </p>
           <Button
@@ -336,7 +302,7 @@ const GitHubSection = ({
             leadingIcon={<MarkGithubIcon size={20} />}
             onClick={onConnect}
           >
-            Connect GitHub
+            Install GitHub App
           </Button>
         </div>
       </div>
@@ -354,33 +320,13 @@ const GitHubSection = ({
               <span className={styles.connectionLogin}>@{user.login}</span>
             </div>
           </div>
-          {isAuthInvalid ? (
-            <div className={styles.statusBadgeDanger}>
-              <AlertIcon size={14} />
-              Expired
-            </div>
-          ) : (
-            <div className={styles.statusBadgeSuccess}>
-              <CheckCircleFillIcon size={14} />
-              Connected
-            </div>
-          )}
+          <div className={styles.statusBadgeSuccess}>
+            <CheckCircleFillIcon size={14} />
+            Connected
+          </div>
         </div>
 
-        {isAuthInvalid && (
-          <div className={styles.warningBanner}>
-            <AlertIcon size={16} />
-            <div>
-              <strong>Connection expired</strong>
-              <p>
-                Your GitHub token is no longer valid. Reconnect to resume syncing repositories and
-                pull requests.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {Boolean(lastSyncedAt) && !isAuthInvalid && (
+        {Boolean(lastSyncedAt) && (
           <div className={styles.metaRow}>
             <SyncIcon size={14} />
             Last synced {formatTimeAgo(lastSyncedAt!)}
@@ -402,12 +348,8 @@ const GitHubSection = ({
         )}
 
         <div className={styles.cardActions}>
-          <Button
-            variant={isAuthInvalid ? "primary" : "default"}
-            leadingIcon={<MarkGithubIcon size={16} />}
-            onClick={onConnect}
-          >
-            {isAuthInvalid ? "Reconnect GitHub" : "Reconnect"}
+          <Button variant="default" leadingIcon={<MarkGithubIcon size={16} />} onClick={onConnect}>
+            Reinstall
           </Button>
           <Button
             variant="danger"
@@ -452,13 +394,6 @@ const GitHubSection = ({
           >
             Remove
           </Button>
-        </div>
-        <div className={styles.permissionsHint}>
-          <AlertIcon size={14} />
-          <p>
-            Organization access can depend on GitHub org policies. If repos or webhooks are missing,
-            ask an org admin to approve the OAuth app and authorize the token for org SAML SSO.
-          </p>
         </div>
       </div>
     </>
@@ -560,7 +495,6 @@ interface WebhooksSectionProps {
   currentSyncMode: WebhookSyncMode
   onSyncModeChange: (mode: WebhookSyncMode) => void
   isGitHubConnected: boolean
-  isAuthInvalid: boolean
   syncStates: SyncStateItem[]
   repos: RepoItem[]
   userId: string
@@ -574,7 +508,6 @@ const WebhooksSection = ({
   currentSyncMode,
   onSyncModeChange,
   isGitHubConnected,
-  isAuthInvalid,
   syncStates,
   repos,
   userId,
@@ -622,7 +555,7 @@ const WebhooksSection = ({
       </div>
     </section>
 
-    {isGitHubConnected && !isAuthInvalid && (
+    {isGitHubConnected && (
       <>
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Queue</h2>

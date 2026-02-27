@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { revokeGitHubGrantForUser } from "@/lib/github-connection"
 import {
   getRouteHandler,
   makeAuthRequest,
@@ -27,10 +26,6 @@ vi.mock("@/lib/instantAdmin", () => ({
       },
     ),
   },
-}))
-
-vi.mock("@/lib/github-connection", () => ({
-  revokeGitHubGrantForUser: vi.fn().mockResolvedValue({ attempted: true, revoked: true }),
 }))
 
 vi.mock("@/lib/logger", () => ({
@@ -120,7 +115,6 @@ describe("DELETE /api/github/sync/reset", () => {
     vi.mocked(adminDb.query).mockResolvedValue({
       syncStates: [{ id: "state-1" }, { id: "state-2" }],
     })
-    vi.mocked(revokeGitHubGrantForUser).mockResolvedValue({ attempted: true, revoked: true })
   })
 
   it("returns 401 when no auth header", async () => {
@@ -144,6 +138,5 @@ describe("DELETE /api/github/sync/reset", () => {
     expect(status).toBe(200)
     expect(body.success).toBe(true)
     expect(body.deleted).toBe(2)
-    expect(revokeGitHubGrantForUser).toHaveBeenCalledWith("user-1")
   })
 })
