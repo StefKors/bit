@@ -4,7 +4,10 @@ export const requireWebhookOpsAuth = (request: Request): Response | null => {
 
   const authHeader =
     request.headers.get("authorization") || request.headers.get("Authorization") || ""
-  const bearerToken = authHeader.replace("Bearer ", "")
+  let bearerToken = ""
+  if (authHeader.startsWith("Bearer ")) {
+    bearerToken = authHeader.substring("Bearer ".length)
+  }
   const headerToken = request.headers.get("x-webhook-ops-token") || ""
   const provided = headerToken || bearerToken
 
