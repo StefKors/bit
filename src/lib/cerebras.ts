@@ -30,12 +30,19 @@ export type ChatMessage = {
   content: string
 }
 
+export const isValidCerebrasModelId = (model: string): model is CerebrasModelId =>
+  CEREBRAS_MODELS.some((m) => m.id === model)
+
 export const chatCompletion = async (
   messages: ChatMessage[],
   model: string = DEFAULT_MODEL,
 ): Promise<string> => {
   const client = getCerebrasClient()
   if (!client) throw new Error("Cerebras API key not configured")
+  if (!isValidCerebrasModelId(model)) {
+    const validModels = CEREBRAS_MODELS.map((m) => m.id).join(", ")
+    throw new Error(`Invalid Cerebras model: "${model}". Valid models are: ${validModels}`)
+  }
 
   const response = await client.chat.completions.create({
     messages,

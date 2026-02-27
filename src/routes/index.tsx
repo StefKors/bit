@@ -356,6 +356,7 @@ function DashboardPage() {
             aiConfigured={aiStatus.configured}
             aiModel={aiModel}
             contextPrompt={aiContextPrompt}
+            userId={user?.id ?? ""}
           />
 
           <div className={styles.panel}>

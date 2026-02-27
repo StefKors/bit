@@ -7,9 +7,16 @@ type AISummaryProps = {
   aiConfigured: boolean
   aiModel: string
   contextPrompt: string
+  userId: string
 }
 
-export const AISummary = ({ aiEnabled, aiConfigured, aiModel, contextPrompt }: AISummaryProps) => {
+export const AISummary = ({
+  aiEnabled,
+  aiConfigured,
+  aiModel,
+  contextPrompt,
+  userId,
+}: AISummaryProps) => {
   const [summary, setSummary] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -27,7 +34,10 @@ export const AISummary = ({ aiEnabled, aiConfigured, aiModel, contextPrompt }: A
     try {
       const res = await fetch("/api/cerebras/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
         body: JSON.stringify({
           model: aiModel,
           messages: [
@@ -61,7 +71,10 @@ export const AISummary = ({ aiEnabled, aiConfigured, aiModel, contextPrompt }: A
     try {
       const res = await fetch("/api/cerebras/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
         body: JSON.stringify({
           model: aiModel,
           messages: [
