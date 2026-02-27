@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useState, useRef } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { id } from "@instantdb/react"
@@ -77,9 +77,14 @@ const SIDEBAR_ITEMS: { id: Section; label: string; icon: React.ReactNode }[] = [
   { id: "account", label: "Account", icon: <PersonIcon size={16} /> },
 ]
 
+const SECTION_IDS: Section[] = ["github", "repos", "webhooks", "interface", "ai", "data", "account"]
+
 function SettingsPage() {
   const { user } = useAuth()
-  const [activeSection, setActiveSection] = useState<Section>("github")
+  const { tab } = Route.useSearch()
+  const activeSection: Section = (
+    tab && SECTION_IDS.includes(tab as Section) ? tab : "github"
+  ) as Section
   const [prLayoutMode, setPrLayoutModeState] = useState<PRLayoutMode>(() => getPRLayoutMode())
 
   const disconnect = useMutation({
@@ -234,15 +239,15 @@ function SettingsPage() {
         <div className={styles.sidebarTitle}>Settings</div>
         <div className={styles.sidebarNav}>
           {SIDEBAR_ITEMS.map((item) => (
-            <button
+            <Link
               key={item.id}
-              type="button"
+              to="/settings"
+              search={item.id === "github" ? {} : { tab: item.id }}
               className={`${styles.sidebarItem} ${activeSection === item.id ? styles.sidebarItemActive : ""}`}
-              onClick={() => setActiveSection(item.id)}
             >
               <span className={styles.sidebarIcon}>{item.icon}</span>
               {item.label}
-            </button>
+            </Link>
           ))}
         </div>
       </nav>
@@ -1004,4 +1009,9 @@ const formatTimeAgo = (timestamp: number): string => {
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
+  validateSearch: (
+    search: Record<string, string | number | boolean | null | undefined>,
+  ): { tab?: string } => ({
+    tab: typeof search.tab === "string" ? search.tab : undefined,
+  }),
 })

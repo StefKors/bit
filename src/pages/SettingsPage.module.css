@@ -50,6 +50,7 @@
   background: none;
   text-align: left;
   width: 100%;
+  text-decoration: none;
   transition:
     background 0.1s,
     color 0.1s;
