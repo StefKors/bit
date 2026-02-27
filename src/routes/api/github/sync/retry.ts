@@ -55,8 +55,10 @@ async function processWebhookPayload(
       await handleRepositoryWebhook(adminDb, payload)
       break
     case "pull_request":
-      await handlePullRequestWebhook(adminDb, payload)
-      await handlePullRequestEventWebhook(adminDb, payload)
+      await Promise.all([
+        handlePullRequestWebhook(adminDb, payload),
+        handlePullRequestEventWebhook(adminDb, payload),
+      ])
       break
     case "pull_request_review":
       await handlePullRequestReviewWebhook(adminDb, payload)
@@ -211,7 +213,7 @@ export const Route = createFileRoute("/api/github/sync/retry")({
               return jsonResponse({ error: "Unsupported resource type" }, 400)
           }
         } catch (error) {
-          console.error("Error retrying sync:", error)
+          log.error("Error retrying sync", error, { op: "sync-retry", userId })
 
           if (isGitHubAuthError(error)) {
             await handleGitHubAuthError(userId)

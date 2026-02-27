@@ -180,7 +180,10 @@ export const ensureIssueFromWebhook = async (
   })
 
   const inserted = insertedResult.issues || []
-  console.log(`Auto-tracked issue #${typedIssue.number} for repo ${repoRecord.fullName}`)
+  log.info("Auto-tracked issue from webhook", {
+    issueNumber: typedIssue.number,
+    repo: repoRecord.fullName,
+  })
 
   return (inserted[0] as IssueRecord) ?? null
 }

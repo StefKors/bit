@@ -93,7 +93,14 @@ function LoginPage() {
             <p className={styles.subtitle}>{error.message}</p>
           </div>
 
-          <Button variant="primary" size="large" block onClick={() => window.location.reload()}>
+          <Button
+            variant="primary"
+            size="large"
+            block
+            onClick={() => {
+              window.location.reload()
+            }}
+          >
             Try again
           </Button>
         </div>
@@ -164,7 +171,9 @@ function LoginPage() {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                }}
                 placeholder="you@example.com"
                 className={styles.input}
                 autoFocus
@@ -218,7 +227,9 @@ function LoginPage() {
               id="code"
               type="text"
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => {
+                setCode(e.target.value)
+              }}
               placeholder="Enter 6-digit code"
               className={styles.input}
               autoFocus

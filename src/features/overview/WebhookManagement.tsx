@@ -149,7 +149,9 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
         <Button
           variant="primary"
           size="small"
-          onClick={() => webhookSync.mutate()}
+          onClick={() => {
+            webhookSync.mutate()
+          }}
           disabled={isRegistering}
         >
           {isRegistering ? (
@@ -203,7 +205,12 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
 
       {hasIssues && (
         <div className={styles.toggleSection}>
-          <button className={styles.toggleButton} onClick={() => setShowRepos(!showRepos)}>
+          <button
+            className={styles.toggleButton}
+            onClick={() => {
+              setShowRepos(!showRepos)
+            }}
+          >
             <span className={styles.toggleCount}>{repos.length} repositories</span>
             {showRepos ? <ChevronUpIcon size={16} /> : <ChevronDownIcon size={16} />}
           </button>
@@ -217,7 +224,9 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
                   type="text"
                   placeholder="Filter repositories..."
                   defaultValue={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value)
+                  }}
                   className={styles.searchInput}
                 />
               </div>
@@ -225,26 +234,34 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
               <div className={styles.filterTabs}>
                 <button
                   className={`${styles.filterTab} ${filter === "all" ? styles.filterTabActive : ""}`}
-                  onClick={() => setFilter("all")}
+                  onClick={() => {
+                    setFilter("all")
+                  }}
                 >
                   All ({repos.length})
                 </button>
                 <button
                   className={`${styles.filterTab} ${filter === "installed" ? styles.filterTabActive : ""}`}
-                  onClick={() => setFilter("installed")}
+                  onClick={() => {
+                    setFilter("installed")
+                  }}
                 >
                   Installed ({stats.installed})
                 </button>
                 <button
                   className={`${styles.filterTab} ${filter === "no_access" ? styles.filterTabActive : ""}`}
-                  onClick={() => setFilter("no_access")}
+                  onClick={() => {
+                    setFilter("no_access")
+                  }}
                 >
                   No Access ({stats.noAccess})
                 </button>
                 {stats.error > 0 && (
                   <button
                     className={`${styles.filterTab} ${filter === "error" ? styles.filterTabActive : ""}`}
-                    onClick={() => setFilter("error")}
+                    onClick={() => {
+                      setFilter("error")
+                    }}
                   >
                     Errors ({stats.error})
                   </button>
@@ -252,7 +269,9 @@ export const WebhookManagement = ({ repos, userId }: WebhookManagementProps) => 
                 {stats.pending > 0 && (
                   <button
                     className={`${styles.filterTab} ${filter === "pending" ? styles.filterTabActive : ""}`}
-                    onClick={() => setFilter("pending")}
+                    onClick={() => {
+                      setFilter("pending")
+                    }}
                   >
                     Pending ({stats.pending})
                   </button>

@@ -119,7 +119,7 @@ export async function ensureOrgFromWebhook(
   const login = toStringOrNull(rawOrg.login)
 
   if (!githubId || !login) {
-    console.log("ensureOrgFromWebhook: Missing required organization fields", {
+    log.warn("ensureOrgFromWebhook: Missing required organization fields", {
       hasGithubId: Boolean(githubId),
       hasLogin: Boolean(login),
     })
@@ -166,7 +166,7 @@ export async function ensureOrgFromWebhook(
   })
 
   const inserted = insertedResult.organizations || []
-  console.log(`Auto-tracked org ${login} for user ${userId}`)
+  log.info("Auto-tracked org from webhook", { org: login, userId })
 
   return inserted[0] ?? null
 }

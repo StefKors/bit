@@ -222,7 +222,9 @@ export const InitialSyncCard = ({
         <div className={styles.errorsSection}>
           <button
             className={styles.errorsToggle}
-            onClick={() => setShowErrors(!showErrors)}
+            onClick={() => {
+              setShowErrors(!showErrors)
+            }}
             aria-expanded={showErrors}
           >
             <AlertIcon size={14} className={styles.alertIcon} />
@@ -238,8 +240,12 @@ export const InitialSyncCard = ({
                 <SyncErrorRow
                   key={state.id}
                   state={state}
-                  onRetry={() => onRetrySync(state.resourceType, state.resourceId)}
-                  onReset={() => onResetSync(state.resourceType, state.resourceId)}
+                  onRetry={() => {
+                    onRetrySync(state.resourceType, state.resourceId)
+                  }}
+                  onReset={() => {
+                    onResetSync(state.resourceType, state.resourceId)
+                  }}
                 />
               ))}
             </div>

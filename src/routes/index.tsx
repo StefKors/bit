@@ -91,13 +91,15 @@ function DashboardPage() {
       headers: { Authorization: `Bearer ${userId}` },
     })
       .then((r) => r.json() as Promise<{ configured?: boolean; error?: string }>)
-      .then((d) =>
+      .then((d) => {
         setAiStatus({
           configured: d.error ? false : Boolean(d.configured),
           checked: true,
-        }),
-      )
-      .catch(() => setAiStatus({ configured: false, checked: true }))
+        })
+      })
+      .catch(() => {
+        setAiStatus({ configured: false, checked: true })
+      })
   }, [user?.id])
 
   const dataRepos = data?.repos
@@ -262,8 +264,12 @@ function DashboardPage() {
         <InitialSyncCard
           progress={initialSyncProgress}
           syncStates={syncStates}
-          onResetSync={(type, resId) => resetSync.mutate({ resourceType: type, resourceId: resId })}
-          onRetrySync={(type, resId) => retrySync.mutate({ resourceType: type, resourceId: resId })}
+          onResetSync={(type, resId) => {
+            resetSync.mutate({ resourceType: type, resourceId: resId })
+          }}
+          onRetrySync={(type, resId) => {
+            retrySync.mutate({ resourceType: type, resourceId: resId })
+          }}
         />
       )}
 
@@ -326,21 +332,27 @@ function DashboardPage() {
               <button
                 type="button"
                 className={`${styles.tab} ${centerTab === "activity" ? styles.tabActive : ""}`}
-                onClick={() => setCenterTab("activity")}
+                onClick={() => {
+                  setCenterTab("activity")
+                }}
               >
                 Activity
               </button>
               <button
                 type="button"
                 className={`${styles.tab} ${centerTab === "authored" ? styles.tabActive : ""}`}
-                onClick={() => setCenterTab("authored")}
+                onClick={() => {
+                  setCenterTab("authored")
+                }}
               >
                 Your PRs ({authoredPRs.length})
               </button>
               <button
                 type="button"
                 className={`${styles.tab} ${centerTab === "reviews" ? styles.tabActive : ""}`}
-                onClick={() => setCenterTab("reviews")}
+                onClick={() => {
+                  setCenterTab("reviews")
+                }}
               >
                 Reviews ({reviewRequestedPRs.length})
               </button>

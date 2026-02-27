@@ -80,7 +80,9 @@ function SettingsPage() {
 
   const disconnect = useMutation({
     ...disconnectGitHubMutation(user?.id ?? ""),
-    onSuccess: () => setSuccess("GitHub account disconnected."),
+    onSuccess: () => {
+      setSuccess("GitHub account disconnected.")
+    },
   })
   const disconnecting = disconnect.isPending
   const [success, setSuccess] = useState<string | null>(null)
@@ -303,7 +305,9 @@ function SettingsPage() {
                 variant="danger"
                 leadingIcon={<TrashIcon size={16} />}
                 loading={disconnecting}
-                onClick={() => disconnect.mutate()}
+                onClick={() => {
+                  disconnect.mutate()
+                }}
               >
                 Disconnect
               </Button>
@@ -418,7 +422,9 @@ function SettingsPage() {
                   className={styles.radioInput}
                   value={option.value}
                   checked={currentSyncMode === option.value}
-                  onChange={() => handleSyncModeChange(option.value)}
+                  onChange={() => {
+                    handleSyncModeChange(option.value)
+                  }}
                 />
                 <div className={styles.radioContent}>
                   <span className={styles.radioLabel}>{option.label}</span>
@@ -456,7 +462,9 @@ function SettingsPage() {
                 size="small"
                 leadingIcon={<SyncIcon size={14} />}
                 loading={overviewSync.isPending}
-                onClick={() => overviewSync.mutate()}
+                onClick={() => {
+                  overviewSync.mutate()
+                }}
               >
                 Sync Overview
               </Button>
@@ -464,12 +472,12 @@ function SettingsPage() {
           </div>
           <SyncManagement
             syncStates={syncStates}
-            onResetSync={(type, resId) =>
+            onResetSync={(type, resId) => {
               resetSync.mutate({ resourceType: type, resourceId: resId })
-            }
-            onRetrySync={(type, resId) =>
+            }}
+            onRetrySync={(type, resId) => {
               retrySync.mutate({ resourceType: type, resourceId: resId })
-            }
+            }}
           />
           {user?.id && (
             <div style={{ marginTop: "1rem" }}>
@@ -532,7 +540,9 @@ function SettingsPage() {
                   className={styles.radioInput}
                   value={option.value}
                   checked={currentAiModel === option.value}
-                  onChange={() => handleAiModelChange(option.value)}
+                  onChange={() => {
+                    handleAiModelChange(option.value)
+                  }}
                 />
                 <div className={styles.radioContent}>
                   <span className={styles.radioLabel}>{option.label}</span>
@@ -605,7 +615,9 @@ function AddRepoCard({ userId }: { userId: string }) {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") void handleAddRepo()
+    if (e.key === "Enter") {
+      handleAddRepo()
+    }
   }
 
   return (
@@ -625,7 +637,9 @@ function AddRepoCard({ userId }: { userId: string }) {
           size="small"
           leadingIcon={<PlusIcon size={16} />}
           loading={adding}
-          onClick={() => void handleAddRepo()}
+          onClick={() => {
+            handleAddRepo()
+          }}
         >
           Add
         </Button>

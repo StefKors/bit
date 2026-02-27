@@ -149,7 +149,7 @@ async function withRateLimitRetry<T>(fn: () => Promise<T>): Promise<T> {
         throw error
       }
       const delay =
-        getRateLimitRetryDelay(error as RequestError) * Math.pow(2, attempt) + Math.random() * 1000
+        getRateLimitRetryDelay(error as RequestError) * 2 ** attempt + Math.random() * 1000
       log.warn("Rate limited, retrying", { delayMs: Math.round(delay), attempt: attempt + 1 })
       await new Promise((resolve) => setTimeout(resolve, delay))
     }

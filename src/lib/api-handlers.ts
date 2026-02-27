@@ -5,6 +5,7 @@
  */
 
 import type { RateLimitInfo } from "./github-client"
+import { log } from "./logger"
 
 export const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -86,7 +87,8 @@ export const handleRateLimit = async (request: Request, deps: RateLimitDeps): Pr
   try {
     const rateLimit = await client.getRateLimit()
     return jsonResponse({ rateLimit })
-  } catch {
+  } catch (error) {
+    log.error("Failed to fetch rate limit", error, { userId })
     return jsonResponse({ error: "Failed to fetch rate limit" }, 500)
   }
 }
@@ -129,6 +131,7 @@ export const handleSync = async (
       await deps.handleAuthError(userId)
       return authExpiredResponse()
     }
+    log.error(`Sync ${syncMethod} failed`, error, { op: syncMethod, owner, repo, userId })
     return mapGitHubError(
       error,
       `sync ${syncMethod.replace("fetch", "").toLowerCase()}`,

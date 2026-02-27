@@ -144,7 +144,9 @@ export const AISummary = ({
           <button
             type="button"
             className={`${styles.actionBtn} ${chatMode ? styles.actionBtnActive : ""}`}
-            onClick={() => setChatMode(!chatMode)}
+            onClick={() => {
+              setChatMode(!chatMode)
+            }}
           >
             {chatMode ? "Summary" : "Chat"}
           </button>

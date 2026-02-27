@@ -362,7 +362,9 @@ ${patch}`
                           className={`${styles.composerModeButton} ${
                             composeMode === "comment" ? styles.composerModeButtonActive : ""
                           }`}
-                          onClick={() => setComposeMode("comment")}
+                          onClick={() => {
+                            setComposeMode("comment")
+                          }}
                         >
                           Comment
                         </button>
@@ -371,7 +373,9 @@ ${patch}`
                           className={`${styles.composerModeButton} ${
                             composeMode === "suggestion" ? styles.composerModeButtonActive : ""
                           }`}
-                          onClick={() => setComposeMode("suggestion")}
+                          onClick={() => {
+                            setComposeMode("suggestion")
+                          }}
                         >
                           Suggest changes
                         </button>
@@ -385,7 +389,9 @@ ${patch}`
                             : "Add an inline review comment"
                         }
                         value={composeBody}
-                        onChange={(event) => setComposeBody(event.target.value)}
+                        onChange={(event) => {
+                          setComposeBody(event.target.value)
+                        }}
                       />
                       {composeMode === "suggestion" && (
                         <textarea
@@ -393,7 +399,9 @@ ${patch}`
                           rows={4}
                           placeholder="Suggested replacement code"
                           value={suggestionBody}
-                          onChange={(event) => setSuggestionBody(event.target.value)}
+                          onChange={(event) => {
+                            setSuggestionBody(event.target.value)
+                          }}
                         />
                       )}
                       {composeError && (

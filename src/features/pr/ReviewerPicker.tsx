@@ -94,7 +94,9 @@ export const ReviewerPicker = ({
                 <button
                   type="button"
                   className={styles.removeChip}
-                  onClick={() => removeReviewer(reviewer)}
+                  onClick={() => {
+                    removeReviewer(reviewer)
+                  }}
                   disabled={removeReviewers.isPending}
                   aria-label={`Remove reviewer ${reviewer}`}
                 >
@@ -109,7 +111,9 @@ export const ReviewerPicker = ({
         <div className={styles.controls}>
           <input
             value={reviewerInput}
-            onChange={(event) => setReviewerInput(event.currentTarget.value)}
+            onChange={(event) => {
+              setReviewerInput(event.currentTarget.value)
+            }}
             className={styles.input}
             placeholder="Add reviewer by login"
           />

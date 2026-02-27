@@ -55,7 +55,12 @@ export const Route = createFileRoute("/api/github/webhook")({
         let parsedPayload: object
         try {
           parsedPayload = JSON.parse(rawBody) as object
-        } catch {
+        } catch (parseError) {
+          log.warn("Webhook received with malformed JSON payload", {
+            event,
+            delivery,
+            error: parseError instanceof Error ? parseError.message : "JSON parse failed",
+          })
           return jsonResponse({ error: "Invalid JSON payload" }, 400)
         }
 

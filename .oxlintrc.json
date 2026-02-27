@@ -57,6 +57,7 @@
         "no-redeclare": "off",
         "no-regex-spaces": "error",
         "no-self-assign": "error",
+        "no-self-compare": "error",
         "no-setter-return": "off",
         "no-shadow-restricted-names": "error",
         "no-sparse-arrays": "error",
@@ -72,7 +73,27 @@
         "no-useless-backreference": "error",
         "no-useless-catch": "error",
         "no-useless-escape": "error",
+        "no-useless-rename": "error",
+        "no-useless-constructor": "error",
         "no-with": "off",
+        "no-void": ["error", { "allowAsStatement": true }],
+        "no-constructor-return": "error",
+        "no-new-wrappers": "error",
+        "no-template-curly-in-string": "warn",
+        "no-eval": "error",
+        "no-caller": "error",
+        "no-script-url": "error",
+        "no-label-var": "error",
+        "no-multi-str": "error",
+        "no-iterator": "error",
+        "no-proto": "error",
+        "no-object-constructor": "error",
+        "no-unneeded-ternary": "error",
+        "default-case-last": "error",
+        "guard-for-in": "warn",
+        "eqeqeq": ["error", "always", { "null": "ignore" }],
+        "radix": "warn",
+        "symbol-description": "warn",
         "preserve-caught-error": "error",
         "require-yield": "error",
         "use-isnan": "error",
@@ -81,11 +102,17 @@
         "prefer-const": "error",
         "prefer-rest-params": "error",
         "prefer-spread": "error",
+        "prefer-exponentiation-operator": "warn",
+        "prefer-numeric-literals": "warn",
+        "prefer-object-spread": "warn",
+        "no-console": ["warn", { "allow": ["warn", "error"] }],
         "@typescript-eslint/await-thenable": "error",
         "@typescript-eslint/ban-ts-comment": "error",
+        "@typescript-eslint/consistent-type-imports": "warn",
         "no-array-constructor": "error",
         "@typescript-eslint/no-array-delete": "error",
         "@typescript-eslint/no-base-to-string": "error",
+        "@typescript-eslint/no-confusing-void-expression": "warn",
         "@typescript-eslint/no-duplicate-enum-values": "error",
         "@typescript-eslint/no-duplicate-type-constituents": "error",
         "@typescript-eslint/no-empty-object-type": "error",
@@ -98,6 +125,7 @@
         "@typescript-eslint/no-misused-promises": "error",
         "@typescript-eslint/no-namespace": "error",
         "@typescript-eslint/no-non-null-asserted-optional-chain": "error",
+        "@typescript-eslint/no-non-null-assertion": "warn",
         "@typescript-eslint/no-redundant-type-constituents": "error",
         "@typescript-eslint/no-require-imports": "error",
         "@typescript-eslint/no-restricted-types": [
@@ -169,7 +197,15 @@
         "src/lib/webhooks/**/*.ts"
       ],
       "rules": {
-        "@typescript-eslint/no-restricted-types": "off"
+        "@typescript-eslint/no-restricted-types": "off",
+        "no-console": "off"
+      },
+      "plugins": ["typescript"]
+    },
+    {
+      "files": ["src/routes/api/**/*.ts", "server.ts"],
+      "rules": {
+        "no-console": "off"
       },
       "plugins": ["typescript"]
     }

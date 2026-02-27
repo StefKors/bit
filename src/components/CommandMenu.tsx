@@ -32,9 +32,15 @@ export const CommandMenu = forwardRef<CommandMenuHandle>(function CommandMenu(_,
 
   // Expose methods to parent
   useImperativeHandle(ref, () => ({
-    open: () => setOpen(true),
-    close: () => setOpen(false),
-    toggle: () => setOpen((prev) => !prev),
+    open: () => {
+      setOpen(true)
+    },
+    close: () => {
+      setOpen(false)
+    },
+    toggle: () => {
+      setOpen((prev) => !prev)
+    },
   }))
   const [search, setSearch] = useState("")
   const [pages, setPages] = useState<Page[]>(["home"])
@@ -170,7 +176,9 @@ export const CommandMenu = forwardRef<CommandMenuHandle>(function CommandMenu(_,
             <Command.Group heading="Quick Actions" className={styles.group}>
               <Command.Item
                 className={styles.item}
-                onSelect={() => navigateTo("/")}
+                onSelect={() => {
+                  navigateTo("/")
+                }}
                 keywords={["home", "dashboard", "overview"]}
               >
                 <HomeIcon size={16} className={styles.itemIcon} />
@@ -189,12 +197,12 @@ export const CommandMenu = forwardRef<CommandMenuHandle>(function CommandMenu(_,
                     value={repo.fullName}
                     className={styles.item}
                     data-repo-id={repo.id}
-                    onSelect={() =>
+                    onSelect={() => {
                       navigateTo("/$owner/$repo", {
                         owner: repo.owner,
                         repo: repo.name,
                       })
-                    }
+                    }}
                     keywords={[repo.name, repo.owner, repo.description ?? ""]}
                   >
                     <RepoIcon size={16} className={styles.itemIcon} />
@@ -230,24 +238,24 @@ export const CommandMenu = forwardRef<CommandMenuHandle>(function CommandMenu(_,
             <Command.Group heading="Navigate" className={styles.group}>
               <Command.Item
                 className={styles.item}
-                onSelect={() =>
+                onSelect={() => {
                   navigateTo("/$owner/$repo", {
                     owner: currentRepo.owner,
                     repo: currentRepo.name,
                   })
-                }
+                }}
               >
                 <FileCodeIcon size={16} className={styles.itemIcon} />
                 <span>View Code</span>
               </Command.Item>
               <Command.Item
                 className={styles.item}
-                onSelect={() =>
+                onSelect={() => {
                   navigateTo("/$owner/$repo/pulls", {
                     owner: currentRepo.owner,
                     repo: currentRepo.name,
                   })
-                }
+                }}
               >
                 <GitPullRequestIcon size={16} className={styles.itemIcon} />
                 <span>All Pull Requests</span>
@@ -255,12 +263,12 @@ export const CommandMenu = forwardRef<CommandMenuHandle>(function CommandMenu(_,
               </Command.Item>
               <Command.Item
                 className={styles.item}
-                onSelect={() =>
+                onSelect={() => {
                   navigateTo("/$owner/$repo/issues", {
                     owner: currentRepo.owner,
                     repo: currentRepo.name,
                   })
-                }
+                }}
               >
                 <IssueOpenedIcon size={16} className={styles.itemIcon} />
                 <span>All Issues</span>
@@ -276,13 +284,13 @@ export const CommandMenu = forwardRef<CommandMenuHandle>(function CommandMenu(_,
                     key={pr.id}
                     value={`${pr.number} ${pr.title}`}
                     className={styles.item}
-                    onSelect={() =>
+                    onSelect={() => {
                       navigateTo("/$owner/$repo/pull/$number", {
                         owner: currentRepo.owner,
                         repo: currentRepo.name,
                         number: String(pr.number),
                       })
-                    }
+                    }}
                     keywords={[pr.title, pr.authorLogin ?? "", String(pr.number)]}
                   >
                     <GitPullRequestIcon size={16} className={styles.itemIconGreen} />
@@ -307,13 +315,13 @@ export const CommandMenu = forwardRef<CommandMenuHandle>(function CommandMenu(_,
                     key={pr.id}
                     value={`${pr.number} ${pr.title}`}
                     className={styles.item}
-                    onSelect={() =>
+                    onSelect={() => {
                       navigateTo("/$owner/$repo/pull/$number", {
                         owner: currentRepo.owner,
                         repo: currentRepo.name,
                         number: String(pr.number),
                       })
-                    }
+                    }}
                     keywords={[pr.title, pr.authorLogin ?? "", String(pr.number)]}
                   >
                     <GitPullRequestIcon
@@ -341,13 +349,13 @@ export const CommandMenu = forwardRef<CommandMenuHandle>(function CommandMenu(_,
                     key={issue.id}
                     value={`${issue.number} ${issue.title}`}
                     className={styles.item}
-                    onSelect={() =>
+                    onSelect={() => {
                       navigateTo("/$owner/$repo/issues/$number", {
                         owner: currentRepo.owner,
                         repo: currentRepo.name,
                         number: String(issue.number),
                       })
-                    }
+                    }}
                     keywords={[issue.title, issue.authorLogin ?? "", String(issue.number)]}
                   >
                     <IssueOpenedIcon size={16} className={styles.itemIconGreen} />
@@ -372,13 +380,13 @@ export const CommandMenu = forwardRef<CommandMenuHandle>(function CommandMenu(_,
                     key={issue.id}
                     value={`${issue.number} ${issue.title}`}
                     className={styles.item}
-                    onSelect={() =>
+                    onSelect={() => {
                       navigateTo("/$owner/$repo/issues/$number", {
                         owner: currentRepo.owner,
                         repo: currentRepo.name,
                         number: String(issue.number),
                       })
-                    }
+                    }}
                     keywords={[issue.title, issue.authorLogin ?? "", String(issue.number)]}
                   >
                     <IssueOpenedIcon size={16} className={styles.itemIconMuted} />

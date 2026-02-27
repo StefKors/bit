@@ -1,4 +1,4 @@
-import { InstaQLEntity } from "@instantdb/react"
+import type { InstaQLEntity } from "@instantdb/react"
 import type { AppSchema } from "@/instant.schema"
 import { db } from "../instantDb"
 

@@ -77,7 +77,9 @@ export const RepoFiltersBar = ({
             <FilterMenuItem
               key={option.value}
               selected={filters.type === option.value}
-              onClick={() => updateFilter("type", option.value)}
+              onClick={() => {
+                updateFilter("type", option.value)
+              }}
             >
               {option.label}
             </FilterMenuItem>
@@ -92,7 +94,9 @@ export const RepoFiltersBar = ({
           >
             <FilterMenuItem
               selected={filters.language === null}
-              onClick={() => updateFilter("language", null)}
+              onClick={() => {
+                updateFilter("language", null)
+              }}
             >
               Any
             </FilterMenuItem>
@@ -101,7 +105,9 @@ export const RepoFiltersBar = ({
               <FilterMenuItem
                 key={language}
                 selected={filters.language === language}
-                onClick={() => updateFilter("language", language)}
+                onClick={() => {
+                  updateFilter("language", language)
+                }}
               >
                 <LanguageDot language={language} />
                 {language}
@@ -134,7 +140,9 @@ export const RepoFiltersBar = ({
             <FilterMenuItem
               key={option.value}
               selected={filters.sortBy === option.value}
-              onClick={() => updateFilter("sortBy", option.value)}
+              onClick={() => {
+                updateFilter("sortBy", option.value)
+              }}
             >
               {option.label}
             </FilterMenuItem>

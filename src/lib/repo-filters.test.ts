@@ -7,7 +7,9 @@ import {
   DEFAULT_REPO_FILTERS,
 } from "./repo-filters"
 
-beforeEach(() => resetCounters())
+beforeEach(() => {
+  resetCounters()
+})
 
 // ── extractLanguages ──
 

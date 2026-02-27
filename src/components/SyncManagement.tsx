@@ -183,7 +183,9 @@ export function SyncManagement({ syncStates, onResetSync, onRetrySync }: SyncMan
                         variant="success"
                         size="small"
                         leadingIcon={<SyncIcon size={14} />}
-                        onClick={() => onRetrySync(state.resourceType, state.resourceId)}
+                        onClick={() => {
+                          onRetrySync(state.resourceType, state.resourceId)
+                        }}
                       >
                         Retry
                       </Button>
@@ -193,7 +195,9 @@ export function SyncManagement({ syncStates, onResetSync, onRetrySync }: SyncMan
                       variant="default"
                       size="small"
                       leadingIcon={<ResetIcon size={14} />}
-                      onClick={() => onResetSync(state.resourceType, state.resourceId)}
+                      onClick={() => {
+                        onResetSync(state.resourceType, state.resourceId)
+                      }}
                     >
                       Reset
                     </Button>
@@ -202,7 +206,9 @@ export function SyncManagement({ syncStates, onResetSync, onRetrySync }: SyncMan
                       <Button
                         variant="invisible"
                         size="small"
-                        onClick={() => toggleExpanded(state.id)}
+                        onClick={() => {
+                          toggleExpanded(state.id)
+                        }}
                       >
                         {expandedItems.has(state.id) ? "Hide" : "Show"} Details
                       </Button>
