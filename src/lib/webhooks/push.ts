@@ -1,5 +1,6 @@
 import type { WebhookDB, WebhookPayload, PushEvent, RepoRecord } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, syncPRDetailsForWebhook } from "./utils"
+import { extractInstallationId } from "@/lib/github-app"
 import { log } from "@/lib/logger"
 import { logWebhookEntityUpdate } from "./logging"
 
@@ -18,6 +19,7 @@ import { logWebhookEntityUpdate } from "./logging"
 export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) {
   const pushPayload = payload as PushEvent
   const { repository: repo, sender, ref } = pushPayload
+  const installationId = extractInstallationId(payload)
   const repoFullName = repo.full_name
   const branch = ref.replace("refs/heads/", "").replace("refs/tags/", "")
   const commitsCount = pushPayload.commits?.length ?? 0
@@ -91,7 +93,7 @@ export async function handlePushWebhook(db: WebhookDB, payload: WebhookPayload) 
 
   // Sync commits to any open PRs on this branch
   if (commits.length > 0) {
-    await syncCommitsToPRs(db, repoRecords, branch, commits)
+    await syncCommitsToPRs(db, repoRecords, branch, commits, installationId)
   }
 
   log.info("Webhook push: processed", {
@@ -134,6 +136,7 @@ async function syncCommitsToPRs(
   repoRecords: RepoRecord[],
   branch: string,
   commits: PushEvent["commits"],
+  installationId: number | null,
 ) {
   for (const repoRecord of repoRecords) {
     // Find all PRs in this repo where headRef matches the pushed branch
@@ -203,6 +206,7 @@ async function syncCommitsToPRs(
       if (repoOwner && repoName) {
         await syncPRDetailsForWebhook(db, repoRecord.userId, repoOwner, repoName, pr.number, {
           event: "push",
+          installationId,
         })
       }
     }

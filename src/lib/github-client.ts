@@ -7,6 +7,7 @@ import { buildCommitEntries, computeStaleCommits, type GitHubCommit } from "./sy
 import { log } from "./logger"
 import { deterministicId } from "./deterministic-id"
 import { getWebhookRegistrationConfig } from "./github-webhook-config"
+import { isGitHubAppConfigured, getInstallationToken, getInstallationIdForUser } from "./github-app"
 import {
   chunkItems,
   mapWithConcurrency,
@@ -2355,8 +2356,30 @@ export class GitHubClient {
   }
 }
 
-export async function createGitHubClient(userId: string): Promise<GitHubClient | null> {
+export async function createGitHubClient(
+  userId: string,
+  installationId?: number | null,
+): Promise<GitHubClient | null> {
   try {
+    // 1. Try GitHub App installation token (preferred for webhook-triggered calls)
+    if (isGitHubAppConfigured()) {
+      let instId = installationId ?? null
+      if (!instId) {
+        instId = await getInstallationIdForUser(userId)
+      }
+      if (instId) {
+        const token = await getInstallationToken(instId)
+        if (token) {
+          return new GitHubClient(token, userId)
+        }
+        log.warn("Installation token generation failed, falling back to user OAuth token", {
+          userId,
+          installationId: instId,
+        })
+      }
+    }
+
+    // 2. Fall back to stored user OAuth token
     const { syncStates } = await adminDb.query({
       syncStates: {
         $: {
@@ -2381,23 +2404,10 @@ export async function createGitHubClient(userId: string): Promise<GitHubClient |
       return new GitHubClient(accessToken, userId)
     }
 
-    const globalToken = process.env.GITHUB_ACCESS_TOKEN
-    if (globalToken) {
-      log.info("Using global GitHub access token (user token not found)", { userId })
-      return new GitHubClient(globalToken, userId)
-    }
-
     log.warn("No GitHub access token available", { userId })
     return null
   } catch (err) {
-    log.error("Failed to fetch GitHub token", err, { userId })
-
-    // Fall back to environment variable
-    const globalToken = process.env.GITHUB_ACCESS_TOKEN
-    if (globalToken) {
-      return new GitHubClient(globalToken, userId)
-    }
-
+    log.error("Failed to create GitHub client", err, { userId })
     return null
   }
 }

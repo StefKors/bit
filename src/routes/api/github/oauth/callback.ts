@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { adminDb } from "@/lib/instantAdmin"
 import { GitHubClient } from "@/lib/github-client"
 import { findOrCreateSyncStateId } from "@/lib/sync-state"
+import { storeInstallationId } from "@/lib/github-app"
 import { parseScopes, checkPermissions, REQUIRED_SCOPES } from "@/lib/github-permissions"
 import { log } from "@/lib/logger"
 
@@ -89,6 +90,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
                 })
                 .link({ user: state }),
             )
+            await storeInstallationId(state, installationId)
           }
           // Installation complete: route back as connected so UI can continue.
           return new Response(null, {

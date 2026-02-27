@@ -1,6 +1,7 @@
 import { id } from "@instantdb/admin"
 import type { PullRequestEvent, WebhookDB, WebhookPayload } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, syncPRDetailsForWebhook } from "./utils"
+import { extractInstallationId } from "@/lib/github-app"
 import { log } from "@/lib/logger"
 
 const parseGithubTimestamp = (value?: string | null): number | null => {
@@ -37,6 +38,7 @@ const serializeRequestedReviewers = (
 export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPayload) {
   const typedPayload = payload as PullRequestEvent
   const { action, pull_request: pr, repository: repo, sender } = typedPayload
+  const installationId = extractInstallationId(payload)
 
   const repoFullName = repo.full_name
   const githubId = pr.id
@@ -144,6 +146,7 @@ export async function handlePullRequestWebhook(db: WebhookDB, payload: WebhookPa
     await syncPRDetailsForWebhook(db, repoRecord.userId, repoOwner, repoName, pr.number, {
       event: "pull_request",
       action,
+      installationId,
     })
   }
 

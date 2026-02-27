@@ -357,7 +357,7 @@ export async function syncPRDetailsForWebhook(
   owner: string,
   repo: string,
   prNumber: number,
-  eventContext: { event: string; action?: string },
+  eventContext: { event: string; action?: string; installationId?: number | null },
 ): Promise<void> {
   const mode = await resolveUserSyncMode(db, userId)
 
@@ -379,7 +379,7 @@ export async function syncPRDetailsForWebhook(
   const force = mode === "full-force"
   log.info(`Webhook PR sync starting (mode=${mode}, force=${force})`, ctx)
 
-  const client = await createGitHubClient(userId)
+  const client = await createGitHubClient(userId, eventContext.installationId)
   if (!client) {
     log.warn("Webhook PR sync skipped: no GitHub client for user", ctx)
     return
