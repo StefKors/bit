@@ -11,7 +11,13 @@ const jsonResponse = <T>(data: T, status = 200) =>
 export const Route = createFileRoute("/api/cerebras/status")({
   server: {
     handlers: {
-      GET: () => {
+      GET: ({ request }) => {
+        const authHeader = request.headers.get("Authorization")
+        const userId =
+          authHeader?.startsWith("Bearer ") ? authHeader.substring("Bearer ".length) : ""
+        if (!userId) {
+          return jsonResponse({ error: "Unauthorized" }, 401)
+        }
         return jsonResponse({
           configured: isCerebrasConfigured(),
           models: CEREBRAS_MODELS,

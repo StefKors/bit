@@ -82,11 +82,23 @@ function DashboardPage() {
   const aiModel = (userSettingsRecord?.aiModel as string) || "llama-4-scout-17b-16e"
 
   useEffect(() => {
-    void fetch("/api/cerebras/status")
-      .then((r) => r.json() as Promise<{ configured: boolean }>)
-      .then((d) => setAiStatus({ configured: d.configured, checked: true }))
+    const userId = user?.id
+    if (!userId) {
+      setAiStatus({ configured: false, checked: true })
+      return
+    }
+    void fetch("/api/cerebras/status", {
+      headers: { Authorization: `Bearer ${userId}` },
+    })
+      .then((r) => r.json() as Promise<{ configured?: boolean; error?: string }>)
+      .then((d) =>
+        setAiStatus({
+          configured: d.error ? false : Boolean(d.configured),
+          checked: true,
+        }),
+      )
       .catch(() => setAiStatus({ configured: false, checked: true }))
-  }, [])
+  }, [user?.id])
 
   const dataRepos = data?.repos
 
