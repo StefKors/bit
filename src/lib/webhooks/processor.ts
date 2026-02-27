@@ -20,7 +20,7 @@ import { handleCheckRunWebhook, handleCheckSuiteWebhook } from "./ci-cd"
 import { handleStatusWebhook } from "./ci-cd"
 import { handleWorkflowRunWebhook, handleWorkflowJobWebhook } from "./ci-cd"
 import { log } from "@/lib/logger"
-import { logWebhookProcessing, logWebhookHandler } from "./logging"
+import { logWebhookProcessing, logWebhookHandler, logWebhookPath } from "./logging"
 import { WEBHOOK_MAX_ATTEMPTS, WEBHOOK_BASE_DELAY_MS } from "@/lib/sync-config"
 
 export const EXTENDED_WEBHOOK_EVENTS = [
@@ -172,11 +172,24 @@ export const dispatchWebhookEvent = async (
   event: WebhookEventName,
   payload: WebhookPayload,
 ): Promise<void> => {
+  const deliveryId =
+    typeof payload === "object" && payload !== null && "deliveryId" in payload
+      ? String((payload as { deliveryId?: string }).deliveryId)
+      : undefined
+  const action =
+    typeof payload === "object" && payload !== null && "action" in payload
+      ? ((payload as { action?: string }).action ?? undefined)
+      : undefined
+
+  logWebhookPath("dispatch event", 0, { deliveryId, event, action })
+
   if (isExtendedWebhookEvent(event)) {
+    logWebhookPath("route -> handleExtendedWebhook", 1, { deliveryId, event, action })
     logWebhookHandler(event, "handleExtendedWebhook", ["prEvents", "prComments"], {
       repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
     })
     await handleExtendedWebhook(db, payload, event)
+    logWebhookPath("handler done -> handleExtendedWebhook", 1, { deliveryId, event, action })
     return
   }
 
@@ -315,10 +328,12 @@ export const dispatchWebhookEvent = async (
       await handleWorkflowRunWebhook(db, payload)
       break
     case "workflow_job":
+      logWebhookPath("route -> handleWorkflowJobWebhook", 1, { deliveryId, event, action })
       logWebhookHandler(event, "handleWorkflowJobWebhook", ["prChecks"], {
         repo: (payload as { repository?: { full_name?: string } }).repository?.full_name,
       })
       await handleWorkflowJobWebhook(db, payload)
+      logWebhookPath("handler done -> handleWorkflowJobWebhook", 1, { deliveryId, event, action })
       break
     case "ping":
       log.info("Received ping webhook - webhook is configured correctly")
@@ -336,6 +351,13 @@ export const processQueueItem = async (
 ): Promise<{ success: boolean; error?: string }> => {
   const now = Date.now()
 
+  logWebhookPath("queue item picked", 0, {
+    deliveryId: item.deliveryId,
+    event: item.event,
+    action: item.action,
+    attempts: item.attempts,
+  })
+
   await db.transact(
     db.tx.webhookQueue[item.id].update({
       status: "processing",
@@ -346,8 +368,23 @@ export const processQueueItem = async (
 
   try {
     const payload = JSON.parse(item.payload) as WebhookPayload
+    logWebhookPath("payload parsed", 1, {
+      deliveryId: item.deliveryId,
+      event: item.event,
+      action: item.action,
+    })
     logWebhookProcessing(item.deliveryId, item.event, item.action, payload)
+    logWebhookPath("dispatch start", 1, {
+      deliveryId: item.deliveryId,
+      event: item.event,
+      action: item.action,
+    })
     await dispatchWebhookEvent(db, item.event as WebhookEventName, payload)
+    logWebhookPath("dispatch complete", 1, {
+      deliveryId: item.deliveryId,
+      event: item.event,
+      action: item.action,
+    })
 
     await db.transact([
       db.tx.webhookQueue[item.id].update({
@@ -363,6 +400,13 @@ export const processQueueItem = async (
         processedAt: now,
       }),
     ])
+
+    logWebhookPath("queue+delivery records upserted", 1, {
+      deliveryId: item.deliveryId,
+      event: item.event,
+      action: item.action,
+      entity: "webhookQueue+webhookDeliveries",
+    })
 
     log.info("Webhook processed", {
       deliveryId: item.deliveryId,

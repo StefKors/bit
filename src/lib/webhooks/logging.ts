@@ -16,6 +16,20 @@ type PayloadSummary = {
   [key: string]: unknown
 }
 
+type WebhookTraceContext = {
+  deliveryId?: string
+  event?: string
+  action?: string
+  handler?: string
+  entity?: string
+  [key: string]: unknown
+}
+
+const formatWebhookTracePrefix = (depth: number): string => {
+  if (depth <= 0) return "|-"
+  return `${"|  ".repeat(depth)}|-`
+}
+
 function extractPayloadSummary(payload: unknown): PayloadSummary {
   if (!payload || typeof payload !== "object") return {}
   const p = payload as Record<string, unknown>
@@ -115,5 +129,20 @@ export function logWebhookEntityUpdate(
     operation,
     count: ids.length,
     ...(dataSummary ?? {}),
+  })
+}
+
+/**
+ * Emit a tree-style path log line for webhook processing flow.
+ * Keep depth stable per handler path so logs are easy to scan.
+ */
+export function logWebhookPath(
+  step: string,
+  depth: number,
+  context: WebhookTraceContext = {},
+): void {
+  log.info(`${formatWebhookTracePrefix(depth)} ${step}`, {
+    op: "webhook-path",
+    ...context,
   })
 }

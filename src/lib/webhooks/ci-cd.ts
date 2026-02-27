@@ -10,6 +10,7 @@ import type {
 } from "./types"
 import { findUserBySender, ensureRepoFromWebhook } from "./utils"
 import { log } from "@/lib/logger"
+import { logWebhookPath } from "./logging"
 
 const findPRByHeadSha = async (db: WebhookDB, sha: string, repoId: string) => {
   const { pullRequests } = await db.query({
@@ -42,7 +43,21 @@ const upsertPrCheck = async (
     startedAt?: number
     completedAt?: number
   },
+  trace: {
+    event: string
+    action?: string
+    repo?: string
+    deliveryId?: string
+  } = { event: "unknown" },
 ) => {
+  logWebhookPath("query existing prChecks row", 3, {
+    ...trace,
+    entity: "prChecks",
+    githubId: data.githubId,
+    sourceType: data.sourceType,
+    repoId: data.repoId,
+  })
+
   const { prChecks: existing } = await db.query({
     prChecks: {
       $: {
@@ -58,6 +73,7 @@ const upsertPrCheck = async (
 
   const now = Date.now()
   const checkId = existing?.[0]?.id ?? id()
+  const operation = existing?.[0]?.id ? "update" : "create"
 
   const checkTx = db.tx.prChecks[checkId]
     .update({
@@ -71,6 +87,13 @@ const upsertPrCheck = async (
   await db.transact(
     data.pullRequestId ? checkTx.link({ pullRequest: data.pullRequestId }) : checkTx,
   )
+
+  logWebhookPath(`db upsert ${operation} -> prChecks`, 3, {
+    ...trace,
+    entity: "prChecks",
+    checkId,
+    linkedPullRequest: Boolean(data.pullRequestId),
+  })
 
   return checkId
 }
@@ -309,27 +332,48 @@ export const handleWorkflowJobWebhook = async (
   payload: WebhookPayload,
 ): Promise<void> => {
   const typed = payload as WorkflowJobEvent
-  const { workflow_job, repository, sender } = typed
+  const { workflow_job, repository, sender, action } = typed
+  const trace = {
+    event: "workflow_job",
+    action,
+    repo: repository?.full_name,
+    sender: sender?.login,
+  }
 
   if (!workflow_job || !repository) return
 
+  logWebhookPath("handler entered -> workflow_job", 2, trace)
+
   const repoFullName = repository.full_name
+  logWebhookPath("query tracked repos by fullName", 2, trace)
   const { repos } = await db.query({
     repos: { $: { where: { fullName: repoFullName } } },
   })
 
   let repoRecords = repos || []
   if (repoRecords.length === 0) {
+    logWebhookPath("no tracked repo found -> attempt sender auto-track", 2, trace)
     const userId = await findUserBySender(db, sender)
     if (!userId) {
+      logWebhookPath("skip: sender is not a registered user", 2, trace)
       log.info("workflow_job: sender not registered, skipping", { sender: sender.login })
       return
     }
+
+    logWebhookPath("sender resolved -> ensure repo record", 2, {
+      ...trace,
+      userId,
+    })
     const repo = await ensureRepoFromWebhook(db, repository, userId)
     if (repo) repoRecords = [repo]
   }
 
   for (const repoRecord of repoRecords) {
+    logWebhookPath("resolve PR by head SHA", 2, {
+      ...trace,
+      repoId: repoRecord.id,
+      headSha: workflow_job.head_sha,
+    })
     const pr = workflow_job.head_sha
       ? await findPRByHeadSha(db, workflow_job.head_sha, repoRecord.id)
       : null
@@ -341,25 +385,32 @@ export const handleWorkflowJobWebhook = async (
       waiting: "queued",
     }
 
-    await upsertPrCheck(db, {
-      githubId: workflow_job.id,
-      name: workflow_job.name,
-      status: statusMap[workflow_job.status] ?? "queued",
-      conclusion: workflow_job.conclusion ?? undefined,
-      headSha: workflow_job.head_sha,
-      sourceType: "workflow_job",
-      repoId: repoRecord.id,
-      pullRequestId: pr?.id,
-      htmlUrl: workflow_job.html_url,
-      jobName: workflow_job.name,
-      workflowName: workflow_job.workflow_name ?? undefined,
-      startedAt: workflow_job.started_at ? new Date(workflow_job.started_at).getTime() : undefined,
-      completedAt: workflow_job.completed_at
-        ? new Date(workflow_job.completed_at).getTime()
-        : undefined,
-    })
+    await upsertPrCheck(
+      db,
+      {
+        githubId: workflow_job.id,
+        name: workflow_job.name,
+        status: statusMap[workflow_job.status] ?? "queued",
+        conclusion: workflow_job.conclusion ?? undefined,
+        headSha: workflow_job.head_sha,
+        sourceType: "workflow_job",
+        repoId: repoRecord.id,
+        pullRequestId: pr?.id,
+        htmlUrl: workflow_job.html_url,
+        jobName: workflow_job.name,
+        workflowName: workflow_job.workflow_name ?? undefined,
+        startedAt: workflow_job.started_at
+          ? new Date(workflow_job.started_at).getTime()
+          : undefined,
+        completedAt: workflow_job.completed_at
+          ? new Date(workflow_job.completed_at).getTime()
+          : undefined,
+      },
+      trace,
+    )
   }
 
+  logWebhookPath("handler finished -> workflow_job", 2, trace)
   log.info("workflow_job processed", {
     name: workflow_job.name,
     status: workflow_job.status,
