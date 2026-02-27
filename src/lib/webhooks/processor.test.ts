@@ -65,6 +65,8 @@ import type { WebhookDB, WebhookEventName } from "./types"
 import {
   enqueueWebhook,
   processQueueItem,
+  processPendingQueue,
+  recoverStaleProcessingItems,
   dispatchWebhookEvent,
   calculateBackoff,
   EXTENDED_WEBHOOK_EVENTS,
@@ -196,8 +198,11 @@ describe("processQueueItem", () => {
   })
 
   it("marks item as dead_letter after max attempts", async () => {
-    const failingHandler = vi.mocked(handlePushWebhook)
-    failingHandler.mockRejectedValueOnce(new Error("Transient failure"))
+    const rejectOnce = Reflect.get(handlePushWebhook, "mockRejectedValueOnce") as
+      | ((value: Error) => unknown)
+      | undefined
+    if (!rejectOnce) throw new Error("Mock function unavailable")
+    Reflect.apply(rejectOnce, handlePushWebhook, [new Error("Transient failure")])
 
     const item = makeQueueItem({ attempts: 4, maxAttempts: 5 })
     const result = await processQueueItem(mockDb, item)
@@ -207,8 +212,11 @@ describe("processQueueItem", () => {
   })
 
   it("schedules retry for non-terminal failures", async () => {
-    const failingHandler = vi.mocked(handlePushWebhook)
-    failingHandler.mockRejectedValueOnce(new Error("Temporary error"))
+    const rejectOnce = Reflect.get(handlePushWebhook, "mockRejectedValueOnce") as
+      | ((value: Error) => unknown)
+      | undefined
+    if (!rejectOnce) throw new Error("Mock function unavailable")
+    Reflect.apply(rejectOnce, handlePushWebhook, [new Error("Temporary error")])
 
     const item = makeQueueItem({ attempts: 1, maxAttempts: 5 })
     const result = await processQueueItem(mockDb, item)
@@ -216,5 +224,113 @@ describe("processQueueItem", () => {
     expect(result.success).toBe(false)
     expect(result.error).toBe("Temporary error")
     expect(mockTransact).toHaveBeenCalled()
+  })
+})
+
+describe("recoverStaleProcessingItems", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("moves stale processing items back to failed", async () => {
+    const now = Date.now()
+    mockQuery.mockResolvedValueOnce({
+      webhookQueue: [
+        {
+          id: "stale-1",
+          deliveryId: "delivery-stale",
+          event: "push",
+          action: "synchronize",
+          status: "processing",
+          attempts: 2,
+          maxAttempts: 5,
+          createdAt: now - 60_000,
+          updatedAt: now - 20 * 60_000,
+        },
+      ],
+    })
+
+    const recovered = await recoverStaleProcessingItems(mockDb, now, 10 * 60_000, 10)
+
+    expect(recovered).toBe(1)
+    expect(mockTransact).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe("processPendingQueue", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("skips items that are not due yet and reports reason counts", async () => {
+    const now = Date.now()
+    mockQuery.mockResolvedValueOnce({ webhookQueue: [] }).mockResolvedValueOnce({
+      webhookQueue: [
+        {
+          id: "not-due-1",
+          deliveryId: "delivery-nd-1",
+          event: "push",
+          action: "synchronize",
+          payload: JSON.stringify({ ref: "refs/heads/main" }),
+          status: "failed",
+          attempts: 1,
+          maxAttempts: 5,
+          nextRetryAt: now + 60_000,
+          createdAt: now - 30_000,
+          updatedAt: now - 5_000,
+        },
+      ],
+    })
+
+    const result = await processPendingQueue(mockDb, 1)
+
+    expect(result.total).toBe(0)
+    expect(result.skippedNotDue).toBe(1)
+    expect(result.reasonCounts.retry_not_due).toBe(1)
+  })
+
+  it("recovers stale processing items before processing due items", async () => {
+    const now = Date.now()
+    mockQuery
+      .mockResolvedValueOnce({
+        webhookQueue: [
+          {
+            id: "stale-1",
+            deliveryId: "delivery-stale",
+            event: "push",
+            action: "synchronize",
+            payload: JSON.stringify({ ref: "refs/heads/main" }),
+            status: "processing",
+            attempts: 1,
+            maxAttempts: 5,
+            createdAt: now - 60_000,
+            updatedAt: now - 20 * 60_000,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        webhookQueue: [
+          {
+            id: "due-1",
+            deliveryId: "delivery-due",
+            event: "push",
+            action: "synchronize",
+            payload: JSON.stringify({ ref: "refs/heads/main" }),
+            status: "pending",
+            attempts: 0,
+            maxAttempts: 5,
+            nextRetryAt: now - 1000,
+            createdAt: now - 10_000,
+            updatedAt: now - 10_000,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ webhookQueue: [] })
+
+    const result = await processPendingQueue(mockDb, 1)
+
+    expect(result.recoveredStaleProcessing).toBe(1)
+    expect(result.processed).toBe(1)
+    expect(result.reasonCounts.stale_processing_recovered).toBe(1)
   })
 })
