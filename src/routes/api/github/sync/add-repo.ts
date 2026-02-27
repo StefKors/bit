@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { createGitHubClient, isGitHubAuthError, handleGitHubAuthError } from "@/lib/github-client"
+import { log } from "@/lib/logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -79,7 +80,12 @@ export const Route = createFileRoute("/api/github/sync/add-repo")({
             rateLimit: prsResult.rateLimit,
           })
         } catch (error) {
-          console.error("Error adding repo:", error)
+          log.error("Error adding repo", error, {
+            op: "sync-add-repo",
+            userId,
+            owner: parsed.owner,
+            repo: parsed.repo,
+          })
 
           if (isGitHubAuthError(error)) {
             await handleGitHubAuthError(userId)

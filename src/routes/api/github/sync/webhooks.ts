@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { createGitHubClient } from "@/lib/github-client"
+import { log } from "@/lib/logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -10,7 +11,6 @@ const jsonResponse = <T>(data: T, status = 200) =>
 export const Route = createFileRoute("/api/github/sync/webhooks")({
   server: {
     handlers: {
-      // POST: Register webhooks for all repos
       POST: async ({ request }) => {
         const userId = request.headers.get("Authorization")?.replace("Bearer ", "")
 
@@ -35,7 +35,7 @@ export const Route = createFileRoute("/api/github/sync/webhooks")({
             results: result.results,
           })
         } catch (err) {
-          console.error("Error registering webhooks:", err)
+          log.error("Error registering webhooks", err, { op: "sync-webhooks", userId })
           return jsonResponse(
             { error: err instanceof Error ? err.message : "Failed to register webhooks" },
             500,

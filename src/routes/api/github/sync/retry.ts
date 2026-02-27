@@ -211,7 +211,7 @@ export const Route = createFileRoute("/api/github/sync/retry")({
               return jsonResponse({ error: "Unsupported resource type" }, 400)
           }
         } catch (error) {
-          console.error("Error retrying sync:", error)
+          log.error("Error retrying sync", error, { op: "sync-retry", userId })
 
           if (isGitHubAuthError(error)) {
             await handleGitHubAuthError(userId)

@@ -3,6 +3,7 @@ import { Octokit } from "octokit"
 import { id } from "@instantdb/admin"
 import { adminDb } from "@/lib/instantAdmin"
 import { isGitHubAuthError, handleGitHubAuthError } from "@/lib/github-client"
+import { log } from "@/lib/logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -157,7 +158,13 @@ export const Route = createFileRoute("/api/github/sync/$owner/$repo/issue/$numbe
             commentsCount: allComments.length,
           })
         } catch (error) {
-          console.error("Error syncing issue:", error)
+          log.error("Error syncing issue", error, {
+            op: "sync-issue",
+            owner,
+            repo,
+            issueNumber,
+            userId,
+          })
 
           if (isGitHubAuthError(error)) {
             await handleGitHubAuthError(userId)

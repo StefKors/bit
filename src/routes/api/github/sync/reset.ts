@@ -13,6 +13,13 @@ export const Route = createFileRoute("/api/github/sync/reset")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const authHeader = request.headers.get("Authorization")
+        const userId = authHeader?.replace("Bearer ", "")
+
+        if (!userId) {
+          return jsonResponse({ error: "Not authenticated" }, 401)
+        }
+
         try {
           const body = (await request.json()) as {
             resourceType: string
@@ -24,15 +31,6 @@ export const Route = createFileRoute("/api/github/sync/reset")({
             return jsonResponse({ error: "resourceType is required" }, 400)
           }
 
-          // Get current user from Authorization header
-          const authHeader = request.headers.get("Authorization")
-          const userId = authHeader?.replace("Bearer ", "")
-
-          if (!userId) {
-            return jsonResponse({ error: "Not authenticated" }, 401)
-          }
-
-          // Find sync state to reset
           const { syncStates } = await adminDb.query({
             syncStates: {
               $: {
@@ -50,7 +48,6 @@ export const Route = createFileRoute("/api/github/sync/reset")({
             return jsonResponse({ error: "Sync state not found" }, 404)
           }
 
-          // Reset sync state by clearing error and ETag data
           await adminDb.transact(
             adminDb.tx.syncStates[syncState.id].update({
               syncStatus: "idle",
@@ -63,7 +60,7 @@ export const Route = createFileRoute("/api/github/sync/reset")({
 
           return jsonResponse({ success: true })
         } catch (error) {
-          console.error("Error resetting sync state:", error)
+          log.error("Error resetting sync state", error, { op: "sync-reset", userId })
           return jsonResponse(
             {
               error: "Internal server error",
@@ -75,15 +72,14 @@ export const Route = createFileRoute("/api/github/sync/reset")({
       },
 
       DELETE: async ({ request }) => {
+        const authHeader = request.headers.get("Authorization")
+        const userId = authHeader?.replace("Bearer ", "")
+
+        if (!userId) {
+          return jsonResponse({ error: "Not authenticated" }, 401)
+        }
+
         try {
-          // Get current user from Authorization header
-          const authHeader = request.headers.get("Authorization")
-          const userId = authHeader?.replace("Bearer ", "")
-
-          if (!userId) {
-            return jsonResponse({ error: "Not authenticated" }, 401)
-          }
-
           const revokeResult = await revokeGitHubGrantForUser(userId)
           if (revokeResult.attempted && !revokeResult.revoked) {
             log.warn("Disconnect requested but OAuth grant revocation failed", {
@@ -92,7 +88,6 @@ export const Route = createFileRoute("/api/github/sync/reset")({
             })
           }
 
-          // Find all sync states for this user
           const { syncStates } = await adminDb.query({
             syncStates: {
               $: {
@@ -136,7 +131,7 @@ export const Route = createFileRoute("/api/github/sync/reset")({
             deleted: syncStates?.length ?? 0,
           })
         } catch (error) {
-          console.error("Error clearing sync states:", error)
+          log.error("Error clearing sync states", error, { op: "sync-reset-delete", userId })
           return jsonResponse(
             {
               error: "Internal server error",
