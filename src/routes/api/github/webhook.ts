@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { createHmac, timingSafeEqual } from "crypto"
 import { adminDb } from "@/lib/instantAdmin"
-import { enqueueWebhook } from "@/lib/webhooks/processor"
+import { enqueueWebhook, triggerWebhookProcessor } from "@/lib/webhooks/processor"
 import { validateWebhookPayload } from "@/lib/webhook-validation"
 import { log } from "@/lib/logger"
 import { logWebhookReceived, logWebhookEnqueued } from "@/lib/webhooks/logging"
@@ -86,6 +86,8 @@ export const Route = createFileRoute("/api/github/webhook")({
         if (result.queueItemId) {
           logWebhookEnqueued(delivery, event, action, result.queueItemId)
         }
+
+        triggerWebhookProcessor(adminDb)
 
         return jsonResponse({ received: true, queued: true, queueItemId: result.queueItemId })
       },
