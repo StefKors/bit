@@ -203,7 +203,7 @@
       "plugins": ["typescript"]
     },
     {
-      "files": ["src/routes/api/**/*.ts"],
+      "files": ["src/routes/api/**/*.ts", "server.ts"],
       "rules": {
         "no-console": "off"
       },

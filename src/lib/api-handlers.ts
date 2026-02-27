@@ -131,6 +131,7 @@ export const handleSync = async (
       await deps.handleAuthError(userId)
       return authExpiredResponse()
     }
+    log.error(`Sync ${syncMethod} failed`, error, { op: syncMethod, owner, repo, userId })
     return mapGitHubError(
       error,
       `sync ${syncMethod.replace("fetch", "").toLowerCase()}`,

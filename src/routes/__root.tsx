@@ -3,6 +3,7 @@ import { useEffect, type ReactNode } from "react"
 import { createRootRoute, Outlet, HeadContent, Scripts } from "@tanstack/react-router"
 import { Layout } from "@/layout"
 import { LoadingCube } from "@/components/LoadingCube"
+import { ErrorFallback } from "@/components/ErrorFallback"
 import LoginPage from "@/pages/LoginPage"
 import { useAuth } from "@/lib/hooks/useAuth"
 import "@/theme.css"
@@ -26,6 +27,7 @@ export const Route = createRootRoute({
     ],
   }),
   component: RootComponent,
+  errorComponent: ErrorFallback,
 })
 
 function RootComponent() {

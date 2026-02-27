@@ -1,4 +1,4 @@
-import { ReactNode, useRef } from "react"
+import { type ReactNode, useRef } from "react"
 import { AppHeader } from "@/components/AppHeader"
 import { CommandMenu, type CommandMenuHandle } from "@/components/CommandMenu"
 import styles from "./layout.module.css"

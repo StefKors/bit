@@ -55,8 +55,10 @@ async function processWebhookPayload(
       await handleRepositoryWebhook(adminDb, payload)
       break
     case "pull_request":
-      await handlePullRequestWebhook(adminDb, payload)
-      await handlePullRequestEventWebhook(adminDb, payload)
+      await Promise.all([
+        handlePullRequestWebhook(adminDb, payload),
+        handlePullRequestEventWebhook(adminDb, payload),
+      ])
       break
     case "pull_request_review":
       await handlePullRequestReviewWebhook(adminDb, payload)

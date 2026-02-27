@@ -294,8 +294,10 @@ export const dispatchWebhookEvent = async (
           action: (payload as { action?: string }).action,
         },
       )
-      await handlePullRequestWebhook(db, payload)
-      await handlePullRequestEventWebhook(db, payload)
+      await Promise.all([
+        handlePullRequestWebhook(db, payload),
+        handlePullRequestEventWebhook(db, payload),
+      ])
       break
     case "pull_request_review":
       logWebhookHandler(event, "handlePullRequestReviewWebhook", ["prReviews"], {
