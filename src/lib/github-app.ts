@@ -1,3 +1,4 @@
+import { createPrivateKey } from "node:crypto"
 import { SignJWT, importPKCS8 } from "jose"
 import { log } from "@/lib/logger"
 import { adminDb } from "@/lib/instantAdmin"
@@ -13,6 +14,24 @@ interface CachedToken {
 const tokenCache = new Map<number, CachedToken>()
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000
 
+/** GitHub generates PKCS#1 keys (RSA PRIVATE KEY); jose expects PKCS#8 (PRIVATE KEY). */
+function toPKCS8IfNeeded(pem: string): string {
+  if (pem.includes("-----BEGIN PRIVATE KEY-----")) {
+    log.info("GitHub App key: using PKCS#8 format as-is")
+    return pem
+  }
+  if (pem.includes("-----BEGIN RSA PRIVATE KEY-----")) {
+    log.info("GitHub App key: converting PKCS#1 to PKCS#8")
+    const key = createPrivateKey({ key: pem, format: "pem" })
+    return key.export({ type: "pkcs8", format: "pem" })
+  }
+  log.warn("GitHub App key: unexpected format, attempting import anyway", {
+    hasBeginMarker: pem.includes("-----BEGIN"),
+    firstLine: pem.split("\n")[0] ?? "(empty)",
+  })
+  return pem
+}
+
 export const isGitHubAppConfigured = (): boolean => Boolean(GITHUB_APP_ID && GITHUB_APP_PRIVATE_KEY)
 
 async function createAppJWT(): Promise<string> {
@@ -20,7 +39,8 @@ async function createAppJWT(): Promise<string> {
     throw new Error("GitHub App not configured: missing GITHUB_APP_ID or GITHUB_APP_PRIVATE_KEY")
   }
 
-  const privateKey = await importPKCS8(GITHUB_APP_PRIVATE_KEY, "RS256")
+  const keyPem = toPKCS8IfNeeded(GITHUB_APP_PRIVATE_KEY)
+  const privateKey = await importPKCS8(keyPem, "RS256")
   const now = Math.floor(Date.now() / 1000)
 
   return new SignJWT({})
@@ -39,10 +59,12 @@ interface InstallationTokenResponse {
 export async function getInstallationToken(installationId: number): Promise<string | null> {
   const cached = tokenCache.get(installationId)
   if (cached && cached.expiresAt > Date.now() + TOKEN_EXPIRY_BUFFER_MS) {
+    log.info("GitHub App: using cached installation token", { installationId })
     return cached.token
   }
 
   try {
+    log.info("GitHub App: creating JWT and fetching installation token", { installationId })
     const jwt = await createAppJWT()
     const response = await fetch(
       `https://api.github.com/app/installations/${installationId}/access_tokens`,
@@ -69,9 +91,18 @@ export async function getInstallationToken(installationId: number): Promise<stri
 
     tokenCache.set(installationId, { token: data.token, expiresAt })
 
+    log.info("GitHub App: installation token obtained", { installationId })
     return data.token
   } catch (err) {
-    log.error("Failed to get installation token", err, { installationId })
+    const msg = err instanceof Error ? err.message : String(err)
+    const isKeyError = msg.includes("pkcs8") || msg.includes("PKCS") || msg.includes("key")
+    log.error("Failed to get installation token", err, {
+      installationId,
+      errorMessage: msg,
+      hint: isKeyError
+        ? "Key format: ensure GITHUB_APP_PRIVATE_KEY is valid PEM. GitHub uses PKCS#1 (RSA PRIVATE KEY); app auto-converts to PKCS#8. Check newlines (use \\n in env) and that the full key is present."
+        : undefined,
+    })
     return null
   }
 }
