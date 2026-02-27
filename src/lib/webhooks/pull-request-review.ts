@@ -95,12 +95,16 @@ export async function handlePullRequestReviewWebhook(db: WebhookDB, payload: Web
       authorAvatarUrl: review.user?.avatar_url || null,
       htmlUrl: review.html_url,
       submittedAt: parseGithubTimestamp(review.submitted_at),
-      userId: prRecord.userId,
       createdAt: now,
       updatedAt: now,
     }
 
-    await db.transact(db.tx.prReviews[reviewId].update(reviewData))
+    await db.transact(
+      db.tx.prReviews[reviewId]
+        .update(reviewData)
+        .link({ user: prRecord.userId })
+        .link({ pullRequest: prRecord.id }),
+    )
   }
 
   log.info("Webhook pull_request_review: processed", {

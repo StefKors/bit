@@ -1,3 +1,4 @@
+import { deterministicId } from "@/lib/deterministic-id"
 import type { WebhookDB, WebhookPayload, PushEvent, RepoRecord } from "./types"
 import { findUserBySender, ensureRepoFromWebhook, syncPRDetailsForWebhook } from "./utils"
 import { extractInstallationId } from "@/lib/github-app"
@@ -153,9 +154,8 @@ async function syncCommitsToPRs(
     for (const pr of matchingPRs) {
       for (const commit of commits) {
         const now = Date.now()
-        const commitId = `${pr.id}:${commit.id}`
+        const commitId = deterministicId("prCommit", pr.id, commit.id)
         const commitData = {
-          id: commitId,
           pullRequestId: pr.id,
           sha: commit.id,
           message: commit.message,
@@ -174,7 +174,12 @@ async function syncCommitsToPRs(
           updatedAt: now,
         }
 
-        await db.transact(db.tx.prCommits[commitId].update(commitData))
+        await db.transact(
+          db.tx.prCommits[commitId]
+            .update(commitData)
+            .link({ user: repoRecord.userId })
+            .link({ pullRequest: pr.id }),
+        )
       }
 
       // Update the PR's commit count

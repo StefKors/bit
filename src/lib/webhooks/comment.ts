@@ -113,7 +113,6 @@ export async function handleCommentWebhook(
     const commentData = {
       githubId: commentGithubId,
       pullRequestId: prRecord.id,
-      reviewId: reviewComment ? String(reviewComment.pull_request_review_id || "") || null : null,
       commentType: isReviewCommentEvent ? "review_comment" : "issue_comment",
       body: comment.body || null,
       authorLogin: comment.user?.login || null,
@@ -126,12 +125,27 @@ export async function handleCommentWebhook(
       resolved: existingCommentResult.prComments?.[0]?.resolved ?? false,
       githubCreatedAt: parseGithubTimestamp(comment.created_at),
       githubUpdatedAt: parseGithubTimestamp(comment.updated_at),
-      userId: prRecord.userId,
       createdAt: now,
       updatedAt: now,
     }
 
-    await db.transact(db.tx.prComments[commentId].update(commentData))
+    let tx = db.tx.prComments[commentId]
+      .update(commentData)
+      .link({ user: prRecord.userId })
+      .link({ pullRequest: prRecord.id })
+
+    if (isReviewCommentEvent && reviewComment?.pull_request_review_id) {
+      const reviewGithubId = reviewComment.pull_request_review_id
+      const existingReview = await db.query({
+        prReviews: { $: { where: { githubId: reviewGithubId }, limit: 1 } },
+      })
+      const reviewId = existingReview.prReviews?.[0]?.id
+      if (reviewId) {
+        tx = tx.link({ review: reviewId })
+      }
+    }
+
+    await db.transact(tx)
   }
 
   log.info("Webhook comment: processed", {
