@@ -15,6 +15,8 @@ import {
   PersonIcon,
   DatabaseIcon,
   ColumnsIcon,
+  WebhookIcon,
+  XCircleFillIcon,
 } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { db } from "@/lib/instantDb"
@@ -35,7 +37,15 @@ import { WebhookManagement } from "@/features/overview"
 import styles from "@/pages/SettingsPage.module.css"
 
 type WebhookSyncMode = "minimal" | "full" | "full-force"
-type Section = "github" | "repos" | "webhooks" | "interface" | "ai" | "data" | "account"
+type Section =
+  | "github"
+  | "repos"
+  | "subscriptions"
+  | "webhooks"
+  | "interface"
+  | "ai"
+  | "data"
+  | "account"
 
 const SYNC_MODE_OPTIONS: { value: WebhookSyncMode; label: string; description: string }[] = [
   {
@@ -70,6 +80,7 @@ const GITHUB_APP_INSTALLATIONS_URL = "https://github.com/settings/installations"
 const SIDEBAR_ITEMS: { id: Section; label: string; icon: React.ReactNode }[] = [
   { id: "github", label: "GitHub", icon: <MarkGithubIcon size={16} /> },
   { id: "repos", label: "Repositories", icon: <RepoIcon size={16} /> },
+  { id: "subscriptions", label: "Subscriptions", icon: <WebhookIcon size={16} /> },
   { id: "webhooks", label: "Webhooks", icon: <SyncIcon size={16} /> },
   { id: "interface", label: "Interface", icon: <ColumnsIcon size={16} /> },
   { id: "ai", label: "AI Features", icon: <CpuIcon size={16} /> },
@@ -77,7 +88,16 @@ const SIDEBAR_ITEMS: { id: Section; label: string; icon: React.ReactNode }[] = [
   { id: "account", label: "Account", icon: <PersonIcon size={16} /> },
 ]
 
-const SECTION_IDS: Section[] = ["github", "repos", "webhooks", "interface", "ai", "data", "account"]
+const SECTION_IDS: Section[] = [
+  "github",
+  "repos",
+  "subscriptions",
+  "webhooks",
+  "interface",
+  "ai",
+  "data",
+  "account",
+]
 
 function SettingsPage() {
   const { user } = useAuth()
@@ -173,6 +193,16 @@ function SettingsPage() {
           <div className={styles.card}>
             <p className={styles.preferenceDescription}>
               Connect your GitHub account first to add repositories.
+            </p>
+          </div>
+        )
+      case "subscriptions":
+        return isGitHubConnected ? (
+          <SubscriptionsSection userId={user.id} />
+        ) : (
+          <div className={styles.card}>
+            <p className={styles.preferenceDescription}>
+              Connect your GitHub account first to manage webhook subscriptions.
             </p>
           </div>
         )
@@ -472,6 +502,226 @@ const ReposSection = ({ userId }: { userId: string }) => {
     </div>
   )
 }
+
+/* ------------------------------------------------------------------ */
+/*  Subscriptions Section                                              */
+/* ------------------------------------------------------------------ */
+
+interface WebhookEntry {
+  id: number
+  url: string
+  active: boolean
+  events: string[]
+  createdAt: string
+  updatedAt: string
+  isOurs: boolean
+}
+
+interface RepoWebhookInfo {
+  repoFullName: string
+  webhooks: WebhookEntry[]
+  error?: string
+}
+
+const SubscriptionsSection = ({ userId }: { userId: string }) => {
+  const [repos, setRepos] = useState<RepoWebhookInfo[]>([])
+  const [loading, setLoading] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+  const [deletingKey, setDeletingKey] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const loadWebhooks = async () => {
+    setLoading(true)
+    setFetchError(null)
+    try {
+      const res = await fetch("/api/github/webhooks", {
+        headers: { Authorization: `Bearer ${userId}` },
+      })
+      const data = (await res.json()) as { repos?: RepoWebhookInfo[]; error?: string }
+      if (!res.ok) throw new Error(data.error || "Failed to load webhooks")
+      setRepos(data.repos ?? [])
+      setLoaded(true)
+    } catch (err) {
+      setFetchError(err instanceof Error ? err.message : "Failed to load")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (repoFullName: string, hookId: number) => {
+    const key = `${repoFullName}:${hookId}`
+    setDeletingKey(key)
+    setDeleteError(null)
+    const [owner, repo] = repoFullName.split("/")
+    try {
+      const res = await fetch("/api/github/webhooks", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify({ owner, repo, hookId }),
+      })
+      const data = (await res.json()) as { error?: string }
+      if (!res.ok) throw new Error(data.error || "Failed to delete webhook")
+      setRepos((prev) =>
+        prev
+          .map((r) =>
+            r.repoFullName === repoFullName
+              ? { ...r, webhooks: r.webhooks.filter((w) => w.id !== hookId) }
+              : r,
+          )
+          .filter((r) => r.webhooks.length > 0 || r.error),
+      )
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete")
+    } finally {
+      setDeletingKey(null)
+    }
+  }
+
+  const totalWebhooks = repos.reduce((sum, r) => sum + r.webhooks.filter((w) => w.isOurs).length, 0)
+  const reposWithOurHooks = repos.filter((r) => r.webhooks.some((w) => w.isOurs))
+
+  return (
+    <>
+      <div className={styles.card}>
+        <div className={styles.preferenceRow}>
+          <div className={styles.preferenceInfo}>
+            <span className={styles.preferenceLabel}>Webhook subscriptions</span>
+            <p className={styles.preferenceDescription}>
+              View and manage active webhook subscriptions on your tracked repositories.
+            </p>
+          </div>
+          <Button
+            variant="default"
+            size="small"
+            leadingIcon={<SyncIcon size={14} />}
+            loading={loading}
+            onClick={() => void loadWebhooks()}
+          >
+            {loaded ? "Refresh" : "Load"}
+          </Button>
+        </div>
+
+        {fetchError && (
+          <div className={styles.errorBanner} style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+            {fetchError}
+          </div>
+        )}
+
+        {deleteError && (
+          <div className={styles.errorBanner} style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+            {deleteError}
+          </div>
+        )}
+
+        {loaded && reposWithOurHooks.length === 0 && (
+          <p className={styles.preferenceHint}>No webhook subscriptions found on tracked repos.</p>
+        )}
+
+        {loaded && reposWithOurHooks.length > 0 && (
+          <>
+            <p className={styles.preferenceHint}>
+              {totalWebhooks} active {totalWebhooks === 1 ? "subscription" : "subscriptions"} across{" "}
+              {reposWithOurHooks.length} {reposWithOurHooks.length === 1 ? "repo" : "repos"}
+            </p>
+            <div className={styles.subscriptionsList}>
+              {reposWithOurHooks.map((repo) => (
+                <SubscriptionRepoGroup
+                  key={repo.repoFullName}
+                  repo={repo}
+                  deletingKey={deletingKey}
+                  onDelete={(repoFullName, hookId) => {
+                    void handleDelete(repoFullName, hookId)
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  )
+}
+
+const SubscriptionRepoGroup = ({
+  repo,
+  deletingKey,
+  onDelete,
+}: {
+  repo: RepoWebhookInfo
+  deletingKey: string | null
+  onDelete: (repoFullName: string, hookId: number) => void
+}) => {
+  const ourHooks = repo.webhooks.filter((w) => w.isOurs)
+  if (ourHooks.length === 0) return null
+
+  return (
+    <div className={styles.subscriptionRepo}>
+      <div className={styles.subscriptionRepoHeader}>
+        <RepoIcon size={14} />
+        <span className={styles.subscriptionRepoName}>{repo.repoFullName}</span>
+        {repo.error && (
+          <span className={styles.subscriptionRepoError} title={repo.error}>
+            <AlertIcon size={12} />
+          </span>
+        )}
+      </div>
+      <div className={styles.subscriptionHooks}>
+        {ourHooks.map((hook) => (
+          <SubscriptionHookRow
+            key={hook.id}
+            hook={hook}
+            repoFullName={repo.repoFullName}
+            deleting={deletingKey === `${repo.repoFullName}:${hook.id}`}
+            onDelete={onDelete}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const SubscriptionHookRow = ({
+  hook,
+  repoFullName,
+  deleting,
+  onDelete,
+}: {
+  hook: WebhookEntry
+  repoFullName: string
+  deleting: boolean
+  onDelete: (repoFullName: string, hookId: number) => void
+}) => (
+  <div className={styles.subscriptionHookRow}>
+    <div className={styles.subscriptionHookInfo}>
+      <div className={styles.subscriptionHookMeta}>
+        <span
+          className={`${styles.subscriptionHookStatus} ${hook.active ? styles.subscriptionHookActive : styles.subscriptionHookInactive}`}
+        >
+          {hook.active ? <CheckCircleFillIcon size={12} /> : <XCircleFillIcon size={12} />}
+          {hook.active ? "Active" : "Inactive"}
+        </span>
+        <span className={styles.subscriptionHookEvents}>
+          {hook.events.length} {hook.events.length === 1 ? "event" : "events"}
+        </span>
+      </div>
+    </div>
+    <Button
+      variant="danger"
+      size="small"
+      leadingIcon={<TrashIcon size={12} />}
+      loading={deleting}
+      onClick={() => {
+        onDelete(repoFullName, hook.id)
+      }}
+    >
+      Unsubscribe
+    </Button>
+  </div>
+)
 
 /* ------------------------------------------------------------------ */
 /*  Webhooks Section                                                   */

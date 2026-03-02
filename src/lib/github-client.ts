@@ -2296,6 +2296,56 @@ export class GitHubClient {
     }
   }
 
+  async listRepoWebhooks(
+    owner: string,
+    repo: string,
+  ): Promise<
+    Array<{
+      id: number
+      url: string
+      active: boolean
+      events: string[]
+      createdAt: string
+      updatedAt: string
+      isOurs: boolean
+    }>
+  > {
+    const webhookConfig = getWebhookRegistrationConfig()
+    const hooks = await this.octokit.paginate(this.octokit.rest.repos.listWebhooks, {
+      owner,
+      repo,
+      per_page: 100,
+    })
+
+    return hooks.map((hook) => ({
+      id: hook.id,
+      url: hook.config.url ?? "",
+      active: hook.active,
+      events: hook.events,
+      createdAt: hook.created_at,
+      updatedAt: hook.updated_at,
+      isOurs: Boolean(webhookConfig.webhookUrl && hook.config.url === webhookConfig.webhookUrl),
+    }))
+  }
+
+  async deleteRepoWebhook(owner: string, repo: string, hookId: number): Promise<void> {
+    await this.octokit.rest.repos.deleteWebhook({ owner, repo, hook_id: hookId })
+
+    const fullName = `${owner}/${repo}`
+    const { repos } = await adminDb.query({
+      repos: { $: { where: { fullName } } },
+    })
+    if (repos?.[0]) {
+      await adminDb.transact(
+        adminDb.tx.repos[repos[0].id].update({
+          webhookStatus: GitHubClient.WEBHOOK_STATUS.NOT_INSTALLED,
+          webhookError: undefined,
+          updatedAt: Date.now(),
+        }),
+      )
+    }
+  }
+
   // Update initial sync progress in database
   private async updateInitialSyncProgress(progress: {
     step: "orgs" | "repos" | "webhooks" | "pullRequests" | "completed"
