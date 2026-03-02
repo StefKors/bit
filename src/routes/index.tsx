@@ -1,6 +1,7 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router"
 import { useState, useMemo, useEffect } from "react"
 import { useMutation } from "@tanstack/react-query"
+import { Combobox } from "@base-ui/react/combobox"
 import { SyncIcon, LinkExternalIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import { useAuth } from "@/lib/hooks/useAuth"
@@ -78,6 +79,10 @@ function DashboardPage() {
   const repos = data?.repos ?? []
   const subscribedRepos = repos.filter((repo) => repo.subscribed === true)
   const availableRepos = repos.filter((repo) => repo.subscribed !== true)
+  const availableRepoNames = useMemo(
+    () => availableRepos.map((repo) => repo.fullName).sort((a, b) => a.localeCompare(b)),
+    [availableRepos],
+  )
   const userSettingsRecord = data?.userSettings?.[0] ?? null
   const initialSyncState = syncStates.find((s) => s.resourceType === "initial_sync")
   const initialSyncProgress = parseInitialSyncProgress(initialSyncState?.lastEtag)
@@ -296,28 +301,17 @@ function DashboardPage() {
           </div>
           <div className={styles.panelBodyPadded}>
             <div className={styles.subscriptionPicker}>
-              <select
-                className={styles.repoSelect}
+              <RepoSubscriptionCombobox
                 value={repoToSubscribe}
-                onChange={(event) => {
-                  setRepoToSubscribe(event.target.value)
-                }}
-                disabled={subscribeRepo.isPending || availableRepos.length === 0}
-              >
-                <option value="">
-                  {availableRepos.length > 0
+                onValueChange={setRepoToSubscribe}
+                options={availableRepoNames}
+                placeholder={
+                  availableRepos.length > 0
                     ? "Select a repository"
-                    : "No repositories available from your installation"}
-                </option>
-                {availableRepos
-                  .map((repo) => repo.fullName)
-                  .sort()
-                  .map((fullName) => (
-                    <option key={fullName} value={fullName}>
-                      {fullName}
-                    </option>
-                  ))}
-              </select>
+                    : "No repositories available from your installation"
+                }
+                disabled={subscribeRepo.isPending || availableRepos.length === 0}
+              />
               <Button
                 variant="primary"
                 size="small"
@@ -382,24 +376,14 @@ function DashboardPage() {
                   <h2 className={styles.panelTitle}>Repositories</h2>
                   <div className={styles.repoPanelHeaderActions}>
                     <span className={styles.panelBadge}>{subscribedRepos.length}</span>
-                    <select
-                      className={styles.repoSelectCompact}
+                    <RepoSubscriptionCombobox
                       value={repoToSubscribe}
-                      onChange={(event) => {
-                        setRepoToSubscribe(event.target.value)
-                      }}
+                      onValueChange={setRepoToSubscribe}
+                      options={availableRepoNames}
+                      placeholder="Add repo..."
                       disabled={subscribeRepo.isPending || availableRepos.length === 0}
-                    >
-                      <option value="">Add repo…</option>
-                      {availableRepos
-                        .map((repo) => repo.fullName)
-                        .sort()
-                        .map((fullName) => (
-                          <option key={fullName} value={fullName}>
-                            {fullName}
-                          </option>
-                        ))}
-                    </select>
+                      compact
+                    />
                     <Button
                       variant="default"
                       size="small"
@@ -506,6 +490,54 @@ function DashboardPage() {
         </>
       )}
     </div>
+  )
+}
+
+const RepoSubscriptionCombobox = ({
+  value,
+  onValueChange,
+  options,
+  placeholder,
+  disabled,
+  compact = false,
+}: {
+  value: string
+  onValueChange: (value: string) => void
+  options: string[]
+  placeholder: string
+  disabled: boolean
+  compact?: boolean
+}) => {
+  return (
+    <Combobox.Root
+      items={options}
+      value={value || null}
+      onValueChange={(nextValue) => {
+        onValueChange(nextValue ?? "")
+      }}
+    >
+      <Combobox.Input
+        className={compact ? styles.repoComboboxInputCompact : styles.repoComboboxInput}
+        placeholder={placeholder}
+        disabled={disabled}
+      />
+      <Combobox.Portal>
+        <Combobox.Positioner sideOffset={6} className={styles.repoComboboxPositioner}>
+          <Combobox.Popup className={styles.repoComboboxPopup}>
+            <Combobox.List className={styles.repoComboboxList}>
+              {(item: string) => (
+                <Combobox.Item key={item} value={item} className={styles.repoComboboxItem}>
+                  {item}
+                </Combobox.Item>
+              )}
+            </Combobox.List>
+            <Combobox.Empty className={styles.repoComboboxEmpty}>
+              No matching repositories
+            </Combobox.Empty>
+          </Combobox.Popup>
+        </Combobox.Positioner>
+      </Combobox.Portal>
+    </Combobox.Root>
   )
 }
 

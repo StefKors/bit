@@ -130,7 +130,7 @@
   align-items: center;
 }
 
-.repoSelect {
+.repoComboboxInput {
   flex: 1;
   min-width: 0;
   padding: 0.5rem 0.625rem;
@@ -146,13 +146,50 @@
   gap: 0.5rem;
 }
 
-.repoSelectCompact {
+.repoComboboxInputCompact {
   width: 160px;
   padding: 0.35rem 0.45rem;
   border-radius: var(--bit-radius-md);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.12);
   background: rgba(var(--bit-rgb-fg), 0.03);
   color: var(--bit-color-fg);
+  font-size: 0.75rem;
+}
+
+.repoComboboxPositioner {
+  z-index: 40;
+}
+
+.repoComboboxPopup {
+  min-width: 220px;
+  max-height: 260px;
+  overflow: auto;
+  border-radius: var(--bit-radius-lg);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.12);
+  background: var(--bit-color-bg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.repoComboboxList {
+  padding: 0.25rem;
+}
+
+.repoComboboxItem {
+  padding: 0.45rem 0.55rem;
+  border-radius: var(--bit-radius-sm);
+  color: rgba(var(--bit-rgb-fg), 0.9);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.repoComboboxItem[data-highlighted] {
+  background: rgba(var(--bit-rgb-accent-blue), 0.16);
+  color: var(--bit-color-heading);
+}
+
+.repoComboboxEmpty {
+  padding: 0.5rem 0.65rem 0.65rem;
+  color: rgba(var(--bit-rgb-fg), 0.55);
   font-size: 0.75rem;
 }
 
