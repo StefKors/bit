@@ -78,6 +78,8 @@ export const schema = i.schema({
       // Webhook status tracking
       webhookStatus: i.string().optional().indexed(), // "installed" | "error" | "not_installed" | "no_access"
       webhookError: i.string().optional(), // Error message if webhook registration failed
+      // Whether this repo is actively subscribed for syncing/webhooks
+      subscribed: i.boolean().optional().indexed(),
       // Internal timestamps
       syncedAt: i.number(),
       createdAt: i.number(),

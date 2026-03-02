@@ -136,6 +136,15 @@ export async function ensureRepoFromWebhook(
 
   const existing = existingResult.repos || []
   if (existing[0]) {
+    if (existing[0].subscribed !== true) {
+      logWebhookPath("repo exists but is not subscribed; skipping webhook tracking", 3, {
+        ...trace,
+        userId,
+        repoId: existing[0].id,
+        repo: fullName,
+      })
+      return null
+    }
     logWebhookPath("reuse existing repo record", 3, {
       ...trace,
       userId,
@@ -145,56 +154,13 @@ export async function ensureRepoFromWebhook(
     return existing[0] as RepoRecord
   }
 
-  // Generate a new UUID for this repo
-  const repoId = id()
-
-  const now = Date.now()
-
-  const repoData = {
-    githubId,
-    name,
-    fullName,
-    owner: ownerLogin,
-    description: toStringOrNull(rawRepo.description),
-    url: toStringOrNull(rawRepo.url) || undefined,
-    htmlUrl: toStringOrNull(rawRepo.html_url) || undefined,
-    private: toBooleanOrNull(rawRepo.private) ?? false,
-    fork: toBooleanOrNull(rawRepo.fork) ?? false,
-    defaultBranch: toStringOrNull(rawRepo.default_branch) || "main",
-    language: toStringOrNull(rawRepo.language),
-    stargazersCount: toNumberOrNull(rawRepo.stargazers_count) ?? 0,
-    forksCount: toNumberOrNull(rawRepo.forks_count) ?? 0,
-    openIssuesCount: toNumberOrNull(rawRepo.open_issues_count) ?? 0,
-    organizationId: null,
-    userId,
-    githubCreatedAt: parseGithubTimestamp(rawRepo.created_at),
-    githubUpdatedAt: parseGithubTimestamp(rawRepo.updated_at),
-    githubPushedAt: parseGithubTimestamp(rawRepo.pushed_at),
-    syncedAt: now,
-    createdAt: now,
-    updatedAt: now,
-  }
-
-  await db.transact(db.tx.repos[repoId].update(repoData))
-  logWebhookPath("db upsert create -> repos", 3, {
+  logWebhookPath("repo not tracked; auto-tracking disabled in subscription-first mode", 3, {
     ...trace,
     userId,
-    repoId,
     repo: fullName,
-    entity: "repos",
   })
-
-  // Fetch the inserted record
-  const insertedResult = await db.query({
-    repos: {
-      $: { where: { id: repoId }, limit: 1 },
-    },
-  })
-
-  const inserted = insertedResult.repos || []
-  log.info(`Auto-tracked repo ${fullName} for user ${userId}`)
-
-  return (inserted[0] as RepoRecord) ?? null
+  log.info(`Skipped auto-tracking repo ${fullName} for user ${userId} (not subscribed)`)
+  return null
 }
 
 /**

@@ -16,7 +16,6 @@ import {
   DatabaseIcon,
   ColumnsIcon,
   WebhookIcon,
-  XCircleFillIcon,
 } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { db } from "@/lib/instantDb"
@@ -198,7 +197,7 @@ function SettingsPage() {
         )
       case "subscriptions":
         return isGitHubConnected ? (
-          <SubscriptionsSection userId={user.id} />
+          <SubscriptionsSection userId={user.id} repos={repos as RepoItem[]} />
         ) : (
           <div className={styles.card}>
             <p className={styles.preferenceDescription}>
@@ -507,244 +506,107 @@ const ReposSection = ({ userId }: { userId: string }) => {
 /*  Subscriptions Section                                              */
 /* ------------------------------------------------------------------ */
 
-interface WebhookEntry {
-  id: number
-  url: string
-  active: boolean
-  events: string[]
-  createdAt: string
-  updatedAt: string
-  isOurs: boolean
-}
+const SubscriptionsSection = ({ userId, repos }: { userId: string; repos: RepoItem[] }) => {
+  const [unsubscribingRepo, setUnsubscribingRepo] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-interface RepoWebhookInfo {
-  repoFullName: string
-  webhooks: WebhookEntry[]
-  error?: string
-}
+  const subscribedRepos = repos
+    .filter((repo) => repo.subscribed === true)
+    .map((repo) => repo.fullName)
+    .sort()
+  const unsubscribedRepos = repos
+    .filter((repo) => repo.subscribed !== true)
+    .map((repo) => repo.fullName)
+    .sort()
 
-const SubscriptionsSection = ({ userId }: { userId: string }) => {
-  const [repos, setRepos] = useState<RepoWebhookInfo[]>([])
-  const [reposWithoutWebhooks, setReposWithoutWebhooks] = useState<string[]>([])
-  const [loading, setLoading] = useState(false)
-  const [loaded, setLoaded] = useState(false)
-  const [fetchError, setFetchError] = useState<string | null>(null)
-  const [deletingKey, setDeletingKey] = useState<string | null>(null)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
-
-  const loadWebhooks = async () => {
-    setLoading(true)
-    setFetchError(null)
+  const handleUnsubscribe = async (repoFullName: string) => {
+    setError(null)
+    setUnsubscribingRepo(repoFullName)
     try {
-      const res = await fetch("/api/github/webhooks", {
-        headers: { Authorization: `Bearer ${userId}` },
-      })
-      const data = (await res.json()) as {
-        repos?: RepoWebhookInfo[]
-        reposWithoutWebhooks?: string[]
-        error?: string
-      }
-      if (!res.ok) throw new Error(data.error || "Failed to load webhooks")
-      setRepos(data.repos ?? [])
-      setReposWithoutWebhooks(data.reposWithoutWebhooks ?? [])
-      setLoaded(true)
-    } catch (err) {
-      setFetchError(err instanceof Error ? err.message : "Failed to load")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDelete = async (repoFullName: string, hookId: number) => {
-    const key = `${repoFullName}:${hookId}`
-    setDeletingKey(key)
-    setDeleteError(null)
-    const [owner, repo] = repoFullName.split("/")
-    try {
-      const res = await fetch("/api/github/webhooks", {
-        method: "DELETE",
+      const res = await fetch("/api/github/unsubscribe", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${userId}`,
         },
-        body: JSON.stringify({ owner, repo, hookId }),
+        body: JSON.stringify({ repoFullName }),
       })
       const data = (await res.json()) as { error?: string }
-      if (!res.ok) throw new Error(data.error || "Failed to delete webhook")
-      setRepos((prev) =>
-        prev
-          .map((r) =>
-            r.repoFullName === repoFullName
-              ? { ...r, webhooks: r.webhooks.filter((w) => w.id !== hookId) }
-              : r,
-          )
-          .filter((r) => r.webhooks.length > 0 || r.error),
-      )
+      if (!res.ok) throw new Error(data.error || "Failed to unsubscribe repository")
     } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "Failed to delete")
+      setError(err instanceof Error ? err.message : "Failed to unsubscribe repository")
     } finally {
-      setDeletingKey(null)
+      setUnsubscribingRepo(null)
     }
   }
 
-  const totalWebhooks = repos.reduce((sum, r) => sum + r.webhooks.filter((w) => w.isOurs).length, 0)
-  const reposWithOurHooks = repos.filter((r) => r.webhooks.some((w) => w.isOurs))
-
   return (
-    <>
-      <div className={styles.card}>
-        <div className={styles.preferenceRow}>
-          <div className={styles.preferenceInfo}>
-            <span className={styles.preferenceLabel}>Webhook subscriptions</span>
-            <p className={styles.preferenceDescription}>
-              View and manage active webhook subscriptions on your tracked repositories.
-            </p>
-          </div>
-          <Button
-            variant="default"
-            size="small"
-            leadingIcon={<SyncIcon size={14} />}
-            loading={loading}
-            onClick={() => void loadWebhooks()}
-          >
-            {loaded ? "Refresh" : "Load"}
-          </Button>
+    <div className={styles.card}>
+      <div className={styles.preferenceInfo}>
+        <span className={styles.preferenceLabel}>Active subscriptions</span>
+        <p className={styles.preferenceDescription}>
+          Only subscribed repositories are synced and kept in storage.
+        </p>
+      </div>
+
+      {error && (
+        <div className={styles.errorBanner} style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+          {error}
         </div>
+      )}
 
-        {fetchError && (
-          <div className={styles.errorBanner} style={{ marginTop: "0.75rem", marginBottom: 0 }}>
-            {fetchError}
-          </div>
-        )}
-
-        {deleteError && (
-          <div className={styles.errorBanner} style={{ marginTop: "0.75rem", marginBottom: 0 }}>
-            {deleteError}
-          </div>
-        )}
-
-        {loaded && reposWithOurHooks.length === 0 && (
-          <p className={styles.preferenceHint}>No webhook subscriptions found on tracked repos.</p>
-        )}
-
-        {loaded && reposWithOurHooks.length > 0 && (
-          <>
-            <p className={styles.preferenceHint}>
-              {totalWebhooks} active {totalWebhooks === 1 ? "subscription" : "subscriptions"} across{" "}
-              {reposWithOurHooks.length} {reposWithOurHooks.length === 1 ? "repo" : "repos"}
-            </p>
-            <div className={styles.subscriptionsList}>
-              {reposWithOurHooks.map((repo) => (
-                <SubscriptionRepoGroup
-                  key={repo.repoFullName}
-                  repo={repo}
-                  deletingKey={deletingKey}
-                  onDelete={(repoFullName, hookId) => {
-                    void handleDelete(repoFullName, hookId)
-                  }}
-                />
-              ))}
-            </div>
-          </>
-        )}
-
-        {loaded && reposWithoutWebhooks.length > 0 && (
-          <details className={styles.unsubscribedDetails}>
-            <summary className={styles.unsubscribedSummary}>
-              {reposWithoutWebhooks.length} {reposWithoutWebhooks.length === 1 ? "repo" : "repos"}{" "}
-              without webhooks
-            </summary>
-            <div className={styles.unsubscribedList}>
-              {reposWithoutWebhooks.map((name) => (
-                <div key={name} className={styles.unsubscribedRow}>
-                  <RepoIcon size={14} />
-                  <span className={styles.unsubscribedName}>{name}</span>
+      {subscribedRepos.length > 0 ? (
+        <div className={styles.subscriptionsList}>
+          {subscribedRepos.map((repoFullName) => (
+            <div key={repoFullName} className={styles.subscriptionHookRow}>
+              <div className={styles.subscriptionHookInfo}>
+                <div className={styles.subscriptionHookMeta}>
+                  <span
+                    className={`${styles.subscriptionHookStatus} ${styles.subscriptionHookActive}`}
+                  >
+                    <CheckCircleFillIcon size={12} />
+                    Subscribed
+                  </span>
+                  <span className={styles.subscriptionHookEvents}>{repoFullName}</span>
                 </div>
-              ))}
+              </div>
+              <Button
+                variant="danger"
+                size="small"
+                leadingIcon={<TrashIcon size={12} />}
+                loading={unsubscribingRepo === repoFullName}
+                onClick={() => {
+                  void handleUnsubscribe(repoFullName)
+                }}
+              >
+                Unsubscribe
+              </Button>
             </div>
-          </details>
-        )}
-      </div>
-    </>
-  )
-}
+          ))}
+        </div>
+      ) : (
+        <p className={styles.preferenceHint}>No active subscriptions yet.</p>
+      )}
 
-const SubscriptionRepoGroup = ({
-  repo,
-  deletingKey,
-  onDelete,
-}: {
-  repo: RepoWebhookInfo
-  deletingKey: string | null
-  onDelete: (repoFullName: string, hookId: number) => void
-}) => {
-  const ourHooks = repo.webhooks.filter((w) => w.isOurs)
-  if (ourHooks.length === 0) return null
-
-  return (
-    <div className={styles.subscriptionRepo}>
-      <div className={styles.subscriptionRepoHeader}>
-        <RepoIcon size={14} />
-        <span className={styles.subscriptionRepoName}>{repo.repoFullName}</span>
-        {repo.error && (
-          <span className={styles.subscriptionRepoError} title={repo.error}>
-            <AlertIcon size={12} />
-          </span>
-        )}
-      </div>
-      <div className={styles.subscriptionHooks}>
-        {ourHooks.map((hook) => (
-          <SubscriptionHookRow
-            key={hook.id}
-            hook={hook}
-            repoFullName={repo.repoFullName}
-            deleting={deletingKey === `${repo.repoFullName}:${hook.id}`}
-            onDelete={onDelete}
-          />
-        ))}
-      </div>
+      {unsubscribedRepos.length > 0 && (
+        <details className={styles.unsubscribedDetails}>
+          <summary className={styles.unsubscribedSummary}>
+            {unsubscribedRepos.length} {unsubscribedRepos.length === 1 ? "repo" : "repos"} not
+            subscribed
+          </summary>
+          <div className={styles.unsubscribedList}>
+            {unsubscribedRepos.map((name) => (
+              <div key={name} className={styles.unsubscribedRow}>
+                <RepoIcon size={14} />
+                <span className={styles.unsubscribedName}>{name}</span>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
     </div>
   )
 }
-
-const SubscriptionHookRow = ({
-  hook,
-  repoFullName,
-  deleting,
-  onDelete,
-}: {
-  hook: WebhookEntry
-  repoFullName: string
-  deleting: boolean
-  onDelete: (repoFullName: string, hookId: number) => void
-}) => (
-  <div className={styles.subscriptionHookRow}>
-    <div className={styles.subscriptionHookInfo}>
-      <div className={styles.subscriptionHookMeta}>
-        <span
-          className={`${styles.subscriptionHookStatus} ${hook.active ? styles.subscriptionHookActive : styles.subscriptionHookInactive}`}
-        >
-          {hook.active ? <CheckCircleFillIcon size={12} /> : <XCircleFillIcon size={12} />}
-          {hook.active ? "Active" : "Inactive"}
-        </span>
-        <span className={styles.subscriptionHookEvents}>
-          {hook.events.length} {hook.events.length === 1 ? "event" : "events"}
-        </span>
-      </div>
-    </div>
-    <Button
-      variant="danger"
-      size="small"
-      leadingIcon={<TrashIcon size={12} />}
-      loading={deleting}
-      onClick={() => {
-        onDelete(repoFullName, hook.id)
-      }}
-    >
-      Unsubscribe
-    </Button>
-  </div>
-)
 
 /* ------------------------------------------------------------------ */
 /*  Webhooks Section                                                   */
@@ -765,6 +627,7 @@ interface SyncStateItem {
 interface RepoItem {
   id: string
   fullName: string
+  subscribed?: boolean | null
   webhookStatus?: string | null
   webhookError?: string | null
 }

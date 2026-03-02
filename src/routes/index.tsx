@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/hooks/useAuth"
 import { resolveUserAvatarUrl } from "@/lib/avatar"
 import { DEFAULT_MODEL } from "@/lib/cerebras"
 import { parseInitialSyncProgress } from "@/lib/json-validators"
-import { syncResetMutation, syncRetryMutation } from "@/lib/mutations"
+import { subscribeRepoMutation, syncResetMutation, syncRetryMutation } from "@/lib/mutations"
 import {
   buildActivityFeed,
   buildNextActions,
@@ -28,6 +28,7 @@ import {
   PRTable,
   RepoList,
 } from "@/features/dashboard"
+import { Button } from "@/components/Button"
 import styles from "@/pages/DashboardPage.module.css"
 
 type CenterTab = "activity" | "authored" | "reviews"
@@ -40,9 +41,16 @@ function DashboardPage() {
     configured: false,
     checked: false,
   })
+  const [repoToSubscribe, setRepoToSubscribe] = useState("")
 
   const resetSync = useMutation(syncResetMutation(user?.id ?? ""))
   const retrySync = useMutation(syncRetryMutation(user?.id ?? ""))
+  const subscribeRepo = useMutation({
+    ...subscribeRepoMutation(user?.id ?? ""),
+    onSuccess: () => {
+      setRepoToSubscribe("")
+    },
+  })
 
   const githubJustConnected = search.github === "connected"
   const githubJustInstalled = search.github === "installed"
@@ -68,6 +76,8 @@ function DashboardPage() {
   const hasInstallation = syncStates.some((s) => s.resourceType === "github:installation")
   const isGitHubConnected = hasInstallation || Boolean(user?.login)
   const repos = data?.repos ?? []
+  const subscribedRepos = repos.filter((repo) => repo.subscribed === true)
+  const availableRepos = repos.filter((repo) => repo.subscribed !== true)
   const userSettingsRecord = data?.userSettings?.[0] ?? null
   const initialSyncState = syncStates.find((s) => s.resourceType === "initial_sync")
   const initialSyncProgress = parseInitialSyncProgress(initialSyncState?.lastEtag)
@@ -103,7 +113,7 @@ function DashboardPage() {
       })
   }, [user?.id])
 
-  const dataRepos = data?.repos
+  const dataRepos = subscribedRepos
 
   const allPRs = useMemo(() => {
     const repoList = dataRepos ?? []
@@ -176,7 +186,7 @@ function DashboardPage() {
   const aiContextPrompt = useMemo(() => {
     const lines: string[] = []
     lines.push(`User: ${currentUserLogin}`)
-    lines.push(`Repos tracked: ${repos.length}`)
+    lines.push(`Repos tracked: ${subscribedRepos.length}`)
     lines.push(`Open PRs authored: ${authoredPRs.length}`)
     lines.push(`Pending reviews: ${reviewRequestedPRs.length}`)
     lines.push(`Open issues: ${openIssues}`)
@@ -200,7 +210,7 @@ function DashboardPage() {
     return lines.join("\n")
   }, [
     currentUserLogin,
-    repos.length,
+    subscribedRepos.length,
     authoredPRs.length,
     reviewRequestedPRs.length,
     openIssues,
@@ -212,6 +222,11 @@ function DashboardPage() {
     if (!user?.id) return
     const installUrl = `https://github.com/apps/bit-backend/installations/new?${new URLSearchParams({ state: user.id }).toString()}`
     window.location.href = installUrl
+  }
+
+  const handleSubscribeRepo = () => {
+    if (!repoToSubscribe || subscribeRepo.isPending) return
+    subscribeRepo.mutate({ repoFullName: repoToSubscribe })
   }
 
   if (!user) {
@@ -227,8 +242,8 @@ function DashboardPage() {
             {getGreeting()}, {user.name || user.login || "there"}
           </h1>
           <p className={styles.greetingSubtitle}>
-            {repos.length} repositories &middot; {openPRs.length} open PRs &middot; {openIssues}{" "}
-            issues
+            {subscribedRepos.length} repositories &middot; {openPRs.length} open PRs &middot;{" "}
+            {openIssues} issues
           </p>
         </div>
         <div className={styles.headerActions}>
@@ -274,135 +289,222 @@ function DashboardPage() {
         />
       )}
 
-      {/* Stats row */}
-      <StatsGrid
-        openPRs={authoredPRs.length}
-        pendingReviews={reviewRequestedPRs.length}
-        totalRepos={repos.length}
-        openIssues={openIssues}
-        totalStars={totalStars}
-        totalCommits={totalCommits}
-      />
-
-      {/* 3-column dashboard */}
-      <div className={styles.columns}>
-        {/* Left column */}
-        <div className={styles.leftCol}>
-          <div className={styles.profileCard}>
-            <Avatar src={resolveUserAvatarUrl(user)} name={user.name || user.login} size={40} />
-            <div className={styles.profileInfo}>
-              <span className={styles.profileName}>{user.name || user.login}</span>
-              <span className={styles.profileLogin}>@{user.login || user.email}</span>
-            </div>
-            {user.htmlUrl && (
-              <a
-                href={user.htmlUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ marginLeft: "auto", color: "rgba(var(--bit-rgb-fg), 0.3)" }}
+      {isGitHubConnected && subscribedRepos.length === 0 && (
+        <div className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <h2 className={styles.panelTitle}>Start by subscribing to a repository</h2>
+          </div>
+          <div className={styles.panelBodyPadded}>
+            <div className={styles.subscriptionPicker}>
+              <select
+                className={styles.repoSelect}
+                value={repoToSubscribe}
+                onChange={(event) => {
+                  setRepoToSubscribe(event.target.value)
+                }}
+                disabled={subscribeRepo.isPending || availableRepos.length === 0}
               >
-                <LinkExternalIcon size={14} />
-              </a>
+                <option value="">
+                  {availableRepos.length > 0
+                    ? "Select a repository"
+                    : "No repositories available from your installation"}
+                </option>
+                {availableRepos
+                  .map((repo) => repo.fullName)
+                  .sort()
+                  .map((fullName) => (
+                    <option key={fullName} value={fullName}>
+                      {fullName}
+                    </option>
+                  ))}
+              </select>
+              <Button
+                variant="primary"
+                size="small"
+                loading={subscribeRepo.isPending}
+                disabled={!repoToSubscribe}
+                onClick={handleSubscribeRepo}
+              >
+                Add subscription
+              </Button>
+            </div>
+            {subscribeRepo.error && (
+              <div
+                className={`${styles.statusRow} ${styles.errorRow}`}
+                style={{ marginTop: "0.75rem" }}
+              >
+                {subscribeRepo.error.message}
+              </div>
             )}
-          </div>
-
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2 className={styles.panelTitle}>Repositories</h2>
-              <span className={styles.panelBadge}>{repos.length}</span>
-            </div>
-            <div className={styles.panelBody}>
-              <RepoList repos={repos} maxItems={12} />
-            </div>
-          </div>
-
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2 className={styles.panelTitle}>Languages</h2>
-            </div>
-            <div className={styles.panelBodyPadded}>
-              <LanguageBar languages={languages} />
-            </div>
+            <p className={styles.greetingSubtitle} style={{ marginTop: "0.75rem" }}>
+              Subscribing installs a webhook and runs an initial sync for that repository only.
+            </p>
           </div>
         </div>
+      )}
 
-        {/* Center column */}
-        <div className={styles.centerCol}>
-          <div className={styles.panel}>
-            <div className={styles.tabBar}>
-              <button
-                type="button"
-                className={`${styles.tab} ${centerTab === "activity" ? styles.tabActive : ""}`}
-                onClick={() => {
-                  setCenterTab("activity")
-                }}
-              >
-                Activity
-              </button>
-              <button
-                type="button"
-                className={`${styles.tab} ${centerTab === "authored" ? styles.tabActive : ""}`}
-                onClick={() => {
-                  setCenterTab("authored")
-                }}
-              >
-                Your PRs ({authoredPRs.length})
-              </button>
-              <button
-                type="button"
-                className={`${styles.tab} ${centerTab === "reviews" ? styles.tabActive : ""}`}
-                onClick={() => {
-                  setCenterTab("reviews")
-                }}
-              >
-                Reviews ({reviewRequestedPRs.length})
-              </button>
-            </div>
-            <div className={styles.panelBody}>
-              {centerTab === "activity" && <ActivityFeed items={activityFeed} maxItems={20} />}
-              {centerTab === "authored" && (
-                <PRTable prs={authoredPRs} emptyText="No open PRs authored by you." />
-              )}
-              {centerTab === "reviews" && (
-                <PRTable
-                  prs={reviewRequestedPRs}
-                  emptyText="No PRs currently requesting your review."
-                />
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right column */}
-        <div className={styles.rightCol}>
-          <AISummary
-            aiEnabled={aiEnabled}
-            aiConfigured={aiStatus.configured}
-            aiModel={aiModel}
-            contextPrompt={aiContextPrompt}
-            userId={user?.id ?? ""}
+      {subscribedRepos.length > 0 && (
+        <>
+          {/* Stats row */}
+          <StatsGrid
+            openPRs={authoredPRs.length}
+            pendingReviews={reviewRequestedPRs.length}
+            totalRepos={subscribedRepos.length}
+            openIssues={openIssues}
+            totalStars={totalStars}
+            totalCommits={totalCommits}
           />
 
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2 className={styles.panelTitle}>Next Actions</h2>
-              <span className={styles.panelBadge}>{nextActions.length}</span>
-            </div>
-            <div className={styles.panelBody}>
-              <NextActions actions={nextActions} maxItems={8} />
-            </div>
-          </div>
+          {/* 3-column dashboard */}
+          <div className={styles.columns}>
+            {/* Left column */}
+            <div className={styles.leftCol}>
+              <div className={styles.profileCard}>
+                <Avatar src={resolveUserAvatarUrl(user)} name={user.name || user.login} size={40} />
+                <div className={styles.profileInfo}>
+                  <span className={styles.profileName}>{user.name || user.login}</span>
+                  <span className={styles.profileLogin}>@{user.login || user.email}</span>
+                </div>
+                {user.htmlUrl && (
+                  <a
+                    href={user.htmlUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ marginLeft: "auto", color: "rgba(var(--bit-rgb-fg), 0.3)" }}
+                  >
+                    <LinkExternalIcon size={14} />
+                  </a>
+                )}
+              </div>
 
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2 className={styles.panelTitle}>Contributions</h2>
+              <div className={styles.panel}>
+                <div className={styles.panelHeader}>
+                  <h2 className={styles.panelTitle}>Repositories</h2>
+                  <div className={styles.repoPanelHeaderActions}>
+                    <span className={styles.panelBadge}>{subscribedRepos.length}</span>
+                    <select
+                      className={styles.repoSelectCompact}
+                      value={repoToSubscribe}
+                      onChange={(event) => {
+                        setRepoToSubscribe(event.target.value)
+                      }}
+                      disabled={subscribeRepo.isPending || availableRepos.length === 0}
+                    >
+                      <option value="">Add repo…</option>
+                      {availableRepos
+                        .map((repo) => repo.fullName)
+                        .sort()
+                        .map((fullName) => (
+                          <option key={fullName} value={fullName}>
+                            {fullName}
+                          </option>
+                        ))}
+                    </select>
+                    <Button
+                      variant="default"
+                      size="small"
+                      loading={subscribeRepo.isPending}
+                      disabled={!repoToSubscribe}
+                      onClick={handleSubscribeRepo}
+                    >
+                      Subscribe
+                    </Button>
+                  </div>
+                </div>
+                <div className={styles.panelBody}>
+                  <RepoList repos={subscribedRepos} maxItems={12} />
+                </div>
+              </div>
+
+              <div className={styles.panel}>
+                <div className={styles.panelHeader}>
+                  <h2 className={styles.panelTitle}>Languages</h2>
+                </div>
+                <div className={styles.panelBodyPadded}>
+                  <LanguageBar languages={languages} />
+                </div>
+              </div>
             </div>
-            <div className={styles.panelBodyPadded}>
-              <ContributionChart data={contributionData} />
+
+            {/* Center column */}
+            <div className={styles.centerCol}>
+              <div className={styles.panel}>
+                <div className={styles.tabBar}>
+                  <button
+                    type="button"
+                    className={`${styles.tab} ${centerTab === "activity" ? styles.tabActive : ""}`}
+                    onClick={() => {
+                      setCenterTab("activity")
+                    }}
+                  >
+                    Activity
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.tab} ${centerTab === "authored" ? styles.tabActive : ""}`}
+                    onClick={() => {
+                      setCenterTab("authored")
+                    }}
+                  >
+                    Your PRs ({authoredPRs.length})
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.tab} ${centerTab === "reviews" ? styles.tabActive : ""}`}
+                    onClick={() => {
+                      setCenterTab("reviews")
+                    }}
+                  >
+                    Reviews ({reviewRequestedPRs.length})
+                  </button>
+                </div>
+                <div className={styles.panelBody}>
+                  {centerTab === "activity" && <ActivityFeed items={activityFeed} maxItems={20} />}
+                  {centerTab === "authored" && (
+                    <PRTable prs={authoredPRs} emptyText="No open PRs authored by you." />
+                  )}
+                  {centerTab === "reviews" && (
+                    <PRTable
+                      prs={reviewRequestedPRs}
+                      emptyText="No PRs currently requesting your review."
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right column */}
+            <div className={styles.rightCol}>
+              <AISummary
+                aiEnabled={aiEnabled}
+                aiConfigured={aiStatus.configured}
+                aiModel={aiModel}
+                contextPrompt={aiContextPrompt}
+                userId={user?.id ?? ""}
+              />
+
+              <div className={styles.panel}>
+                <div className={styles.panelHeader}>
+                  <h2 className={styles.panelTitle}>Next Actions</h2>
+                  <span className={styles.panelBadge}>{nextActions.length}</span>
+                </div>
+                <div className={styles.panelBody}>
+                  <NextActions actions={nextActions} maxItems={8} />
+                </div>
+              </div>
+
+              <div className={styles.panel}>
+                <div className={styles.panelHeader}>
+                  <h2 className={styles.panelTitle}>Contributions</h2>
+                </div>
+                <div className={styles.panelBodyPadded}>
+                  <ContributionChart data={contributionData} />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   )
 }

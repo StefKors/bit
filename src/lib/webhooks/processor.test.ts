@@ -142,6 +142,7 @@ describe("enqueueWebhook", () => {
 describe("dispatchWebhookEvent", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockQuery.mockResolvedValue({ repos: [{ id: "repo-1", subscribed: true }] })
   })
 
   it("dispatches push event to push handler", async () => {
@@ -165,6 +166,13 @@ describe("dispatchWebhookEvent", () => {
     const payload = { action: "updated", repository: { full_name: "owner/repo" } }
     await dispatchWebhookEvent(mockDb, eventName, payload)
     expect(handleExtendedWebhook).toHaveBeenCalledWith(mockDb, payload, eventName)
+  })
+
+  it("skips event dispatch when repository is not subscribed", async () => {
+    mockQuery.mockResolvedValueOnce({ repos: [] })
+    const payload = { action: "updated", repository: { full_name: "owner/repo" } }
+    await dispatchWebhookEvent(mockDb, "push", payload)
+    expect(handlePushWebhook).not.toHaveBeenCalled()
   })
 
   it("handles unknown events without throwing", async () => {

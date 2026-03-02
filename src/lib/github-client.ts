@@ -451,6 +451,7 @@ export class GitHubClient {
             : undefined,
           githubPushedAt: repoData.pushed_at ? new Date(repoData.pushed_at).getTime() : undefined,
           userId: this.userId, // Required attribute
+          subscribed: true,
           syncedAt: now,
           createdAt: now,
           updatedAt: now,
@@ -596,6 +597,8 @@ export class GitHubClient {
         githubPushedAt?: number
         createdAt: number
         userId: string
+        subscribed?: boolean
+        webhookStatus?: string
       }
     >()
     if (githubIds.length > 0) {
@@ -640,6 +643,7 @@ export class GitHubClient {
           .update({
             ...repoData,
             userId: this.userId,
+            subscribed: existingRepo?.subscribed ?? existingRepo?.webhookStatus === "installed",
             syncedAt: now,
             createdAt: existingRepo?.createdAt ?? now,
             updatedAt: now,
@@ -647,6 +651,91 @@ export class GitHubClient {
           .link(links)
       })
       .filter((tx): tx is NonNullable<typeof tx> => tx !== null)
+
+    for (const txChunk of chunkItems(repoTxs, TRANSACT_CHUNK_SIZE)) {
+      await adminDb.transact(txChunk)
+    }
+
+    await this.updateSyncState("repos", null, rateLimit)
+
+    return {
+      data: repos.map((repo) => ({
+        githubId: repo.githubId,
+        fullName: repo.fullName,
+        githubPushedAt: repo.githubPushedAt,
+        githubUpdatedAt: repo.githubUpdatedAt,
+      })),
+      rateLimit,
+      fromCache: false,
+    }
+  }
+
+  // Fetch available repositories without subscribing/syncing PR data.
+  async fetchAvailableRepos(): Promise<SyncResult<RepositorySyncItem[]>> {
+    const allReposData = await withRateLimitRetry(() =>
+      this.octokit.paginate(this.octokit.rest.repos.listForAuthenticatedUser, {
+        per_page: 100,
+        sort: "updated",
+        affiliation: "owner,collaborator,organization_member",
+      }),
+    )
+
+    const rateLimit = await this.getRateLimit()
+    const now = Date.now()
+    const repos = allReposData.map((repo) => ({
+      githubId: repo.id,
+      name: repo.name,
+      fullName: repo.full_name,
+      owner: repo.owner.login,
+      description: repo.description || undefined,
+      url: repo.url,
+      htmlUrl: repo.html_url,
+      private: repo.private,
+      fork: repo.fork,
+      defaultBranch: repo.default_branch || "main",
+      language: repo.language || undefined,
+      stargazersCount: repo.stargazers_count,
+      forksCount: repo.forks_count,
+      openIssuesCount: repo.open_issues_count,
+      githubCreatedAt: repo.created_at ? new Date(repo.created_at).getTime() : undefined,
+      githubUpdatedAt: repo.updated_at ? new Date(repo.updated_at).getTime() : undefined,
+      githubPushedAt: repo.pushed_at ? new Date(repo.pushed_at).getTime() : undefined,
+    }))
+
+    const githubIds = repos.map((repo) => repo.githubId)
+    const existingByGithubId = new Map<
+      number,
+      { id: string; createdAt: number; subscribed?: boolean }
+    >()
+    if (githubIds.length > 0) {
+      const { repos: existingRepos } = await adminDb.query({
+        repos: {
+          $: { where: { githubId: { $in: githubIds } } },
+        },
+      })
+      for (const existingRepo of existingRepos || []) {
+        existingByGithubId.set(existingRepo.githubId, {
+          id: existingRepo.id,
+          createdAt: existingRepo.createdAt,
+          subscribed: existingRepo.subscribed ?? existingRepo.webhookStatus === "installed",
+        })
+      }
+    }
+
+    const repoTxs = repos.map((repo) => {
+      const existingRepo = existingByGithubId.get(repo.githubId)
+      const repoId = existingRepo?.id || id()
+      return adminDb.tx.repos[repoId]
+        .update({
+          ...repo,
+          userId: this.userId,
+          subscribed: existingRepo?.subscribed ?? false,
+          syncedAt: now,
+          createdAt: existingRepo?.createdAt ?? now,
+          updatedAt: now,
+        })
+        .link({ user: this.userId })
+    })
 
     for (const txChunk of chunkItems(repoTxs, TRANSACT_CHUNK_SIZE)) {
       await adminDb.transact(txChunk)
@@ -2200,7 +2289,7 @@ export class GitHubClient {
 
   // Register webhooks for all repos belonging to this user
   async registerAllWebhooks(
-    repoList?: Array<{ fullName: string; webhookStatus?: string }>,
+    repoList?: Array<{ fullName: string; webhookStatus?: string; subscribed?: boolean }>,
   ): Promise<{
     total: number
     installed: number
@@ -2213,10 +2302,11 @@ export class GitHubClient {
       repoList ||
       (
         await adminDb.query({
-          repos: { $: { where: { userId: this.userId } } },
+          repos: { $: { where: { userId: this.userId, subscribed: true } } },
         })
       ).repos ||
       []
+    const subscribedRepos = repos.filter((repo) => repo.subscribed === true)
 
     const webhookConfig = getWebhookRegistrationConfig()
     if (!webhookConfig.enabled) {
@@ -2224,16 +2314,16 @@ export class GitHubClient {
       log.info("Skipping webhook registration for all repositories", {
         userId: this.userId,
         reason,
-        repoCount: repos.length,
+        repoCount: subscribedRepos.length,
       })
 
       return {
-        total: repos.length,
+        total: subscribedRepos.length,
         installed: 0,
-        skipped: repos.length,
+        skipped: subscribedRepos.length,
         noAccess: 0,
         errors: 0,
-        results: repos.map((repo) => ({
+        results: subscribedRepos.map((repo) => ({
           fullName: repo.fullName,
           status: GitHubClient.WEBHOOK_STATUS.NOT_INSTALLED,
           error: reason,
@@ -2243,7 +2333,7 @@ export class GitHubClient {
     }
 
     const results = await mapWithConcurrency(
-      repos,
+      subscribedRepos,
       WEBHOOK_REGISTRATION_CONCURRENCY,
       async (repo) => {
         if (repo.webhookStatus === GitHubClient.WEBHOOK_STATUS.INSTALLED) {
@@ -2287,7 +2377,7 @@ export class GitHubClient {
     }
 
     return {
-      total: repos.length,
+      total: subscribedRepos.length,
       installed,
       skipped,
       noAccess,
@@ -2430,11 +2520,18 @@ export class GitHubClient {
       throw err
     }
 
+    const { repos: subscribedRepoRecords } = await adminDb.query({
+      repos: {
+        $: { where: { userId: this.userId, subscribed: true } },
+      },
+    })
+    const subscribedRepos = subscribedRepoRecords || []
+
     // Step 3: Webhooks
     try {
       await updateProgress("webhooks")
-      const webhookResult = await this.registerAllWebhooks(reposData)
-      webhooksRegistered = webhookResult.installed + webhookResult.skipped
+      const webhookResult = await this.registerAllWebhooks(subscribedRepos)
+      webhooksRegistered = webhookResult.installed + webhookResult.skipped + webhookResult.noAccess
       log.info("Registered webhooks", {
         count: webhooksRegistered,
         noAccess: webhookResult.noAccess,
@@ -2448,11 +2545,14 @@ export class GitHubClient {
     }
 
     // Step 4: Sync open PRs for active repos that need pull refresh
-    const sortedRepos = [...reposData].sort((a, b) => {
-      const aTime = Math.max(a.githubPushedAt ?? 0, a.githubUpdatedAt ?? 0)
-      const bTime = Math.max(b.githubPushedAt ?? 0, b.githubUpdatedAt ?? 0)
-      return bTime - aTime
-    })
+    const subscribedRepoNames = new Set(subscribedRepos.map((repo) => repo.fullName))
+    const sortedRepos = reposData
+      .filter((repo) => subscribedRepoNames.has(repo.fullName))
+      .sort((a, b) => {
+        const aTime = Math.max(a.githubPushedAt ?? 0, a.githubUpdatedAt ?? 0)
+        const bTime = Math.max(b.githubPushedAt ?? 0, b.githubUpdatedAt ?? 0)
+        return bTime - aTime
+      })
 
     const { syncStates: pullSyncStates } = await adminDb.query({
       syncStates: {

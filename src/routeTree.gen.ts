@@ -19,6 +19,8 @@ import { Route as ApiGithubWebhookQueueRouteImport } from './routes/api/github/w
 import { Route as ApiGithubWebhookProcessRouteImport } from './routes/api/github/webhook-process'
 import { Route as ApiGithubWebhookHealthRouteImport } from './routes/api/github/webhook-health'
 import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
+import { Route as ApiGithubUnsubscribeRouteImport } from './routes/api/github/unsubscribe'
+import { Route as ApiGithubSubscribeRouteImport } from './routes/api/github/subscribe'
 import { Route as ApiGithubRateLimitRouteImport } from './routes/api/github/rate-limit'
 import { Route as ApiGithubPermissionsRouteImport } from './routes/api/github/permissions'
 import { Route as ApiCerebrasStatusRouteImport } from './routes/api/cerebras/status'
@@ -108,6 +110,16 @@ const ApiGithubWebhookHealthRoute = ApiGithubWebhookHealthRouteImport.update({
 const ApiGithubWebhookRoute = ApiGithubWebhookRouteImport.update({
   id: '/api/github/webhook',
   path: '/api/github/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubUnsubscribeRoute = ApiGithubUnsubscribeRouteImport.update({
+  id: '/api/github/unsubscribe',
+  path: '/api/github/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubSubscribeRoute = ApiGithubSubscribeRouteImport.update({
+  id: '/api/github/subscribe',
+  path: '/api/github/subscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubRateLimitRoute = ApiGithubRateLimitRouteImport.update({
@@ -345,6 +357,8 @@ export interface FileRoutesByFullPath {
   '/api/cerebras/status': typeof ApiCerebrasStatusRoute
   '/api/github/permissions': typeof ApiGithubPermissionsRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
+  '/api/github/subscribe': typeof ApiGithubSubscribeRoute
+  '/api/github/unsubscribe': typeof ApiGithubUnsubscribeRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/api/github/webhook-health': typeof ApiGithubWebhookHealthRoute
   '/api/github/webhook-process': typeof ApiGithubWebhookProcessRoute
@@ -397,6 +411,8 @@ export interface FileRoutesByTo {
   '/api/cerebras/status': typeof ApiCerebrasStatusRoute
   '/api/github/permissions': typeof ApiGithubPermissionsRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
+  '/api/github/subscribe': typeof ApiGithubSubscribeRoute
+  '/api/github/unsubscribe': typeof ApiGithubUnsubscribeRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/api/github/webhook-health': typeof ApiGithubWebhookHealthRoute
   '/api/github/webhook-process': typeof ApiGithubWebhookProcessRoute
@@ -450,6 +466,8 @@ export interface FileRoutesById {
   '/api/cerebras/status': typeof ApiCerebrasStatusRoute
   '/api/github/permissions': typeof ApiGithubPermissionsRoute
   '/api/github/rate-limit': typeof ApiGithubRateLimitRoute
+  '/api/github/subscribe': typeof ApiGithubSubscribeRoute
+  '/api/github/unsubscribe': typeof ApiGithubUnsubscribeRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/api/github/webhook-health': typeof ApiGithubWebhookHealthRoute
   '/api/github/webhook-process': typeof ApiGithubWebhookProcessRoute
@@ -504,6 +522,8 @@ export interface FileRouteTypes {
     | '/api/cerebras/status'
     | '/api/github/permissions'
     | '/api/github/rate-limit'
+    | '/api/github/subscribe'
+    | '/api/github/unsubscribe'
     | '/api/github/webhook'
     | '/api/github/webhook-health'
     | '/api/github/webhook-process'
@@ -556,6 +576,8 @@ export interface FileRouteTypes {
     | '/api/cerebras/status'
     | '/api/github/permissions'
     | '/api/github/rate-limit'
+    | '/api/github/subscribe'
+    | '/api/github/unsubscribe'
     | '/api/github/webhook'
     | '/api/github/webhook-health'
     | '/api/github/webhook-process'
@@ -608,6 +630,8 @@ export interface FileRouteTypes {
     | '/api/cerebras/status'
     | '/api/github/permissions'
     | '/api/github/rate-limit'
+    | '/api/github/subscribe'
+    | '/api/github/unsubscribe'
     | '/api/github/webhook'
     | '/api/github/webhook-health'
     | '/api/github/webhook-process'
@@ -661,6 +685,8 @@ export interface RootRouteChildren {
   ApiCerebrasStatusRoute: typeof ApiCerebrasStatusRoute
   ApiGithubPermissionsRoute: typeof ApiGithubPermissionsRoute
   ApiGithubRateLimitRoute: typeof ApiGithubRateLimitRoute
+  ApiGithubSubscribeRoute: typeof ApiGithubSubscribeRoute
+  ApiGithubUnsubscribeRoute: typeof ApiGithubUnsubscribeRoute
   ApiGithubWebhookRoute: typeof ApiGithubWebhookRoute
   ApiGithubWebhookHealthRoute: typeof ApiGithubWebhookHealthRoute
   ApiGithubWebhookProcessRoute: typeof ApiGithubWebhookProcessRoute
@@ -768,6 +794,20 @@ declare module '@tanstack/react-router' {
       path: '/api/github/webhook'
       fullPath: '/api/github/webhook'
       preLoaderRoute: typeof ApiGithubWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/unsubscribe': {
+      id: '/api/github/unsubscribe'
+      path: '/api/github/unsubscribe'
+      fullPath: '/api/github/unsubscribe'
+      preLoaderRoute: typeof ApiGithubUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/subscribe': {
+      id: '/api/github/subscribe'
+      path: '/api/github/subscribe'
+      fullPath: '/api/github/subscribe'
+      preLoaderRoute: typeof ApiGithubSubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/rate-limit': {
@@ -1098,6 +1138,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCerebrasStatusRoute: ApiCerebrasStatusRoute,
   ApiGithubPermissionsRoute: ApiGithubPermissionsRoute,
   ApiGithubRateLimitRoute: ApiGithubRateLimitRoute,
+  ApiGithubSubscribeRoute: ApiGithubSubscribeRoute,
+  ApiGithubUnsubscribeRoute: ApiGithubUnsubscribeRoute,
   ApiGithubWebhookRoute: ApiGithubWebhookRoute,
   ApiGithubWebhookHealthRoute: ApiGithubWebhookHealthRoute,
   ApiGithubWebhookProcessRoute: ApiGithubWebhookProcessRoute,

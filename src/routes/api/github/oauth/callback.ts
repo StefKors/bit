@@ -58,17 +58,20 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
 
           await storeInstallationId(state, installationId)
 
-          // Trigger initial sync in background
+          // Fetch repository catalog in background (subscription-first model).
           const token = await getInstallationToken(instId)
           if (token) {
             const githubClient = new GitHubClient(token, state)
             githubClient
-              .performInitialSync()
+              .fetchAvailableRepos()
               .then((result) => {
-                log.info("Initial sync completed", { userId: state, ...result })
+                log.info("Repository catalog sync completed", {
+                  userId: state,
+                  repos: result.data.length,
+                })
               })
               .catch((err) => {
-                log.error("Initial sync failed", err, { userId: state })
+                log.error("Repository catalog sync failed", err, { userId: state })
               })
           }
 

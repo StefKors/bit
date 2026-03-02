@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { getRouteHandler } from "@/lib/test-helpers"
 
-const mockPerformInitialSync = vi.fn().mockResolvedValue({ synced: true })
+const mockFetchAvailableRepos = vi.fn().mockResolvedValue({ data: [{ fullName: "owner/repo" }] })
 
 vi.mock("@/lib/instantAdmin", () => ({
   adminDb: {
@@ -37,7 +37,7 @@ vi.mock("@/lib/github-app", () => ({
 
 vi.mock("@/lib/github-client", () => ({
   GitHubClient: class MockGitHubClient {
-    performInitialSync = mockPerformInitialSync
+    fetchAvailableRepos = mockFetchAvailableRepos
   },
 }))
 
@@ -50,7 +50,7 @@ describe("GET /api/github/oauth/callback", () => {
     vi.stubEnv("GITHUB_APP_ID", "123")
     vi.stubEnv("GITHUB_APP_PRIVATE_KEY", "key")
     vi.resetModules()
-    mockPerformInitialSync.mockReset().mockResolvedValue({ synced: true })
+    mockFetchAvailableRepos.mockReset().mockResolvedValue({ data: [{ fullName: "owner/repo" }] })
   })
 
   it("redirects with error when installation error param present", async () => {

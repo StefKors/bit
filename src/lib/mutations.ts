@@ -119,6 +119,56 @@ export const syncWebhooksMutation = (userId: string) =>
     mutationFn: () => postSync("/api/github/sync/webhooks", userId),
   })
 
+export type RepoSubscriptionResponse = SyncResponse & {
+  success?: boolean
+  repoFullName?: string
+  pullRequests?: number
+  webhookStatus?: string
+  deletedHooks?: number
+}
+
+export const subscribeRepoMutation = (userId: string) =>
+  mutationOptions({
+    mutationKey: ["repos", "subscribe"],
+    mutationFn: async (vars: { repoFullName: string }): Promise<RepoSubscriptionResponse> => {
+      const res = await fetch("/api/github/subscribe", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as RepoSubscriptionResponse
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to subscribe repository")
+      }
+      return data
+    },
+  })
+
+export const unsubscribeRepoMutation = (userId: string) =>
+  mutationOptions({
+    mutationKey: ["repos", "unsubscribe"],
+    mutationFn: async (vars: { repoFullName: string }): Promise<RepoSubscriptionResponse> => {
+      const res = await fetch("/api/github/unsubscribe", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userId}`,
+        },
+        body: JSON.stringify(vars),
+      })
+      const data = (await res.json()) as RepoSubscriptionResponse
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to unsubscribe repository")
+      }
+      return data
+    },
+  })
+
 export type AddRepoResponse = SyncResponse & {
   details?: string
   owner?: string

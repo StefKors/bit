@@ -230,6 +230,32 @@ export const dispatchWebhookEvent = async (
 
   logWebhookPath("dispatch event", 0, { deliveryId, event, action })
 
+  const repoFullName =
+    typeof payload === "object" && payload !== null && "repository" in payload
+      ? (
+          payload as {
+            repository?: { full_name?: string }
+          }
+        ).repository?.full_name
+      : undefined
+
+  if (repoFullName) {
+    const { repos } = await db.query({
+      repos: {
+        $: { where: { fullName: repoFullName, subscribed: true }, limit: 1 },
+      },
+    })
+    if (!repos?.[0]) {
+      logWebhookPath("skip event: repo is not subscribed", 1, {
+        deliveryId,
+        event,
+        action,
+        repo: repoFullName,
+      })
+      return
+    }
+  }
+
   if (isExtendedWebhookEvent(event)) {
     logWebhookPath("route -> handleExtendedWebhook", 1, { deliveryId, event, action })
     logWebhookHandler(event, "handleExtendedWebhook", ["prEvents", "prComments"], {

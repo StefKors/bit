@@ -124,6 +124,38 @@
   padding: 0.75rem 1rem;
 }
 
+.subscriptionPicker {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.repoSelect {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.625rem;
+  border-radius: var(--bit-radius-md);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.12);
+  background: rgba(var(--bit-rgb-fg), 0.03);
+  color: var(--bit-color-fg);
+}
+
+.repoPanelHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.repoSelectCompact {
+  width: 160px;
+  padding: 0.35rem 0.45rem;
+  border-radius: var(--bit-radius-md);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.12);
+  background: rgba(var(--bit-rgb-fg), 0.03);
+  color: var(--bit-color-fg);
+  font-size: 0.75rem;
+}
+
 /* Left sidebar */
 .leftCol {
   display: flex;
