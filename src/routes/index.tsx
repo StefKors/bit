@@ -80,7 +80,10 @@ function DashboardPage() {
   const subscribedRepos = repos.filter((repo) => repo.subscribed === true)
   const availableRepos = repos.filter((repo) => repo.subscribed !== true)
   const availableRepoNames = useMemo(
-    () => availableRepos.map((repo) => repo.fullName).sort((a, b) => a.localeCompare(b)),
+    () =>
+      availableRepos
+        .map((repo) => repo.fullName)
+        .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })),
     [availableRepos],
   )
   const userSettingsRecord = data?.userSettings?.[0] ?? null
