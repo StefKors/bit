@@ -668,6 +668,58 @@
   color: rgba(var(--bit-rgb-fg), 0.45);
 }
 
+.unsubscribedDetails {
+  margin-top: 0.75rem;
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  border-radius: var(--bit-radius-lg);
+}
+
+.unsubscribedSummary {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.unsubscribedSummary::-webkit-details-marker {
+  display: none;
+}
+
+.unsubscribedSummary::before {
+  content: "▸ ";
+}
+
+.unsubscribedDetails[open] > .unsubscribedSummary::before {
+  content: "▾ ";
+}
+
+.unsubscribedList {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.06);
+}
+
+.unsubscribedRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+.unsubscribedRow + .unsubscribedRow {
+  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.04);
+}
+
+.unsubscribedName {
+  font-size: 0.8rem;
+  font-family: var(--bit-font-mono);
+  color: rgba(var(--bit-rgb-fg), 0.6);
+}
+
 @media (max-width: 768px) {
   .layout {
     flex-direction: column;

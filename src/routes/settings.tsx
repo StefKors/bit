@@ -525,6 +525,7 @@ interface RepoWebhookInfo {
 
 const SubscriptionsSection = ({ userId }: { userId: string }) => {
   const [repos, setRepos] = useState<RepoWebhookInfo[]>([])
+  const [reposWithoutWebhooks, setReposWithoutWebhooks] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -538,9 +539,14 @@ const SubscriptionsSection = ({ userId }: { userId: string }) => {
       const res = await fetch("/api/github/webhooks", {
         headers: { Authorization: `Bearer ${userId}` },
       })
-      const data = (await res.json()) as { repos?: RepoWebhookInfo[]; error?: string }
+      const data = (await res.json()) as {
+        repos?: RepoWebhookInfo[]
+        reposWithoutWebhooks?: string[]
+        error?: string
+      }
       if (!res.ok) throw new Error(data.error || "Failed to load webhooks")
       setRepos(data.repos ?? [])
+      setReposWithoutWebhooks(data.reposWithoutWebhooks ?? [])
       setLoaded(true)
     } catch (err) {
       setFetchError(err instanceof Error ? err.message : "Failed to load")
@@ -640,6 +646,23 @@ const SubscriptionsSection = ({ userId }: { userId: string }) => {
               ))}
             </div>
           </>
+        )}
+
+        {loaded && reposWithoutWebhooks.length > 0 && (
+          <details className={styles.unsubscribedDetails}>
+            <summary className={styles.unsubscribedSummary}>
+              {reposWithoutWebhooks.length} {reposWithoutWebhooks.length === 1 ? "repo" : "repos"}{" "}
+              without webhooks
+            </summary>
+            <div className={styles.unsubscribedList}>
+              {reposWithoutWebhooks.map((name) => (
+                <div key={name} className={styles.unsubscribedRow}>
+                  <RepoIcon size={14} />
+                  <span className={styles.unsubscribedName}>{name}</span>
+                </div>
+              ))}
+            </div>
+          </details>
         )}
       </div>
     </>

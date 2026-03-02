@@ -42,26 +42,35 @@ export const Route = createFileRoute("/api/github/webhooks")({
           repos: { $: { where: { userId } } },
         })
 
-        const tracked = (repos ?? []).filter(
+        const allRepos = repos ?? []
+        const withWebhooks = allRepos.filter(
           (r) => r.webhookStatus === "installed" || r.webhookStatus === "error",
         )
+        const withoutWebhooks = allRepos
+          .filter((r) => r.webhookStatus !== "installed" && r.webhookStatus !== "error")
+          .map((r) => r.fullName)
+          .sort()
 
-        const results: RepoWebhookInfo[] = await mapWithConcurrency(tracked, 5, async (repo) => {
-          const parts = repo.fullName.split("/")
-          if (parts.length !== 2) {
-            return { repoFullName: repo.fullName, webhooks: [], error: "Invalid repo name" }
-          }
-          const [owner, repoName] = parts
-          try {
-            const webhooks = await client.listRepoWebhooks(owner, repoName)
-            return { repoFullName: repo.fullName, webhooks }
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : "Failed to list webhooks"
-            return { repoFullName: repo.fullName, webhooks: [], error: msg }
-          }
-        })
+        const results: RepoWebhookInfo[] = await mapWithConcurrency(
+          withWebhooks,
+          5,
+          async (repo) => {
+            const parts = repo.fullName.split("/")
+            if (parts.length !== 2) {
+              return { repoFullName: repo.fullName, webhooks: [], error: "Invalid repo name" }
+            }
+            const [owner, repoName] = parts
+            try {
+              const webhooks = await client.listRepoWebhooks(owner, repoName)
+              return { repoFullName: repo.fullName, webhooks }
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : "Failed to list webhooks"
+              return { repoFullName: repo.fullName, webhooks: [], error: msg }
+            }
+          },
+        )
 
-        return jsonResponse({ repos: results })
+        return jsonResponse({ repos: results, reposWithoutWebhooks: withoutWebhooks })
       },
 
       DELETE: async ({ request }) => {
