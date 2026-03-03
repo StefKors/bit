@@ -67,6 +67,12 @@
   gap: 0.25rem 1.5rem;
 }
 
+.actionsRow {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
 @media (max-width: 600px) {
   .stepsGrid {
     grid-template-columns: 1fr;

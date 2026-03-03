@@ -218,6 +218,18 @@ export const InitialSyncCard = ({
         />
       </div>
 
+      <div className={styles.actionsRow}>
+        <Button
+          variant="invisible"
+          size="small"
+          onClick={() => {
+            onResetSync("initial_sync")
+          }}
+        >
+          Clear setup state
+        </Button>
+      </div>
+
       {hasErrors && (
         <div className={styles.errorsSection}>
           <button

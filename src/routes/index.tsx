@@ -89,8 +89,7 @@ function DashboardPage() {
   const userSettingsRecord = data?.userSettings?.[0] ?? null
   const initialSyncState = syncStates.find((s) => s.resourceType === "initial_sync")
   const initialSyncProgress = parseInitialSyncProgress(initialSyncState?.lastEtag)
-  const isInitialSyncComplete = initialSyncState?.syncStatus === "completed"
-  const isInitialSyncing = isGitHubConnected && !isInitialSyncComplete
+  const isInitialSyncing = isGitHubConnected && initialSyncState?.syncStatus === "syncing"
 
   const overviewSyncState = syncStates.find((s) => s.resourceType === "overview")
   const isSyncing = overviewSyncState?.syncStatus === "syncing"
