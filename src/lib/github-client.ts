@@ -2386,6 +2386,29 @@ export class GitHubClient {
     }
   }
 
+  async listOrgWebhooks(org: string): Promise<
+    Array<{
+      id: number
+      url: string
+      active: boolean
+      events: string[]
+      isOurs: boolean
+    }>
+  > {
+    const webhookConfig = getWebhookRegistrationConfig()
+    const hooks = await this.octokit.paginate(this.octokit.rest.orgs.listWebhooks, {
+      org,
+      per_page: 100,
+    })
+    return hooks.map((hook) => ({
+      id: hook.id,
+      url: hook.config.url ?? "",
+      active: hook.active,
+      events: hook.events,
+      isOurs: Boolean(webhookConfig.webhookUrl && hook.config.url === webhookConfig.webhookUrl),
+    }))
+  }
+
   async listRepoWebhooks(
     owner: string,
     repo: string,

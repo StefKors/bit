@@ -17,6 +17,7 @@ import { Route as OwnerRepoIndexRouteImport } from './routes/$owner/$repo/index'
 import { Route as ApiGithubWebhooksRouteImport } from './routes/api/github/webhooks'
 import { Route as ApiGithubWebhookQueueRouteImport } from './routes/api/github/webhook-queue'
 import { Route as ApiGithubWebhookProcessRouteImport } from './routes/api/github/webhook-process'
+import { Route as ApiGithubWebhookLevelsRouteImport } from './routes/api/github/webhook-levels'
 import { Route as ApiGithubWebhookHealthRouteImport } from './routes/api/github/webhook-health'
 import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
 import { Route as ApiGithubUnsubscribeRouteImport } from './routes/api/github/unsubscribe'
@@ -100,6 +101,11 @@ const ApiGithubWebhookQueueRoute = ApiGithubWebhookQueueRouteImport.update({
 const ApiGithubWebhookProcessRoute = ApiGithubWebhookProcessRouteImport.update({
   id: '/api/github/webhook-process',
   path: '/api/github/webhook-process',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubWebhookLevelsRoute = ApiGithubWebhookLevelsRouteImport.update({
+  id: '/api/github/webhook-levels',
+  path: '/api/github/webhook-levels',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubWebhookHealthRoute = ApiGithubWebhookHealthRouteImport.update({
@@ -361,6 +367,7 @@ export interface FileRoutesByFullPath {
   '/api/github/unsubscribe': typeof ApiGithubUnsubscribeRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/api/github/webhook-health': typeof ApiGithubWebhookHealthRoute
+  '/api/github/webhook-levels': typeof ApiGithubWebhookLevelsRoute
   '/api/github/webhook-process': typeof ApiGithubWebhookProcessRoute
   '/api/github/webhook-queue': typeof ApiGithubWebhookQueueRoute
   '/api/github/webhooks': typeof ApiGithubWebhooksRoute
@@ -415,6 +422,7 @@ export interface FileRoutesByTo {
   '/api/github/unsubscribe': typeof ApiGithubUnsubscribeRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/api/github/webhook-health': typeof ApiGithubWebhookHealthRoute
+  '/api/github/webhook-levels': typeof ApiGithubWebhookLevelsRoute
   '/api/github/webhook-process': typeof ApiGithubWebhookProcessRoute
   '/api/github/webhook-queue': typeof ApiGithubWebhookQueueRoute
   '/api/github/webhooks': typeof ApiGithubWebhooksRoute
@@ -470,6 +478,7 @@ export interface FileRoutesById {
   '/api/github/unsubscribe': typeof ApiGithubUnsubscribeRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/api/github/webhook-health': typeof ApiGithubWebhookHealthRoute
+  '/api/github/webhook-levels': typeof ApiGithubWebhookLevelsRoute
   '/api/github/webhook-process': typeof ApiGithubWebhookProcessRoute
   '/api/github/webhook-queue': typeof ApiGithubWebhookQueueRoute
   '/api/github/webhooks': typeof ApiGithubWebhooksRoute
@@ -526,6 +535,7 @@ export interface FileRouteTypes {
     | '/api/github/unsubscribe'
     | '/api/github/webhook'
     | '/api/github/webhook-health'
+    | '/api/github/webhook-levels'
     | '/api/github/webhook-process'
     | '/api/github/webhook-queue'
     | '/api/github/webhooks'
@@ -580,6 +590,7 @@ export interface FileRouteTypes {
     | '/api/github/unsubscribe'
     | '/api/github/webhook'
     | '/api/github/webhook-health'
+    | '/api/github/webhook-levels'
     | '/api/github/webhook-process'
     | '/api/github/webhook-queue'
     | '/api/github/webhooks'
@@ -634,6 +645,7 @@ export interface FileRouteTypes {
     | '/api/github/unsubscribe'
     | '/api/github/webhook'
     | '/api/github/webhook-health'
+    | '/api/github/webhook-levels'
     | '/api/github/webhook-process'
     | '/api/github/webhook-queue'
     | '/api/github/webhooks'
@@ -689,6 +701,7 @@ export interface RootRouteChildren {
   ApiGithubUnsubscribeRoute: typeof ApiGithubUnsubscribeRoute
   ApiGithubWebhookRoute: typeof ApiGithubWebhookRoute
   ApiGithubWebhookHealthRoute: typeof ApiGithubWebhookHealthRoute
+  ApiGithubWebhookLevelsRoute: typeof ApiGithubWebhookLevelsRoute
   ApiGithubWebhookProcessRoute: typeof ApiGithubWebhookProcessRoute
   ApiGithubWebhookQueueRoute: typeof ApiGithubWebhookQueueRoute
   ApiGithubWebhooksRoute: typeof ApiGithubWebhooksRoute
@@ -780,6 +793,13 @@ declare module '@tanstack/react-router' {
       path: '/api/github/webhook-process'
       fullPath: '/api/github/webhook-process'
       preLoaderRoute: typeof ApiGithubWebhookProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/webhook-levels': {
+      id: '/api/github/webhook-levels'
+      path: '/api/github/webhook-levels'
+      fullPath: '/api/github/webhook-levels'
+      preLoaderRoute: typeof ApiGithubWebhookLevelsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/webhook-health': {
@@ -1142,6 +1162,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGithubUnsubscribeRoute: ApiGithubUnsubscribeRoute,
   ApiGithubWebhookRoute: ApiGithubWebhookRoute,
   ApiGithubWebhookHealthRoute: ApiGithubWebhookHealthRoute,
+  ApiGithubWebhookLevelsRoute: ApiGithubWebhookLevelsRoute,
   ApiGithubWebhookProcessRoute: ApiGithubWebhookProcessRoute,
   ApiGithubWebhookQueueRoute: ApiGithubWebhookQueueRoute,
   ApiGithubWebhooksRoute: ApiGithubWebhooksRoute,

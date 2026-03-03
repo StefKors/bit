@@ -32,7 +32,7 @@ import { getPRLayoutMode, setPRLayoutMode, type PRLayoutMode } from "@/lib/pr-la
 import { Button } from "@/components/Button"
 import { Avatar } from "@/components/Avatar"
 import { SyncManagement } from "@/components/SyncManagement"
-import { WebhookManagement } from "@/features/overview"
+import { WebhookLevelCard, WebhookManagement } from "@/features/overview"
 import styles from "@/pages/SettingsPage.module.css"
 
 type WebhookSyncMode = "minimal" | "full" | "full-force"
@@ -748,6 +748,12 @@ const WebhooksSection = ({
 
   return (
     <>
+      {isGitHubConnected && (
+        <section className={styles.section}>
+          <WebhookLevelCard userId={userId} />
+        </section>
+      )}
+
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Event filters</h2>
         <div className={styles.card}>
