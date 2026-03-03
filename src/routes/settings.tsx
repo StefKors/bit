@@ -73,6 +73,53 @@ const AI_MODEL_OPTIONS = CEREBRAS_MODELS.map((m) => ({
   description: m.description,
 }))
 
+const WEBHOOK_EVENT_GROUPS: { label: string; events: { id: string; label: string }[] }[] = [
+  {
+    label: "Repository",
+    events: [
+      { id: "push", label: "Push" },
+      { id: "create", label: "Create (branch/tag)" },
+      { id: "delete", label: "Delete (branch/tag)" },
+      { id: "fork", label: "Fork" },
+      { id: "repository", label: "Repository" },
+      { id: "star", label: "Star" },
+    ],
+  },
+  {
+    label: "Pull requests",
+    events: [
+      { id: "pull_request", label: "Pull request" },
+      { id: "pull_request_review", label: "PR review" },
+      { id: "pull_request_review_comment", label: "PR review comment" },
+      { id: "issue_comment", label: "Issue comment (PR)" },
+    ],
+  },
+  {
+    label: "Issues",
+    events: [{ id: "issues", label: "Issues" }],
+  },
+  {
+    label: "CI/CD",
+    events: [
+      { id: "check_run", label: "Check run" },
+      { id: "check_suite", label: "Check suite" },
+      { id: "status", label: "Commit status" },
+      { id: "workflow_run", label: "Workflow run" },
+      { id: "workflow_job", label: "Workflow job" },
+    ],
+  },
+  {
+    label: "Organization",
+    events: [{ id: "organization", label: "Organization" }],
+  },
+  {
+    label: "Other",
+    events: [{ id: "extended", label: "Extended (deployment, release, security, etc.)" }],
+  },
+]
+
+const ALL_WEBHOOK_EVENT_IDS = WEBHOOK_EVENT_GROUPS.flatMap((g) => g.events.map((e) => e.id))
+
 const GITHUB_APP_SLUG = "bit-backend"
 const GITHUB_APP_INSTALLATIONS_URL = "https://github.com/settings/installations"
 
@@ -134,6 +181,20 @@ function SettingsPage() {
   const currentAiEnabled = userSettingsRecord?.aiEnabled !== false
   const currentAiModel = (userSettingsRecord?.aiModel as string) || DEFAULT_MODEL
   const webhookLogsEnabled = userSettingsRecord?.webhookLogsEnabled !== false
+
+  const webhookEventsEnabled = (() => {
+    const raw = userSettingsRecord?.webhookEventsEnabled
+    if (!raw || typeof raw !== "string") return null
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- JSON.parse returns any; we validate below
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) return null
+      const set = new Set((parsed as string[]).filter((x): x is string => typeof x === "string"))
+      return set.size > 0 ? set : null
+    } catch {
+      return null
+    }
+  })()
 
   const installationState = syncStates.find((s) => s.resourceType === "github:installation")
   const isGitHubConnected = Boolean(installationState)
@@ -211,6 +272,12 @@ function SettingsPage() {
             currentSyncMode={currentSyncMode}
             onSyncModeChange={(mode) => {
               updateSettings({ webhookPrSyncBehavior: mode })
+            }}
+            webhookEventsEnabled={webhookEventsEnabled}
+            onEventsChange={(enabled) => {
+              updateSettings({
+                webhookEventsEnabled: enabled === null ? undefined : JSON.stringify([...enabled]),
+              })
             }}
             isGitHubConnected={isGitHubConnected}
             syncStates={syncStates as SyncStateItem[]}
@@ -635,6 +702,8 @@ interface RepoItem {
 interface WebhooksSectionProps {
   currentSyncMode: WebhookSyncMode
   onSyncModeChange: (mode: WebhookSyncMode) => void
+  webhookEventsEnabled: Set<string> | null
+  onEventsChange: (enabled: Set<string> | null) => void
   isGitHubConnected: boolean
   syncStates: SyncStateItem[]
   repos: RepoItem[]
@@ -648,6 +717,8 @@ interface WebhooksSectionProps {
 const WebhooksSection = ({
   currentSyncMode,
   onSyncModeChange,
+  webhookEventsEnabled,
+  onEventsChange,
   isGitHubConnected,
   syncStates,
   repos,
@@ -656,87 +727,162 @@ const WebhooksSection = ({
   onOverviewSync,
   onResetSync,
   onRetrySync,
-}: WebhooksSectionProps) => (
-  <>
-    <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>Sync Behavior</h2>
-      <div className={styles.card}>
-        <div className={styles.preferenceInfo}>
-          <span className={styles.preferenceLabel}>PR detail sync mode</span>
-          <p className={styles.preferenceDescription}>
-            Controls how much data is fetched when GitHub webhook events arrive for pull requests.
+}: WebhooksSectionProps) => {
+  const enabledSet = webhookEventsEnabled ?? new Set(ALL_WEBHOOK_EVENT_IDS)
+  const isEventEnabled = (id: string) => enabledSet.has(id)
+  const toggleEvent = (id: string) => {
+    const next = new Set(enabledSet)
+    if (next.has(id)) {
+      next.delete(id)
+    } else {
+      next.add(id)
+    }
+    onEventsChange(next.size === ALL_WEBHOOK_EVENT_IDS.length ? null : next)
+  }
+  const enableAll = () => {
+    onEventsChange(null)
+  }
+  const disableAll = () => {
+    onEventsChange(new Set())
+  }
+
+  return (
+    <>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Event filters</h2>
+        <div className={styles.card}>
+          <div className={styles.preferenceInfo}>
+            <span className={styles.preferenceLabel}>Webhook events to process</span>
+            <p className={styles.preferenceDescription}>
+              Choose which GitHub webhook events to process. Disabled events are still received but
+              skipped, reducing queue load and processing.
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem" }}>
+            <Button variant="default" size="small" onClick={enableAll}>
+              Enable all
+            </Button>
+            <Button variant="default" size="small" onClick={disableAll}>
+              Disable all
+            </Button>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {WEBHOOK_EVENT_GROUPS.map((group) => (
+              <div key={group.label}>
+                <div className={styles.preferenceLabel} style={{ marginBottom: "0.5rem" }}>
+                  {group.label}
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem 1rem" }}>
+                  {group.events.map((ev) => (
+                    <label
+                      key={ev.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.375rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isEventEnabled(ev.id)}
+                        onChange={() => {
+                          toggleEvent(ev.id)
+                        }}
+                      />
+                      <span>{ev.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className={styles.preferenceHint}>
+            Changes take effect immediately for incoming webhooks.
           </p>
         </div>
-        <div className={styles.radioGroup} style={{ marginTop: "0.75rem" }}>
-          {SYNC_MODE_OPTIONS.map((option) => (
-            <label
-              key={option.value}
-              className={`${styles.radioOption} ${currentSyncMode === option.value ? styles.radioOptionSelected : ""}`}
-            >
-              <input
-                type="radio"
-                name="webhookSyncMode"
-                className={styles.radioInput}
-                value={option.value}
-                checked={currentSyncMode === option.value}
-                onChange={() => {
-                  onSyncModeChange(option.value)
-                }}
-              />
-              <div className={styles.radioContent}>
-                <span className={styles.radioLabel}>{option.label}</span>
-                <p className={styles.radioDescription}>{option.description}</p>
-              </div>
-            </label>
-          ))}
-        </div>
-        <p className={styles.preferenceHint}>
-          Changes take effect immediately for incoming webhooks.
-        </p>
-      </div>
-    </section>
+      </section>
 
-    {isGitHubConnected && (
-      <>
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Queue</h2>
-          <WebhookQueueCard />
-        </section>
-
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Debug</h2>
-          <div className={styles.card}>
-            <div className={styles.preferenceRow}>
-              <div className={styles.preferenceInfo}>
-                <span className={styles.preferenceLabel}>Sync Overview</span>
-                <p className={styles.preferenceDescription}>
-                  Manually trigger a full overview sync (repos, orgs, PRs).
-                </p>
-              </div>
-              <Button
-                variant="default"
-                size="small"
-                leadingIcon={<SyncIcon size={14} />}
-                loading={overviewSyncPending}
-                onClick={onOverviewSync}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Sync Behavior</h2>
+        <div className={styles.card}>
+          <div className={styles.preferenceInfo}>
+            <span className={styles.preferenceLabel}>PR detail sync mode</span>
+            <p className={styles.preferenceDescription}>
+              Controls how much data is fetched when GitHub webhook events arrive for pull requests.
+            </p>
+          </div>
+          <div className={styles.radioGroup} style={{ marginTop: "0.75rem" }}>
+            {SYNC_MODE_OPTIONS.map((option) => (
+              <label
+                key={option.value}
+                className={`${styles.radioOption} ${currentSyncMode === option.value ? styles.radioOptionSelected : ""}`}
               >
-                Sync
-              </Button>
+                <input
+                  type="radio"
+                  name="webhookSyncMode"
+                  className={styles.radioInput}
+                  value={option.value}
+                  checked={currentSyncMode === option.value}
+                  onChange={() => {
+                    onSyncModeChange(option.value)
+                  }}
+                />
+                <div className={styles.radioContent}>
+                  <span className={styles.radioLabel}>{option.label}</span>
+                  <p className={styles.radioDescription}>{option.description}</p>
+                </div>
+              </label>
+            ))}
+          </div>
+          <p className={styles.preferenceHint}>
+            Changes take effect immediately for incoming webhooks.
+          </p>
+        </div>
+      </section>
+
+      {isGitHubConnected && (
+        <>
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Queue</h2>
+            <WebhookQueueCard />
+          </section>
+
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Debug</h2>
+            <div className={styles.card}>
+              <div className={styles.preferenceRow}>
+                <div className={styles.preferenceInfo}>
+                  <span className={styles.preferenceLabel}>Sync Overview</span>
+                  <p className={styles.preferenceDescription}>
+                    Manually trigger a full overview sync (repos, orgs, PRs).
+                  </p>
+                </div>
+                <Button
+                  variant="default"
+                  size="small"
+                  leadingIcon={<SyncIcon size={14} />}
+                  loading={overviewSyncPending}
+                  onClick={onOverviewSync}
+                >
+                  Sync
+                </Button>
+              </div>
             </div>
-          </div>
-          <SyncManagement
-            syncStates={syncStates}
-            onResetSync={onResetSync}
-            onRetrySync={onRetrySync}
-          />
-          <div style={{ marginTop: "0.75rem" }}>
-            <WebhookManagement repos={repos} userId={userId} />
-          </div>
-        </section>
-      </>
-    )}
-  </>
-)
+            <SyncManagement
+              syncStates={syncStates}
+              onResetSync={onResetSync}
+              onRetrySync={onRetrySync}
+            />
+            <div style={{ marginTop: "0.75rem" }}>
+              <WebhookManagement repos={repos} userId={userId} />
+            </div>
+          </section>
+        </>
+      )}
+    </>
+  )
+}
 
 /* ------------------------------------------------------------------ */
 /*  Interface Section                                                  */

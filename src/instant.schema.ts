@@ -428,6 +428,8 @@ export const schema = i.schema({
       // When false, processed webhook queue items and delivery records are
       // deleted immediately instead of kept for debugging.
       webhookLogsEnabled: i.boolean().optional(),
+      // JSON array of enabled webhook event names. When undefined = all enabled.
+      webhookEventsEnabled: i.string().optional(),
       // AI feature settings (Cerebras)
       aiEnabled: i.boolean().optional(),
       aiModel: i.string().optional(),

@@ -16,7 +16,7 @@ import {
   handleIssueCommentWebhook,
   handleExtendedWebhook,
 } from "./index"
-import { resolveWebhookLogsEnabled } from "./utils"
+import { resolveWebhookEventsEnabled, resolveWebhookLogsEnabled } from "./utils"
 import { handleCheckRunWebhook, handleCheckSuiteWebhook } from "./ci-cd"
 import { handleStatusWebhook } from "./ci-cd"
 import { handleWorkflowRunWebhook, handleWorkflowJobWebhook } from "./ci-cd"
@@ -252,6 +252,16 @@ export const dispatchWebhookEvent = async (
         action,
         repo: repoFullName,
       })
+      return
+    }
+  }
+
+  const enabledEvents = await resolveWebhookEventsEnabled(db)
+  if (enabledEvents !== null && event !== "ping") {
+    const allowed =
+      enabledEvents.has(event) || (isExtendedWebhookEvent(event) && enabledEvents.has("extended"))
+    if (!allowed) {
+      logWebhookPath("skip event: disabled by filter", 1, { deliveryId, event, action })
       return
     }
   }

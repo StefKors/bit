@@ -305,6 +305,30 @@ export async function resolveWebhookLogsEnabled(db: WebhookDB): Promise<boolean>
 }
 
 /**
+ * Resolve which webhook events are enabled for processing.
+ * Uses the first userSettings record that has webhookEventsEnabled set.
+ * Returns null = all events enabled; otherwise Set of enabled event names.
+ */
+export async function resolveWebhookEventsEnabled(db: WebhookDB): Promise<Set<string> | null> {
+  const { userSettings } = await db.query({
+    userSettings: { $: { limit: 10 } },
+  })
+  const record = userSettings?.find(
+    (s) => s.webhookEventsEnabled != null && s.webhookEventsEnabled !== "",
+  )
+  if (!record?.webhookEventsEnabled) return null
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- JSON.parse returns any; we validate below
+    const arr = JSON.parse(record.webhookEventsEnabled)
+    if (!Array.isArray(arr)) return null
+    const set = new Set((arr as string[]).filter((x): x is string => typeof x === "string"))
+    return set.size > 0 ? set : null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Resolve the webhook PR sync behavior mode for a given user.
  * Falls back to "full" when no setting exists.
  */
