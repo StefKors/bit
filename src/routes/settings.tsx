@@ -32,6 +32,7 @@ import { getPRLayoutMode, setPRLayoutMode, type PRLayoutMode } from "@/lib/pr-la
 import { Button } from "@/components/Button"
 import { Avatar } from "@/components/Avatar"
 import { SyncManagement } from "@/components/SyncManagement"
+import { parseWebhookEventsEnabled } from "@/lib/webhook-event-filters"
 import { WebhookLevelCard, WebhookManagement } from "@/features/overview"
 import styles from "@/pages/SettingsPage.module.css"
 
@@ -182,19 +183,7 @@ function SettingsPage() {
   const currentAiModel = (userSettingsRecord?.aiModel as string) || DEFAULT_MODEL
   const webhookLogsEnabled = userSettingsRecord?.webhookLogsEnabled !== false
 
-  const webhookEventsEnabled = (() => {
-    const raw = userSettingsRecord?.webhookEventsEnabled
-    if (!raw || typeof raw !== "string") return null
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- JSON.parse returns any; we validate below
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) return null
-      const set = new Set((parsed as string[]).filter((x): x is string => typeof x === "string"))
-      return set.size > 0 ? set : null
-    } catch {
-      return null
-    }
-  })()
+  const webhookEventsEnabled = parseWebhookEventsEnabled(userSettingsRecord?.webhookEventsEnabled)
 
   const installationState = syncStates.find((s) => s.resourceType === "github:installation")
   const isGitHubConnected = Boolean(installationState)

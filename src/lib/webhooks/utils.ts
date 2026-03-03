@@ -1,6 +1,7 @@
 import { id } from "@instantdb/admin"
 import { createGitHubClient } from "@/lib/github-client"
 import { log } from "@/lib/logger"
+import { parseWebhookEventsEnabled } from "@/lib/webhook-event-filters"
 import { logWebhookPath } from "./logging"
 import type { PullRequest, RepoRecord, Repository, PRRecord, User, WebhookDB } from "./types"
 
@@ -307,7 +308,7 @@ export async function resolveWebhookLogsEnabled(db: WebhookDB): Promise<boolean>
 /**
  * Resolve which webhook events are enabled for processing.
  * Uses the first userSettings record that has webhookEventsEnabled set.
- * Returns null = all events enabled; otherwise Set of enabled event names.
+ * Returns null = all events enabled; empty Set = none enabled; non-empty Set = those enabled.
  */
 export async function resolveWebhookEventsEnabled(db: WebhookDB): Promise<Set<string> | null> {
   const { userSettings } = await db.query({
@@ -316,16 +317,7 @@ export async function resolveWebhookEventsEnabled(db: WebhookDB): Promise<Set<st
   const record = userSettings?.find(
     (s) => s.webhookEventsEnabled != null && s.webhookEventsEnabled !== "",
   )
-  if (!record?.webhookEventsEnabled) return null
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- JSON.parse returns any; we validate below
-    const arr = JSON.parse(record.webhookEventsEnabled)
-    if (!Array.isArray(arr)) return null
-    const set = new Set((arr as string[]).filter((x): x is string => typeof x === "string"))
-    return set.size > 0 ? set : null
-  } catch {
-    return null
-  }
+  return parseWebhookEventsEnabled(record?.webhookEventsEnabled)
 }
 
 /**
