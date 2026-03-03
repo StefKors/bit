@@ -59,6 +59,11 @@
  *   - Supports partial matching for types ending with "/"
  *   - Default: text/,application/javascript,application/json,application/xml,image/svg+xml
  *
+ * WEBHOOK_PROCESS_INTERVAL_MS (number)
+ *   - Interval in ms between webhook queue drain runs (startup + periodic)
+ *   - Ensures queue drains after server restarts and when no webhooks arrive
+ *   - Default: 60000 (1 min). Set to 0 to disable periodic processing
+ *
  * Usage:
  *   bun run server.ts
  */
@@ -535,6 +540,32 @@ async function initializeServer() {
   })
 
   log.success(`Server listening on http://localhost:${String(server.port)}`)
+
+  // Webhook queue drain: startup + periodic, survives restarts
+  const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET
+  const adminToken = process.env.INSTANT_ADMIN_TOKEN
+  const intervalMs = Number(process.env.WEBHOOK_PROCESS_INTERVAL_MS ?? 60_000)
+
+  if (webhookSecret && adminToken && intervalMs > 0) {
+    const runProcessor = async () => {
+      try {
+        const { adminDb } = await import("./src/lib/instantAdmin")
+        const { triggerWebhookProcessor } = await import("./src/lib/webhooks/processor")
+        triggerWebhookProcessor(adminDb)
+      } catch (err) {
+        log.error(
+          `Webhook processor run failed: ${err instanceof Error ? err.message : String(err)}`,
+        )
+      }
+    }
+
+    // Run once after a short delay (let DB connections settle)
+    setTimeout(() => void runProcessor(), 2000)
+
+    // Periodic drain so queue clears after restarts and when no webhooks arrive
+    setInterval(() => void runProcessor(), intervalMs)
+    log.info(`Webhook queue drain: startup + every ${String(intervalMs / 1000)}s`)
+  }
 }
 
 // Initialize the server
