@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { RepoIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import styles from "./index.module.css"
 
@@ -147,10 +146,6 @@ function RepoPROverviewPage() {
         >
           ← Back
         </Link>
-        <h1 className={styles.title}>
-          <RepoIcon size={20} />
-          {repoData.fullName}
-        </h1>
       </header>
 
       <div className={styles.columns}>
