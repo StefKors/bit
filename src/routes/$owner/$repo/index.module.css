@@ -84,7 +84,9 @@
 }
 
 .prLink {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   color: var(--bit-color-text);
@@ -94,6 +96,15 @@
 
 .prLink:hover {
   background: rgba(var(--bit-rgb-surface-3), 0.5);
+}
+
+.prTitle {
+  font-weight: 500;
+}
+
+.prMeta {
+  font-size: 0.75rem;
+  color: var(--bit-color-muted);
 }
 
 .prEmpty {
