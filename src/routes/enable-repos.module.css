@@ -139,6 +139,19 @@
   color: var(--bit-color-heading);
 }
 
+.enabledBadge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--bit-color-accent-green);
+  background: rgba(var(--bit-rgb-accent-green), 0.15);
+  border-radius: var(--bit-radius-sm);
+}
+
 .repoDesc {
   font-size: 0.8125rem;
   color: var(--bit-color-muted);

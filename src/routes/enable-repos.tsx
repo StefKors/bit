@@ -17,6 +17,7 @@ function EnableReposPage() {
   const [hasFetchedOnce, setHasFetchedOnce] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [enabledNodeIds, setEnabledNodeIds] = useState<Set<string>>(new Set())
   const [enabling, setEnabling] = useState(false)
   const [enableError, setEnableError] = useState<string | null>(null)
 
@@ -34,9 +35,16 @@ function EnableReposPage() {
       const res = await fetch("/api/github/installation/repos", {
         headers: { Authorization: `Bearer ${refreshToken}` },
       })
-      const data = (await res.json()) as { repos?: InstallationRepo[]; error?: string }
+      const data = (await res.json()) as {
+        repos?: InstallationRepo[]
+        enabledNodeIds?: string[]
+        error?: string
+      }
       if (!res.ok) throw new Error(data.error ?? "Failed to fetch repos")
       setRepos(data.repos ?? [])
+      const enabled = new Set((data.enabledNodeIds ?? []).filter(Boolean))
+      setEnabledNodeIds(enabled)
+      setSelected((prev) => new Set([...prev, ...enabled]))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load repos")
       setRepos([])
@@ -62,9 +70,10 @@ function EnableReposPage() {
 
   const handleEnable = async () => {
     if (!refreshToken || selected.size === 0) return
+    const toEnable = repos.filter((r) => selected.has(r.nodeId) && !enabledNodeIds.has(r.nodeId))
+    if (toEnable.length === 0) return
     setEnabling(true)
     setEnableError(null)
-    const toEnable = repos.filter((r) => selected.has(r.nodeId))
     try {
       const res = await fetch("/api/github/repos/enable", {
         method: "POST",
@@ -154,6 +163,7 @@ function EnableReposPage() {
                   </button>
                   <span className={styles.count}>
                     {selected.size} of {repos.length} selected
+                    {enabledNodeIds.size > 0 && ` (${enabledNodeIds.size} already enabled)`}
                   </span>
                 </div>
                 <div className={styles.grid}>
@@ -162,6 +172,7 @@ function EnableReposPage() {
                       key={repo.nodeId}
                       repo={repo}
                       selected={selected.has(repo.nodeId)}
+                      enabled={enabledNodeIds.has(repo.nodeId)}
                       onToggle={() => {
                         toggleRepo(repo.nodeId)
                       }}
@@ -172,11 +183,15 @@ function EnableReposPage() {
                   <Button
                     variant="primary"
                     size="large"
-                    disabled={selected.size === 0 || enabling}
+                    disabled={
+                      enabling || [...selected].filter((id) => !enabledNodeIds.has(id)).length === 0
+                    }
                     loading={enabling}
                     onClick={() => void handleEnable()}
                   >
-                    Enable Bit on {selected.size} repo{selected.size !== 1 ? "s" : ""}
+                    Enable Bit on {[...selected].filter((id) => !enabledNodeIds.has(id)).length}{" "}
+                    repo
+                    {[...selected].filter((id) => !enabledNodeIds.has(id)).length !== 1 ? "s" : ""}
                   </Button>
                 </div>
               </>
@@ -202,10 +217,12 @@ function EnableReposPage() {
 const RepoCard = ({
   repo,
   selected,
+  enabled,
   onToggle,
 }: {
   repo: InstallationRepo
   selected: boolean
+  enabled: boolean
   onToggle: () => void
 }) => (
   <button
@@ -217,6 +234,7 @@ const RepoCard = ({
     <RepoIcon size={20} className={styles.repoIcon} />
     <div className={styles.repoInfo}>
       <span className={styles.repoName}>{repo.fullName}</span>
+      {enabled && <span className={styles.enabledBadge}>Enabled</span>}
       {repo.description && <p className={styles.repoDesc}>{repo.description}</p>}
       <div className={styles.repoMeta}>
         {repo.language && <span className={styles.meta}>{repo.language}</span>}

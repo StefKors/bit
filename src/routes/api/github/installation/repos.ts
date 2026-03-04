@@ -31,8 +31,18 @@ export const Route = createFileRoute("/api/github/installation/repos")({
         }
 
         try {
-          const repos = await listInstallationRepos(user.id)
-          return jsonResponse({ repos })
+          const [repos, { repos: userRepos }] = await Promise.all([
+            listInstallationRepos(user.id),
+            adminDb.query({
+              repos: {
+                $: {
+                  where: { "users.id": user.id },
+                },
+              },
+            }),
+          ])
+          const enabledNodeIds = (userRepos ?? []).map((r) => r.nodeId)
+          return jsonResponse({ repos, enabledNodeIds })
         } catch (err) {
           const msg = err instanceof Error ? err.message : "Failed to fetch repos"
           return jsonResponse({ error: msg }, 500)
