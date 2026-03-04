@@ -663,6 +663,176 @@
   margin: 0;
 }
 
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  padding-left: 28px;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--repo-border);
+}
+
+.timelineItem {
+  display: flex;
+  gap: 12px;
+  position: relative;
+  padding: 8px 0;
+}
+
+.timelineIcon {
+  position: absolute;
+  left: -28px;
+  top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bit-color-surface-2);
+  color: var(--repo-muted);
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.timelineCommit .timelineIcon {
+  color: rgba(var(--bit-rgb-accent-blue), 0.85);
+}
+
+.timelineReview .timelineIcon {
+  color: rgba(var(--bit-rgb-accent-purple), 0.85);
+}
+
+.timelineComment .timelineIcon {
+  color: rgba(var(--bit-rgb-accent-green), 0.85);
+}
+
+.timelineReviewComment .timelineIcon {
+  color: rgba(var(--bit-rgb-accent-orange), 0.85);
+}
+
+.timelineBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.timelineHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.timelineTime {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  color: var(--repo-muted);
+}
+
+.timelineAuthor {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--bit-color-text);
+}
+
+.timelineCommitVerb {
+  font-size: 0.75rem;
+  color: var(--repo-muted);
+}
+
+.timelineCommitInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.timelineReviewInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.timelineReviewCommentInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.timelineCommitMessage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  color: var(--bit-color-text);
+  line-height: 1.4;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.timelineCommitSha {
+  flex-shrink: 0;
+  font-family: var(--bit-font-mono, monospace);
+  font-size: 0.75rem;
+  padding: 1px 6px;
+  border-radius: var(--bit-radius-sm);
+  background: rgba(var(--bit-rgb-accent-blue), 0.1);
+  color: rgba(var(--bit-rgb-accent-blue), 0.9);
+  text-decoration: none;
+}
+
+.timelineCommitSha:hover {
+  background: rgba(var(--bit-rgb-accent-blue), 0.18);
+}
+
+.timelineCommitShaPlain {
+  flex-shrink: 0;
+  font-family: var(--bit-font-mono, monospace);
+  font-size: 0.75rem;
+  padding: 1px 6px;
+  border-radius: var(--bit-radius-sm);
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  color: var(--repo-muted);
+}
+
+.timelineContent {
+  font-size: 0.8125rem;
+  padding: 8px 12px;
+  border-radius: var(--bit-radius-md);
+  border: 1px solid var(--repo-border);
+  background: rgba(var(--bit-rgb-surface-2), 0.34);
+}
+
+.timelineFilePath {
+  font-family: var(--bit-font-mono, monospace);
+  font-size: 0.6875rem;
+  padding: 1px 6px;
+  border-radius: var(--bit-radius-sm);
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  color: var(--repo-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
 .mergeButton {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;

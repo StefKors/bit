@@ -3,6 +3,10 @@ import { useRef, useState } from "react"
 import { motion } from "motion/react"
 import {
   ChevronDownIcon,
+  CodeIcon,
+  CommentDiscussionIcon,
+  EyeIcon,
+  GitCommitIcon,
   GitMergeIcon,
   GitPullRequestClosedIcon,
   GitPullRequestDraftIcon,
@@ -11,6 +15,7 @@ import {
 } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { formatRelativeTime } from "@/lib/format"
+import { Avatar } from "@/components/Avatar"
 import { AuthorLabel } from "@/components/AuthorLabel"
 import { Markdown } from "@/components/Markdown"
 import { StatusBadge } from "@/components/StatusBadge"
@@ -22,16 +27,49 @@ import styles from "./index.module.css"
 
 interface PullRequestComment {
   id: string
+  githubId: number
   authorLogin: string
+  authorAvatarUrl: string | null
   body: string
-  updatedAt: string | number | null
+  htmlUrl: string | null
+  createdAt: number
+  updatedAt: number
 }
 
 interface PullRequestReview {
   id: string
+  githubId: number
   authorLogin: string
+  authorAvatarUrl: string | null
   state: string
-  updatedAt: string | number | null
+  body: string | null
+  htmlUrl: string | null
+  submittedAt: number | null
+  updatedAt: number
+}
+
+interface PullRequestReviewComment {
+  id: string
+  githubId: number
+  authorLogin: string
+  authorAvatarUrl: string | null
+  body: string | null
+  path: string | null
+  line: number | null
+  htmlUrl: string | null
+  createdAt: number
+  updatedAt: number
+}
+
+interface PullRequestCommit {
+  id: string
+  sha: string
+  message: string | null
+  messageShort: string | null
+  authorLogin: string | null
+  authorAvatarUrl: string | null
+  authoredAt: number | null
+  htmlUrl: string | null
 }
 
 interface PullRequestCheckRun {
@@ -41,6 +79,12 @@ interface PullRequestCheckRun {
   conclusion: string | null
   updatedAt: string | number | null
 }
+
+type TimelineItem =
+  | { type: "commit"; timestamp: number; data: PullRequestCommit }
+  | { type: "review"; timestamp: number; data: PullRequestReview }
+  | { type: "issue_comment"; timestamp: number; data: PullRequestComment }
+  | { type: "review_comment"; timestamp: number; data: PullRequestReviewComment }
 
 interface PullRequestCard {
   id: string
@@ -64,6 +108,8 @@ interface PullRequestCard {
   requestedReviewers: string[]
   issueComments: PullRequestComment[]
   pullRequestReviews: PullRequestReview[]
+  pullRequestReviewComments: PullRequestReviewComment[]
+  pullRequestCommits: PullRequestCommit[]
   checkRuns: PullRequestCheckRun[]
 }
 
@@ -247,10 +293,16 @@ function RepoPROverviewPage() {
       pullRequests: {
         $: { order: { updatedAt: "desc" } },
         issueComments: {
-          $: { order: { updatedAt: "desc" }, limit: 10 },
+          $: { order: { updatedAt: "desc" } },
         },
         pullRequestReviews: {
-          $: { order: { updatedAt: "desc" }, limit: 10 },
+          $: { order: { updatedAt: "desc" } },
+        },
+        pullRequestReviewComments: {
+          $: { order: { updatedAt: "desc" } },
+        },
+        pullRequestCommits: {
+          $: { order: { updatedAt: "desc" } },
         },
         checkRuns: {
           $: { order: { updatedAt: "desc" }, limit: 10 },
@@ -284,16 +336,49 @@ function RepoPROverviewPage() {
     issueComments:
       pr.issueComments?.map((comment) => ({
         id: comment.id,
+        githubId: comment.githubId ?? 0,
         authorLogin: comment.authorLogin ?? "unknown",
+        authorAvatarUrl: comment.authorAvatarUrl ?? null,
         body: comment.body ?? "",
-        updatedAt: comment.updatedAt ?? null,
+        htmlUrl: comment.htmlUrl ?? null,
+        createdAt: comment.createdAt ?? 0,
+        updatedAt: comment.updatedAt ?? 0,
       })) ?? [],
     pullRequestReviews:
       pr.pullRequestReviews?.map((review) => ({
         id: review.id,
+        githubId: review.githubId ?? 0,
         authorLogin: review.authorLogin ?? "unknown",
+        authorAvatarUrl: review.authorAvatarUrl ?? null,
         state: review.state ?? "COMMENTED",
-        updatedAt: review.updatedAt ?? null,
+        body: review.body ?? null,
+        htmlUrl: review.htmlUrl ?? null,
+        submittedAt: review.submittedAt ?? null,
+        updatedAt: review.updatedAt ?? 0,
+      })) ?? [],
+    pullRequestReviewComments:
+      pr.pullRequestReviewComments?.map((comment) => ({
+        id: comment.id,
+        githubId: comment.githubId ?? 0,
+        authorLogin: comment.authorLogin ?? "unknown",
+        authorAvatarUrl: comment.authorAvatarUrl ?? null,
+        body: comment.body ?? null,
+        path: comment.path ?? null,
+        line: comment.line ?? null,
+        htmlUrl: comment.htmlUrl ?? null,
+        createdAt: comment.createdAt ?? 0,
+        updatedAt: comment.updatedAt ?? 0,
+      })) ?? [],
+    pullRequestCommits:
+      pr.pullRequestCommits?.map((commit) => ({
+        id: commit.id,
+        sha: commit.sha ?? "",
+        message: commit.message ?? null,
+        messageShort: commit.messageShort ?? null,
+        authorLogin: commit.authorLogin ?? null,
+        authorAvatarUrl: commit.authorAvatarUrl ?? null,
+        authoredAt: commit.authoredAt ?? null,
+        htmlUrl: commit.htmlUrl ?? null,
       })) ?? [],
     checkRuns:
       pr.checkRuns?.map((check) => ({
@@ -624,7 +709,173 @@ function PRSelectionSection({
   )
 }
 
+const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
+  const items: TimelineItem[] = []
+
+  for (const commit of pr.pullRequestCommits) {
+    if (commit.authoredAt) {
+      items.push({ type: "commit", timestamp: commit.authoredAt, data: commit })
+    }
+  }
+
+  for (const review of pr.pullRequestReviews) {
+    const ts = review.submittedAt ?? review.updatedAt
+    if (ts) {
+      items.push({ type: "review", timestamp: ts, data: review })
+    }
+  }
+
+  for (const comment of pr.issueComments) {
+    items.push({
+      type: "issue_comment",
+      timestamp: comment.createdAt || comment.updatedAt,
+      data: comment,
+    })
+  }
+
+  for (const comment of pr.pullRequestReviewComments) {
+    items.push({
+      type: "review_comment",
+      timestamp: comment.createdAt || comment.updatedAt,
+      data: comment,
+    })
+  }
+
+  items.sort((a, b) => a.timestamp - b.timestamp)
+  return items
+}
+
+const getReviewBadgeVariant = (state: string): "open" | "closed" | "draft" => {
+  if (state === "APPROVED") return "open"
+  if (state === "CHANGES_REQUESTED") return "closed"
+  return "draft"
+}
+
+const getReviewIcon = (state: string): React.ReactNode => {
+  if (state === "APPROVED") return <EyeIcon size={12} />
+  if (state === "CHANGES_REQUESTED") return <EyeIcon size={12} />
+  return <CommentDiscussionIcon size={12} />
+}
+
+function TimelineCommitItem({ commit }: { commit: PullRequestCommit }) {
+  const shortSha = commit.sha.slice(0, 7)
+
+  return (
+    <div className={`${styles.timelineItem} ${styles.timelineCommit}`}>
+      <div className={styles.timelineIcon}>
+        <GitCommitIcon size={16} />
+      </div>
+      <div className={styles.timelineBody}>
+        <div className={styles.timelineHeader}>
+          <span className={styles.timelineCommitInfo}>
+            {commit.authorLogin && (
+              <Avatar src={commit.authorAvatarUrl} name={commit.authorLogin} size={16} />
+            )}
+            <span className={styles.timelineAuthor}>{commit.authorLogin ?? "unknown"}</span>
+            <span className={styles.timelineCommitVerb}>committed</span>
+          </span>
+          <time className={styles.timelineTime}>{formatRelativeTime(commit.authoredAt)}</time>
+        </div>
+        <span className={styles.timelineCommitMessage}>
+          {commit.htmlUrl ? (
+            <a
+              href={commit.htmlUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.timelineCommitSha}
+            >
+              {shortSha}
+            </a>
+          ) : (
+            <code className={styles.timelineCommitShaPlain}>{shortSha}</code>
+          )}
+          {commit.messageShort ?? commit.message?.split("\n")[0] ?? ""}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function TimelineReviewItem({ review }: { review: PullRequestReview }) {
+  const stateLabel = review.state.toLowerCase().replaceAll("_", " ")
+
+  return (
+    <div className={`${styles.timelineItem} ${styles.timelineReview}`}>
+      <div className={styles.timelineIcon}>{getReviewIcon(review.state)}</div>
+      <div className={styles.timelineBody}>
+        <div className={styles.timelineHeader}>
+          <span className={styles.timelineReviewInfo}>
+            <AuthorLabel login={review.authorLogin} avatarUrl={review.authorAvatarUrl} size={16} />
+            <StatusBadge
+              variant={getReviewBadgeVariant(review.state)}
+              icon={getReviewIcon(review.state)}
+            >
+              {stateLabel}
+            </StatusBadge>
+          </span>
+          <time className={styles.timelineTime}>
+            {formatRelativeTime(review.submittedAt ?? review.updatedAt)}
+          </time>
+        </div>
+        {review.body && <Markdown content={review.body} className={styles.timelineContent} />}
+      </div>
+    </div>
+  )
+}
+
+function TimelineIssueCommentItem({ comment }: { comment: PullRequestComment }) {
+  return (
+    <div className={`${styles.timelineItem} ${styles.timelineComment}`}>
+      <div className={styles.timelineIcon}>
+        <CommentDiscussionIcon size={16} />
+      </div>
+      <div className={styles.timelineBody}>
+        <div className={styles.timelineHeader}>
+          <AuthorLabel login={comment.authorLogin} avatarUrl={comment.authorAvatarUrl} size={16} />
+          <time className={styles.timelineTime}>
+            {formatRelativeTime(comment.createdAt || comment.updatedAt)}
+          </time>
+        </div>
+        {comment.body && <Markdown content={comment.body} className={styles.timelineContent} />}
+      </div>
+    </div>
+  )
+}
+
+function TimelineReviewCommentItem({ comment }: { comment: PullRequestReviewComment }) {
+  return (
+    <div className={`${styles.timelineItem} ${styles.timelineReviewComment}`}>
+      <div className={styles.timelineIcon}>
+        <CodeIcon size={16} />
+      </div>
+      <div className={styles.timelineBody}>
+        <div className={styles.timelineHeader}>
+          <span className={styles.timelineReviewCommentInfo}>
+            <AuthorLabel
+              login={comment.authorLogin}
+              avatarUrl={comment.authorAvatarUrl}
+              size={16}
+            />
+            {comment.path && (
+              <code className={styles.timelineFilePath}>
+                {comment.path}
+                {comment.line != null ? `:${comment.line}` : ""}
+              </code>
+            )}
+          </span>
+          <time className={styles.timelineTime}>
+            {formatRelativeTime(comment.createdAt || comment.updatedAt)}
+          </time>
+        </div>
+        {comment.body && <Markdown content={comment.body} className={styles.timelineContent} />}
+      </div>
+    </div>
+  )
+}
+
 function PRDetailContent({ pr }: { pr: PullRequestCard }) {
+  const timeline = buildTimeline(pr)
+
   return (
     <div className={styles.detailContent}>
       {pr.body && <Markdown content={pr.body} className={styles.prBody} />}
@@ -654,24 +905,27 @@ function PRDetailContent({ pr }: { pr: PullRequestCard }) {
         </div>
       )}
 
-      {pr.issueComments.length > 0 && (
-        <div className={styles.detailSection}>
-          <h3 className={styles.detailSectionTitle}>Activity</h3>
-          <ul className={styles.commentList}>
-            {pr.issueComments.map((comment) => (
-              <li key={comment.id} className={styles.commentItem}>
-                <div className={styles.commentHeader}>
-                  <AuthorLabel login={comment.authorLogin} size={14} />
-                  <time className={styles.commentTime}>
-                    {formatRelativeTime(comment.updatedAt)}
-                  </time>
-                </div>
-                {comment.body && <Markdown content={comment.body} className={styles.commentBody} />}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div className={styles.detailSection}>
+        <h3 className={styles.detailSectionTitle}>Activity</h3>
+        {timeline.length > 0 ? (
+          <div className={styles.timeline}>
+            {timeline.map((item) => {
+              if (item.type === "commit") {
+                return <TimelineCommitItem key={`c-${item.data.id}`} commit={item.data} />
+              }
+              if (item.type === "review") {
+                return <TimelineReviewItem key={`r-${item.data.id}`} review={item.data} />
+              }
+              if (item.type === "issue_comment") {
+                return <TimelineIssueCommentItem key={`ic-${item.data.id}`} comment={item.data} />
+              }
+              return <TimelineReviewCommentItem key={`rc-${item.data.id}`} comment={item.data} />
+            })}
+          </div>
+        ) : (
+          <p className={styles.detailEmpty}>No activity yet.</p>
+        )}
+      </div>
     </div>
   )
 }
