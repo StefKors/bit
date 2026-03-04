@@ -31,7 +31,7 @@ export const handleWebhookPost = async ({
   persistWebhook = persistWebhookPayloadSafely,
 }: {
   request: Request
-  persistWebhook?: (params: { event: string; deliveryId: string; payload: object }) => Promise<void>
+  persistWebhook?: (params: { event: string; payload: object }) => Promise<void>
 }): Promise<Response> => {
   const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET
 
@@ -78,7 +78,6 @@ export const handleWebhookPost = async ({
   if (delivery) {
     await persistWebhook({
       event,
-      deliveryId: delivery,
       payload: parsedPayload,
     })
   }

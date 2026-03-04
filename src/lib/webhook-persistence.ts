@@ -61,34 +61,6 @@ const findRepoByFullName = async (
   return { id: repo.id, fullName: repo.fullName }
 }
 
-const upsertWebhookEvent = async (
-  repoId: string | null,
-  event: string,
-  deliveryId: string,
-  action: string | undefined,
-  payload: JsonObject,
-  now: number,
-): Promise<void> => {
-  const { webhookEvents } = await adminDb.query({
-    webhookEvents: {
-      $: { where: { deliveryId }, limit: 1 },
-    },
-  })
-  if (webhookEvents && webhookEvents.length > 0) return
-
-  const webhookId = id()
-  const tx = adminDb.tx.webhookEvents[webhookId].update({
-    deliveryId,
-    event,
-    action,
-    payload: toJson(payload),
-    receivedAt: now,
-    createdAt: now,
-    updatedAt: now,
-  })
-  await adminDb.transact(repoId ? tx.link({ repo: repoId }) : tx)
-}
-
 const upsertPullRequestFromPayload = async (
   repoId: string,
   repoFullName: string,
@@ -417,18 +389,15 @@ const upsertCheckSuite = async (
 
 export const persistWebhookPayload = async (params: {
   event: string
-  deliveryId: string
   payload: object
 }): Promise<void> => {
-  const { event, deliveryId, payload } = params
+  const { event, payload } = params
   const payloadRecord = payload as JsonObject
   const now = Date.now()
 
-  const action = asString(payloadRecord.action)
   const repoFullName = getRepoFullName(payloadRecord)
   const repo = repoFullName ? await findRepoByFullName(repoFullName) : null
 
-  await upsertWebhookEvent(repo?.id ?? null, event, deliveryId, action, payloadRecord, now)
   if (!repo) return
 
   if (event === "push") {
@@ -509,7 +478,6 @@ export const persistWebhookPayload = async (params: {
 
 export const persistWebhookPayloadSafely = async (params: {
   event: string
-  deliveryId: string
   payload: object
 }): Promise<void> => {
   try {
@@ -517,7 +485,6 @@ export const persistWebhookPayloadSafely = async (params: {
   } catch (error) {
     log.error("Failed to persist webhook payload", error, {
       event: params.event,
-      deliveryId: params.deliveryId,
     })
   }
 }

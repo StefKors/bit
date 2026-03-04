@@ -91,7 +91,6 @@ describe("webhook route", () => {
     const expectedPayload = JSON.parse(payload) as object
     expect(persistWebhook).toHaveBeenCalledWith({
       event: "pull_request",
-      deliveryId: "delivery-4",
       payload: expectedPayload,
     })
   })

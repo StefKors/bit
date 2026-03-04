@@ -19,14 +19,6 @@ export default {
       delete: "auth.id in data.ref('users.id')",
     },
   },
-  webhookEvents: {
-    allow: {
-      view: "auth.id in data.ref('repo.users.id')",
-      create: "false",
-      update: "false",
-      delete: "false",
-    },
-  },
   pullRequests: {
     allow: {
       view: "auth.id in data.ref('repo.users.id')",

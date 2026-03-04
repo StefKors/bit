@@ -62,16 +62,6 @@ export const schema = i.schema({
       updatedAt: i.number(),
     }),
 
-    webhookEvents: i.entity({
-      deliveryId: i.string().unique().indexed(),
-      event: i.string().indexed(),
-      action: i.string().optional().indexed(),
-      payload: i.string(),
-      receivedAt: i.number().indexed(),
-      createdAt: i.number(),
-      updatedAt: i.number(),
-    }),
-
     pullRequests: i.entity({
       nodeId: i.string().unique().indexed().optional(),
       number: i.number().indexed(),
@@ -225,18 +215,6 @@ export const schema = i.schema({
         on: "$users",
         has: "many",
         label: "repos",
-      },
-    },
-    repoWebhookEvents: {
-      forward: {
-        on: "webhookEvents",
-        has: "one",
-        label: "repo",
-      },
-      reverse: {
-        on: "repos",
-        has: "many",
-        label: "webhookEvents",
       },
     },
     repoPullRequests: {
