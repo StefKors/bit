@@ -23,12 +23,26 @@ export const Route = createFileRoute("/api/github/repos/available")({
         }
 
         try {
-          const result = await client.fetchAvailableRepos()
-          const repos = result.data
-            .map((repo) => repo.fullName)
-            .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
+          const result = await client.fetchAvailableRepoNames()
+          const repos = [...result.data].sort((a, b) =>
+            a.localeCompare(b, undefined, { sensitivity: "base" }),
+          )
           return jsonResponse({ repos })
         } catch (error) {
+          if (
+            typeof error === "object" &&
+            error !== null &&
+            "status" in error &&
+            error.status === 403
+          ) {
+            return jsonResponse(
+              {
+                error:
+                  "GitHub App does not have repository access for this installation. Reconfigure installation repository access in GitHub.",
+              },
+              403,
+            )
+          }
           log.error("Failed to fetch available repositories", error, {
             op: "available-repos",
             userId,

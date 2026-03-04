@@ -22,21 +22,8 @@ describe("GET /api/github/repos/available", () => {
   beforeEach(() => {
     vi.mocked(createGitHubClient).mockResolvedValue(
       createMockGitHubClient({
-        fetchAvailableRepos: vi.fn().mockResolvedValue({
-          data: [
-            {
-              githubId: 2,
-              fullName: "zeta/repo",
-              githubPushedAt: undefined,
-              githubUpdatedAt: undefined,
-            },
-            {
-              githubId: 1,
-              fullName: "alpha/repo",
-              githubPushedAt: undefined,
-              githubUpdatedAt: undefined,
-            },
-          ],
+        fetchAvailableRepoNames: vi.fn().mockResolvedValue({
+          data: ["zeta/repo", "alpha/repo"],
           rateLimit: {
             remaining: 5000,
             limit: 5000,
@@ -84,7 +71,7 @@ describe("GET /api/github/repos/available", () => {
   it("returns 500 when GitHub fetch fails", async () => {
     vi.mocked(createGitHubClient).mockResolvedValue(
       createMockGitHubClient({
-        fetchAvailableRepos: vi.fn().mockRejectedValue(new Error("boom")),
+        fetchAvailableRepoNames: vi.fn().mockRejectedValue(new Error("boom")),
       }),
     )
 
@@ -94,5 +81,22 @@ describe("GET /api/github/repos/available", () => {
     const request = makeAuthRequest("http://localhost/api/github/repos/available", "user-1")
     const res = await handler({ request })
     expect(res.status).toBe(500)
+  })
+
+  it("returns 403 for inaccessible integration repositories", async () => {
+    vi.mocked(createGitHubClient).mockResolvedValue(
+      createMockGitHubClient({
+        fetchAvailableRepoNames: vi
+          .fn()
+          .mockRejectedValue({ status: 403, message: "Resource not accessible by integration" }),
+      }),
+    )
+
+    const handler = getRouteHandler(Route, "GET")
+    if (!handler) throw new Error("No GET handler")
+
+    const request = makeAuthRequest("http://localhost/api/github/repos/available", "user-1")
+    const res = await handler({ request })
+    expect(res.status).toBe(403)
   })
 })

@@ -45,6 +45,7 @@ export const createMockGitHubClient = (overrides: Record<string, unknown> = {}):
     }),
     fetchOrganizations: vi.fn().mockResolvedValue({ data: [], rateLimit: mockRateLimit }),
     fetchRepositories: vi.fn().mockResolvedValue({ data: [], rateLimit: mockRateLimit }),
+    fetchAvailableRepoNames: vi.fn().mockResolvedValue({ data: [], rateLimit: mockRateLimit }),
     performInitialSync: vi.fn().mockResolvedValue({ synced: true }),
     registerRepoWebhook: vi.fn().mockResolvedValue({ status: "installed" }),
     registerAllWebhooks: vi.fn().mockResolvedValue({

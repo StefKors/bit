@@ -755,6 +755,36 @@ export class GitHubClient {
     }
   }
 
+  // Fetch repo names directly from the GitHub App installation context.
+  // This is safe for installation tokens and does not depend on InstantDB state.
+  async fetchAvailableRepoNames(): Promise<SyncResult<string[]>> {
+    const names: string[] = []
+    let page = 1
+    let hasMore = true
+    let rateLimit = this.lastRateLimit ?? (await this.getRateLimit())
+
+    while (hasMore) {
+      const response = await withRateLimitRetry(() =>
+        this.octokit.rest.apps.listReposAccessibleToInstallation({
+          per_page: 100,
+          page,
+        }),
+      )
+
+      rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
+      const repos = response.data.repositories ?? []
+      for (const repo of repos) {
+        names.push(repo.full_name)
+      }
+
+      hasMore = repos.length === 100
+      page += 1
+    }
+
+    names.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
+    return { data: names, rateLimit, fromCache: false }
+  }
+
   async fetchPullRequests(
     owner: string,
     repo: string,

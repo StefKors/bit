@@ -85,6 +85,7 @@ function DashboardPage() {
   const { data: availableReposData, isLoading: isLoadingAvailableRepos } = useQuery({
     queryKey: ["github-available-repos", user?.id],
     enabled: isGitHubConnected && Boolean(user?.id),
+    retry: false,
     queryFn: async (): Promise<{ repos: string[] }> => {
       const res = await fetch("/api/github/repos/available", {
         headers: { Authorization: `Bearer ${user?.id ?? ""}` },
