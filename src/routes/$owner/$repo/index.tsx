@@ -14,6 +14,12 @@ interface PullRequestCard {
   reviewCommentsCount: number
 }
 
+const formatMergeableState = (mergeableState: string): string => {
+  if (mergeableState === "unknown") return "checking"
+  if (mergeableState === "blocked") return "blocked"
+  return mergeableState.replaceAll("_", " ")
+}
+
 function RepoPROverviewPage() {
   const { owner, repo } = Route.useParams()
   const fullName = `${owner}/${repo}`
@@ -128,7 +134,10 @@ function PRListSection({
 }) {
   return (
     <div className={styles.prSection}>
-      <h3 className={styles.prSectionTitle}>{title}</h3>
+      <h3 className={styles.prSectionTitle}>
+        <span>{title}</span>
+        <span className={styles.prMetaBadge}>{prs.length}</span>
+      </h3>
       <ul className={styles.prList}>
         {prs.length === 0 ? (
           <li className={styles.prEmpty}>No PRs</li>
@@ -143,8 +152,19 @@ function PRListSection({
                 <span className={styles.prTitle}>
                   #{pr.number} {pr.title}
                 </span>
-                <span className={styles.prMeta}>
-                  {pr.mergeableState} · {pr.commentsCount + pr.reviewCommentsCount} comments
+                <span className={styles.prMetaRow}>
+                  <span
+                    className={`${styles.prMetaBadge} ${
+                      pr.mergeableState === "blocked"
+                        ? styles.prMetaBadgeBlocked
+                        : styles.prMetaBadgeOpen
+                    }`}
+                  >
+                    {formatMergeableState(pr.mergeableState)}
+                  </span>
+                  <span className={styles.prMetaBadge}>
+                    {pr.commentsCount + pr.reviewCommentsCount} comments
+                  </span>
                 </span>
               </Link>
             </li>
@@ -166,9 +186,23 @@ function PRActivityList({
 }) {
   return (
     <div className={styles.activityPlaceholder}>
-      <p className={styles.placeholderText}>Conversation comments: {commentsCount}</p>
-      <p className={styles.placeholderText}>Reviews: {reviewsCount}</p>
-      <p className={styles.placeholderText}>Check runs: {checksCount}</p>
+      <div className={styles.activityGrid}>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>comments</span>
+          <span className={styles.metricValue}>{commentsCount}</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>reviews</span>
+          <span className={styles.metricValue}>{reviewsCount}</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>checks</span>
+          <span className={styles.metricValue}>{checksCount}</span>
+        </div>
+      </div>
+      <p className={styles.placeholderText}>
+        Latest webhook activity summary updates here in real time.
+      </p>
       <div className={styles.commentFormPlaceholder}>
         Activity data is now sourced from webhook payload storage.
       </div>

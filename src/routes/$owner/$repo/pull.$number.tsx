@@ -2,6 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { db } from "@/lib/instantDb"
 import styles from "./pull.$number.module.css"
 
+const formatMergeableState = (mergeableState: string | null | undefined): string => {
+  if (!mergeableState || mergeableState === "unknown") return "checking"
+  return mergeableState.replaceAll("_", " ")
+}
+
 function PullDetailPage() {
   const { owner, repo, number } = Route.useParams()
   const fullName = `${owner}/${repo}`
@@ -60,8 +65,21 @@ function PullDetailPage() {
         #{pr.number} {pr.title ?? "Untitled PR"}
       </h1>
       <p className={styles.meta}>
-        {pr.state ?? "unknown"} · {pr.mergeableState ?? "unknown"} ·{" "}
-        {pr.draft ? "draft" : "ready for review"}
+        <span
+          className={`${styles.metaPill} ${
+            pr.state === "open" ? styles.metaStateOpen : styles.metaStateBlocked
+          }`}
+        >
+          {pr.state ?? "unknown"}
+        </span>
+        <span
+          className={`${styles.metaPill} ${
+            pr.mergeableState === "blocked" ? styles.metaStateBlocked : styles.metaStateOpen
+          }`}
+        >
+          {formatMergeableState(pr.mergeableState)}
+        </span>
+        <span className={styles.metaPill}>{pr.draft ? "draft" : "ready for review"}</span>
       </p>
 
       {pr.body && <p className={styles.body}>{pr.body}</p>}
