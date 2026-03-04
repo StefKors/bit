@@ -1,7 +1,30 @@
+import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { RepoIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
 import styles from "./index.module.css"
+
+interface PullRequestComment {
+  id: string
+  authorLogin: string
+  body: string
+  updatedAt: string | number | null
+}
+
+interface PullRequestReview {
+  id: string
+  authorLogin: string
+  state: string
+  updatedAt: string | number | null
+}
+
+interface PullRequestCheckRun {
+  id: string
+  name: string
+  status: string
+  conclusion: string | null
+  updatedAt: string | number | null
+}
 
 interface PullRequestCard {
   id: string
@@ -12,6 +35,17 @@ interface PullRequestCard {
   mergeableState: string
   commentsCount: number
   reviewCommentsCount: number
+  issueComments: PullRequestComment[]
+  pullRequestReviews: PullRequestReview[]
+  checkRuns: PullRequestCheckRun[]
+}
+
+interface PRActivityItem {
+  id: string
+  kind: "comment" | "review" | "check"
+  title: string
+  subtitle: string
+  updatedAt: string | number | null
 }
 
 const formatMergeableState = (mergeableState: string): string => {
@@ -22,6 +56,7 @@ const formatMergeableState = (mergeableState: string): string => {
 
 function RepoPROverviewPage() {
   const { owner, repo } = Route.useParams()
+  const [selectedPrNumber, setSelectedPrNumber] = useState<number | null>(null)
   const fullName = `${owner}/${repo}`
 
   const { data } = db.useQuery({
@@ -55,6 +90,28 @@ function RepoPROverviewPage() {
         mergeableState: pr.mergeableState ?? "unknown",
         commentsCount: pr.commentsCount ?? 0,
         reviewCommentsCount: pr.reviewCommentsCount ?? 0,
+        issueComments:
+          pr.issueComments?.map((comment) => ({
+            id: comment.id,
+            authorLogin: comment.authorLogin ?? "unknown",
+            body: comment.body ?? "",
+            updatedAt: comment.updatedAt ?? null,
+          })) ?? [],
+        pullRequestReviews:
+          pr.pullRequestReviews?.map((review) => ({
+            id: review.id,
+            authorLogin: review.authorLogin ?? "unknown",
+            state: review.state ?? "COMMENTED",
+            updatedAt: review.updatedAt ?? null,
+          })) ?? [],
+        checkRuns:
+          pr.checkRuns?.map((check) => ({
+            id: check.id,
+            name: check.name ?? "Check",
+            status: check.status ?? "unknown",
+            conclusion: check.conclusion ?? null,
+            updatedAt: check.updatedAt ?? null,
+          })) ?? [],
       })) ?? []
   const draftPRs = allPRs.filter((pr) => pr.draft)
   const needsReviewPRs = allPRs.filter(
@@ -63,9 +120,14 @@ function RepoPROverviewPage() {
   const readyToMergePRs = allPRs.filter(
     (pr) => !pr.draft && pr.mergeableState !== "blocked" && pr.mergeableState !== "unknown",
   )
-  const latestComments = repoData?.pullRequests?.flatMap((pr) => pr.issueComments ?? []) ?? []
-  const latestReviews = repoData?.pullRequests?.flatMap((pr) => pr.pullRequestReviews ?? []) ?? []
-  const latestChecks = repoData?.pullRequests?.flatMap((pr) => pr.checkRuns ?? []) ?? []
+  const selectedPR =
+    allPRs.find((pr) => pr.number === selectedPrNumber) ??
+    (selectedPrNumber === null ? allPRs[0] : null) ??
+    null
+
+  const onSelectedPRChange = (nextPrNumber: number) => {
+    setSelectedPrNumber(nextPrNumber)
+  }
 
   if (!repoData) {
     return (
@@ -94,60 +156,127 @@ function RepoPROverviewPage() {
       <div className={styles.columns}>
         <aside className={styles.column1}>
           <h2 className={styles.columnTitle}>Pull requests</h2>
-          <PRListSection title="Draft" prs={draftPRs} owner={owner} repo={repo} />
-          <PRListSection title="Needs Review" prs={needsReviewPRs} owner={owner} repo={repo} />
-          <PRListSection title="Ready to Merge" prs={readyToMergePRs} owner={owner} repo={repo} />
+          <PRSelectionList
+            selectedPrNumber={selectedPR?.number ?? null}
+            draftPRs={draftPRs}
+            needsReviewPRs={needsReviewPRs}
+            readyToMergePRs={readyToMergePRs}
+            onSelectedPRChange={onSelectedPRChange}
+          />
         </aside>
 
         <section className={styles.column2}>
           <h2 className={styles.columnTitle}>Diffs</h2>
           <div className={styles.placeholder}>
-            {allPRs.length === 0
-              ? "No PR data yet. Trigger webhooks by opening/updating a PR."
-              : "Open a PR from the left column to view details and activity."}
+            {allPRs.length === 0 ? (
+              "No PR data yet. Trigger webhooks by opening/updating a PR."
+            ) : selectedPR ? (
+              <div className={styles.selectedPrDetail}>
+                <p className={styles.selectedPrTitle}>
+                  #{selectedPR.number} {selectedPR.title}
+                </p>
+                <p className={styles.selectedPrMeta}>
+                  {selectedPR.commentsCount + selectedPR.reviewCommentsCount} comments -{" "}
+                  {formatMergeableState(selectedPR.mergeableState)}
+                </p>
+                <Link
+                  to="/$owner/$repo/pull/$number"
+                  params={{ owner, repo, number: String(selectedPR.number) }}
+                  className={styles.viewPrLink}
+                >
+                  View PR details
+                </Link>
+              </div>
+            ) : (
+              "Select a PR from the left column."
+            )}
           </div>
         </section>
 
         <aside className={styles.column3}>
           <h2 className={styles.columnTitle}>PR activity</h2>
-          <PRActivityList
-            commentsCount={latestComments.length}
-            reviewsCount={latestReviews.length}
-            checksCount={latestChecks.length}
-          />
+          <PRActivityTimeline selectedPR={selectedPR} />
         </aside>
       </div>
     </div>
   )
 }
 
-function PRListSection({
+function PRSelectionList({
+  selectedPrNumber,
+  draftPRs,
+  needsReviewPRs,
+  readyToMergePRs,
+  onSelectedPRChange,
+}: {
+  selectedPrNumber: number | null
+  draftPRs: PullRequestCard[]
+  needsReviewPRs: PullRequestCard[]
+  readyToMergePRs: PullRequestCard[]
+  onSelectedPRChange: (nextPrNumber: number) => void
+}) {
+  const hasAnyPR = draftPRs.length + needsReviewPRs.length + readyToMergePRs.length > 0
+
+  return (
+    <div className={styles.prSection}>
+      {!hasAnyPR && <div className={styles.prEmpty}>No open PRs</div>}
+      {Boolean(draftPRs.length) && (
+        <PRSelectionSection
+          title="Draft"
+          prs={draftPRs}
+          selectedPrNumber={selectedPrNumber}
+          onSelectedPRChange={onSelectedPRChange}
+        />
+      )}
+      {Boolean(needsReviewPRs.length) && (
+        <PRSelectionSection
+          title="Needs Review"
+          prs={needsReviewPRs}
+          selectedPrNumber={selectedPrNumber}
+          onSelectedPRChange={onSelectedPRChange}
+        />
+      )}
+      {Boolean(readyToMergePRs.length) && (
+        <PRSelectionSection
+          title="Ready to Merge"
+          prs={readyToMergePRs}
+          selectedPrNumber={selectedPrNumber}
+          onSelectedPRChange={onSelectedPRChange}
+        />
+      )}
+    </div>
+  )
+}
+
+function PRSelectionSection({
   title,
   prs,
-  owner,
-  repo,
+  selectedPrNumber,
+  onSelectedPRChange,
 }: {
   title: string
   prs: PullRequestCard[]
-  owner: string
-  repo: string
+  selectedPrNumber: number | null
+  onSelectedPRChange: (nextPrNumber: number) => void
 }) {
   return (
-    <div className={styles.prSection}>
+    <section className={styles.prSection}>
       <h3 className={styles.prSectionTitle}>
         <span>{title}</span>
         <span className={styles.prMetaBadge}>{prs.length}</span>
       </h3>
       <ul className={styles.prList}>
-        {prs.length === 0 ? (
-          <li className={styles.prEmpty}>No PRs</li>
-        ) : (
-          prs.map((pr) => (
+        {prs.map((pr) => {
+          const isSelected = selectedPrNumber === pr.number
+          return (
             <li key={pr.id}>
-              <Link
-                to="/$owner/$repo/pull/$number"
-                params={{ owner, repo, number: String(pr.number) }}
-                className={styles.prLink}
+              <button
+                type="button"
+                className={`${styles.prCell} ${isSelected ? styles.prCellSelected : ""}`}
+                aria-pressed={isSelected}
+                onClick={() => {
+                  onSelectedPRChange(pr.number)
+                }}
               >
                 <span className={styles.prTitle}>
                   #{pr.number} {pr.title}
@@ -166,46 +295,82 @@ function PRListSection({
                     {pr.commentsCount + pr.reviewCommentsCount} comments
                   </span>
                 </span>
-              </Link>
+              </button>
             </li>
-          ))
-        )}
+          )
+        })}
       </ul>
-    </div>
+    </section>
   )
 }
 
-function PRActivityList({
-  commentsCount,
-  reviewsCount,
-  checksCount,
-}: {
-  commentsCount: number
-  reviewsCount: number
-  checksCount: number
-}) {
+function formatActivityDate(dateValue: string | number | null): string {
+  if (!dateValue) return "Unknown time"
+  const date = new Date(dateValue)
+  if (Number.isNaN(date.getTime())) return "Unknown time"
+  return date.toLocaleString()
+}
+
+function getPRActivityItems(pr: PullRequestCard): PRActivityItem[] {
+  const commentItems = pr.issueComments.map((comment) => ({
+    id: `comment-${comment.id}`,
+    kind: "comment" as const,
+    title: `${comment.authorLogin} commented`,
+    subtitle: comment.body.length > 0 ? comment.body : "No comment text",
+    updatedAt: comment.updatedAt,
+  }))
+
+  const reviewItems = pr.pullRequestReviews.map((review) => ({
+    id: `review-${review.id}`,
+    kind: "review" as const,
+    title: `${review.authorLogin} reviewed`,
+    subtitle: review.state,
+    updatedAt: review.updatedAt,
+  }))
+
+  const checkItems = pr.checkRuns.map((check) => ({
+    id: `check-${check.id}`,
+    kind: "check" as const,
+    title: check.name,
+    subtitle: check.conclusion ? `${check.status} (${check.conclusion})` : check.status,
+    updatedAt: check.updatedAt,
+  }))
+
+  return [...commentItems, ...reviewItems, ...checkItems].sort((a, b) => {
+    const firstTime = Date.parse(String(a.updatedAt ?? ""))
+    const secondTime = Date.parse(String(b.updatedAt ?? ""))
+    const normalizedFirstTime = Number.isNaN(firstTime) ? 0 : firstTime
+    const normalizedSecondTime = Number.isNaN(secondTime) ? 0 : secondTime
+    return normalizedSecondTime - normalizedFirstTime
+  })
+}
+
+function PRActivityTimeline({ selectedPR }: { selectedPR: PullRequestCard | null }) {
+  if (!selectedPR) {
+    return <p className={styles.placeholderText}>Select a PR to view activity timeline.</p>
+  }
+
+  const activityItems = getPRActivityItems(selectedPR)
+
   return (
     <div className={styles.activityPlaceholder}>
-      <div className={styles.activityGrid}>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>comments</span>
-          <span className={styles.metricValue}>{commentsCount}</span>
-        </div>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>reviews</span>
-          <span className={styles.metricValue}>{reviewsCount}</span>
-        </div>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>checks</span>
-          <span className={styles.metricValue}>{checksCount}</span>
-        </div>
-      </div>
-      <p className={styles.placeholderText}>
-        Latest webhook activity summary updates here in real time.
+      <p className={styles.selectedPrTitle}>
+        #{selectedPR.number} {selectedPR.title}
       </p>
-      <div className={styles.commentFormPlaceholder}>
-        Activity data is now sourced from webhook payload storage.
-      </div>
+      {activityItems.length === 0 ? (
+        <p className={styles.placeholderText}>No webhook activity captured for this PR yet.</p>
+      ) : (
+        <ul className={styles.activityList}>
+          {activityItems.map((item) => (
+            <li key={item.id} className={styles.activityItem}>
+              <span className={styles.activityItemKind}>{item.kind}</span>
+              <p className={styles.activityItemTitle}>{item.title}</p>
+              <p className={styles.activityItemSubtitle}>{item.subtitle}</p>
+              <time className={styles.activityItemTime}>{formatActivityDate(item.updatedAt)}</time>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
