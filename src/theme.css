@@ -31,6 +31,7 @@
   --bit-rgb-accent-green-dark: 40, 140, 58;
   --bit-rgb-accent-green-bright: 72, 192, 92;
   --bit-rgb-accent-red: 255, 92, 82;
+  --bit-rgb-accent-yellow: 232, 186, 56;
   --bit-rgb-accent-purple: 172, 128, 255;
   --bit-rgb-muted: 128, 138, 148;
 
@@ -45,6 +46,7 @@
   --bit-color-accent-green-dark: #288c3a;
   --bit-color-accent-green-bright: #48c05c;
   --bit-color-accent-red: #ff5c52;
+  --bit-color-accent-yellow: #e8ba38;
   --bit-color-accent-purple: #ac80ff;
   --bit-color-muted: #808a94;
   --bit-color-accent-orange: #ff8a70;

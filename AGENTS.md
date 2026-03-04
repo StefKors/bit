@@ -73,9 +73,31 @@ Or push both:
 bun run instant:push
 ```
 
+# Shared Components
+
+Reusable UI components live in `src/components/`. Use these instead of inlining equivalent markup:
+
+| Component     | File              | Props                                                                           | Usage                                   |
+| ------------- | ----------------- | ------------------------------------------------------------------------------- | --------------------------------------- |
+| `Avatar`      | `Avatar.tsx`      | `src`, `name`, `size`, `isOnline?`, `isOrganization?`                           | User/org avatar with fallback           |
+| `AuthorLabel` | `AuthorLabel.tsx` | `login`, `avatarUrl?`, `size?` (default 14)                                     | Avatar + login text inline              |
+| `StatusBadge` | `StatusBadge.tsx` | `variant` (`open`/`merged`/`closed`/`needsReview`/`draft`), `icon?`, `children` | Colored pill badge for PR state         |
+| `BranchLabel` | `BranchLabel.tsx` | `head`, `base`                                                                  | Displays `base ← head` with copy button |
+| `CiDot`       | `CiDot.tsx`       | `variant` (`ready`/`blocked`/`checking`), `title?`                              | 6px colored CI status dot               |
+
+# Shared Utilities
+
+| Function                | File                | Description                                               |
+| ----------------------- | ------------------- | --------------------------------------------------------- |
+| `formatRelativeTime`    | `src/lib/format.ts` | Formats date to "5m ago", "3h ago", "2d ago"              |
+| `formatActivityDate`    | `src/lib/format.ts` | Formats date to full locale string                        |
+| `resolveUserAvatarUrl`  | `src/lib/avatar.ts` | Resolves avatar URL for a user with GitHub fallback       |
+| `resolveOwnerAvatarUrl` | `src/lib/avatar.ts` | Resolves avatar URL for an owner/org with GitHub fallback |
+
 # CSS
 
 - Use CSS variables from `theme.css`
+- Accent colors available: blue, green, green-bright, green-dark, red, purple, orange, yellow (each has `--bit-color-accent-*` hex and `--bit-rgb-accent-*` RGB variants)
 
 # Formatting
 

@@ -1,0 +1,12 @@
+.authorLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.authorLogin {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
