@@ -43,6 +43,76 @@
   margin-bottom: 1.5rem;
 }
 
+.settingsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  border: 1px solid var(--bit-color-border);
+  border-radius: var(--bit-radius-md);
+  background: rgba(var(--bit-rgb-surface-2), 0.45);
+}
+
+.settingsTitle {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--bit-color-fg-muted);
+}
+
+.settingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.settingInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.settingName {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--bit-color-fg);
+}
+
+.settingStatus {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--bit-color-fg-muted);
+}
+
+.settingActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settingsButton {
+  border: 1px solid var(--bit-color-border);
+  border-radius: var(--bit-radius-sm);
+  background: var(--bit-color-bg);
+  color: var(--bit-color-fg);
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.settingsButton:hover {
+  border-color: var(--bit-color-fg-muted);
+}
+
+.settingsButtonDanger {
+  color: var(--bit-color-accent-red);
+}
+
 .sectionText {
   font-size: 0.875rem;
   color: var(--bit-color-fg-muted);
@@ -81,18 +151,23 @@
 }
 
 .enableLink {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   font-size: 0.9375rem;
   font-weight: 500;
   color: var(--bit-color-accent-blue);
   text-decoration: none;
-  padding: 0.5rem 0;
+  min-height: 2.25rem;
+  border: 1px solid var(--bit-color-border);
+  border-radius: var(--bit-radius-md);
+  background: var(--bit-color-bg);
+  padding: 0 0.75rem;
 }
 
 .enableLink:hover {
-  text-decoration: underline;
+  border-color: var(--bit-color-fg-muted);
 }
 
 .repoList {
