@@ -12,9 +12,11 @@ import {
 import { useAuth } from "@/lib/hooks/useAuth"
 import { formatRelativeTime } from "@/lib/format"
 import { AuthorLabel } from "@/components/AuthorLabel"
+import { Markdown } from "@/components/Markdown"
 import { StatusBadge } from "@/components/StatusBadge"
 import { BranchLabel } from "@/components/BranchLabel"
 import { CiDot } from "@/components/CiDot"
+import { Tabs } from "@/components/Tabs"
 import { db } from "@/lib/instantDb"
 import styles from "./index.module.css"
 
@@ -56,9 +58,23 @@ interface PullRequestCard {
   updatedAt: string | number | null
   commentsCount: number
   reviewCommentsCount: number
+  commitsCount: number
+  labels: string[]
+  assignees: string[]
+  requestedReviewers: string[]
   issueComments: PullRequestComment[]
   pullRequestReviews: PullRequestReview[]
   checkRuns: PullRequestCheckRun[]
+}
+
+const parseJsonStringArray = (value: string | null | undefined): string[] => {
+  if (!value) return []
+  try {
+    const parsed: string[] = JSON.parse(value) as string[]
+    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === "string") : []
+  } catch {
+    return []
+  }
 }
 
 const formatMergeableState = (mergeableState: string): string => {
@@ -210,10 +226,16 @@ function PRAuthorFilter({
   )
 }
 
+const PR_TABS = [
+  { value: "conversation", label: "Conversation" },
+  { value: "files", label: "Files Changed" },
+]
+
 function RepoPROverviewPage() {
   const { owner, repo } = Route.useParams()
   const { selectedPrNumber } = Route.useSearch()
   const { user } = useAuth()
+  const [prTab, setPrTab] = useState("conversation")
   const [authorFilter, setAuthorFilter] = useState<string | null>(null)
   const fullName = `${owner}/${repo}`
 
@@ -255,6 +277,10 @@ function RepoPROverviewPage() {
     updatedAt: pr.updatedAt ?? null,
     commentsCount: pr.commentsCount ?? 0,
     reviewCommentsCount: pr.reviewCommentsCount ?? 0,
+    commitsCount: pr.commitsCount ?? 0,
+    labels: parseJsonStringArray(pr.labels),
+    assignees: parseJsonStringArray(pr.assignees),
+    requestedReviewers: parseJsonStringArray(pr.requestedReviewers),
     issueComments:
       pr.issueComments?.map((comment) => ({
         id: comment.id,
@@ -386,9 +412,19 @@ function RepoPROverviewPage() {
           </div>
         )}
 
+        {selectedPR && (
+          <div className={styles.prTabs}>
+            <Tabs items={PR_TABS} value={prTab} onValueChange={setPrTab} />
+          </div>
+        )}
+
         <section className={styles.column2}>
           {selectedPR ? (
-            <PRDetailContent pr={selectedPR} />
+            prTab === "conversation" ? (
+              <PRDetailContent pr={selectedPR} />
+            ) : (
+              <div className={styles.placeholder}>Files changed view coming soon.</div>
+            )
           ) : (
             <div className={styles.placeholder}>
               {allPRs.length === 0
@@ -400,9 +436,9 @@ function RepoPROverviewPage() {
 
         <aside className={styles.column3}>
           {selectedPR ? (
-            <PRConversation pr={selectedPR} />
+            <PRSidebar pr={selectedPR} />
           ) : (
-            <p className={styles.placeholderText}>Select a PR to view conversation.</p>
+            <p className={styles.placeholderText}>Select a PR to view details.</p>
           )}
         </aside>
       </div>
@@ -591,11 +627,11 @@ function PRSelectionSection({
 function PRDetailContent({ pr }: { pr: PullRequestCard }) {
   return (
     <div className={styles.detailContent}>
-      {pr.body && <p className={styles.prBody}>{pr.body}</p>}
+      {pr.body && <Markdown content={pr.body} className={styles.prBody} />}
 
-      <div className={styles.detailSection}>
-        <h3 className={styles.detailSectionTitle}>Checks</h3>
-        {pr.checkRuns.length > 0 ? (
+      {pr.checkRuns.length > 0 && (
+        <div className={styles.detailSection}>
+          <h3 className={styles.detailSectionTitle}>Checks</h3>
           <ul className={styles.detailList}>
             {pr.checkRuns.map((check) => (
               <li key={check.id} className={styles.detailListItem}>
@@ -615,46 +651,12 @@ function PRDetailContent({ pr }: { pr: PullRequestCard }) {
               </li>
             ))}
           </ul>
-        ) : (
-          <p className={styles.detailEmpty}>No check runs captured yet.</p>
-        )}
-      </div>
-    </div>
-  )
-}
+        </div>
+      )}
 
-function PRConversation({ pr }: { pr: PullRequestCard }) {
-  return (
-    <div className={styles.detailContent}>
-      <div className={styles.detailSection}>
-        <h3 className={styles.detailSectionTitle}>Reviews</h3>
-        {pr.pullRequestReviews.length > 0 ? (
-          <ul className={styles.detailList}>
-            {pr.pullRequestReviews.map((review) => (
-              <li key={review.id} className={styles.detailListItem}>
-                <AuthorLabel login={review.authorLogin} size={14} />
-                <StatusBadge
-                  variant={
-                    review.state === "APPROVED"
-                      ? "open"
-                      : review.state === "CHANGES_REQUESTED"
-                        ? "closed"
-                        : "draft"
-                  }
-                >
-                  {review.state.toLowerCase().replaceAll("_", " ")}
-                </StatusBadge>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className={styles.detailEmpty}>No reviews yet.</p>
-        )}
-      </div>
-
-      <div className={styles.detailSection}>
-        <h3 className={styles.detailSectionTitle}>Conversation</h3>
-        {pr.issueComments.length > 0 ? (
+      {pr.issueComments.length > 0 && (
+        <div className={styles.detailSection}>
+          <h3 className={styles.detailSectionTitle}>Activity</h3>
           <ul className={styles.commentList}>
             {pr.issueComments.map((comment) => (
               <li key={comment.id} className={styles.commentItem}>
@@ -664,13 +666,100 @@ function PRConversation({ pr }: { pr: PullRequestCard }) {
                     {formatRelativeTime(comment.updatedAt)}
                   </time>
                 </div>
-                {comment.body && <p className={styles.commentBody}>{comment.body}</p>}
+                {comment.body && <Markdown content={comment.body} className={styles.commentBody} />}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PRSidebar({ pr }: { pr: PullRequestCard }) {
+  const reviewerLogins = [...new Set(pr.pullRequestReviews.map((r) => r.authorLogin))]
+  const latestReviewByAuthor = new Map<string, PullRequestReview>()
+  for (const review of pr.pullRequestReviews) {
+    const existing = latestReviewByAuthor.get(review.authorLogin)
+    if (!existing || (review.updatedAt ?? 0) > (existing.updatedAt ?? 0)) {
+      latestReviewByAuthor.set(review.authorLogin, review)
+    }
+  }
+
+  return (
+    <div className={styles.sidebarContent}>
+      <div className={styles.sidebarSection}>
+        <h3 className={styles.sidebarSectionTitle}>Reviewers</h3>
+        {reviewerLogins.length > 0 || pr.requestedReviewers.length > 0 ? (
+          <ul className={styles.sidebarList}>
+            {reviewerLogins.map((login) => {
+              const review = latestReviewByAuthor.get(login)
+              return (
+                <li key={login} className={styles.sidebarListItem}>
+                  <AuthorLabel login={login} size={16} />
+                  {review && (
+                    <StatusBadge
+                      variant={
+                        review.state === "APPROVED"
+                          ? "open"
+                          : review.state === "CHANGES_REQUESTED"
+                            ? "closed"
+                            : "draft"
+                      }
+                    >
+                      {review.state.toLowerCase().replaceAll("_", " ")}
+                    </StatusBadge>
+                  )}
+                </li>
+              )
+            })}
+            {pr.requestedReviewers
+              .filter((login) => !reviewerLogins.includes(login))
+              .map((login) => (
+                <li key={login} className={styles.sidebarListItem}>
+                  <AuthorLabel login={login} size={16} />
+                  <span className={styles.sidebarMuted}>pending</span>
+                </li>
+              ))}
+          </ul>
+        ) : (
+          <p className={styles.sidebarEmpty}>None</p>
+        )}
+      </div>
+
+      <div className={styles.sidebarSection}>
+        <h3 className={styles.sidebarSectionTitle}>Assignees</h3>
+        {pr.assignees.length > 0 ? (
+          <ul className={styles.sidebarList}>
+            {pr.assignees.map((login) => (
+              <li key={login} className={styles.sidebarListItem}>
+                <AuthorLabel login={login} size={16} />
               </li>
             ))}
           </ul>
         ) : (
-          <p className={styles.detailEmpty}>No comments yet.</p>
+          <p className={styles.sidebarEmpty}>None</p>
         )}
+      </div>
+
+      <div className={styles.sidebarSection}>
+        <h3 className={styles.sidebarSectionTitle}>Labels</h3>
+        {pr.labels.length > 0 ? (
+          <div className={styles.labelList}>
+            {pr.labels.map((label) => (
+              <span key={label} className={styles.label}>
+                {label}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className={styles.sidebarEmpty}>None</p>
+        )}
+      </div>
+
+      <div className={styles.sidebarSection}>
+        <h3 className={styles.sidebarSectionTitle}>Commits</h3>
+        <p className={styles.sidebarValue}>{pr.commitsCount}</p>
       </div>
     </div>
   )

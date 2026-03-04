@@ -18,8 +18,7 @@
 
 .sep {
   flex-shrink: 0;
-  color: rgba(var(--bit-rgb-fg), 0.58);
-  opacity: 0.6;
+  color: var(--bit-color-muted);
 }
 
 .copyButton {
