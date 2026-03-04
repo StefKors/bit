@@ -1,40 +1,40 @@
 ---
 description: Enforce strict GitHub webhook typing and boundary validation.
-globs: src/lib/webhooks/**/*.ts,src/routes/api/github/**/*.ts
+globs: src/lib/webhook-persistence.ts,src/lib/webhook-validation.ts,src/routes/api/github/**/*.ts
 alwaysApply: false
 ---
 
 # Strict Webhook Types
 
-Use the strongest available webhook types and keep untrusted payload handling explicit.
+Use the strongest available types and keep untrusted payload handling explicit.
 
 ## Source of Truth Types
 
-- Use event/entity types from `src/lib/webhooks/types.ts` (re-exported from `@octokit/webhooks-types`).
-- Keep ingress payloads (`request.json()`, `JSON.parse`) as untrusted data until validated.
+- Validation schemas live in `src/lib/webhook-validation.ts` (Zod-based).
+- Persistence logic lives in `src/lib/webhook-persistence.ts` using a `JsonObject` recursive type with defensive accessor helpers (`asString`, `asNumber`, `asBoolean`, `asObject`, `asArray`).
 
 ## Required Typing Pattern
 
-1. **Boundary first**: parse/validate payload shape (`zod` or type guards) in API routes.
-2. **Narrow once**: inside handler, cast from `WebhookPayload` to the specific event type:
-   - `const typedPayload = payload as unknown as PullRequestEvent`
-3. **Use typed properties** from `typedPayload` (avoid `Record<string, unknown>` for domain fields).
+1. **Boundary first**: validate payload shape with Zod schemas (`validateWebhookPayload`) in the API route.
+2. **Defensive access**: inside persistence, use the `as*` accessor helpers to safely extract fields from the JSON payload.
+3. **No unsafe casts**: do not use `as unknown as SomeType` for webhook payloads. Use the accessor helpers instead.
 
 ## any/unknown Rules
 
 - Never introduce `any`.
 - Use `unknown` only at input boundaries (JSON parsing, external APIs), then narrow immediately.
-- Do not pass `Record<string, unknown>` through business logic when a concrete GitHub type exists.
+- Payloads are typed as `object` at the boundary, then cast to `JsonObject` in persistence.
 
 ## Error Handling
 
 - Throw `Error` instances only.
 - Return explicit API errors for malformed headers/payloads (4xx) and unexpected failures (5xx).
 - Preserve original error messages where safe, but avoid leaking raw objects.
+- The top-level `persistWebhookPayloadSafely` catches and logs all errors.
 
 ## Helper Function Contracts
 
-- Helpers in `src/lib/webhooks/utils.ts` should accept concrete GitHub types or `object` boundaries and normalize internally.
-- Keep timestamp parsing defensive (`null` on invalid inputs).
+- Accessor helpers in `webhook-persistence.ts` return `undefined` on invalid/missing inputs.
+- Keep timestamp parsing defensive (`undefined` on invalid inputs).
 - Do not assume optional GitHub fields are present.
 

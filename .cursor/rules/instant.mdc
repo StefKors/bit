@@ -216,28 +216,17 @@ type PostsWithProfile = InstaQLEntity<
 
 ## Use `useAuth` hook for auth state
 
-CRITICAL: Always use the `useAuth` hook from `@/lib/useAuth` instead of `db.useAuth()` to get fully typed user objects.
+CRITICAL: Always use the `useAuth` hook from `@/lib/hooks/useAuth` instead of `db.useAuth()` to get fully typed user objects.
 
 ```tsx
-import { useAuth } from '@/lib/useAuth';
+import { useAuth } from '@/lib/hooks/useAuth';
 
-// For react/react-native apps use useAuth
 function App() {
-  const { isLoading, user, error } = useAuth();
-  if (isLoading) { return null; }
-  if (error) { return <Error message={error.message /}></div>; }
+  const { isLoading, user, error, signOut } = useAuth();
+  if (isLoading) { return <LoadingCube />; }
+  if (error) { return <ErrorFallback error={error} />; }
   if (user) { return <Main />; }
-  return <Login />;
-}
-
-// For vanilla JS apps use db.subscribeAuth
-function App() {
-  renderLoading();
-  db.subscribeAuth((auth) => {
-    if (auth.error) { renderAuthError(auth.error.message); }
-    else if (auth.user) { renderLoggedInPage(auth.user); }
-    else { renderSignInPage(); }
-  });
+  return <LoginPage />;
 }
 ```
 

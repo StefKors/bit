@@ -9,19 +9,24 @@ alwaysApply: false
 
 ```
 src/routes/
-├── __root.tsx           # Root layout with ZeroProvider
+├── __root.tsx           # Root layout with auth guard
 ├── index.tsx            # Home page (/)
+├── enable-repos.tsx     # Enable repos page
 ├── $owner/
-│   ├── index.tsx        # Owner page (/:owner)
 │   └── $repo/
 │       ├── index.tsx    # Repo page (/:owner/:repo)
-│       ├── pulls.tsx    # PRs list (/:owner/:repo/pulls)
-│       ├── pull.$number.tsx  # PR detail
-│       ├── issues.tsx
-│       └── issues.$number.tsx
-└── api/                 # API routes
+│       └── pull.$number.tsx  # PR detail (/:owner/:repo/pull/:number)
+└── api/
+    ├── health.ts
     └── github/
-        └── webhook.ts
+        ├── webhook.ts
+        ├── oauth/
+        │   ├── index.ts
+        │   └── callback.ts
+        ├── installation/
+        │   └── repos.ts
+        └── repos/
+            └── enable.ts
 ```
 
 ## Dynamic Parameters
@@ -49,26 +54,34 @@ Use `params` prop for dynamic route parameters:
 
 ## One Query Per Page
 
-Prefer one `useQuery` per route with `.related()` for all data:
+Prefer one `db.useQuery()` per route with nested relations for all data:
 
 ```tsx
-// ✅ GOOD - Single query with related data
+// ✅ GOOD - Single query with nested relations
 const PRDetailPage = () => {
   const { owner, repo, number } = Route.useParams()
-  const [result] = useQuery(queries.repoWithPRFull, {
-    fullName: `${owner}/${repo}`,
-    prNumber: Number(number),
+  const { data } = db.useQuery({
+    repos: {
+      $: { where: { fullName: `${owner}/${repo}` } },
+      pullRequests: {
+        $: { where: { number: Number(number) } },
+        prFiles: {},
+        prReviews: {},
+        prComments: {},
+      },
+    },
   })
 
-  const { githubPullRequest: pr } = result ?? {}
-  // pr.githubPrFile, pr.githubPrReview, etc. all available
+  const repoData = data?.repos?.[0] ?? null
+  const pr = repoData?.pullRequests?.[0] ?? null
+  // pr.prFiles, pr.prReviews, etc. all available
 }
 
-// ❌ BAD - Multiple queries
+// ❌ BAD - Multiple queries in separate components
 const PRDetailPage = () => {
-  const [pr] = useQuery(queries.pr, prId)
-  const [files] = useQuery(queries.prFiles, prId)      // Extra query
-  const [reviews] = useQuery(queries.prReviews, prId)  // Extra query
+  const { data: prData } = db.useQuery({ pullRequests: { ... } })
+  const { data: fileData } = db.useQuery({ prFiles: { ... } })
+  const { data: reviewData } = db.useQuery({ prReviews: { ... } })
 }
 ```
 
@@ -76,6 +89,8 @@ const PRDetailPage = () => {
 
 ```tsx
 import { createFileRoute } from "@tanstack/react-router"
+import { db } from "@/lib/instantDb"
+import { LoadingCube } from "@/components/LoadingCube"
 
 export const Route = createFileRoute("/$owner/$repo/pull/$number")({
   component: PRDetailPage,
@@ -84,29 +99,40 @@ export const Route = createFileRoute("/$owner/$repo/pull/$number")({
 function PRDetailPage() {
   const { owner, repo, number } = Route.useParams()
 
-  // Query data
-  const [result] = useQuery(queries.repoWithPRFull, {
-    fullName: `${owner}/${repo}`,
-    prNumber: Number(number),
+  const { data, isLoading } = db.useQuery({
+    repos: {
+      $: { where: { fullName: `${owner}/${repo}` } },
+      pullRequests: {
+        $: { where: { number: Number(number) } },
+      },
+    },
   })
 
-  if (!result) return <LoadingCube />
+  if (isLoading) return <LoadingCube />
 
-  return <PRDetail pr={result.githubPullRequest} />
+  const pr = data?.repos?.[0]?.pullRequests?.[0] ?? null
+  if (!pr) return <div>PR not found</div>
+
+  return <div>{pr.title}</div>
 }
 ```
 
 ## API Routes
 
-Server-side handlers use the `server` property:
+Server-side handlers use TanStack Start's server handlers:
 
 ```tsx
+import { createFileRoute } from "@tanstack/react-router"
+
 export const Route = createFileRoute("/api/github/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         // Handle webhook
-        return new Response(JSON.stringify({ ok: true }))
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        })
       },
     },
   },

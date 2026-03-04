@@ -4,8 +4,8 @@
 - Make separate components when mapping data.
 - Find reusable code and make components from them.
 - Reuse existing components
-- Use css modules
-- Use queries with related over doing multiple fetches
+- Use CSS modules
+- Use `db.useQuery()` with nested relations over doing multiple fetches
 - each file should contain 1 main component. avoid creating multiple large components in the same file.
 - Prefer **1 `db.useQuery(...)` per page**. Expand all page data from a single root query via nested relations instead of adding more `useQuery` calls in subcomponents/tabs.
 
@@ -75,7 +75,7 @@ bun run instant:push
 
 # CSS
 
-- Use CSS variables from `theme.css`
+- Use CSS variables from `src/theme.css` (all prefixed with `--bit-`)
 
 # Formatting
 
@@ -114,7 +114,7 @@ bun run instant:push
 
 ## components
 
-- place new components in the src/components folder. shadcn components will go to the src/components/ui folder, usually they are not manually updated but added with the shadcn cli (which is preferred to be run without npx, either with pnpm or globally just shadcn)
+- place new components in the src/components folder.
 
 - component filenames should follow kebab case structure
 
@@ -140,109 +140,45 @@ using React state in these cases is only necessary if you have to show the input
 
 # GitHub Webhooks
 
-Webhook handlers live in `src/lib/webhooks/` with each event type in its own file:
+Webhook processing is split across three files:
 
-- `pull-request.ts` - handles `pull_request` events
-- `pull-request-review.ts` - handles `pull_request_review` events
-- `comment.ts` - handles `issue_comment` and `pull_request_review_comment` events
-- `push.ts` - handles `push` events (updates repo activity timestamp, syncs commits to open PRs)
-- `utils.ts` - shared utilities for auto-tracking resources
-- `types.ts` - shared TypeScript types (re-exports `@octokit/webhooks-types`)
+- `src/routes/api/github/webhook.ts` - Route handler: receives webhooks, verifies signatures, validates payload, dispatches to persistence
+- `src/lib/webhook-persistence.ts` - Persistence logic: routes events to entity-specific upsert functions
+- `src/lib/webhook-validation.ts` - Validation: Zod schemas for webhook headers and payloads
 
-The route handler at `src/routes/api/github/webhook.ts` receives webhooks, verifies signatures, and dispatches to the appropriate handler.
+## Architecture
 
-## Webhook Event Implementation Status
+The webhook route handler (`webhook.ts`):
+1. Verifies the `x-hub-signature-256` HMAC signature
+2. Validates payload shape via `validateWebhookPayload` (Zod)
+3. Calls `persistWebhookPayloadSafely` which dispatches by event type
+4. Returns `{ received: true }`
 
-The webhook handler has stubs for **all GitHub webhook events**. Events are categorized as:
+Event-specific logic lives in `persistWebhookPayload` in `webhook-persistence.ts`, which matches on the `event` string and calls the appropriate upsert function.
 
-### Fully Implemented
+## Implemented Events
 
-| Event                         | Handler                  | Description                                                  |
-| ----------------------------- | ------------------------ | ------------------------------------------------------------ |
-| `pull_request`                | `pull-request.ts`        | PR opened/closed/updated/merged                              |
-| `pull_request_review`         | `pull-request-review.ts` | Review submitted/dismissed                                   |
-| `pull_request_review_comment` | `comment.ts`             | Inline diff comments                                         |
-| `issue_comment`               | `comment.ts`             | PR conversation comments                                     |
-| `push`                        | `push.ts`                | Updates `githubPushedAt` on repos, syncs commits to open PRs |
-| `repository`                  | `repository.ts`          | Repo created/deleted/archived/edited, syncs metadata         |
-| `star`                        | `repository.ts`          | Updates `stargazersCount` on repos                           |
-| `fork`                        | `repository.ts`          | Updates `forksCount`, auto-tracks forked repos               |
-| `organization`                | `organization.ts`        | Org renamed/deleted, syncs metadata                          |
-| `ping`                        | (inline)                 | Webhook configuration test                                   |
+| Event                         | What it does                                              |
+| ----------------------------- | --------------------------------------------------------- |
+| `push`                        | Updates `pushedAt` on repos, creates/updates `pushEvents` |
+| `pull_request`                | Upserts pull request records                              |
+| `pull_request_review`         | Upserts PR review records                                 |
+| `pull_request_review_comment` | Upserts PR review comment records                         |
+| `issue_comment`               | Upserts issue comment records                             |
+| `pull_request_review_thread`  | Upserts review thread records                             |
+| `check_run`                   | Upserts check run records                                 |
+| `check_suite`                 | Upserts check suite records                               |
+| `ping`                        | Logs confirmation (no persistence)                        |
 
-### Stubbed - Implement When Adding Features
+## Persistence pattern
 
-**Issues Feature** (implement when issues tab is built):
+All persistence functions follow the same pattern:
+1. Look up the repo by `repository.full_name` from the payload
+2. If repo not found in DB, skip (only process events for tracked repos)
+3. For PR-related events, upsert the pull request first via `upsertPullRequestFromPayload`
+4. Then upsert the specific entity (review, comment, check run, etc.)
 
-- `issues` - Issue opened/closed/labeled/assigned
-
-**CI/CD Feature** (implement for PR status checks):
-
-- `check_run`, `check_suite` - CI check status
-- `status` - Commit status
-- `workflow_run`, `workflow_job` - GitHub Actions
-
-**Security Dashboard Feature**:
-
-- `code_scanning_alert`, `dependabot_alert`, `secret_scanning_alert`
-
-**Releases Feature**:
-
-- `release` - Release published/edited
-
-**Full event list**: See the switch statement in `src/routes/api/github/webhook.ts`
-
-## Auto-tracking behavior
-
-All webhook handlers support **auto-tracking**. When a webhook event arrives:
-
-1. **Resource already tracked** → Updates existing records for all users tracking it
-2. **Not tracked but sender is registered** → Auto-creates repo/PR records under that user
-3. **Sender not registered** → Logs and skips (no data stored)
-
-This means users automatically receive updates for repos they interact with via GitHub, even if they haven't explicitly synced those repos in the app.
-
-## Adding/Updating Webhook Handlers
-
-When adding a new feature that requires webhook data:
-
-1. **Identify relevant events**: Check which GitHub events provide the data you need
-   - Reference: https://docs.github.com/en/webhooks/webhook-events-and-payloads
-2. **Create handler file**: `src/lib/webhooks/{event-name}.ts`
-3. **Use typed payloads**: Import types from `@octokit/webhooks-types` via `./types.ts`
-4. **Export from index**: Add export to `src/lib/webhooks/index.ts`
-5. **Replace stub**: Change the stub in `webhook.ts` to call your handler
-6. **Follow auto-tracking pattern**: Use `findUserBySender`, `ensureRepoFromWebhook`, etc.
-7. **Update this doc**: Mark the event as "Fully Implemented" above
-
-### Handler function signature
-
-```typescript
-import type { WebhookDB, WebhookPayload, SomeEvent } from "./types"
-
-async function handleSomeWebhook(
-  db: WebhookDB,
-  payload: WebhookPayload,
-  // optional extra params like eventType for comment handler
-): Promise<void> {
-  // Cast to typed payload for autocomplete
-  const typedPayload = payload as unknown as SomeEvent
-  // ... implementation
-}
-```
-
-### Mapping features to webhook events
-
-| Feature     | Events to Implement                       | Status  |
-| ----------- | ----------------------------------------- | ------- |
-| Stars/Forks | `star`, `fork`                            | ✓ Done  |
-| Repo Sync   | `repository`                              | ✓ Done  |
-| Org Sync    | `organization`                            | ✓ Done  |
-| Issues      | `issues`                                  | Stubbed |
-| CI Status   | `check_run`, `check_suite`, `status`      | Stubbed |
-| Releases    | `release`                                 | Stubbed |
-| Discussions | `discussion`, `discussion_comment`        | Stubbed |
-| Security    | `code_scanning_alert`, `dependabot_alert` | Stubbed |
+Payloads are handled as `JsonObject` (a recursive JSON type) with defensive accessor helpers (`asString`, `asNumber`, `asBoolean`, `asObject`, `asArray`, `parseTimestamp`).
 
 ## Environment variables
 

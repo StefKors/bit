@@ -1,6 +1,6 @@
 ---
 description: Enforce strict InstantDB query typing in UI code.
-globs: src/features/**/*.tsx,src/routes/**/*.tsx,src/components/**/*.tsx
+globs: src/routes/**/*.tsx,src/components/**/*.tsx,src/pages/**/*.tsx
 alwaysApply: false
 ---
 
