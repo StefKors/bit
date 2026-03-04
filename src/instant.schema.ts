@@ -190,6 +190,18 @@ export const schema = i.schema({
       createdAt: i.number(),
       updatedAt: i.number().indexed(),
     }),
+
+    pullRequestCommits: i.entity({
+      sha: i.string().unique().indexed(),
+      message: i.string().optional(),
+      messageShort: i.string().optional(),
+      authorLogin: i.string().optional().indexed(),
+      authorAvatarUrl: i.string().optional(),
+      authoredAt: i.number().optional().indexed(),
+      htmlUrl: i.string().optional(),
+      createdAt: i.number(),
+      updatedAt: i.number().indexed(),
+    }),
   },
 
   links: {
@@ -311,6 +323,18 @@ export const schema = i.schema({
         on: "repos",
         has: "many",
         label: "pushEvents",
+      },
+    },
+    pullRequestCommitsLink: {
+      forward: {
+        on: "pullRequestCommits",
+        has: "one",
+        label: "pullRequest",
+      },
+      reverse: {
+        on: "pullRequests",
+        has: "many",
+        label: "pullRequestCommits",
       },
     },
   },
