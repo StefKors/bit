@@ -31,6 +31,10 @@ interface PullRequestCard {
   draft: boolean
   state: string
   mergeableState: string
+  authorLogin: string
+  headRef: string
+  baseRef: string
+  updatedAt: string | number | null
   commentsCount: number
   reviewCommentsCount: number
   issueComments: PullRequestComment[]
@@ -50,6 +54,26 @@ const formatMergeableState = (mergeableState: string): string => {
   if (mergeableState === "unknown") return "checking"
   if (mergeableState === "blocked") return "blocked"
   return mergeableState.replaceAll("_", " ")
+}
+
+const formatRelativeTime = (dateValue: string | number | null): string => {
+  if (!dateValue) return "unknown time"
+  const date = new Date(dateValue)
+  if (Number.isNaN(date.getTime())) return "unknown time"
+  const diffMs = Date.now() - date.getTime()
+  const minute = 60 * 1000
+  const hour = 60 * minute
+  const day = 24 * hour
+  if (diffMs < hour) {
+    const minutes = Math.max(1, Math.floor(diffMs / minute))
+    return `${minutes}m ago`
+  }
+  if (diffMs < day) {
+    const hours = Math.floor(diffMs / hour)
+    return `${hours}h ago`
+  }
+  const days = Math.floor(diffMs / day)
+  return `${days}d ago`
 }
 
 function RepoPROverviewPage() {
@@ -86,6 +110,10 @@ function RepoPROverviewPage() {
         draft: Boolean(pr.draft),
         state: pr.state ?? "open",
         mergeableState: pr.mergeableState ?? "unknown",
+        authorLogin: pr.authorLogin ?? "unknown",
+        headRef: pr.headRef ?? "head",
+        baseRef: pr.baseRef ?? "base",
+        updatedAt: pr.updatedAt ?? null,
         commentsCount: pr.commentsCount ?? 0,
         reviewCommentsCount: pr.reviewCommentsCount ?? 0,
         issueComments:
@@ -283,10 +311,17 @@ function PRSelectionSection({
                 className={`${styles.prCell} ${isSelected ? styles.prCellSelected : ""}`}
                 aria-current={isSelected ? "true" : undefined}
               >
-                <span className={styles.prTitle}>
-                  #{pr.number} {pr.title}
+                <span className={styles.prTopRow}>
+                  <span className={styles.prTitle}>
+                    #{pr.number} {pr.title}
+                  </span>
+                  <span className={styles.prUpdatedAt}>{formatRelativeTime(pr.updatedAt)}</span>
+                </span>
+                <span className={styles.prSubtitle}>
+                  @{pr.authorLogin} - {pr.headRef} to {pr.baseRef}
                 </span>
                 <span className={styles.prMetaRow}>
+                  <span className={styles.prMetaBadge}>{pr.state}</span>
                   <span
                     className={`${styles.prMetaBadge} ${
                       pr.mergeableState === "blocked"
@@ -296,8 +331,9 @@ function PRSelectionSection({
                   >
                     {formatMergeableState(pr.mergeableState)}
                   </span>
+                  <span className={styles.prMetaBadge}>{pr.commentsCount} issue comments</span>
                   <span className={styles.prMetaBadge}>
-                    {pr.commentsCount + pr.reviewCommentsCount} comments
+                    {pr.reviewCommentsCount} review comments
                   </span>
                 </span>
               </Link>
