@@ -25,6 +25,10 @@ function HomePage() {
     window.location.href = `/api/github/oauth/?userId=${user.id}`
   }
 
+  const handleDisconnectGitHub = () => {
+    window.open("https://github.com/settings/installations", "_blank", "noopener,noreferrer")
+  }
+
   if (!user) {
     return <div className={styles.loading}>Loading...</div>
   }
@@ -64,7 +68,31 @@ function HomePage() {
           </div>
         ) : (
           <div className={styles.section}>
-            <p className={styles.sectionText}>GitHub connected as @{user.login}</p>
+            <div className={styles.settingsSection}>
+              <h2 className={styles.settingsTitle}>Integrations</h2>
+              <div className={styles.settingRow}>
+                <div className={styles.settingInfo}>
+                  <p className={styles.settingName}>GitHub App</p>
+                  <p className={styles.settingStatus}>Connected as @{user.login}</p>
+                </div>
+                <div className={styles.settingActions}>
+                  <button
+                    type="button"
+                    className={styles.settingsButton}
+                    onClick={handleConnectGitHub}
+                  >
+                    Reconnect
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.settingsButton} ${styles.settingsButtonDanger}`}
+                    onClick={handleDisconnectGitHub}
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              </div>
+            </div>
             {user.htmlUrl && (
               <a
                 href={user.htmlUrl}
@@ -75,10 +103,13 @@ function HomePage() {
                 View on GitHub <LinkExternalIcon size={14} />
               </a>
             )}
-            <Link to="/enable-repos" className={styles.enableLink}>
-              <RepoIcon size={18} />
-              Enable Bit on repositories
-            </Link>
+            <div className={styles.settingsSection}>
+              <h2 className={styles.settingsTitle}>Repository access</h2>
+              <Link to="/enable-repos" className={styles.enableLink}>
+                <RepoIcon size={18} />
+                Enable Bit on repositories
+              </Link>
+            </div>
             {repos.length > 0 && (
               <div className={styles.repoList}>
                 <h2 className={styles.repoListTitle}>Connected repositories</h2>
@@ -88,6 +119,7 @@ function HomePage() {
                       <Link
                         to="/$owner/$repo"
                         params={{ owner: repo.owner, repo: repo.name }}
+                        search={{ selectedPrNumber: undefined }}
                         className={styles.repoLink}
                       >
                         <RepoIcon size={16} />

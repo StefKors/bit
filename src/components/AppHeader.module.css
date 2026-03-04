@@ -46,6 +46,29 @@
   width: auto;
 }
 
+.repoContext {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.repoContextLink {
+  color: var(--bit-color-text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.repoContextLink:hover {
+  text-decoration: underline;
+}
+
+.repoContextSeparator {
+  color: var(--bit-color-muted);
+}
+
 /* Right Section */
 .right {
   display: flex;
