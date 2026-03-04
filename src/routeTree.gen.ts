@@ -9,12 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as EnableReposRouteImport } from './routes/enable-repos'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
 import { Route as ApiGithubOauthIndexRouteImport } from './routes/api/github/oauth/index'
+import { Route as ApiGithubReposEnableRouteImport } from './routes/api/github/repos/enable'
 import { Route as ApiGithubOauthCallbackRouteImport } from './routes/api/github/oauth/callback'
+import { Route as ApiGithubInstallationReposRouteImport } from './routes/api/github/installation/repos'
 
+const EnableReposRoute = EnableReposRouteImport.update({
+  id: '/enable-repos',
+  path: '/enable-repos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -35,68 +43,107 @@ const ApiGithubOauthIndexRoute = ApiGithubOauthIndexRouteImport.update({
   path: '/api/github/oauth/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGithubReposEnableRoute = ApiGithubReposEnableRouteImport.update({
+  id: '/api/github/repos/enable',
+  path: '/api/github/repos/enable',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGithubOauthCallbackRoute = ApiGithubOauthCallbackRouteImport.update({
   id: '/api/github/oauth/callback',
   path: '/api/github/oauth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGithubInstallationReposRoute =
+  ApiGithubInstallationReposRouteImport.update({
+    id: '/api/github/installation/repos',
+    path: '/api/github/installation/repos',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/enable-repos': typeof EnableReposRoute
   '/api/health': typeof ApiHealthRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
+  '/api/github/installation/repos': typeof ApiGithubInstallationReposRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
+  '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/enable-repos': typeof EnableReposRoute
   '/api/health': typeof ApiHealthRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
+  '/api/github/installation/repos': typeof ApiGithubInstallationReposRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
+  '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
   '/api/github/oauth': typeof ApiGithubOauthIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/enable-repos': typeof EnableReposRoute
   '/api/health': typeof ApiHealthRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
+  '/api/github/installation/repos': typeof ApiGithubInstallationReposRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
+  '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/enable-repos'
     | '/api/health'
     | '/api/github/webhook'
+    | '/api/github/installation/repos'
     | '/api/github/oauth/callback'
+    | '/api/github/repos/enable'
     | '/api/github/oauth/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/enable-repos'
     | '/api/health'
     | '/api/github/webhook'
+    | '/api/github/installation/repos'
     | '/api/github/oauth/callback'
+    | '/api/github/repos/enable'
     | '/api/github/oauth'
   id:
     | '__root__'
     | '/'
+    | '/enable-repos'
     | '/api/health'
     | '/api/github/webhook'
+    | '/api/github/installation/repos'
     | '/api/github/oauth/callback'
+    | '/api/github/repos/enable'
     | '/api/github/oauth/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EnableReposRoute: typeof EnableReposRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiGithubWebhookRoute: typeof ApiGithubWebhookRoute
+  ApiGithubInstallationReposRoute: typeof ApiGithubInstallationReposRoute
   ApiGithubOauthCallbackRoute: typeof ApiGithubOauthCallbackRoute
+  ApiGithubReposEnableRoute: typeof ApiGithubReposEnableRoute
   ApiGithubOauthIndexRoute: typeof ApiGithubOauthIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/enable-repos': {
+      id: '/enable-repos'
+      path: '/enable-repos'
+      fullPath: '/enable-repos'
+      preLoaderRoute: typeof EnableReposRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -125,6 +172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubOauthIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/github/repos/enable': {
+      id: '/api/github/repos/enable'
+      path: '/api/github/repos/enable'
+      fullPath: '/api/github/repos/enable'
+      preLoaderRoute: typeof ApiGithubReposEnableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/github/oauth/callback': {
       id: '/api/github/oauth/callback'
       path: '/api/github/oauth/callback'
@@ -132,14 +186,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubOauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/github/installation/repos': {
+      id: '/api/github/installation/repos'
+      path: '/api/github/installation/repos'
+      fullPath: '/api/github/installation/repos'
+      preLoaderRoute: typeof ApiGithubInstallationReposRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EnableReposRoute: EnableReposRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiGithubWebhookRoute: ApiGithubWebhookRoute,
+  ApiGithubInstallationReposRoute: ApiGithubInstallationReposRoute,
   ApiGithubOauthCallbackRoute: ApiGithubOauthCallbackRoute,
+  ApiGithubReposEnableRoute: ApiGithubReposEnableRoute,
   ApiGithubOauthIndexRoute: ApiGithubOauthIndexRoute,
 }
 export const routeTree = rootRouteImport

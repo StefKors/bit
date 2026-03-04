@@ -1,5 +1,5 @@
-import { createFileRoute, useSearch } from "@tanstack/react-router"
-import { LinkExternalIcon } from "@primer/octicons-react"
+import { createFileRoute, Link, useSearch } from "@tanstack/react-router"
+import { LinkExternalIcon, RepoIcon } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { resolveUserAvatarUrl } from "@/lib/avatar"
 import { Avatar } from "@/components/Avatar"
@@ -69,6 +69,10 @@ function HomePage() {
                 View on GitHub <LinkExternalIcon size={14} />
               </a>
             )}
+            <Link to="/enable-repos" className={styles.enableLink}>
+              <RepoIcon size={18} />
+              Enable Bit on repositories
+            </Link>
           </div>
         )}
 

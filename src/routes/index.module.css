@@ -72,11 +72,26 @@
   align-items: center;
   gap: 0.25rem;
   font-size: 0.875rem;
-  color: var(--bit-color-accent);
+  color: var(--bit-color-link);
   text-decoration: none;
 }
 
 .link:hover {
+  text-decoration: underline;
+}
+
+.enableLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--bit-color-accent-blue);
+  text-decoration: none;
+  padding: 0.5rem 0;
+}
+
+.enableLink:hover {
   text-decoration: underline;
 }
 

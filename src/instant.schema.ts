@@ -44,6 +44,23 @@ export const schema = i.schema({
       createdAt: i.number(),
       updatedAt: i.number(),
     }),
+
+    repos: i.entity({
+      nodeId: i.string().unique().indexed(),
+      fullName: i.string().indexed(),
+      name: i.string().indexed(),
+      owner: i.string().indexed(),
+      private: i.boolean().optional(),
+      description: i.string().optional(),
+      htmlUrl: i.string().optional(),
+      pushedAt: i.number().optional().indexed(),
+      stargazersCount: i.number().optional(),
+      forksCount: i.number().optional(),
+      language: i.string().optional(),
+      defaultBranch: i.string().optional(),
+      createdAt: i.number(),
+      updatedAt: i.number(),
+    }),
   },
 
   links: {
@@ -57,6 +74,18 @@ export const schema = i.schema({
         on: "$users",
         has: "many",
         label: "syncStates",
+      },
+    },
+    userRepos: {
+      forward: {
+        on: "repos",
+        has: "many",
+        label: "users",
+      },
+      reverse: {
+        on: "$users",
+        has: "many",
+        label: "repos",
       },
     },
   },
