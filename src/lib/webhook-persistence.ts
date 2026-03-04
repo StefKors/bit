@@ -1,6 +1,7 @@
 import { id } from "@instantdb/admin"
 import { adminDb } from "@/lib/instantAdmin"
 import { log } from "@/lib/logger"
+import { syncPRActivitySafely } from "@/lib/github-pr-activity"
 
 type JsonPrimitive = string | number | boolean | null
 type JsonValue = JsonPrimitive | JsonObject | JsonValue[]
@@ -387,6 +388,13 @@ const upsertCheckSuite = async (
   )
 }
 
+const extractInstallationId = (payload: JsonObject): number | undefined => {
+  const installation = asObject(payload.installation)
+  return asNumber(installation?.id)
+}
+
+const SYNC_TRIGGER_ACTIONS = new Set(["opened", "synchronize", "reopened"])
+
 export const persistWebhookPayload = async (params: {
   event: string
   payload: object
@@ -399,6 +407,8 @@ export const persistWebhookPayload = async (params: {
   const repo = repoFullName ? await findRepoByFullName(repoFullName) : null
 
   if (!repo) return
+
+  const installationId = extractInstallationId(payloadRecord)
 
   if (event === "push") {
     const pushKey = `${repo.fullName}:${asString(payloadRecord.ref) ?? ""}:${asString(payloadRecord.after) ?? ""}`
@@ -430,11 +440,37 @@ export const persistWebhookPayload = async (params: {
 
     if (existingPush) {
       await adminDb.transact(adminDb.tx.pushEvents[existingPush.id].update(pushUpdate))
-      return
+    } else {
+      const pushId = id()
+      await adminDb.transact(
+        adminDb.tx.pushEvents[pushId].update(pushUpdate).link({ repo: repo.id }),
+      )
     }
 
-    const pushId = id()
-    await adminDb.transact(adminDb.tx.pushEvents[pushId].update(pushUpdate).link({ repo: repo.id }))
+    if (installationId) {
+      const pushRef = asString(payloadRecord.ref)
+      const branchName = pushRef?.replace("refs/heads/", "")
+      if (branchName) {
+        const { repos: reposWithPRs } = await adminDb.query({
+          repos: {
+            $: { where: { fullName: repo.fullName }, limit: 1 },
+            pullRequests: {
+              $: { where: { state: "open", headRef: branchName } },
+            },
+          },
+        })
+        const matchingPRs = reposWithPRs?.[0]?.pullRequests ?? []
+        for (const pr of matchingPRs) {
+          void syncPRActivitySafely({
+            pullRequestId: pr.id,
+            repoFullName: repo.fullName,
+            installationId,
+            prNumber: pr.number,
+          })
+        }
+      }
+    }
+
     return
   }
 
@@ -445,6 +481,22 @@ export const persistWebhookPayload = async (params: {
     now,
   )
   if (!pullRequestId) return
+
+  if (event === "pull_request") {
+    const action = asString(payloadRecord.action)
+    if (action && SYNC_TRIGGER_ACTIONS.has(action) && installationId) {
+      const prNumber = getPullRequestNumber(payloadRecord)
+      if (prNumber !== undefined) {
+        void syncPRActivitySafely({
+          pullRequestId,
+          repoFullName: repo.fullName,
+          installationId,
+          prNumber,
+        })
+      }
+    }
+    return
+  }
 
   if (event === "pull_request_review") {
     await upsertPullRequestReview(pullRequestId, payloadRecord, now)
