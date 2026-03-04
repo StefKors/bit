@@ -1,4 +1,5 @@
 import { useState, useRef } from "react"
+import { Link, useRouterState } from "@tanstack/react-router"
 import { SignOutIcon } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { db } from "@/lib/instantDb"
@@ -12,6 +13,7 @@ export const AppHeader = () => {
   const { user } = useAuth()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
+  const pathname = useRouterState({ select: (state) => state.location.pathname })
 
   const handleSignOut = () => {
     void db.auth.signOut()
@@ -25,6 +27,14 @@ export const AppHeader = () => {
   if (!user) return null
 
   const avatarUrl = resolveUserAvatarUrl(user)
+  const pathSegments = pathname.split("/").filter(Boolean)
+  const hasRepoContext =
+    pathSegments.length >= 2 &&
+    pathSegments[0] !== "api" &&
+    pathSegments[0] !== "enable-repos" &&
+    pathSegments[0] !== "__root__"
+  const owner = hasRepoContext ? pathSegments[0] : null
+  const repo = hasRepoContext ? pathSegments[1] : null
 
   return (
     <header className={styles.header}>
@@ -37,6 +47,27 @@ export const AppHeader = () => {
               className={styles.logoImage}
             />
           </a>
+          {owner && repo && (
+            <nav className={styles.repoContext} aria-label="Repository context">
+              <a
+                href={`https://github.com/${owner}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.repoContextLink}
+              >
+                {owner}
+              </a>
+              <span className={styles.repoContextSeparator}>/</span>
+              <Link
+                to="/$owner/$repo"
+                params={{ owner, repo }}
+                search={{ selectedPrNumber: undefined }}
+                className={styles.repoContextLink}
+              >
+                {repo}
+              </Link>
+            </nav>
+          )}
         </div>
 
         <div className={styles.right}>

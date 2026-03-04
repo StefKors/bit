@@ -47,7 +47,12 @@ function PullDetailPage() {
   if (!pr) {
     return (
       <div className={styles.container}>
-        <Link to="/$owner/$repo" params={{ owner, repo }} className={styles.backLink}>
+        <Link
+          to="/$owner/$repo"
+          params={{ owner, repo }}
+          search={{ selectedPrNumber: number }}
+          className={styles.backLink}
+        >
           ← Back to {owner}/{repo}
         </Link>
         <h1 className={styles.title}>PR #{number}</h1>
@@ -58,7 +63,12 @@ function PullDetailPage() {
 
   return (
     <div className={styles.container}>
-      <Link to="/$owner/$repo" params={{ owner, repo }} className={styles.backLink}>
+      <Link
+        to="/$owner/$repo"
+        params={{ owner, repo }}
+        search={{ selectedPrNumber: number }}
+        className={styles.backLink}
+      >
         ← Back to {owner}/{repo}
       </Link>
       <h1 className={styles.title}>
