@@ -155,7 +155,9 @@
   padding: 8px 10px;
   font-size: 0.8125rem;
   color: var(--bit-color-text);
+  text-decoration: none;
   text-align: left;
+  cursor: pointer;
   border: 1px solid var(--repo-border);
   border-radius: var(--bit-radius-md);
   background: rgba(var(--bit-rgb-surface-2), 0.38);

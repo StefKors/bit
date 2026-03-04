@@ -119,6 +119,7 @@ function HomePage() {
                       <Link
                         to="/$owner/$repo"
                         params={{ owner: repo.owner, repo: repo.name }}
+                        search={{ selectedPrNumber: undefined }}
                         className={styles.repoLink}
                       >
                         <RepoIcon size={16} />

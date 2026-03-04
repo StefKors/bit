@@ -58,7 +58,12 @@ export const AppHeader = () => {
                 {owner}
               </a>
               <span className={styles.repoContextSeparator}>/</span>
-              <Link to="/$owner/$repo" params={{ owner, repo }} className={styles.repoContextLink}>
+              <Link
+                to="/$owner/$repo"
+                params={{ owner, repo }}
+                search={{ selectedPrNumber: undefined }}
+                className={styles.repoContextLink}
+              >
                 {repo}
               </Link>
             </nav>

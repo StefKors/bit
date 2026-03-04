@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { db } from "@/lib/instantDb"
 import styles from "./index.module.css"
@@ -55,7 +54,7 @@ const formatMergeableState = (mergeableState: string): string => {
 
 function RepoPROverviewPage() {
   const { owner, repo } = Route.useParams()
-  const [selectedPrNumber, setSelectedPrNumber] = useState<number | null>(null)
+  const { selectedPrNumber } = Route.useSearch()
   const fullName = `${owner}/${repo}`
 
   const { data } = db.useQuery({
@@ -119,14 +118,14 @@ function RepoPROverviewPage() {
   const readyToMergePRs = allPRs.filter(
     (pr) => !pr.draft && pr.mergeableState !== "blocked" && pr.mergeableState !== "unknown",
   )
+  const parsedSelectedPrNumber = selectedPrNumber ? Number(selectedPrNumber) : NaN
+  const normalizedSelectedPrNumber = Number.isNaN(parsedSelectedPrNumber)
+    ? null
+    : parsedSelectedPrNumber
   const selectedPR =
-    allPRs.find((pr) => pr.number === selectedPrNumber) ??
-    (selectedPrNumber === null ? allPRs[0] : null) ??
+    allPRs.find((pr) => pr.number === normalizedSelectedPrNumber) ??
+    (normalizedSelectedPrNumber === null ? allPRs[0] : null) ??
     null
-
-  const onSelectedPRChange = (nextPrNumber: number) => {
-    setSelectedPrNumber(nextPrNumber)
-  }
 
   if (!repoData) {
     return (
@@ -152,11 +151,12 @@ function RepoPROverviewPage() {
         <aside className={styles.column1}>
           <h2 className={styles.columnTitle}>Pull requests</h2>
           <PRSelectionList
+            owner={owner}
+            repo={repo}
             selectedPrNumber={selectedPR?.number ?? null}
             draftPRs={draftPRs}
             needsReviewPRs={needsReviewPRs}
             readyToMergePRs={readyToMergePRs}
-            onSelectedPRChange={onSelectedPRChange}
           />
         </aside>
 
@@ -198,17 +198,19 @@ function RepoPROverviewPage() {
 }
 
 function PRSelectionList({
+  owner,
+  repo,
   selectedPrNumber,
   draftPRs,
   needsReviewPRs,
   readyToMergePRs,
-  onSelectedPRChange,
 }: {
+  owner: string
+  repo: string
   selectedPrNumber: number | null
   draftPRs: PullRequestCard[]
   needsReviewPRs: PullRequestCard[]
   readyToMergePRs: PullRequestCard[]
-  onSelectedPRChange: (nextPrNumber: number) => void
 }) {
   const hasAnyPR = draftPRs.length + needsReviewPRs.length + readyToMergePRs.length > 0
 
@@ -217,26 +219,29 @@ function PRSelectionList({
       {!hasAnyPR && <div className={styles.prEmpty}>No open PRs</div>}
       {Boolean(draftPRs.length) && (
         <PRSelectionSection
+          owner={owner}
+          repo={repo}
           title="Draft"
           prs={draftPRs}
           selectedPrNumber={selectedPrNumber}
-          onSelectedPRChange={onSelectedPRChange}
         />
       )}
       {Boolean(needsReviewPRs.length) && (
         <PRSelectionSection
+          owner={owner}
+          repo={repo}
           title="Needs Review"
           prs={needsReviewPRs}
           selectedPrNumber={selectedPrNumber}
-          onSelectedPRChange={onSelectedPRChange}
         />
       )}
       {Boolean(readyToMergePRs.length) && (
         <PRSelectionSection
+          owner={owner}
+          repo={repo}
           title="Ready to Merge"
           prs={readyToMergePRs}
           selectedPrNumber={selectedPrNumber}
-          onSelectedPRChange={onSelectedPRChange}
         />
       )}
     </div>
@@ -244,15 +249,17 @@ function PRSelectionList({
 }
 
 function PRSelectionSection({
+  owner,
+  repo,
   title,
   prs,
   selectedPrNumber,
-  onSelectedPRChange,
 }: {
+  owner: string
+  repo: string
   title: string
   prs: PullRequestCard[]
   selectedPrNumber: number | null
-  onSelectedPRChange: (nextPrNumber: number) => void
 }) {
   return (
     <section className={styles.prSection}>
@@ -265,13 +272,16 @@ function PRSelectionSection({
           const isSelected = selectedPrNumber === pr.number
           return (
             <li key={pr.id}>
-              <button
-                type="button"
+              <Link
+                to="/$owner/$repo"
+                params={{ owner, repo }}
+                search={(previousSearch) => ({
+                  ...previousSearch,
+                  selectedPrNumber: String(pr.number),
+                })}
+                preload="intent"
                 className={`${styles.prCell} ${isSelected ? styles.prCellSelected : ""}`}
-                aria-pressed={isSelected}
-                onClick={() => {
-                  onSelectedPRChange(pr.number)
-                }}
+                aria-current={isSelected ? "true" : undefined}
               >
                 <span className={styles.prTitle}>
                   #{pr.number} {pr.title}
@@ -290,7 +300,7 @@ function PRSelectionSection({
                     {pr.commentsCount + pr.reviewCommentsCount} comments
                   </span>
                 </span>
-              </button>
+              </Link>
             </li>
           )
         })}
@@ -371,5 +381,9 @@ function PRActivityTimeline({ selectedPR }: { selectedPR: PullRequestCard | null
 }
 
 export const Route = createFileRoute("/$owner/$repo/")({
+  validateSearch: (search: { selectedPrNumber?: string }) => ({
+    selectedPrNumber:
+      typeof search.selectedPrNumber === "string" ? search.selectedPrNumber : undefined,
+  }),
   component: RepoPROverviewPage,
 })
