@@ -57,6 +57,32 @@ interface RepositorySyncItem extends RepoActivitySnapshot {
   githubId: number
 }
 
+interface InstallationRepository {
+  id: number
+  name: string
+  full_name: string
+  owner: {
+    id: number
+    login: string
+    type: string
+    avatar_url?: string | null
+    url?: string | null
+  }
+  description?: string | null
+  url: string
+  html_url: string
+  private: boolean
+  fork: boolean
+  default_branch?: string | null
+  language?: string | null
+  stargazers_count: number
+  forks_count: number
+  open_issues_count: number
+  created_at?: string | null
+  updated_at?: string | null
+  pushed_at?: string | null
+}
+
 export function isGitHubAuthError(error: unknown): boolean {
   return error instanceof RequestError && error.status === 401
 }
@@ -180,13 +206,58 @@ export class GitHubClient {
 
   // Check what OAuth scopes the token has
   async getTokenScopes(): Promise<string[]> {
-    // Make a simple API call and check the x-oauth-scopes header
-    const response = await this.octokit.rest.users.getAuthenticated()
-    const scopes = response.headers["x-oauth-scopes"]
-    if (typeof scopes === "string") {
-      return scopes.split(",").map((s) => s.trim())
+    // Installation tokens do not expose OAuth scopes. Query installation permissions
+    // and map the most relevant capabilities to legacy scope labels.
+    const response = await withRateLimitRetry(() => this.octokit.request("GET /installation"))
+    this.extractRateLimit(response.headers as Record<string, string | undefined>)
+
+    const responseData: unknown = response.data
+    const permissionsValue =
+      typeof responseData === "object" && responseData !== null
+        ? (responseData as { permissions?: unknown }).permissions
+        : undefined
+    const permissions =
+      typeof permissionsValue === "object" && permissionsValue !== null
+        ? (permissionsValue as Record<string, string>)
+        : {}
+    const scopes = new Set<string>()
+    const hasRepoAccess = Object.values(permissions).some(
+      (level): level is "read" | "write" => level === "read" || level === "write",
+    )
+
+    if (hasRepoAccess) scopes.add("repo")
+    if (permissions.metadata === "read" || permissions.members === "read") scopes.add("read:org")
+    if (permissions.metadata === "read") scopes.add("read:user")
+    if (permissions.webhooks === "write") scopes.add("admin:repo_hook")
+
+    return [...scopes]
+  }
+
+  private async listInstallationRepositories(): Promise<{
+    repositories: InstallationRepository[]
+    rateLimit: RateLimitInfo
+  }> {
+    const repositories: InstallationRepository[] = []
+    let page = 1
+    let hasMore = true
+    let rateLimit = this.lastRateLimit ?? (await this.getRateLimit())
+
+    while (hasMore) {
+      const response = await withRateLimitRetry(() =>
+        this.octokit.rest.apps.listReposAccessibleToInstallation({
+          per_page: 100,
+          page,
+        }),
+      )
+
+      rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
+      const pageRepositories = (response.data.repositories ?? []) as InstallationRepository[]
+      repositories.push(...pageRepositories)
+      hasMore = pageRepositories.length === 100
+      page += 1
     }
-    return []
+
+    return { repositories, rateLimit }
   }
 
   async getFileContent(
@@ -471,20 +542,30 @@ export class GitHubClient {
 
   // Fetch user's organizations (with pagination)
   async fetchOrganizations(): Promise<SyncResult<{ githubId: number; login: string }[]>> {
-    const allOrgsData = await withRateLimitRetry(() =>
-      this.octokit.paginate(this.octokit.rest.orgs.listForAuthenticatedUser, { per_page: 100 }),
-    )
-
-    // Get rate limit from a simple request (paginate doesn't expose headers easily)
-    const rateLimit = await this.getRateLimit()
+    const { repositories, rateLimit } = await this.listInstallationRepositories()
 
     const now = Date.now()
-    const orgs = allOrgsData.map((org) => ({
-      githubId: org.id,
+    const orgMap = new Map<
+      string,
+      { githubId: number; login: string; name: string; avatarUrl?: string; url?: string }
+    >()
+    for (const repo of repositories) {
+      if (repo.owner.type !== "Organization") continue
+      if (orgMap.has(repo.owner.login)) continue
+      orgMap.set(repo.owner.login, {
+        githubId: repo.owner.id,
+        login: repo.owner.login,
+        name: repo.owner.login,
+        avatarUrl: repo.owner.avatar_url ?? undefined,
+        url: repo.owner.url ?? undefined,
+      })
+    }
+    const orgs = [...orgMap.values()].map((org) => ({
+      githubId: org.githubId,
       login: org.login,
-      name: org.login,
-      description: org.description || undefined,
-      avatarUrl: org.avatar_url,
+      name: org.name,
+      description: undefined,
+      avatarUrl: org.avatarUrl,
       url: org.url,
     }))
 
@@ -535,16 +616,7 @@ export class GitHubClient {
 
   // Fetch user's repositories (personal and org repos) with pagination
   async fetchRepositories(): Promise<SyncResult<RepositorySyncItem[]>> {
-    const allReposData = await withRateLimitRetry(() =>
-      this.octokit.paginate(this.octokit.rest.repos.listForAuthenticatedUser, {
-        per_page: 100,
-        sort: "updated",
-        affiliation: "owner,collaborator,organization_member",
-      }),
-    )
-
-    // Get rate limit from a simple request
-    const rateLimit = await this.getRateLimit()
+    const { repositories: allReposData, rateLimit } = await this.listInstallationRepositories()
 
     const now = Date.now()
     const repos = allReposData.map((repo) => ({
@@ -672,15 +744,7 @@ export class GitHubClient {
 
   // Fetch available repositories without subscribing/syncing PR data.
   async fetchAvailableRepos(): Promise<SyncResult<RepositorySyncItem[]>> {
-    const allReposData = await withRateLimitRetry(() =>
-      this.octokit.paginate(this.octokit.rest.repos.listForAuthenticatedUser, {
-        per_page: 100,
-        sort: "updated",
-        affiliation: "owner,collaborator,organization_member",
-      }),
-    )
-
-    const rateLimit = await this.getRateLimit()
+    const { repositories: allReposData, rateLimit } = await this.listInstallationRepositories()
     const now = Date.now()
     const repos = allReposData.map((repo) => ({
       githubId: repo.id,
@@ -758,28 +822,8 @@ export class GitHubClient {
   // Fetch repo names directly from the GitHub App installation context.
   // This is safe for installation tokens and does not depend on InstantDB state.
   async fetchAvailableRepoNames(): Promise<SyncResult<string[]>> {
-    const names: string[] = []
-    let page = 1
-    let hasMore = true
-    let rateLimit = this.lastRateLimit ?? (await this.getRateLimit())
-
-    while (hasMore) {
-      const response = await withRateLimitRetry(() =>
-        this.octokit.rest.apps.listReposAccessibleToInstallation({
-          per_page: 100,
-          page,
-        }),
-      )
-
-      rateLimit = this.extractRateLimit(response.headers as Record<string, string | undefined>)
-      const repos = response.data.repositories ?? []
-      for (const repo of repos) {
-        names.push(repo.full_name)
-      }
-
-      hasMore = repos.length === 100
-      page += 1
-    }
+    const { repositories, rateLimit } = await this.listInstallationRepositories()
+    const names = repositories.map((repo) => repo.full_name)
 
     names.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
     return { data: names, rateLimit, fromCache: false }

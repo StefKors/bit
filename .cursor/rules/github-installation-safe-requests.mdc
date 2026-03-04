@@ -1,0 +1,38 @@
+---
+description: Use GitHub App installation-safe API requests only
+alwaysApply: true
+---
+
+# GitHub App Request Safety
+
+When using `GitHubClient` with a GitHub App installation token, only call installation-safe endpoints.
+
+## Use Installation-Safe Endpoints
+
+- Prefer endpoints under app/installation context:
+  - `apps.listReposAccessibleToInstallation` (`GET /installation/repositories`)
+  - `apps.getInstallation`, `apps.createInstallationAccessToken`
+  - Repo-scoped endpoints under installed repos (e.g. `repos.get`, `pulls.list`, `issues.list`)
+
+## Do Not Use User-Context Endpoints
+
+- Do **not** call endpoints that require OAuth/user tokens with installation auth, such as:
+  - `repos.listForAuthenticatedUser` (`GET /user/repos`)
+  - `users.getAuthenticated` (`GET /user`) for repository discovery
+  - Any endpoint documented as "for the authenticated user" when using installation tokens
+
+## If Unsure
+
+1. Check GitHub docs for required auth type.
+2. If endpoint says "authenticated user", treat as unsafe for installation tokens.
+3. Prefer installation-scoped alternative, or return a clear `403`/guidance error.
+
+## Examples
+
+```ts
+// ❌ Not installation-safe for GitHub App installation token
+octokit.rest.repos.listForAuthenticatedUser(...)
+
+// ✅ Installation-safe
+octokit.rest.apps.listReposAccessibleToInstallation(...)
+```
