@@ -10,6 +10,12 @@ import styles from "./index.module.css"
 function HomePage() {
   const { user } = useAuth()
   const search = useSearch({ from: "/" })
+  const { data } = db.useQuery({
+    repos: {
+      $: { order: { pushedAt: "desc" } },
+    },
+  })
+  const repos = data?.repos ?? []
   const githubConnected = search.github === "connected"
   const oauthError = search.error
   const oauthMessage = search.message
@@ -73,6 +79,26 @@ function HomePage() {
               <RepoIcon size={18} />
               Enable Bit on repositories
             </Link>
+            {repos.length > 0 && (
+              <div className={styles.repoList}>
+                <h2 className={styles.repoListTitle}>Connected repositories</h2>
+                <ul className={styles.repoListItems}>
+                  {repos.map((repo) => (
+                    <li key={repo.id}>
+                      <a
+                        href={repo.htmlUrl ?? `https://github.com/${repo.fullName}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.repoLink}
+                      >
+                        <RepoIcon size={16} />
+                        {repo.fullName}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
 

@@ -11,7 +11,7 @@
   border-radius: var(--bit-radius-lg);
   box-shadow: var(--bit-shadow-lg);
   padding: 2rem;
-  max-width: 24rem;
+  max-width: 28rem;
   width: 100%;
 }
 
@@ -92,6 +92,47 @@
 }
 
 .enableLink:hover {
+  text-decoration: underline;
+}
+
+.repoList {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--bit-color-border);
+}
+
+.repoListTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--bit-color-fg-muted);
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.repoListItems {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.repoListItems li {
+  margin: 0;
+}
+
+.repoLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--bit-color-link);
+  text-decoration: none;
+}
+
+.repoLink:hover {
   text-decoration: underline;
 }
 
