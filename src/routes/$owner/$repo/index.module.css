@@ -145,6 +145,42 @@
     transform var(--motion-base) var(--ease-smooth);
 }
 
+.prCell {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 10px;
+  font-size: 0.8125rem;
+  color: var(--bit-color-text);
+  text-align: left;
+  border: 1px solid var(--repo-border);
+  border-radius: var(--bit-radius-md);
+  background: rgba(var(--bit-rgb-surface-2), 0.38);
+  transition:
+    background var(--motion-base) var(--ease-balance),
+    border-color var(--motion-base) var(--ease-balance),
+    transform var(--motion-base) var(--ease-smooth);
+}
+
+.prCell:hover {
+  border-color: var(--repo-border-strong);
+  background: var(--repo-hover);
+  transform: translateY(-1px);
+}
+
+.prCellSelected {
+  border-color: rgba(var(--bit-rgb-accent-blue), 0.55);
+  background: rgba(var(--bit-rgb-accent-blue), 0.14);
+}
+
+.prCell:focus-visible {
+  outline: 2px solid rgba(var(--bit-rgb-accent-blue), 0.65);
+  outline-offset: 1px;
+}
+
 .prLink:hover {
   border-color: var(--repo-border-strong);
   background: var(--repo-hover);
@@ -217,10 +253,100 @@
   background: rgba(var(--bit-rgb-surface-2), 0.32);
 }
 
+.selectedPrDetail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.selectedPrTitle {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--bit-color-text);
+}
+
+.selectedPrMeta {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--repo-muted);
+}
+
+.viewPrLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: var(--bit-radius-md);
+  border: 1px solid var(--repo-border);
+  color: var(--bit-color-text);
+  text-decoration: none;
+  background: rgba(var(--bit-rgb-surface-2), 0.5);
+}
+
+.viewPrLink:hover {
+  border-color: var(--repo-border-strong);
+  background: var(--repo-hover);
+}
+
 .activityPlaceholder {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.activityList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.activityItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: var(--bit-radius-md);
+  border: 1px solid var(--repo-border);
+  background: rgba(var(--bit-rgb-surface-2), 0.34);
+}
+
+.activityItemKind {
+  display: inline-flex;
+  align-self: flex-start;
+  min-height: 18px;
+  padding: 0 6px;
+  border-radius: var(--bit-radius-sm);
+  border: 1px solid var(--repo-border);
+  color: var(--repo-muted);
+  text-transform: uppercase;
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+}
+
+.activityItemTitle {
+  margin: 0;
+  color: var(--bit-color-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.activityItemSubtitle {
+  margin: 0;
+  color: var(--repo-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activityItemTime {
+  color: var(--repo-muted);
+  font-size: 0.6875rem;
 }
 
 .activityGrid {
@@ -289,6 +415,26 @@
 }
 
 .prList li:nth-child(5) .prLink {
+  animation: slide-in-up var(--motion-entry) var(--ease-smooth) 120ms both;
+}
+
+.prList li:nth-child(1) .prCell {
+  animation: slide-in-up var(--motion-entry) var(--ease-smooth);
+}
+
+.prList li:nth-child(2) .prCell {
+  animation: slide-in-up var(--motion-entry) var(--ease-smooth) 30ms both;
+}
+
+.prList li:nth-child(3) .prCell {
+  animation: slide-in-up var(--motion-entry) var(--ease-smooth) 60ms both;
+}
+
+.prList li:nth-child(4) .prCell {
+  animation: slide-in-up var(--motion-entry) var(--ease-smooth) 90ms both;
+}
+
+.prList li:nth-child(5) .prCell {
   animation: slide-in-up var(--motion-entry) var(--ease-smooth) 120ms both;
 }
 
