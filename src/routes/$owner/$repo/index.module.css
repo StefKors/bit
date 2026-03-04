@@ -1,0 +1,156 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.backLink {
+  font-size: 0.875rem;
+  color: var(--bit-color-link);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--bit-color-text);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.column1,
+.column2,
+.column3 {
+  display: flex;
+  flex-direction: column;
+  background: var(--bit-color-panel-bg);
+  border-radius: var(--bit-radius-lg);
+  padding: 1rem;
+  overflow: auto;
+}
+
+.columnTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--bit-color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin: 0 0 0.75rem;
+}
+
+.prSection {
+  margin-bottom: 1rem;
+}
+
+.prSectionTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--bit-color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 0.5rem;
+}
+
+.prList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.prList li {
+  margin: 0;
+}
+
+.prLink {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--bit-color-text);
+  text-decoration: none;
+  border-radius: var(--bit-radius-md);
+}
+
+.prLink:hover {
+  background: rgba(var(--bit-rgb-surface-3), 0.5);
+}
+
+.prEmpty {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--bit-color-muted);
+}
+
+.placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bit-color-muted);
+  font-size: 0.875rem;
+}
+
+.activityPlaceholder {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.placeholderText {
+  font-size: 0.875rem;
+  color: var(--bit-color-muted);
+  margin: 0;
+}
+
+.commentFormPlaceholder {
+  padding: 1rem;
+  border: 1px dashed rgba(var(--bit-rgb-muted), 0.4);
+  border-radius: var(--bit-radius-md);
+  font-size: 0.8125rem;
+  color: var(--bit-color-muted);
+}
+
+.mergeButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--bit-color-paper);
+  background: var(--bit-color-accent-green);
+  border: none;
+  border-radius: var(--bit-radius-md);
+  cursor: pointer;
+}
+
+.mergeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--bit-color-muted);
+}

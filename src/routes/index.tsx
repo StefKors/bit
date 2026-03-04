@@ -85,15 +85,14 @@ function HomePage() {
                 <ul className={styles.repoListItems}>
                   {repos.map((repo) => (
                     <li key={repo.id}>
-                      <a
-                        href={repo.htmlUrl ?? `https://github.com/${repo.fullName}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <Link
+                        to="/$owner/$repo"
+                        params={{ owner: repo.owner, repo: repo.name }}
                         className={styles.repoLink}
                       >
                         <RepoIcon size={16} />
                         {repo.fullName}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>

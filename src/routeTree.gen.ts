@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as EnableReposRouteImport } from './routes/enable-repos'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as OwnerRepoIndexRouteImport } from './routes/$owner/$repo/index'
 import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
 import { Route as ApiGithubOauthIndexRouteImport } from './routes/api/github/oauth/index'
 import { Route as ApiGithubReposEnableRouteImport } from './routes/api/github/repos/enable'
 import { Route as ApiGithubOauthCallbackRouteImport } from './routes/api/github/oauth/callback'
 import { Route as ApiGithubInstallationReposRouteImport } from './routes/api/github/installation/repos'
+import { Route as OwnerRepoPullNumberRouteImport } from './routes/$owner/$repo/pull.$number'
 
 const EnableReposRoute = EnableReposRouteImport.update({
   id: '/enable-repos',
@@ -31,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OwnerRepoIndexRoute = OwnerRepoIndexRouteImport.update({
+  id: '/$owner/$repo/',
+  path: '/$owner/$repo/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubWebhookRoute = ApiGithubWebhookRouteImport.update({
@@ -59,12 +66,19 @@ const ApiGithubInstallationReposRoute =
     path: '/api/github/installation/repos',
     getParentRoute: () => rootRouteImport,
   } as any)
+const OwnerRepoPullNumberRoute = OwnerRepoPullNumberRouteImport.update({
+  id: '/$owner/$repo/pull/$number',
+  path: '/$owner/$repo/pull/$number',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/enable-repos': typeof EnableReposRoute
   '/api/health': typeof ApiHealthRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
+  '/$owner/$repo/': typeof OwnerRepoIndexRoute
+  '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/installation/repos': typeof ApiGithubInstallationReposRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
   '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
@@ -75,6 +89,8 @@ export interface FileRoutesByTo {
   '/enable-repos': typeof EnableReposRoute
   '/api/health': typeof ApiHealthRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
+  '/$owner/$repo': typeof OwnerRepoIndexRoute
+  '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/installation/repos': typeof ApiGithubInstallationReposRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
   '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
@@ -86,6 +102,8 @@ export interface FileRoutesById {
   '/enable-repos': typeof EnableReposRoute
   '/api/health': typeof ApiHealthRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
+  '/$owner/$repo/': typeof OwnerRepoIndexRoute
+  '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/installation/repos': typeof ApiGithubInstallationReposRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
   '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
@@ -98,6 +116,8 @@ export interface FileRouteTypes {
     | '/enable-repos'
     | '/api/health'
     | '/api/github/webhook'
+    | '/$owner/$repo/'
+    | '/$owner/$repo/pull/$number'
     | '/api/github/installation/repos'
     | '/api/github/oauth/callback'
     | '/api/github/repos/enable'
@@ -108,6 +128,8 @@ export interface FileRouteTypes {
     | '/enable-repos'
     | '/api/health'
     | '/api/github/webhook'
+    | '/$owner/$repo'
+    | '/$owner/$repo/pull/$number'
     | '/api/github/installation/repos'
     | '/api/github/oauth/callback'
     | '/api/github/repos/enable'
@@ -118,6 +140,8 @@ export interface FileRouteTypes {
     | '/enable-repos'
     | '/api/health'
     | '/api/github/webhook'
+    | '/$owner/$repo/'
+    | '/$owner/$repo/pull/$number'
     | '/api/github/installation/repos'
     | '/api/github/oauth/callback'
     | '/api/github/repos/enable'
@@ -129,6 +153,8 @@ export interface RootRouteChildren {
   EnableReposRoute: typeof EnableReposRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiGithubWebhookRoute: typeof ApiGithubWebhookRoute
+  OwnerRepoIndexRoute: typeof OwnerRepoIndexRoute
+  OwnerRepoPullNumberRoute: typeof OwnerRepoPullNumberRoute
   ApiGithubInstallationReposRoute: typeof ApiGithubInstallationReposRoute
   ApiGithubOauthCallbackRoute: typeof ApiGithubOauthCallbackRoute
   ApiGithubReposEnableRoute: typeof ApiGithubReposEnableRoute
@@ -156,6 +182,13 @@ declare module '@tanstack/react-router' {
       path: '/api/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$owner/$repo/': {
+      id: '/$owner/$repo/'
+      path: '/$owner/$repo'
+      fullPath: '/$owner/$repo/'
+      preLoaderRoute: typeof OwnerRepoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/webhook': {
@@ -193,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubInstallationReposRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$owner/$repo/pull/$number': {
+      id: '/$owner/$repo/pull/$number'
+      path: '/$owner/$repo/pull/$number'
+      fullPath: '/$owner/$repo/pull/$number'
+      preLoaderRoute: typeof OwnerRepoPullNumberRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -201,6 +241,8 @@ const rootRouteChildren: RootRouteChildren = {
   EnableReposRoute: EnableReposRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiGithubWebhookRoute: ApiGithubWebhookRoute,
+  OwnerRepoIndexRoute: OwnerRepoIndexRoute,
+  OwnerRepoPullNumberRoute: OwnerRepoPullNumberRoute,
   ApiGithubInstallationReposRoute: ApiGithubInstallationReposRoute,
   ApiGithubOauthCallbackRoute: ApiGithubOauthCallbackRoute,
   ApiGithubReposEnableRoute: ApiGithubReposEnableRoute,
