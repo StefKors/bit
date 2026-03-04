@@ -1,6 +1,4 @@
-export const parseWebhookEventsEnabled = (
-  raw: string | null | undefined,
-): Set<string> | null => {
+export const parseWebhookEventsEnabled = (raw: string | null | undefined): Set<string> | null => {
   if (!raw || typeof raw !== "string") return null
 
   try {

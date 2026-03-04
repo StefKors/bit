@@ -34,6 +34,7 @@ import { Route as ApiGithubSyncRetryRouteImport } from './routes/api/github/sync
 import { Route as ApiGithubSyncResetRouteImport } from './routes/api/github/sync/reset'
 import { Route as ApiGithubSyncOverviewRouteImport } from './routes/api/github/sync/overview'
 import { Route as ApiGithubSyncAddRepoRouteImport } from './routes/api/github/sync/add-repo'
+import { Route as ApiGithubReposAvailableRouteImport } from './routes/api/github/repos.available'
 import { Route as ApiGithubOauthCallbackRouteImport } from './routes/api/github/oauth/callback'
 import { Route as OwnerRepoPullNumberRouteImport } from './routes/$owner/$repo/pull.$number'
 import { Route as OwnerRepoIssuesNumberRouteImport } from './routes/$owner/$repo/issues.$number'
@@ -186,6 +187,11 @@ const ApiGithubSyncOverviewRoute = ApiGithubSyncOverviewRouteImport.update({
 const ApiGithubSyncAddRepoRoute = ApiGithubSyncAddRepoRouteImport.update({
   id: '/api/github/sync/add-repo',
   path: '/api/github/sync/add-repo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubReposAvailableRoute = ApiGithubReposAvailableRouteImport.update({
+  id: '/api/github/repos/available',
+  path: '/api/github/repos/available',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubOauthCallbackRoute = ApiGithubOauthCallbackRouteImport.update({
@@ -376,6 +382,7 @@ export interface FileRoutesByFullPath {
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
+  '/api/github/repos/available': typeof ApiGithubReposAvailableRoute
   '/api/github/sync/add-repo': typeof ApiGithubSyncAddRepoRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
   '/api/github/sync/reset': typeof ApiGithubSyncResetRoute
@@ -431,6 +438,7 @@ export interface FileRoutesByTo {
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
+  '/api/github/repos/available': typeof ApiGithubReposAvailableRoute
   '/api/github/sync/add-repo': typeof ApiGithubSyncAddRepoRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
   '/api/github/sync/reset': typeof ApiGithubSyncResetRoute
@@ -487,6 +495,7 @@ export interface FileRoutesById {
   '/$owner/$repo/issues/$number': typeof OwnerRepoIssuesNumberRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
+  '/api/github/repos/available': typeof ApiGithubReposAvailableRoute
   '/api/github/sync/add-repo': typeof ApiGithubSyncAddRepoRoute
   '/api/github/sync/overview': typeof ApiGithubSyncOverviewRoute
   '/api/github/sync/reset': typeof ApiGithubSyncResetRoute
@@ -544,6 +553,7 @@ export interface FileRouteTypes {
     | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
     | '/api/github/oauth/callback'
+    | '/api/github/repos/available'
     | '/api/github/sync/add-repo'
     | '/api/github/sync/overview'
     | '/api/github/sync/reset'
@@ -599,6 +609,7 @@ export interface FileRouteTypes {
     | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
     | '/api/github/oauth/callback'
+    | '/api/github/repos/available'
     | '/api/github/sync/add-repo'
     | '/api/github/sync/overview'
     | '/api/github/sync/reset'
@@ -654,6 +665,7 @@ export interface FileRouteTypes {
     | '/$owner/$repo/issues/$number'
     | '/$owner/$repo/pull/$number'
     | '/api/github/oauth/callback'
+    | '/api/github/repos/available'
     | '/api/github/sync/add-repo'
     | '/api/github/sync/overview'
     | '/api/github/sync/reset'
@@ -709,6 +721,7 @@ export interface RootRouteChildren {
   OwnerRepoCommitsBranchRoute: typeof OwnerRepoCommitsBranchRoute
   OwnerRepoPullNumberRoute: typeof OwnerRepoPullNumberRoute
   ApiGithubOauthCallbackRoute: typeof ApiGithubOauthCallbackRoute
+  ApiGithubReposAvailableRoute: typeof ApiGithubReposAvailableRoute
   ApiGithubSyncAddRepoRoute: typeof ApiGithubSyncAddRepoRoute
   ApiGithubSyncOverviewRoute: typeof ApiGithubSyncOverviewRoute
   ApiGithubSyncResetRoute: typeof ApiGithubSyncResetRoute
@@ -912,6 +925,13 @@ declare module '@tanstack/react-router' {
       path: '/api/github/sync/add-repo'
       fullPath: '/api/github/sync/add-repo'
       preLoaderRoute: typeof ApiGithubSyncAddRepoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/repos/available': {
+      id: '/api/github/repos/available'
+      path: '/api/github/repos/available'
+      fullPath: '/api/github/repos/available'
+      preLoaderRoute: typeof ApiGithubReposAvailableRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/oauth/callback': {
@@ -1170,6 +1190,7 @@ const rootRouteChildren: RootRouteChildren = {
   OwnerRepoCommitsBranchRoute: OwnerRepoCommitsBranchRoute,
   OwnerRepoPullNumberRoute: OwnerRepoPullNumberRoute,
   ApiGithubOauthCallbackRoute: ApiGithubOauthCallbackRoute,
+  ApiGithubReposAvailableRoute: ApiGithubReposAvailableRoute,
   ApiGithubSyncAddRepoRoute: ApiGithubSyncAddRepoRoute,
   ApiGithubSyncOverviewRoute: ApiGithubSyncOverviewRoute,
   ApiGithubSyncResetRoute: ApiGithubSyncResetRoute,

@@ -1,6 +1,6 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router"
 import { useState, useMemo, useEffect } from "react"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { Combobox } from "@base-ui/react/combobox"
 import { SyncIcon, LinkExternalIcon } from "@primer/octicons-react"
 import { db } from "@/lib/instantDb"
@@ -78,13 +78,28 @@ function DashboardPage() {
   const isGitHubConnected = hasInstallation || Boolean(user?.login)
   const repos = data?.repos ?? []
   const subscribedRepos = repos.filter((repo) => repo.subscribed === true)
-  const availableRepos = repos.filter((repo) => repo.subscribed !== true)
+  const subscribedRepoNames = useMemo(
+    () => new Set(subscribedRepos.map((repo) => repo.fullName)),
+    [subscribedRepos],
+  )
+  const { data: availableReposData, isLoading: isLoadingAvailableRepos } = useQuery({
+    queryKey: ["github-available-repos", user?.id],
+    enabled: isGitHubConnected && Boolean(user?.id),
+    queryFn: async (): Promise<{ repos: string[] }> => {
+      const res = await fetch("/api/github/repos/available", {
+        headers: { Authorization: `Bearer ${user?.id ?? ""}` },
+      })
+      const payload = (await res.json()) as { repos?: string[]; error?: string }
+      if (!res.ok) throw new Error(payload.error || "Failed to fetch repositories")
+      return { repos: payload.repos ?? [] }
+    },
+  })
   const availableRepoNames = useMemo(
     () =>
-      availableRepos
-        .map((repo) => repo.fullName)
+      (availableReposData?.repos ?? [])
+        .filter((repoFullName) => !subscribedRepoNames.has(repoFullName))
         .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })),
-    [availableRepos],
+    [availableReposData?.repos, subscribedRepoNames],
   )
   const userSettingsRecord = data?.userSettings?.[0] ?? null
   const initialSyncState = syncStates.find((s) => s.resourceType === "initial_sync")
@@ -308,11 +323,17 @@ function DashboardPage() {
                 onValueChange={setRepoToSubscribe}
                 options={availableRepoNames}
                 placeholder={
-                  availableRepos.length > 0
-                    ? "Select a repository"
-                    : "No repositories available from your installation"
+                  isLoadingAvailableRepos
+                    ? "Loading repositories..."
+                    : availableRepoNames.length > 0
+                      ? "Select a repository"
+                      : "No repositories available from your installation"
                 }
-                disabled={subscribeRepo.isPending || availableRepos.length === 0}
+                disabled={
+                  subscribeRepo.isPending ||
+                  isLoadingAvailableRepos ||
+                  availableRepoNames.length === 0
+                }
               />
               <Button
                 variant="primary"
@@ -383,7 +404,11 @@ function DashboardPage() {
                       onValueChange={setRepoToSubscribe}
                       options={availableRepoNames}
                       placeholder="Add repo..."
-                      disabled={subscribeRepo.isPending || availableRepos.length === 0}
+                      disabled={
+                        subscribeRepo.isPending ||
+                        isLoadingAvailableRepos ||
+                        availableRepoNames.length === 0
+                      }
                       compact
                     />
                     <Button
