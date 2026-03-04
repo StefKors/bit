@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
 import { Route as ApiGithubOauthIndexRouteImport } from './routes/api/github/oauth/index'
 import { Route as ApiGithubOauthCallbackRouteImport } from './routes/api/github/oauth/callback'
@@ -17,6 +18,11 @@ import { Route as ApiGithubOauthCallbackRouteImport } from './routes/api/github/
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubWebhookRoute = ApiGithubWebhookRouteImport.update({
@@ -37,12 +43,14 @@ const ApiGithubOauthCallbackRoute = ApiGithubOauthCallbackRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
   '/api/github/oauth': typeof ApiGithubOauthIndexRoute
@@ -50,6 +58,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
@@ -58,18 +67,21 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/api/health'
     | '/api/github/webhook'
     | '/api/github/oauth/callback'
     | '/api/github/oauth/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/api/health'
     | '/api/github/webhook'
     | '/api/github/oauth/callback'
     | '/api/github/oauth'
   id:
     | '__root__'
     | '/'
+    | '/api/health'
     | '/api/github/webhook'
     | '/api/github/oauth/callback'
     | '/api/github/oauth/'
@@ -77,6 +89,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiGithubWebhookRoute: typeof ApiGithubWebhookRoute
   ApiGithubOauthCallbackRoute: typeof ApiGithubOauthCallbackRoute
   ApiGithubOauthIndexRoute: typeof ApiGithubOauthIndexRoute
@@ -89,6 +102,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/webhook': {
@@ -117,6 +137,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiGithubWebhookRoute: ApiGithubWebhookRoute,
   ApiGithubOauthCallbackRoute: ApiGithubOauthCallbackRoute,
   ApiGithubOauthIndexRoute: ApiGithubOauthIndexRoute,
