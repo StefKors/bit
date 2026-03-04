@@ -1,90 +1,56 @@
 <p align="center">
-  <img src="public/bit-cube-small.png" height="128">
   <h1 align="center">Bit</h1>
 </p>
 
-[Bit](https://github.com/StefKors/Bit) the faster GitHub frontend.
+[Bit](https://github.com/StefKors/Bit) — a faster GitHub frontend.
 
 ## Features
 
-- **GitHub Integration**: View your organizations, repositories, and pull requests
-- **Real-time Sync**: Data syncs via InstantDB for offline access
-- **PR Viewer**: Full PR detail view with conversation, files changed, and diff viewer
-- **Webhook Support**: Real-time updates via GitHub webhooks
+- **GitHub App Integration**: Connect your GitHub account, install the Bit GitHub App, and enable repos
+- **Pull Request Dashboard**: PRs grouped by Draft, Needs Review, and Ready to Merge
+- **PR Detail View**: Mergeable status, CI checks, conversation comments, and reviews
+- **Real-time Webhooks**: Live updates via GitHub webhooks for PRs, reviews, comments, checks, and pushes
+- **Offline-first Sync**: InstantDB powers real-time data sync with offline support
+- **Light & Dark Mode**: Adapts to system `prefers-color-scheme`
 - Diff viewer component from [pierre](https://diffs.com)
-
-<img src="Screenshot.png">
 
 ## Setup
 
 ### Environment Variables
 
-Create a `.env` file with the following variables:
+Copy `.env.example` to `.env` and fill in the values:
 
 ```bash
-# InstantDB
-INSTANT_APP_ID=your_instantdb_app_id
-INSTANT_ADMIN_TOKEN=your_instantdb_admin_token
-
-# GitHub Webhook Secret (for real-time updates)
-GITHUB_WEBHOOK_SECRET=your_webhook_secret
-
-# Public app URL used to register webhook callbacks
-# Must be publicly reachable in production, e.g. https://your-domain.com
-BASE_URL=http://localhost:5173
-
-# Optional local override (default false)
-# When false, webhook registration is skipped for localhost/private BASE_URL values
-ALLOW_LOCAL_WEBHOOK_REGISTRATION=false
+cp .env.example .env
 ```
+
+| Variable | Description |
+| --- | --- |
+| `BASE_URL` | Public app URL for webhook callbacks (default: `http://localhost:5173`) |
+| `GITHUB_CLIENT_ID` | GitHub App OAuth client ID |
+| `GITHUB_CLIENT_SECRET` | GitHub App OAuth client secret |
+| `GITHUB_APP_SLUG` | GitHub App slug (used for installation redirect) |
+| `GITHUB_APP_ID` | GitHub App ID (for generating JWTs) |
+| `GITHUB_APP_PRIVATE_KEY` | GitHub App private key (PEM, newlines escaped as `\n`) |
+| `GITHUB_WEBHOOK_SECRET` | Secret for verifying webhook signatures |
+| `INSTANT_APP_ID` | InstantDB app ID |
+| `INSTANT_ADMIN_TOKEN` | InstantDB admin token |
 
 ### InstantDB Setup
 
 1. Go to [InstantDB Dashboard](https://www.instantdb.com/dash)
 2. Create a new app
-3. Copy the App ID to your `.env` file
-4. Generate an Admin Token and add it to your `.env` file
-5. Configure GitHub OAuth in InstantDB dashboard:
-   - Go to Auth settings
-   - Enable GitHub OAuth
-   - Set redirect URL to `http://localhost:5173/`
+3. Copy the App ID and generate an Admin Token — add both to `.env`
 
-### GitHub App Setup (for Webhooks)
+### GitHub App Setup
 
-To receive real-time updates, create a GitHub App:
-
-1. Go to [GitHub Apps](https://github.com/settings/apps)
-2. Create a new GitHub App
-3. Set the Webhook URL to your API endpoint (e.g., `https://your-domain.com/api/github/webhook`)
-4. Generate a Webhook Secret and add it to your `.env` as `GITHUB_WEBHOOK_SECRET`
-5. Subscribe to events:
-   - Pull requests
-   - Pull request reviews
-   - Pull request review comments
-   - Issue comments
-6. Set required permissions:
-   - Pull requests: Read
-   - Contents: Read
-   - Metadata: Read
-
-### Local Development Webhook Behavior
-
-When running locally with `BASE_URL` pointing to localhost/private addresses, the app now
-**skips webhook registration automatically** during sync. This avoids repeated GitHub API
-errors like:
-
-- `Validation Failed: url is not supported because it isn't reachable over the public Internet`
-
-Why this happens:
-
-- GitHub only accepts webhook callback URLs that are publicly reachable.
-- Local URLs (`localhost`, `127.0.0.1`, `192.168.x.x`, etc.) are not reachable from GitHub.
-
-How to enable webhook registration locally anyway:
-
-1. Expose your local app publicly (for example using a tunnel URL).
-2. Set `BASE_URL` to that public URL.
-3. Optionally set `ALLOW_LOCAL_WEBHOOK_REGISTRATION=true` if you need to force local/private URL registration attempts.
+1. Go to [GitHub Developer Settings > Apps](https://github.com/settings/apps) and create a new GitHub App
+2. Set the **Webhook URL** to `<your-public-url>/api/github/webhook`
+3. Generate a **Webhook Secret** and add it as `GITHUB_WEBHOOK_SECRET`
+4. Note the **App ID**, **Client ID**, **Client Secret**, and **App slug** — add all to `.env`
+5. Generate a **Private Key** and add it as `GITHUB_APP_PRIVATE_KEY`
+6. Subscribe to webhook events: Pull requests, Pull request reviews, Pull request review comments, Issue comments, Check runs, Check suites, Push
+7. Set permissions: Pull requests (Read), Contents (Read), Metadata (Read), Checks (Read)
 
 ### Running the App
 
@@ -92,49 +58,66 @@ How to enable webhook registration locally anyway:
 # Install dependencies
 bun install
 
-# Push schema to InstantDB
+# Push schema and permissions to InstantDB
 bun run instant:push
 
-# Run the development server
+# Start the development server
 bun run dev
 ```
 
+### Production
+
+```bash
+bun run build
+bun run start
+```
+
+The production server runs on port 3000 by default (override with `PORT`).
+
 ## Routes
 
-| Route                        | Description                                            |
-| ---------------------------- | ------------------------------------------------------ |
-| `/`                          | Overview page - list of organizations and repositories |
-| `/:owner/:repo`              | Repository home page                                   |
-| `/:owner/:repo/pulls`        | Pull request list                                      |
-| `/:owner/:repo/pull/:number` | Pull request detail view                               |
+| Route | Description |
+| --- | --- |
+| `/` | Home — user profile, GitHub connect flow, list of enabled repos |
+| `/enable-repos` | Select which repos from your GitHub App installation to enable |
+| `/:owner/:repo` | Repo overview — PRs grouped by Draft / Needs Review / Ready to Merge |
+| `/:owner/:repo/pull/:number` | PR detail — state, checks, comments, reviews |
 
 ## API Endpoints
 
-### Sync Endpoints
-
-- `POST /api/github/sync/overview` - Sync organizations and repositories
-- `POST /api/github/sync/:owner/:repo` - Sync pull requests for a repository
-- `POST /api/github/sync/:owner/:repo/pull/:number` - Sync PR details (files, comments, reviews)
-- `GET /api/github/rate-limit` - Get current GitHub API rate limit status
-
-### Webhook Endpoint
-
-- `POST /api/github/webhook` - Receive GitHub webhook events
-
-## Rate Limiting
-
-GitHub API has a limit of 5000 requests per hour for authenticated users. The app:
-
-- Tracks remaining requests and displays them in the UI
-- Shows a warning when rate limit is low (<100 requests)
-- Stores sync state to avoid unnecessary re-fetching
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/health` | Health check |
+| GET | `/api/github/oauth` | Redirects to GitHub App installation flow |
+| GET | `/api/github/oauth/callback` | Handles GitHub App installation callback |
+| GET | `/api/github/installation/repos` | Lists repos accessible to the installed GitHub App |
+| POST | `/api/github/repos/enable` | Enables Bit tracking on selected repos |
+| POST | `/api/github/webhook` | Receives and processes GitHub webhook events |
 
 ## Tech Stack
 
-- **Frontend**: React + Vite + TypeScript
-- **Routing**: TanStack Router
-- **State**: InstantDB (offline-first sync)
-- **Styling**: CSS Modules
-- **Backend**: Hono + TanStack Start
-- **Database**: InstantDB
-- **Auth**: InstantDB with GitHub OAuth
+| Layer | Technology |
+| --- | --- |
+| **Frontend** | React 19, TypeScript, Vite 7 |
+| **Routing** | TanStack Router + TanStack Start |
+| **Database / State** | InstantDB (offline-first, real-time sync) |
+| **Styling** | CSS Modules with CSS variables |
+| **UI Components** | Base UI, cmdk, Primer Octicons |
+| **Backend** | TanStack Start (Nitro), Hono |
+| **Auth** | InstantDB magic-code auth + GitHub App |
+| **GitHub** | Octokit, `@octokit/webhooks-types` |
+| **Code Highlighting** | Shiki, markdown-it |
+| **Validation** | Zod |
+
+## Development
+
+```bash
+# Lint (required before committing)
+bun run lint
+
+# Format
+bun run format
+
+# Run tests
+bun run test
+```
