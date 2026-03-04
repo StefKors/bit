@@ -1,590 +1,92 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router"
-import { useState, useMemo, useEffect } from "react"
-import { useMutation, useQuery } from "@tanstack/react-query"
-import { Combobox } from "@base-ui/react/combobox"
-import { SyncIcon, LinkExternalIcon } from "@primer/octicons-react"
-import { db } from "@/lib/instantDb"
+import { LinkExternalIcon } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { resolveUserAvatarUrl } from "@/lib/avatar"
-import { DEFAULT_MODEL } from "@/lib/cerebras"
-import { parseInitialSyncProgress } from "@/lib/json-validators"
-import { subscribeRepoMutation, syncResetMutation, syncRetryMutation } from "@/lib/mutations"
-import {
-  buildActivityFeed,
-  buildNextActions,
-  getLanguageDistribution,
-  getDailyActivityCounts,
-  getGreeting,
-  parseStringArray,
-} from "@/lib/dashboard-utils"
 import { Avatar } from "@/components/Avatar"
-import { InitialSyncCard, ConnectGitHubCard } from "@/features/overview"
-import {
-  StatsGrid,
-  ActivityFeed,
-  NextActions,
-  ContributionChart,
-  LanguageBar,
-  AISummary,
-  PRTable,
-  RepoList,
-} from "@/features/dashboard"
 import { Button } from "@/components/Button"
-import styles from "@/pages/DashboardPage.module.css"
+import { db } from "@/lib/instantDb"
+import styles from "./index.module.css"
 
-type CenterTab = "activity" | "authored" | "reviews"
-
-function DashboardPage() {
+function HomePage() {
   const { user } = useAuth()
   const search = useSearch({ from: "/" })
-  const [centerTab, setCenterTab] = useState<CenterTab>("activity")
-  const [aiStatus, setAiStatus] = useState<{ configured: boolean; checked: boolean }>({
-    configured: false,
-    checked: false,
-  })
-  const [repoToSubscribe, setRepoToSubscribe] = useState("")
-
-  const resetSync = useMutation(syncResetMutation(user?.id ?? ""))
-  const retrySync = useMutation(syncRetryMutation(user?.id ?? ""))
-  const subscribeRepo = useMutation({
-    ...subscribeRepoMutation(user?.id ?? ""),
-    onSuccess: () => {
-      setRepoToSubscribe("")
-    },
-  })
-
-  const githubJustConnected = search.github === "connected"
-  const githubJustInstalled = search.github === "installed"
+  const githubConnected = search.github === "connected"
   const oauthError = search.error
   const oauthMessage = search.message
 
-  const { data } = db.useQuery({
-    syncStates: {},
-    repos: {
-      pullRequests: {
-        prReviews: {},
-        prComments: {},
-        prCommits: {},
-        prChecks: {},
-      },
-      issues: {},
-    },
-    organizations: {},
-    userSettings: {},
-  })
-
-  const syncStates = data?.syncStates ?? []
-  const hasInstallation = syncStates.some((s) => s.resourceType === "github:installation")
-  const isGitHubConnected = hasInstallation || Boolean(user?.login)
-  const repos = data?.repos ?? []
-  const subscribedRepos = repos.filter((repo) => repo.subscribed === true)
-  const subscribedRepoNames = useMemo(
-    () => new Set(subscribedRepos.map((repo) => repo.fullName)),
-    [subscribedRepos],
-  )
-  const { data: availableReposData, isLoading: isLoadingAvailableRepos } = useQuery({
-    queryKey: ["github-available-repos", user?.id],
-    enabled: isGitHubConnected && Boolean(user?.id),
-    retry: false,
-    queryFn: async (): Promise<{ repos: string[] }> => {
-      const res = await fetch("/api/github/repos/available", {
-        headers: { Authorization: `Bearer ${user?.id ?? ""}` },
-      })
-      const payload = (await res.json()) as { repos?: string[]; error?: string }
-      if (!res.ok) throw new Error(payload.error || "Failed to fetch repositories")
-      return { repos: payload.repos ?? [] }
-    },
-  })
-  const availableRepoNames = useMemo(
-    () =>
-      (availableReposData?.repos ?? [])
-        .filter((repoFullName) => !subscribedRepoNames.has(repoFullName))
-        .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })),
-    [availableReposData?.repos, subscribedRepoNames],
-  )
-  const userSettingsRecord = data?.userSettings?.[0] ?? null
-  const initialSyncState = syncStates.find((s) => s.resourceType === "initial_sync")
-  const initialSyncProgress = parseInitialSyncProgress(initialSyncState?.lastEtag)
-  const isInitialSyncing = isGitHubConnected && initialSyncState?.syncStatus === "syncing"
-
-  const overviewSyncState = syncStates.find((s) => s.resourceType === "overview")
-  const isSyncing = overviewSyncState?.syncStatus === "syncing"
-  const lastSyncedAt = overviewSyncState?.lastSyncedAt
-
-  const currentUserLogin = user?.login ?? user?.email?.split("@")[0] ?? ""
-  const aiEnabled = userSettingsRecord?.aiEnabled !== false
-  const aiModel = (userSettingsRecord?.aiModel as string) || DEFAULT_MODEL
-
-  useEffect(() => {
-    const userId = user?.id
-    if (!userId) {
-      setAiStatus({ configured: false, checked: true })
-      return
-    }
-    void fetch("/api/cerebras/status", {
-      headers: { Authorization: `Bearer ${userId}` },
-    })
-      .then((r) => r.json() as Promise<{ configured?: boolean; error?: string }>)
-      .then((d) => {
-        setAiStatus({
-          configured: d.error ? false : Boolean(d.configured),
-          checked: true,
-        })
-      })
-      .catch(() => {
-        setAiStatus({ configured: false, checked: true })
-      })
-  }, [user?.id])
-
-  const dataRepos = subscribedRepos
-
-  const allPRs = useMemo(() => {
-    const repoList = dataRepos ?? []
-    type RepoPR = (typeof repoList)[number]["pullRequests"][number]
-    const prs: Array<RepoPR & { repo?: { fullName: string } }> = []
-    for (const repo of repoList) {
-      for (const pr of repo.pullRequests ?? []) {
-        prs.push({ ...pr, repo: { fullName: repo.fullName } })
-      }
-    }
-    return prs
-  }, [dataRepos])
-
-  const openPRs = useMemo(() => allPRs.filter((pr) => pr.state === "open"), [allPRs])
-
-  const authoredPRs = useMemo(
-    () => openPRs.filter((pr) => pr.authorLogin === currentUserLogin),
-    [openPRs, currentUserLogin],
-  )
-
-  const reviewRequestedPRs = useMemo(
-    () => openPRs.filter((pr) => parseStringArray(pr.reviewRequestedBy).includes(currentUserLogin)),
-    [openPRs, currentUserLogin],
-  )
-
-  const activityFeed = useMemo(
-    () => buildActivityFeed(dataRepos ?? [], currentUserLogin),
-    [dataRepos, currentUserLogin],
-  )
-
-  const nextActions = useMemo(
-    () => buildNextActions(dataRepos ?? [], currentUserLogin),
-    [dataRepos, currentUserLogin],
-  )
-
-  const languages = useMemo(() => getLanguageDistribution(dataRepos ?? []), [dataRepos])
-
-  const contributionData = useMemo(
-    () => getDailyActivityCounts(dataRepos ?? [], currentUserLogin),
-    [dataRepos, currentUserLogin],
-  )
-
-  const totalStars = useMemo(
-    () => (dataRepos ?? []).reduce((sum, r) => sum + (r.stargazersCount ?? 0), 0),
-    [dataRepos],
-  )
-
-  const totalCommits = useMemo(() => {
-    let count = 0
-    for (const repo of dataRepos ?? []) {
-      for (const pr of repo.pullRequests ?? []) {
-        for (const c of pr.prCommits ?? []) {
-          if (c.authorLogin === currentUserLogin) count++
-        }
-      }
-    }
-    return count
-  }, [dataRepos, currentUserLogin])
-
-  const openIssues = useMemo(() => {
-    let count = 0
-    for (const repo of dataRepos ?? []) {
-      for (const issue of repo.issues ?? []) {
-        if (issue.state === "open") count++
-      }
-    }
-    return count
-  }, [dataRepos])
-
-  const aiContextPrompt = useMemo(() => {
-    const lines: string[] = []
-    lines.push(`User: ${currentUserLogin}`)
-    lines.push(`Repos tracked: ${subscribedRepos.length}`)
-    lines.push(`Open PRs authored: ${authoredPRs.length}`)
-    lines.push(`Pending reviews: ${reviewRequestedPRs.length}`)
-    lines.push(`Open issues: ${openIssues}`)
-
-    const recentActivity = activityFeed.slice(0, 10)
-    if (recentActivity.length > 0) {
-      lines.push("\nRecent activity:")
-      for (const item of recentActivity) {
-        lines.push(`- ${item.title} (${item.subtitle})`)
-      }
-    }
-
-    const urgentActions = nextActions.filter((a) => a.priority === "high").slice(0, 5)
-    if (urgentActions.length > 0) {
-      lines.push("\nUrgent items:")
-      for (const action of urgentActions) {
-        lines.push(`- ${action.title} (${action.subtitle})`)
-      }
-    }
-
-    return lines.join("\n")
-  }, [
-    currentUserLogin,
-    subscribedRepos.length,
-    authoredPRs.length,
-    reviewRequestedPRs.length,
-    openIssues,
-    activityFeed,
-    nextActions,
-  ])
-
   const handleConnectGitHub = () => {
     if (!user?.id) return
-    const installUrl = `https://github.com/apps/bit-backend/installations/new?${new URLSearchParams({ state: user.id }).toString()}`
-    window.location.href = installUrl
-  }
-
-  const handleSubscribeRepo = () => {
-    if (!repoToSubscribe || subscribeRepo.isPending) return
-    subscribeRepo.mutate({ repoFullName: repoToSubscribe })
+    window.location.href = `/api/github/oauth/?userId=${user.id}`
   }
 
   if (!user) {
-    return <div>Loading...</div>
+    return <div className={styles.loading}>Loading...</div>
   }
 
   return (
     <div className={styles.container}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.greeting}>
-          <h1 className={styles.greetingTitle}>
-            {getGreeting()}, {user.name || user.login || "there"}
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <Avatar
+            src={resolveUserAvatarUrl(user)}
+            name={user.name || user.login || user.email}
+            size={64}
+          />
+          <h1 className={styles.title}>
+            {user.name || user.login || user.email?.split("@")[0] || "there"}
           </h1>
-          <p className={styles.greetingSubtitle}>
-            {subscribedRepos.length} repositories &middot; {openPRs.length} open PRs &middot;{" "}
-            {openIssues} issues
-          </p>
+          <p className={styles.subtitle}>{user.login ? `@${user.login}` : user.email}</p>
         </div>
-        <div className={styles.headerActions}>
-          {isSyncing && (
-            <span className={`${styles.syncBadge} ${styles.syncBadgeSyncing}`}>
-              <SyncIcon size={12} className={styles.syncSpinner} />
-              Syncing
-            </span>
-          )}
-          {Boolean(lastSyncedAt) && !isSyncing && (
-            <span className={styles.syncBadge}>
-              <SyncIcon size={12} />
-              Synced {formatRelativeTime(lastSyncedAt!)}
-            </span>
-          )}
+
+        {oauthError && <div className={styles.error}>{oauthError}</div>}
+        {githubConnected && (
+          <div className={styles.success}>{oauthMessage || "GitHub connected successfully!"}</div>
+        )}
+
+        {!user.login ? (
+          <div className={styles.section}>
+            <p className={styles.sectionText}>Connect your GitHub account to get started.</p>
+            <Button
+              variant="primary"
+              size="large"
+              block
+              leadingIcon={<LinkExternalIcon size={20} />}
+              onClick={handleConnectGitHub}
+            >
+              Install GitHub App
+            </Button>
+          </div>
+        ) : (
+          <div className={styles.section}>
+            <p className={styles.sectionText}>GitHub connected as @{user.login}</p>
+            {user.htmlUrl && (
+              <a
+                href={user.htmlUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.link}
+              >
+                View on GitHub <LinkExternalIcon size={14} />
+              </a>
+            )}
+          </div>
+        )}
+
+        <div className={styles.footer}>
+          <button type="button" className={styles.signOut} onClick={() => void db.auth.signOut()}>
+            Sign out
+          </button>
         </div>
       </div>
-
-      {/* OAuth messages */}
-      {oauthError && <div className={`${styles.statusRow} ${styles.errorRow}`}>{oauthError}</div>}
-      {githubJustConnected && (
-        <div className={styles.statusRow}>GitHub connected successfully!</div>
-      )}
-
-      {/* Connect / Sync prompts */}
-      {!isGitHubConnected && (
-        <ConnectGitHubCard
-          onConnect={handleConnectGitHub}
-          justInstalled={githubJustInstalled}
-          message={oauthMessage}
-        />
-      )}
-      {isInitialSyncing && (
-        <InitialSyncCard
-          progress={initialSyncProgress}
-          syncStates={syncStates}
-          onResetSync={(type, resId) => {
-            resetSync.mutate({ resourceType: type, resourceId: resId })
-          }}
-          onRetrySync={(type, resId) => {
-            retrySync.mutate({ resourceType: type, resourceId: resId })
-          }}
-        />
-      )}
-
-      {isGitHubConnected && subscribedRepos.length === 0 && (
-        <div className={styles.panel}>
-          <div className={styles.panelHeader}>
-            <h2 className={styles.panelTitle}>Start by subscribing to a repository</h2>
-          </div>
-          <div className={styles.panelBodyPadded}>
-            <div className={styles.subscriptionPicker}>
-              <RepoSubscriptionCombobox
-                value={repoToSubscribe}
-                onValueChange={setRepoToSubscribe}
-                options={availableRepoNames}
-                placeholder={
-                  isLoadingAvailableRepos
-                    ? "Loading repositories..."
-                    : availableRepoNames.length > 0
-                      ? "Select a repository"
-                      : "No repositories available from your installation"
-                }
-                disabled={
-                  subscribeRepo.isPending ||
-                  isLoadingAvailableRepos ||
-                  availableRepoNames.length === 0
-                }
-              />
-              <Button
-                variant="primary"
-                size="small"
-                loading={subscribeRepo.isPending}
-                disabled={!repoToSubscribe}
-                onClick={handleSubscribeRepo}
-              >
-                Add subscription
-              </Button>
-            </div>
-            {subscribeRepo.error && (
-              <div
-                className={`${styles.statusRow} ${styles.errorRow}`}
-                style={{ marginTop: "0.75rem" }}
-              >
-                {subscribeRepo.error.message}
-              </div>
-            )}
-            <p className={styles.greetingSubtitle} style={{ marginTop: "0.75rem" }}>
-              Subscribing installs a webhook and runs an initial sync for that repository only.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {subscribedRepos.length > 0 && (
-        <>
-          {/* Stats row */}
-          <StatsGrid
-            openPRs={authoredPRs.length}
-            pendingReviews={reviewRequestedPRs.length}
-            totalRepos={subscribedRepos.length}
-            openIssues={openIssues}
-            totalStars={totalStars}
-            totalCommits={totalCommits}
-          />
-
-          {/* 3-column dashboard */}
-          <div className={styles.columns}>
-            {/* Left column */}
-            <div className={styles.leftCol}>
-              <div className={styles.profileCard}>
-                <Avatar src={resolveUserAvatarUrl(user)} name={user.name || user.login} size={40} />
-                <div className={styles.profileInfo}>
-                  <span className={styles.profileName}>{user.name || user.login}</span>
-                  <span className={styles.profileLogin}>@{user.login || user.email}</span>
-                </div>
-                {user.htmlUrl && (
-                  <a
-                    href={user.htmlUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ marginLeft: "auto", color: "rgba(var(--bit-rgb-fg), 0.3)" }}
-                  >
-                    <LinkExternalIcon size={14} />
-                  </a>
-                )}
-              </div>
-
-              <div className={styles.panel}>
-                <div className={styles.panelHeader}>
-                  <h2 className={styles.panelTitle}>Repositories</h2>
-                  <div className={styles.repoPanelHeaderActions}>
-                    <span className={styles.panelBadge}>{subscribedRepos.length}</span>
-                    <RepoSubscriptionCombobox
-                      value={repoToSubscribe}
-                      onValueChange={setRepoToSubscribe}
-                      options={availableRepoNames}
-                      placeholder="Add repo..."
-                      disabled={
-                        subscribeRepo.isPending ||
-                        isLoadingAvailableRepos ||
-                        availableRepoNames.length === 0
-                      }
-                      compact
-                    />
-                    <Button
-                      variant="default"
-                      size="small"
-                      loading={subscribeRepo.isPending}
-                      disabled={!repoToSubscribe}
-                      onClick={handleSubscribeRepo}
-                    >
-                      Subscribe
-                    </Button>
-                  </div>
-                </div>
-                <div className={styles.panelBody}>
-                  <RepoList repos={subscribedRepos} maxItems={12} />
-                </div>
-              </div>
-
-              <div className={styles.panel}>
-                <div className={styles.panelHeader}>
-                  <h2 className={styles.panelTitle}>Languages</h2>
-                </div>
-                <div className={styles.panelBodyPadded}>
-                  <LanguageBar languages={languages} />
-                </div>
-              </div>
-            </div>
-
-            {/* Center column */}
-            <div className={styles.centerCol}>
-              <div className={styles.panel}>
-                <div className={styles.tabBar}>
-                  <button
-                    type="button"
-                    className={`${styles.tab} ${centerTab === "activity" ? styles.tabActive : ""}`}
-                    onClick={() => {
-                      setCenterTab("activity")
-                    }}
-                  >
-                    Activity
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.tab} ${centerTab === "authored" ? styles.tabActive : ""}`}
-                    onClick={() => {
-                      setCenterTab("authored")
-                    }}
-                  >
-                    Your PRs ({authoredPRs.length})
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.tab} ${centerTab === "reviews" ? styles.tabActive : ""}`}
-                    onClick={() => {
-                      setCenterTab("reviews")
-                    }}
-                  >
-                    Reviews ({reviewRequestedPRs.length})
-                  </button>
-                </div>
-                <div className={styles.panelBody}>
-                  {centerTab === "activity" && <ActivityFeed items={activityFeed} maxItems={20} />}
-                  {centerTab === "authored" && (
-                    <PRTable prs={authoredPRs} emptyText="No open PRs authored by you." />
-                  )}
-                  {centerTab === "reviews" && (
-                    <PRTable
-                      prs={reviewRequestedPRs}
-                      emptyText="No PRs currently requesting your review."
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Right column */}
-            <div className={styles.rightCol}>
-              <AISummary
-                aiEnabled={aiEnabled}
-                aiConfigured={aiStatus.configured}
-                aiModel={aiModel}
-                contextPrompt={aiContextPrompt}
-                userId={user?.id ?? ""}
-              />
-
-              <div className={styles.panel}>
-                <div className={styles.panelHeader}>
-                  <h2 className={styles.panelTitle}>Next Actions</h2>
-                  <span className={styles.panelBadge}>{nextActions.length}</span>
-                </div>
-                <div className={styles.panelBody}>
-                  <NextActions actions={nextActions} maxItems={8} />
-                </div>
-              </div>
-
-              <div className={styles.panel}>
-                <div className={styles.panelHeader}>
-                  <h2 className={styles.panelTitle}>Contributions</h2>
-                </div>
-                <div className={styles.panelBodyPadded}>
-                  <ContributionChart data={contributionData} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   )
 }
 
-const RepoSubscriptionCombobox = ({
-  value,
-  onValueChange,
-  options,
-  placeholder,
-  disabled,
-  compact = false,
-}: {
-  value: string
-  onValueChange: (value: string) => void
-  options: string[]
-  placeholder: string
-  disabled: boolean
-  compact?: boolean
-}) => {
-  return (
-    <Combobox.Root
-      items={options}
-      value={value || null}
-      onValueChange={(nextValue) => {
-        onValueChange(nextValue ?? "")
-      }}
-    >
-      <Combobox.Input
-        className={compact ? styles.repoComboboxInputCompact : styles.repoComboboxInput}
-        placeholder={placeholder}
-        disabled={disabled}
-      />
-      <Combobox.Portal>
-        <Combobox.Positioner sideOffset={6} className={styles.repoComboboxPositioner}>
-          <Combobox.Popup className={styles.repoComboboxPopup}>
-            <Combobox.List className={styles.repoComboboxList}>
-              {(item: string) => (
-                <Combobox.Item key={item} value={item} className={styles.repoComboboxItem}>
-                  {item}
-                </Combobox.Item>
-              )}
-            </Combobox.List>
-            <Combobox.Empty className={styles.repoComboboxEmpty}>
-              No matching repositories
-            </Combobox.Empty>
-          </Combobox.Popup>
-        </Combobox.Positioner>
-      </Combobox.Portal>
-    </Combobox.Root>
-  )
-}
-
-const formatRelativeTime = (timestamp: number): string => {
-  const diff = Date.now() - timestamp
-  const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return "just now"
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(diff / 3600000)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(diff / 86400000)}d ago`
-}
-
 export const Route = createFileRoute("/")({
-  component: DashboardPage,
+  component: HomePage,
   validateSearch: (search: Record<string, string | number | boolean | null | undefined>) => ({
     github: search.github as string | undefined,
     error: search.error as string | undefined,
     message: search.message as string | undefined,
-    revokeUrl: search.revokeUrl as string | undefined,
   }),
 })

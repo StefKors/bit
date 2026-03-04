@@ -1,10 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { createHmac, timingSafeEqual } from "crypto"
-import { adminDb } from "@/lib/instantAdmin"
-import { enqueueWebhook, triggerWebhookProcessor } from "@/lib/webhooks/processor"
 import { validateWebhookPayload } from "@/lib/webhook-validation"
 import { log } from "@/lib/logger"
-import { logWebhookReceived, logWebhookEnqueued } from "@/lib/webhooks/logging"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -14,11 +11,9 @@ const jsonResponse = <T>(data: T, status = 200) =>
 
 const verifyWebhookSignature = (payload: string, signature: string, secret: string): boolean => {
   if (!signature) return false
-
   const sig = signature.replace("sha256=", "")
   const hmac = createHmac("sha256", secret)
   const digest = hmac.update(payload).digest("hex")
-
   try {
     return timingSafeEqual(Buffer.from(sig), Buffer.from(digest))
   } catch {
@@ -70,31 +65,13 @@ export const Route = createFileRoute("/api/github/webhook")({
         }
 
         const action = payloadValidation.data.action || undefined
-        logWebhookReceived(event, delivery, action, parsedPayload)
+        log.info("Webhook received (no-op)", { event, delivery, action })
 
-        if (!delivery) {
-          return jsonResponse({ error: "Missing delivery ID" }, 400)
+        if (event === "ping") {
+          log.info("Received ping webhook - webhook is configured correctly")
         }
 
-        const result = await enqueueWebhook(adminDb, delivery, event, action, rawBody)
-
-        if (result.duplicate) {
-          log.info("Duplicate webhook delivery, skipping", {
-            op: "webhook-duplicate",
-            deliveryId: delivery,
-            event,
-            action,
-          })
-          return jsonResponse({ received: true, duplicate: true })
-        }
-
-        if (result.queueItemId) {
-          logWebhookEnqueued(delivery, event, action, result.queueItemId)
-        }
-
-        triggerWebhookProcessor(adminDb)
-
-        return jsonResponse({ received: true, queued: true, queueItemId: result.queueItemId })
+        return jsonResponse({ received: true })
       },
     },
   },
