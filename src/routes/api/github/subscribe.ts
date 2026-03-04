@@ -41,9 +41,14 @@ export const Route = createFileRoute("/api/github/subscribe")({
 
         try {
           const now = Date.now()
+          // Ensure repo metadata exists locally by syncing pull requests once.
+          // This supports subscribing repos discovered from GitHub API even if they
+          // are not yet present in InstantDB.
+          const pullResult = await client.fetchPullRequests(owner, repo, "open", true)
+
           const { repos } = await adminDb.query({
             repos: {
-              $: { where: { fullName: repoFullName, userId }, limit: 1 },
+              $: { where: { fullName: repoFullName }, limit: 1 },
             },
           })
           const existingRepo = repos?.[0]
@@ -54,14 +59,12 @@ export const Route = createFileRoute("/api/github/subscribe")({
           await adminDb.transact(
             adminDb.tx.repos[existingRepo.id].update({
               subscribed: true,
+              userId,
               updatedAt: now,
             }),
           )
 
-          const [pullResult, webhookResult] = await Promise.all([
-            client.fetchPullRequests(owner, repo, "open", true),
-            client.registerRepoWebhook(owner, repo),
-          ])
+          const webhookResult = await client.registerRepoWebhook(owner, repo)
 
           return jsonResponse({
             success: true,
@@ -70,6 +73,15 @@ export const Route = createFileRoute("/api/github/subscribe")({
             webhookStatus: webhookResult.status,
           })
         } catch (err) {
+          if (
+            err &&
+            typeof err === "object" &&
+            "status" in err &&
+            (err as { status?: number }).status === 404
+          ) {
+            return jsonResponse({ error: "Repository not found" }, 404)
+          }
+
           log.error("Failed to subscribe repository", err, { userId, repoFullName })
           return jsonResponse(
             { error: err instanceof Error ? err.message : "Failed to subscribe repository" },

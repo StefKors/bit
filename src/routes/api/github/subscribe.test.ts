@@ -58,7 +58,11 @@ describe("POST /api/github/subscribe", () => {
     const handler = getRouteHandler(Route, "POST")
     if (!handler) throw new Error("No POST handler")
 
-    mockQuery.mockResolvedValueOnce({ repos: [] })
+    vi.mocked(createGitHubClient).mockResolvedValue({
+      fetchPullRequests: vi.fn().mockRejectedValue({ status: 404 }),
+      registerRepoWebhook: vi.fn().mockResolvedValue({ status: "installed" }),
+    } as never)
+
     const request = makeAuthRequest("http://localhost/api/github/subscribe", "user-1")
     const req = new Request(request.url, {
       method: "POST",
