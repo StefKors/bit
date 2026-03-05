@@ -172,7 +172,7 @@ export function RepoPrOverviewPage() {
         <section className={styles.column2}>
           {selectedPR ? (
             prTab === "conversation" ? (
-              <PrDetailContent pr={selectedPR} />
+              <PrDetailContent pr={selectedPR} owner={owner} repo={repo} />
             ) : (
               <PrFilesChanged pr={selectedPR} />
             )
