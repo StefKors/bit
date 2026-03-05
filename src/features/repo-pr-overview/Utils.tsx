@@ -37,8 +37,9 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
   const items: TimelineItem[] = []
 
   for (const commit of pr.pullRequestCommits) {
-    if (commit.authoredAt) {
-      items.push({ type: "commit", timestamp: commit.authoredAt, data: commit })
+    const ts = commit.authoredAt ?? commit.createdAt ?? 0
+    if (ts > 0) {
+      items.push({ type: "commit", timestamp: ts, data: commit })
     }
   }
 

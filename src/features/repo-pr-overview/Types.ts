@@ -42,6 +42,7 @@ export interface PullRequestCommit {
   authorLogin: string | null
   authorAvatarUrl: string | null
   authoredAt: number | null
+  createdAt: number
   htmlUrl: string | null
 }
 

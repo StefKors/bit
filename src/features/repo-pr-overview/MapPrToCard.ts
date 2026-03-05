@@ -64,6 +64,7 @@ interface RepoPullRequest {
     authorLogin?: string | null
     authorAvatarUrl?: string | null
     authoredAt?: number | null
+    createdAt?: number | null
     htmlUrl?: string | null
   }> | null
   checkRuns?: Array<{
@@ -151,6 +152,7 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
       authorLogin: commit.authorLogin ?? null,
       authorAvatarUrl: commit.authorAvatarUrl ?? null,
       authoredAt: commit.authoredAt ?? null,
+      createdAt: commit.createdAt ?? 0,
       htmlUrl: commit.htmlUrl ?? null,
     })) ?? [],
   checkRuns:
