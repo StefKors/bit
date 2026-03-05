@@ -9,14 +9,20 @@ import { PrSelectionList } from "./PrSelectionList"
 import { SelectedPrHeader } from "./SelectedPrHeader"
 import { PrDetailContent } from "./PrDetailContent"
 import { PrFilesChanged } from "./PrFilesChanged"
+import { PrCommits } from "./PrCommits"
 import { PrSidebar } from "./PrSidebar"
 import { mapPrToCard } from "./MapPrToCard"
 import type { PullRequestCard } from "./Types"
 import styles from "./RepoPrOverviewPage.module.css"
 
-const PR_TABS = [
-  { value: "conversation", label: "Conversation" },
-  { value: "files", label: "Files Changed" },
+const buildPrTabs = (pr: PullRequestCard | null) => [
+  {
+    value: "conversation",
+    label: "Conversation",
+    count: pr ? pr.commentsCount + pr.reviewCommentsCount : 0,
+  },
+  { value: "commits", label: "Commits", count: pr?.pullRequestCommits.length ?? 0 },
+  { value: "files", label: "Files Changed", count: pr?.pullRequestFiles.length ?? 0 },
 ]
 
 export function RepoPrOverviewPage() {
@@ -165,7 +171,7 @@ export function RepoPrOverviewPage() {
 
         {selectedPR && (
           <div className={styles.prTabs}>
-            <Tabs items={PR_TABS} value={prTab} onValueChange={setPrTab} />
+            <Tabs items={buildPrTabs(selectedPR)} value={prTab} onValueChange={setPrTab} />
           </div>
         )}
 
@@ -173,6 +179,8 @@ export function RepoPrOverviewPage() {
           {selectedPR ? (
             prTab === "conversation" ? (
               <PrDetailContent pr={selectedPR} owner={owner} repo={repo} />
+            ) : prTab === "commits" ? (
+              <PrCommits pr={selectedPR} />
             ) : (
               <PrFilesChanged pr={selectedPR} />
             )

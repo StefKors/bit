@@ -80,7 +80,10 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
   }
 
   if (pr.merged && pr.githubMergedAt) {
-    items.push({ type: "merged", timestamp: pr.githubMergedAt, data: prAuthor })
+    const mergedActor = pr.mergedByLogin
+      ? { authorLogin: pr.mergedByLogin, authorAvatarUrl: pr.mergedByAvatarUrl }
+      : prAuthor
+    items.push({ type: "merged", timestamp: pr.githubMergedAt, data: mergedActor })
   } else if (pr.state === "closed" && pr.githubClosedAt) {
     items.push({ type: "closed", timestamp: pr.githubClosedAt, data: prAuthor })
   }

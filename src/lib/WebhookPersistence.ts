@@ -89,6 +89,7 @@ const upsertPullRequestFromPayload = async (
   const user = asObject(pullRequest?.user)
   const base = asObject(pullRequest?.base)
   const head = asObject(pullRequest?.head)
+  const mergedBy = asObject(pullRequest?.merged_by)
   const labels = asArray(pullRequest?.labels)
   const assignees = asArray(pullRequest?.assignees)
   const requestedReviewers = asArray(pullRequest?.requested_reviewers)
@@ -107,6 +108,8 @@ const upsertPullRequestFromPayload = async (
     htmlUrl: asString(pullRequest?.html_url),
     authorLogin: asString(user?.login),
     authorAvatarUrl: asString(user?.avatar_url),
+    mergedByLogin: asString(mergedBy?.login),
+    mergedByAvatarUrl: asString(mergedBy?.avatar_url),
     baseRef: asString(base?.ref),
     baseSha: asString(base?.sha),
     headRef: asString(head?.ref),
