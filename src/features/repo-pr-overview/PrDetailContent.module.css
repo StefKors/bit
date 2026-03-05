@@ -1,7 +1,7 @@
 .detailContent {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--bit-space-7);
 }
 
 .prBody {
@@ -11,16 +11,17 @@
 .detailSection {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--bit-space-4);
 }
 
 .detailSectionTitle {
   margin: 0;
-  font-size: var(--bit-font-size-small);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
   font-weight: var(--bit-font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  color: var(--bit-color-text-muted);
 }
 
 .detailList {
@@ -29,14 +30,14 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--bit-space-2);
 }
 
 .detailListItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
+  gap: var(--bit-space-4);
+  padding: var(--bit-space-3) var(--bit-space-4);
   font-size: var(--bit-font-size-default);
   color: var(--bit-color-text);
   border-radius: var(--bit-radius-sm);
@@ -52,15 +53,17 @@
 
 .detailListItemMeta {
   flex-shrink: 0;
-  font-size: var(--bit-font-size-small);
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--bit-color-text-muted);
 }
 
 .detailEmpty {
   margin: 0;
-  padding: 8px;
-  font-size: var(--bit-font-size-small);
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  padding: var(--bit-space-4);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--bit-color-text-muted);
   border: 1px dashed rgba(var(--bit-rgb-fg), 0.1);
   border-radius: var(--bit-radius-md);
 }
@@ -68,19 +71,19 @@
 .timeline {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--bit-space-3);
 }
 
 .commentForm {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
+  gap: var(--bit-space-4);
+  margin-top: var(--bit-space-4);
 }
 
 .commentTextarea {
   width: 100%;
-  padding: 10px 12px;
+  padding: var(--bit-space-5) var(--bit-space-6);
   font-size: var(--bit-font-size-body);
   font-family: inherit;
   line-height: var(--bit-line-height-body);
@@ -115,10 +118,11 @@
 .commentActions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--bit-space-6);
 }
 
 .commentError {
-  font-size: var(--bit-font-size-small);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
   color: var(--bit-color-accent-red);
 }

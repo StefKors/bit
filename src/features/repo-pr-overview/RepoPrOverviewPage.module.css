@@ -15,8 +15,8 @@
   flex-direction: column;
   height: 100%;
   min-width: 0;
-  padding: 16px;
-  gap: 16px;
+  padding: var(--bit-space-7);
+  gap: var(--bit-space-7);
 }
 
 .columns {
@@ -27,7 +27,7 @@
     "sidebar header  header"
     "sidebar tabs    tabs"
     "sidebar content activity";
-  gap: 20px;
+  gap: var(--bit-space-8);
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -58,7 +58,7 @@
   grid-area: content;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--bit-space-7);
   min-height: 0;
   min-width: 0;
   overflow-y: auto;
@@ -68,7 +68,7 @@
   grid-area: activity;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--bit-space-7);
   min-width: 0;
   overflow: auto;
 }
@@ -81,7 +81,7 @@
   min-height: 220px;
   color: var(--repo-muted);
   font-size: var(--bit-font-size-default);
-  padding: 12px;
+  padding: var(--bit-space-6);
   text-align: center;
   border: 1px dashed var(--repo-border);
   border-radius: var(--bit-radius-lg);

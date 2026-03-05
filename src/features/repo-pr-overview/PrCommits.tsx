@@ -50,7 +50,7 @@ export function PrCommits({ pr }: PrCommitsProps) {
     <div className={styles.commitsContainer}>
       <div className={styles.commitsHeader}>
         <span className={styles.commitsCount}>
-          <GitCommitIcon size={14} />
+          <GitCommitIcon size={12} />
           {commits.length} commit{commits.length !== 1 ? "s" : ""}
         </span>
       </div>

@@ -1,22 +1,23 @@
 .commitsContainer {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--bit-space-4);
 }
 
 .commitsHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--bit-space-4);
 }
 
 .commitsCount {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: var(--bit-font-size-small);
+  gap: var(--bit-space-3);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
   font-weight: var(--bit-font-weight-bold);
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  color: var(--bit-color-text-muted);
 }
 
 .commitList {
@@ -31,8 +32,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 8px 10px;
+  gap: var(--bit-space-6);
+  padding: var(--bit-space-4) var(--bit-space-5);
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.06);
 }
 
@@ -43,7 +44,7 @@
 .commitMain {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--bit-space-4);
   min-width: 0;
   flex: 1;
 }
@@ -60,27 +61,31 @@
 .commitMeta {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--bit-space-5);
   flex-shrink: 0;
 }
 
 .commitAuthor {
-  font-size: var(--bit-font-size-small);
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--bit-color-text-muted);
 }
 
 .commitTime {
-  font-size: var(--bit-font-size-small);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
   color: rgba(var(--bit-rgb-fg), 0.45);
 }
 
 .commitSha {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--bit-space-2);
   font-family: var(--bit-font-mono, monospace);
-  font-size: var(--bit-font-size-small);
-  padding: 1px 6px;
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  min-height: var(--bit-line-height-tight);
+  padding: 0 var(--bit-space-3);
   border-radius: var(--bit-radius-sm);
   background: rgba(var(--bit-rgb-accent-blue), 0.1);
   color: rgba(var(--bit-rgb-accent-blue), 0.9);
@@ -93,17 +98,20 @@
 
 .commitShaPlain {
   font-family: var(--bit-font-mono, monospace);
-  font-size: var(--bit-font-size-small);
-  padding: 1px 6px;
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  min-height: var(--bit-line-height-tight);
+  padding: 0 var(--bit-space-3);
   border-radius: var(--bit-radius-sm);
   background: rgba(var(--bit-rgb-fg), 0.06);
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  color: var(--bit-color-text-muted);
 }
 
 .placeholder {
-  padding: 12px;
-  font-size: var(--bit-font-size-small);
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  padding: var(--bit-space-6);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--bit-color-text-muted);
   border: 1px dashed rgba(var(--bit-rgb-fg), 0.1);
   border-radius: var(--bit-radius-md);
 }

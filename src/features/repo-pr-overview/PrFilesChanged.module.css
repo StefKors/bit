@@ -1,28 +1,29 @@
 .filesChangedContainer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--bit-space-6);
 }
 
 .filesChangedToolbar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--bit-space-5);
   flex-wrap: wrap;
 }
 
 .filesChangedStats {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: var(--bit-font-size-small);
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  gap: var(--bit-space-4);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--bit-color-text-muted);
 }
 
 .filesCount {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--bit-space-2);
   font-weight: var(--bit-font-weight-bold);
   color: var(--bit-color-text);
 }
@@ -30,19 +31,21 @@
 .additionsStat {
   color: rgba(var(--bit-rgb-accent-green-bright), 0.9);
   font-weight: var(--bit-font-weight-bold);
-  font-size: var(--bit-font-size-small);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
 }
 
 .deletionsStat {
   color: rgba(var(--bit-rgb-accent-red), 0.9);
   font-weight: var(--bit-font-weight-bold);
-  font-size: var(--bit-font-size-small);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
 }
 
 .filesList {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--bit-space-1);
 }
 
 .placeholder {
@@ -51,13 +54,13 @@
   align-items: center;
   justify-content: center;
   min-height: 220px;
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  color: var(--bit-color-text-muted);
   font-size: var(--bit-font-size-default);
-  padding: 12px;
+  padding: var(--bit-space-6);
   text-align: center;
   border: 1px dashed rgba(var(--bit-rgb-fg), 0.1);
   border-radius: var(--bit-radius-lg);
   background: rgba(var(--bit-rgb-surface-2), 0.32);
   flex-direction: column;
-  gap: 8px;
+  gap: var(--bit-space-4);
 }

@@ -5,10 +5,11 @@
 .timelineCommitLine {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--bit-space-3);
   min-width: 0;
   flex: 1;
   font-size: var(--bit-font-size-default);
+  line-height: var(--bit-line-height-default);
   color: var(--bit-color-text);
 }
 
@@ -29,8 +30,10 @@
 .timelineCommitSha {
   flex-shrink: 0;
   font-family: var(--bit-font-mono, monospace);
-  font-size: var(--bit-font-size-small);
-  padding: 1px 6px;
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  min-height: var(--bit-line-height-tight);
+  padding: 0 var(--bit-space-3);
   border-radius: var(--bit-radius-sm);
   background: rgba(var(--bit-rgb-accent-blue), 0.1);
   color: rgba(var(--bit-rgb-accent-blue), 0.9);
@@ -44,9 +47,11 @@
 .timelineCommitShaPlain {
   flex-shrink: 0;
   font-family: var(--bit-font-mono, monospace);
-  font-size: var(--bit-font-size-small);
-  padding: 1px 6px;
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  min-height: var(--bit-line-height-tight);
+  padding: 0 var(--bit-space-3);
   border-radius: var(--bit-radius-sm);
   background: rgba(var(--bit-rgb-fg), 0.06);
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  color: var(--bit-color-text-muted);
 }

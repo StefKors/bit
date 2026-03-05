@@ -5,7 +5,7 @@
 .timelineReviewInfo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--bit-space-4);
   min-width: 0;
 }
 
@@ -16,15 +16,15 @@
 .nestedThreads {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
+  gap: var(--bit-space-4);
+  margin-top: var(--bit-space-4);
 }
 
 .nestedThread {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px 12px;
+  gap: var(--bit-space-3);
+  padding: var(--bit-space-4) var(--bit-space-6);
   border-radius: var(--bit-radius-md);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
   background: rgba(var(--bit-rgb-surface-2), 0.2);
@@ -33,18 +33,20 @@
 .nestedThreadHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--bit-space-4);
   flex-wrap: wrap;
   min-width: 0;
 }
 
 .nestedFilePath {
   font-family: var(--bit-font-mono, monospace);
-  font-size: var(--bit-font-size-small);
-  padding: 1px 6px;
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  min-height: var(--bit-line-height-tight);
+  padding: 0 var(--bit-space-3);
   border-radius: var(--bit-radius-sm);
   background: rgba(var(--bit-rgb-fg), 0.06);
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  color: var(--bit-color-text-muted);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -53,8 +55,9 @@
 
 .nestedTime {
   margin-left: auto;
-  font-size: var(--bit-font-size-small);
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--bit-color-text-muted);
 }
 
 .nestedContent {
@@ -64,8 +67,8 @@
 .nestedReply {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px 12px;
+  gap: var(--bit-space-2);
+  padding: var(--bit-space-4) var(--bit-space-6);
   border-top: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   background: rgba(var(--bit-rgb-surface-2), 0.2);
 }
@@ -77,7 +80,7 @@
 .nestedReplyHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--bit-space-4);
 }
 
 .nestedReplyBody {
