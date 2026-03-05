@@ -35,6 +35,11 @@ export const getCiDotVariant = (pr: PullRequestCard): "ready" | "blocked" | "che
 
 export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
   const items: TimelineItem[] = []
+  const prAuthor = { authorLogin: pr.authorLogin, authorAvatarUrl: pr.authorAvatarUrl }
+
+  if (pr.githubCreatedAt) {
+    items.push({ type: "opened", timestamp: pr.githubCreatedAt, data: prAuthor })
+  }
 
   for (const commit of pr.pullRequestCommits) {
     const ts = commit.authoredAt ?? commit.createdAt ?? 0
@@ -72,6 +77,12 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
         data: comment,
       })
     }
+  }
+
+  if (pr.merged && pr.githubMergedAt) {
+    items.push({ type: "merged", timestamp: pr.githubMergedAt, data: prAuthor })
+  } else if (pr.state === "closed" && pr.githubClosedAt) {
+    items.push({ type: "closed", timestamp: pr.githubClosedAt, data: prAuthor })
   }
 
   items.sort((a, b) => a.timestamp - b.timestamp)

@@ -17,6 +17,9 @@ interface RepoPullRequest {
   baseSha?: string | null
   headSha?: string | null
   updatedAt?: string | number | null
+  githubCreatedAt?: number | null
+  githubClosedAt?: number | null
+  githubMergedAt?: number | null
   commentsCount?: number | null
   reviewCommentsCount?: number | null
   commitsCount?: number | null
@@ -101,6 +104,9 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
   baseSha: pr.baseSha ?? null,
   headSha: pr.headSha ?? null,
   updatedAt: pr.updatedAt ?? null,
+  githubCreatedAt: pr.githubCreatedAt ?? null,
+  githubClosedAt: pr.githubClosedAt ?? null,
+  githubMergedAt: pr.githubMergedAt ?? null,
   commentsCount: pr.commentsCount ?? 0,
   reviewCommentsCount: pr.reviewCommentsCount ?? 0,
   commitsCount: pr.commitsCount ?? 0,

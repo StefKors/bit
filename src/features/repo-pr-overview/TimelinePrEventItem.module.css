@@ -1,0 +1,30 @@
+.timelineTime {
+  composes: timelineTime from "./TimelineItemBase.module.css";
+}
+
+.eventInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.eventVerb {
+  font-size: 0.8125rem;
+  color: rgba(var(--bit-rgb-fg), 0.58);
+}
+
+.opened > div:first-child {
+  color: var(--bit-color-accent-green);
+  background: rgba(var(--bit-rgb-accent-green), 0.12);
+}
+
+.merged > div:first-child {
+  color: var(--bit-color-accent-purple);
+  background: rgba(var(--bit-rgb-accent-purple), 0.12);
+}
+
+.closed > div:first-child {
+  color: var(--bit-color-accent-red);
+  background: rgba(var(--bit-rgb-accent-red), 0.12);
+}

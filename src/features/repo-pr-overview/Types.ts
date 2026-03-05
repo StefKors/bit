@@ -54,11 +54,19 @@ export interface PullRequestCheckRun {
   updatedAt: string | number | null
 }
 
+export interface PrEventData {
+  authorLogin: string
+  authorAvatarUrl: string | null
+}
+
 export type TimelineItem =
   | { type: "commit"; timestamp: number; data: PullRequestCommit }
   | { type: "review"; timestamp: number; data: PullRequestReview }
   | { type: "issue_comment"; timestamp: number; data: PullRequestComment }
   | { type: "review_comment"; timestamp: number; data: PullRequestReviewComment }
+  | { type: "opened"; timestamp: number; data: PrEventData }
+  | { type: "merged"; timestamp: number; data: PrEventData }
+  | { type: "closed"; timestamp: number; data: PrEventData }
 
 export interface PullRequestFileEntry {
   id: string
@@ -86,6 +94,9 @@ export interface PullRequestCard {
   baseSha: string | null
   headSha: string | null
   updatedAt: string | number | null
+  githubCreatedAt: number | null
+  githubClosedAt: number | null
+  githubMergedAt: number | null
   commentsCount: number
   reviewCommentsCount: number
   commitsCount: number

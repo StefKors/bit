@@ -8,6 +8,7 @@ import { TimelineCommitItem } from "./TimelineCommitItem"
 import { TimelineReviewItem } from "./TimelineReviewItem"
 import { TimelineIssueCommentItem } from "./TimelineIssueCommentItem"
 import { TimelineReviewCommentItem } from "./TimelineReviewCommentItem"
+import { TimelinePrEventItem } from "./TimelinePrEventItem"
 import type { PullRequestCard, TimelineItem } from "./Types"
 import styles from "./PrDetailContent.module.css"
 
@@ -58,6 +59,16 @@ export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
         {timeline.length > 0 ? (
           <div className={styles.timeline}>
             {timeline.map((item: TimelineItem) => {
+              if (item.type === "opened" || item.type === "merged" || item.type === "closed") {
+                return (
+                  <TimelinePrEventItem
+                    key={item.type}
+                    type={item.type}
+                    event={item.data}
+                    timestamp={item.timestamp}
+                  />
+                )
+              }
               if (item.type === "commit") {
                 return <TimelineCommitItem key={`c-${item.data.id}`} commit={item.data} />
               }
