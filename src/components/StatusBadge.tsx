@@ -20,7 +20,7 @@ export const StatusBadge = ({
   children: React.ReactNode
 }) => (
   <span className={`${styles.badge} ${variantClassMap[variant]}`}>
-    {icon}
+    {icon ? <span className={styles.icon}>{icon}</span> : null}
     {children}
   </span>
 )

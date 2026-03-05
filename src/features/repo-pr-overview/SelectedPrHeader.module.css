@@ -1,21 +1,22 @@
 .selectedPrHeader {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--bit-space-6);
 }
 
 .selectedPrHeaderTop {
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: var(--bit-space-5);
   min-width: 0;
 }
 
 .selectedPrHeaderDate {
   flex-shrink: 0;
   margin-left: auto;
-  font-size: var(--bit-font-size-small);
-  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--repo-muted, var(--bit-color-text-muted));
 }
 
 .selectedPrHeaderGitHubLink {
@@ -23,10 +24,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
-  margin-left: 4px;
-  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
-  border-radius: var(--radius-sm, 4px);
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  margin-left: var(--bit-space-2);
+  color: var(--repo-muted, var(--bit-color-text-muted));
+  border-radius: var(--bit-radius-sm);
   transition:
     color 0.15s,
     background-color 0.15s;
@@ -40,7 +43,7 @@
 .selectedPrHeaderTitle {
   flex: 1;
   font-weight: var(--bit-font-weight-bold);
-  font-size: var(--bit-font-size-body);
+  font-size: var(--bit-font-size-title);
   line-height: var(--bit-line-height-body);
   color: var(--bit-color-text);
   overflow: hidden;
@@ -50,17 +53,18 @@
 }
 
 .selectedPrHeaderNumber {
-  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
+  color: var(--repo-muted, var(--bit-color-text-muted));
   font-weight: var(--bit-font-weight-bold);
-  margin-right: 6px;
+  margin-right: var(--bit-space-3);
 }
 
 .selectedPrHeaderBottom {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: var(--bit-font-size-small);
-  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
+  gap: var(--bit-space-3);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--repo-muted, var(--bit-color-text-muted));
   overflow: hidden;
 }
 
@@ -72,5 +76,6 @@
 .selectedPrHeaderComments {
   margin-left: auto;
   flex-shrink: 0;
-  font-size: var(--bit-font-size-small);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
 }

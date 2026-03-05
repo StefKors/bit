@@ -27,7 +27,7 @@ export const BranchLabel = ({ head, base }: { head: string; base: string }) => {
         aria-label="Copy branch name"
         title="Copy branch name"
       >
-        {copied ? <CheckIcon size={10} /> : <CopyIcon size={10} />}
+        {copied ? <CheckIcon size={12} /> : <CopyIcon size={12} />}
       </button>
     </span>
   )

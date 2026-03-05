@@ -13,7 +13,7 @@ export const AuthorLabel = ({ login, avatarUrl, size = 13, weight = "bold" }: Au
   const isBot = login.endsWith("[bot]")
   const displayName = isBot ? login.slice(0, -5) : login
   const resolvedUrl = resolveOwnerAvatarUrl(login, avatarUrl)
-  const avatarSize = Math.max(size, 14)
+  const avatarSize = size
 
   return (
     <span

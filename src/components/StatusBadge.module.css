@@ -1,14 +1,29 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 2px 8px;
+  gap: var(--bit-space-2);
+  min-height: var(--bit-line-height-small);
+  padding: 0 var(--bit-space-4);
   border-radius: var(--bit-radius-pill);
-  font-size: var(--bit-font-size-small);
+  font-size: var(--bit-font-size-meta);
   font-weight: var(--bit-font-weight-bold);
   letter-spacing: 0.02em;
-  line-height: 1;
+  line-height: var(--bit-line-height-meta);
   white-space: nowrap;
+}
+
+.icon {
+  width: var(--bit-icon-size-sm);
+  height: var(--bit-icon-size-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon > svg {
+  width: 100%;
+  height: 100%;
 }
 
 .open {

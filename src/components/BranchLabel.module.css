@@ -1,10 +1,11 @@
 .branchLabel {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--bit-space-2);
   min-width: 0;
   overflow: hidden;
-  font-size: var(--bit-font-size-small);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
   font-weight: var(--bit-font-weight-bold);
   user-select: text;
 }
@@ -26,8 +27,10 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  padding: 2px;
-  margin-left: 2px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  margin-left: var(--bit-space-1);
   border: none;
   border-radius: var(--bit-radius-sm);
   background: transparent;
@@ -36,6 +39,11 @@
   transition:
     color 110ms ease,
     background 110ms ease;
+}
+
+.copyButton > svg {
+  width: var(--bit-icon-size-sm);
+  height: var(--bit-icon-size-sm);
 }
 
 .copyButton:hover {

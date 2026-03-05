@@ -33,18 +33,21 @@
 
 /* Sizes */
 .small {
-  padding: 0.4rem 0.75rem;
-  font-size: var(--bit-font-size-small);
+  padding: var(--bit-space-2) var(--bit-space-6);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
 }
 
 .medium {
-  padding: 0.6rem 1rem;
+  padding: var(--bit-space-3) var(--bit-space-7);
   font-size: var(--bit-font-size-default);
+  line-height: var(--bit-line-height-default);
 }
 
 .large {
-  padding: 1rem 1.5rem;
+  padding: var(--bit-space-7) var(--bit-space-9);
   font-size: var(--bit-font-size-body);
+  line-height: var(--bit-line-height-body);
 }
 
 /* Icons */
@@ -56,18 +59,18 @@
 }
 
 .small .icon {
-  width: 14px;
-  height: 14px;
+  width: var(--bit-icon-size-md);
+  height: var(--bit-icon-size-md);
 }
 
 .medium .icon {
-  width: 16px;
-  height: 16px;
+  width: var(--bit-icon-size-lg);
+  height: var(--bit-icon-size-lg);
 }
 
 .large .icon {
-  width: 20px;
-  height: 20px;
+  width: var(--bit-icon-size-xl);
+  height: var(--bit-icon-size-xl);
 }
 
 .icon > svg {

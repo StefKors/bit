@@ -33,7 +33,7 @@ export function SelectedPrHeader({ pr, fullName }: SelectedPrHeaderProps) {
           className={styles.selectedPrHeaderGitHubLink}
           title="Open PR on GitHub"
         >
-          <LinkExternalIcon size={14} />
+          <LinkExternalIcon size={12} />
         </a>
       </span>
 

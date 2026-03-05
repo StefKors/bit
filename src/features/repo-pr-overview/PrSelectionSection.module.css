@@ -12,15 +12,17 @@
   display: flex;
   width: 100%;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
+  gap: var(--bit-space-2);
+  min-height: 24px;
+  padding: var(--bit-space-2) var(--bit-space-4);
   margin: 0;
   border: none;
   border-radius: var(--bit-radius-sm);
   background: none;
-  font-size: var(--bit-font-size-small);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
   font-weight: var(--bit-font-weight-bold);
-  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
+  color: var(--repo-muted, var(--bit-color-text-muted));
   letter-spacing: 0.04em;
   cursor: pointer;
   text-align: left;
@@ -33,6 +35,8 @@
 
 .prSectionTitleIcon svg {
   flex-shrink: 0;
+  width: var(--bit-icon-size-sm);
+  height: var(--bit-icon-size-sm);
 }
 
 [data-section="draft"] .prSectionTitleButton {
@@ -75,8 +79,9 @@
   align-items: flex-start;
   gap: 0;
   min-height: 0;
-  padding: 6px 8px;
+  padding: var(--bit-space-3) var(--bit-space-4);
   font-size: var(--bit-font-size-default);
+  line-height: var(--bit-line-height-default);
   color: var(--bit-color-text);
   text-decoration: none;
   text-align: left;
@@ -99,7 +104,7 @@
   display: flex;
   width: 100%;
   align-items: center;
-  gap: 6px;
+  gap: var(--bit-space-3);
   min-width: 0;
 }
 
@@ -115,24 +120,26 @@
 
 .prUpdatedAt {
   flex-shrink: 0;
-  font-size: var(--bit-font-size-small);
-  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--repo-muted, var(--bit-color-text-muted));
 }
 
 .prCellRow2 {
   display: flex;
   width: 100%;
   align-items: center;
-  gap: 4px;
-  font-size: var(--bit-font-size-small);
-  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
+  gap: var(--bit-space-2);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--repo-muted, var(--bit-color-text-muted));
   overflow: hidden;
 }
 
 .prMetaTrail {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--bit-space-2);
   margin-left: auto;
   flex-shrink: 0;
 }
@@ -140,12 +147,12 @@
 .prMetaBadge {
   display: inline-flex;
   align-items: center;
-  min-height: 18px;
-  padding: 0 4px;
+  min-height: var(--bit-line-height-small);
+  padding: 0 var(--bit-space-2);
   border-radius: var(--bit-radius-sm);
   background: rgba(var(--bit-rgb-surface-3), 0.5);
-  font-size: var(--bit-font-size-small);
+  font-size: var(--bit-font-size-meta);
   font-weight: var(--bit-font-weight-bold);
-  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
-  line-height: 1;
+  color: var(--repo-muted, var(--bit-color-text-muted));
+  line-height: var(--bit-line-height-meta);
 }
