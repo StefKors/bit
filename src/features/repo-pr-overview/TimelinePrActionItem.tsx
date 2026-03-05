@@ -10,12 +10,12 @@ interface TimelinePrActionItemProps {
 }
 
 const eventConfig: Record<string, { icon: React.ReactNode; verb: string }> = {
-  labeled: { icon: <TagIcon size={16} />, verb: "added" },
-  unlabeled: { icon: <TagIcon size={16} />, verb: "removed" },
-  assigned: { icon: <PersonIcon size={16} />, verb: "assigned" },
-  unassigned: { icon: <PersonIcon size={16} />, verb: "unassigned" },
-  review_requested: { icon: <EyeIcon size={16} />, verb: "requested review from" },
-  review_request_removed: { icon: <EyeIcon size={16} />, verb: "removed review request for" },
+  labeled: { icon: <TagIcon size={10} />, verb: "added" },
+  unlabeled: { icon: <TagIcon size={10} />, verb: "removed" },
+  assigned: { icon: <PersonIcon size={10} />, verb: "assigned" },
+  unassigned: { icon: <PersonIcon size={10} />, verb: "unassigned" },
+  review_requested: { icon: <EyeIcon size={10} />, verb: "requested review from" },
+  review_request_removed: { icon: <EyeIcon size={10} />, verb: "removed review request for" },
 }
 
 export const TimelinePrActionItem = ({ event }: TimelinePrActionItemProps) => {

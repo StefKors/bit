@@ -152,7 +152,7 @@ export const getReviewBadgeVariant = (state: string): "open" | "closed" | "draft
 }
 
 export const getReviewIcon = (state: string): ReactNode => {
-  if (state === "APPROVED") return <EyeIcon size={16} />
-  if (state === "CHANGES_REQUESTED") return <EyeIcon size={16} />
-  return <CommentDiscussionIcon size={16} />
+  if (state === "APPROVED") return <EyeIcon size={10} />
+  if (state === "CHANGES_REQUESTED") return <EyeIcon size={10} />
+  return <CommentDiscussionIcon size={10} />
 }

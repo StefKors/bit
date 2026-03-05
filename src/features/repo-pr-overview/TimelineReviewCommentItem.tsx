@@ -46,7 +46,7 @@ export const TimelineReviewCommentItem = ({ thread }: TimelineReviewCommentItemP
 
   return (
     <TimelineItemBase
-      icon={<CodeIcon size={16} />}
+      icon={<CodeIcon size={10} />}
       header={
         <>
           <span className={styles.timelineReviewCommentInfo}>

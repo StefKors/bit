@@ -26,7 +26,7 @@ export const TimelineCommitItem = ({
 
   return (
     <TimelineItemBase
-      icon={<GitCommitIcon size={16} />}
+      icon={<GitCommitIcon size={10} />}
       showConnector
       header={
         <span className={styles.timelineCommitLine}>

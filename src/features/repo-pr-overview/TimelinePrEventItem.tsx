@@ -13,17 +13,17 @@ interface TimelinePrEventItemProps {
 
 const config = {
   opened: {
-    icon: <GitPullRequestIcon size={16} />,
+    icon: <GitPullRequestIcon size={10} />,
     verb: "opened this pull request",
     className: styles.opened,
   },
   merged: {
-    icon: <GitMergeIcon size={16} />,
+    icon: <GitMergeIcon size={10} />,
     verb: "merged this pull request",
     className: styles.merged,
   },
   closed: {
-    icon: <GitPullRequestClosedIcon size={16} />,
+    icon: <GitPullRequestClosedIcon size={10} />,
     verb: "closed this pull request",
     className: styles.closed,
   },

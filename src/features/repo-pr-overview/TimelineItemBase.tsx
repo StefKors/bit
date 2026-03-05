@@ -27,19 +27,15 @@ export const TimelineItemBase = ({
     <div className={className ? `${styles.timelineItem} ${className}` : styles.timelineItem}>
       <div className={styles.timelineIcon}>{icon}</div>
       <div className={styles.timelineHeader}>{header}</div>
-      {showLine && (
-        <>
-          <div className={styles.timelineLine} aria-hidden />
-          {hasBody && (
-            <div
-              className={
-                bodyWide ? `${styles.timelineBody} ${styles.timelineBodyWide}` : styles.timelineBody
-              }
-            >
-              {children}
-            </div>
-          )}
-        </>
+      {showLine && <div className={styles.timelineLine} aria-hidden />}
+      {hasBody && (
+        <div
+          className={
+            bodyWide ? `${styles.timelineBody} ${styles.timelineBodyWide}` : styles.timelineBody
+          }
+        >
+          {children}
+        </div>
       )}
     </div>
   )

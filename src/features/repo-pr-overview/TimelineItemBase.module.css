@@ -12,6 +12,8 @@
   justify-content: center;
   width: 22px;
   height: 22px;
+  padding: 8px;
+  box-sizing: border-box;
   border-radius: 50%;
   background: var(--bit-color-surface-2);
   color: var(--bit-color-text-muted);
