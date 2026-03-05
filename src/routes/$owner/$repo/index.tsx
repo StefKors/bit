@@ -313,16 +313,16 @@ function RepoPROverviewPage() {
       pullRequests: {
         $: { order: { updatedAt: "desc" } },
         issueComments: {
-          $: { order: { updatedAt: "desc" } },
+          $: { order: { updatedAt: "desc" }, limit: 20 },
         },
         pullRequestReviews: {
-          $: { order: { updatedAt: "desc" } },
+          $: { order: { updatedAt: "desc" }, limit: 10 },
         },
         pullRequestReviewComments: {
-          $: { order: { updatedAt: "desc" } },
+          $: { order: { updatedAt: "desc" }, limit: 20 },
         },
         pullRequestCommits: {
-          $: { order: { updatedAt: "desc" } },
+          $: { order: { updatedAt: "desc" }, limit: 50 },
         },
         checkRuns: {
           $: { order: { updatedAt: "desc" }, limit: 10 },
@@ -1039,19 +1039,27 @@ const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
   }
 
   for (const comment of pr.issueComments) {
-    items.push({
-      type: "issue_comment",
-      timestamp: comment.createdAt || comment.updatedAt,
-      data: comment,
-    })
+    const ts =
+      comment.createdAt > 0 ? comment.createdAt : comment.updatedAt > 0 ? comment.updatedAt : 0
+    if (ts > 0) {
+      items.push({
+        type: "issue_comment",
+        timestamp: ts,
+        data: comment,
+      })
+    }
   }
 
   for (const comment of pr.pullRequestReviewComments) {
-    items.push({
-      type: "review_comment",
-      timestamp: comment.createdAt || comment.updatedAt,
-      data: comment,
-    })
+    const ts =
+      comment.createdAt > 0 ? comment.createdAt : comment.updatedAt > 0 ? comment.updatedAt : 0
+    if (ts > 0) {
+      items.push({
+        type: "review_comment",
+        timestamp: ts,
+        data: comment,
+      })
+    }
   }
 
   items.sort((a, b) => a.timestamp - b.timestamp)

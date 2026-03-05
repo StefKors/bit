@@ -192,7 +192,7 @@ export const schema = i.schema({
     }),
 
     pullRequestCommits: i.entity({
-      sha: i.string().unique().indexed(),
+      sha: i.string().indexed(),
       message: i.string().optional(),
       messageShort: i.string().optional(),
       authorLogin: i.string().optional().indexed(),

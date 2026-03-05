@@ -437,12 +437,11 @@ export const persistWebhookPayload = async (params: {
 
     if (existingPush) {
       await adminDb.transact(adminDb.tx.pushEvents[existingPush.id].update(pushUpdate))
-    } else {
-      const pushId = id()
-      await adminDb.transact(
-        adminDb.tx.pushEvents[pushId].update(pushUpdate).link({ repo: repo.id }),
-      )
+      return
     }
+
+    const pushId = id()
+    await adminDb.transact(adminDb.tx.pushEvents[pushId].update(pushUpdate).link({ repo: repo.id }))
 
     if (installationId) {
       const pushRef = asString(payloadRecord.ref)

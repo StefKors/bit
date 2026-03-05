@@ -53,11 +53,13 @@ interface GitHubReviewComment {
   updated_at: string
 }
 
-async function githubFetchPaginated<T>(token: string, url: string, maxPages = 3): Promise<T[]> {
+async function githubFetchPaginated<T>(token: string, url: string, maxPages = 15): Promise<T[]> {
   const results: T[] = []
   let nextUrl: string | null = url
 
+  let lastUrl = url
   for (let page = 0; page < maxPages && nextUrl; page++) {
+    lastUrl = nextUrl
     const response = await fetch(nextUrl, {
       headers: { ...GITHUB_HEADERS, Authorization: `Bearer ${token}` },
     })
@@ -75,6 +77,14 @@ async function githubFetchPaginated<T>(token: string, url: string, maxPages = 3)
 
     const linkHeader = response.headers.get("link")
     nextUrl = parseLinkNext(linkHeader)
+  }
+
+  if (nextUrl) {
+    log.warn("GitHub API pagination truncated", {
+      url: lastUrl,
+      maxPages,
+      itemsFetched: results.length,
+    })
   }
 
   return results
@@ -135,17 +145,19 @@ function parseTimestamp(iso: string | null | undefined): number | undefined {
 async function upsertCommits(pullRequestId: string, commits: GitHubCommit[]): Promise<void> {
   if (commits.length === 0) return
   const now = Date.now()
+  const shas = commits.map((c) => c.sha)
 
-  const { pullRequestCommits: existing } = await adminDb.query({
-    pullRequestCommits: {
-      $: {
-        where: {
-          sha: { $in: commits.map((c) => c.sha) },
-        },
+  const { pullRequests } = await adminDb.query({
+    pullRequests: {
+      $: { where: { id: pullRequestId }, limit: 1 },
+      pullRequestCommits: {
+        $: { where: { sha: { $in: shas } } },
       },
     },
   })
 
+  const pr = pullRequests?.[0]
+  const existing = pr?.pullRequestCommits ?? []
   const existingBySha = new Map(existing.map((e) => [e.sha, e]))
 
   const txs = commits.map((commit) => {
@@ -164,7 +176,9 @@ async function upsertCommits(pullRequestId: string, commits: GitHubCommit[]): Pr
     }
 
     if (found) {
-      return adminDb.tx.pullRequestCommits[found.id].update(update)
+      return adminDb.tx.pullRequestCommits[found.id]
+        .update(update)
+        .link({ pullRequest: pullRequestId })
     }
     return adminDb.tx.pullRequestCommits[id()].update(update).link({ pullRequest: pullRequestId })
   })
