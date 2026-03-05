@@ -269,12 +269,22 @@
 }
 
 /* Light mode adjustments */
+:global([data-color-mode="light"]) .header {
+  background: rgba(var(--bit-rgb-paper), 0.8);
+}
+
+:global([data-color-mode="light"]) .userMenu {
+  box-shadow:
+    0 8px 24px rgba(var(--bit-rgb-shadow), 0.12),
+    0 4px 12px rgba(var(--bit-rgb-shadow), 0.08);
+}
+
 @media (prefers-color-scheme: light) {
-  .header {
+  :global(:root:not([data-theme])) .header {
     background: rgba(var(--bit-rgb-paper), 0.8);
   }
 
-  .userMenu {
+  :global(:root:not([data-theme])) .userMenu {
     box-shadow:
       0 8px 24px rgba(var(--bit-rgb-shadow), 0.12),
       0 4px 12px rgba(var(--bit-rgb-shadow), 0.08);
