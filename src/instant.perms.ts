@@ -91,4 +91,12 @@ export default {
       delete: "false",
     },
   },
+  pullRequestFiles: {
+    allow: {
+      view: "auth.id in data.ref('pullRequest.repo.users.id')",
+      create: "false",
+      update: "false",
+      delete: "false",
+    },
+  },
 }

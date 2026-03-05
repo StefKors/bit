@@ -1,7 +1,9 @@
 import { id } from "@instantdb/admin"
 import { adminDb } from "@/lib/instantAdmin"
 import { log } from "@/lib/logger"
+import { extractInstallationId } from "@/lib/github-app"
 import { syncPRActivitySafely } from "@/lib/github-pr-activity"
+import { syncPRFilesForCommit } from "@/lib/github-pr-files"
 
 type JsonPrimitive = string | number | boolean | null
 type JsonValue = JsonPrimitive | JsonObject | JsonValue[]
@@ -388,11 +390,6 @@ const upsertCheckSuite = async (
   )
 }
 
-const extractInstallationId = (payload: JsonObject): number | undefined => {
-  const installation = asObject(payload.installation)
-  return asNumber(installation?.id)
-}
-
 const SYNC_TRIGGER_ACTIONS = new Set(["opened", "synchronize", "reopened"])
 
 export const persistWebhookPayload = async (params: {
@@ -471,6 +468,9 @@ export const persistWebhookPayload = async (params: {
       }
     }
 
+    triggerPushFileSync(repo.fullName, payloadRecord).catch((err) => {
+      log.error("Failed to sync PR files on push", err)
+    })
     return
   }
 
@@ -494,6 +494,11 @@ export const persistWebhookPayload = async (params: {
           prNumber,
         })
       }
+    }
+    if (action === "opened" || action === "synchronize" || action === "reopened") {
+      triggerPRFileSync(pullRequestId, repo.fullName, payloadRecord).catch((err) => {
+        log.error("Failed to sync PR files on pull_request", err)
+      })
     }
     return
   }
@@ -525,6 +530,61 @@ export const persistWebhookPayload = async (params: {
 
   if (event === "check_suite") {
     await upsertCheckSuite(pullRequestId, payloadRecord, now)
+  }
+}
+
+const triggerPRFileSync = async (
+  pullRequestId: string,
+  repoFullName: string,
+  payloadRecord: JsonObject,
+): Promise<void> => {
+  const installationId = extractInstallationId(payloadRecord)
+  if (!installationId) return
+
+  const pr = asObject(payloadRecord.pull_request)
+  const base = asObject(pr?.base)
+  const head = asObject(pr?.head)
+  const baseSha = asString(base?.sha)
+  const headSha = asString(head?.sha)
+  if (!baseSha || !headSha) return
+
+  const [owner, repo] = repoFullName.split("/")
+  if (!owner || !repo) return
+
+  await syncPRFilesForCommit(pullRequestId, installationId, owner, repo, baseSha, headSha)
+}
+
+const triggerPushFileSync = async (
+  repoFullName: string,
+  payloadRecord: JsonObject,
+): Promise<void> => {
+  const installationId = extractInstallationId(payloadRecord)
+  if (!installationId) return
+
+  const ref = asString(payloadRecord.ref)
+  if (!ref?.startsWith("refs/heads/")) return
+  const branch = ref.replace("refs/heads/", "")
+
+  const afterSha = asString(payloadRecord.after)
+  if (!afterSha) return
+
+  const [owner, repo] = repoFullName.split("/")
+  if (!owner || !repo) return
+
+  const { repos } = await adminDb.query({
+    repos: {
+      $: { where: { fullName: repoFullName }, limit: 1 },
+      pullRequests: {
+        $: { where: { state: "open", headRef: branch } },
+      },
+    },
+  })
+
+  const matchingPRs = repos?.[0]?.pullRequests ?? []
+  for (const pr of matchingPRs) {
+    const baseSha = pr.baseSha
+    if (!baseSha) continue
+    await syncPRFilesForCommit(pr.id, installationId, owner, repo, baseSha, afterSha)
   }
 }
 

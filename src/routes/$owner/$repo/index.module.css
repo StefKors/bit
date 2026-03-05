@@ -857,6 +857,293 @@
   color: var(--bit-color-muted);
 }
 
+.filesChangedContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filesChangedToolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filesChangedStats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--repo-muted);
+}
+
+.filesCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--bit-color-text);
+}
+
+.additionsStat {
+  color: rgba(var(--bit-rgb-accent-green-bright), 0.9);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.deletionsStat {
+  color: rgba(var(--bit-rgb-accent-red), 0.9);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.commitSelector {
+  position: relative;
+  margin-left: auto;
+}
+
+.commitSelectorButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--repo-border);
+  border-radius: var(--bit-radius-md);
+  background: var(--repo-surface-soft);
+  color: var(--bit-color-text);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 280px;
+  transition:
+    background var(--motion-fast) var(--ease-balance),
+    border-color var(--motion-fast) var(--ease-balance);
+}
+
+.commitSelectorButton:hover {
+  border-color: var(--repo-border-strong);
+  background: var(--repo-hover);
+}
+
+.commitSelectorButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.commitSelectorLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commitDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  min-width: 320px;
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  border-radius: var(--bit-radius-md);
+  border: 1px solid var(--repo-border);
+  background: rgba(var(--bit-rgb-surface-2), 0.98);
+  box-shadow: var(--bit-shadow-lg);
+  backdrop-filter: blur(12px);
+}
+
+.commitDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: none;
+  border-radius: var(--bit-radius-sm);
+  background: transparent;
+  color: var(--bit-color-text);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--motion-fast) var(--ease-balance);
+}
+
+.commitDropdownItem:hover {
+  background: var(--repo-hover);
+}
+
+.commitDropdownItemActive {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+}
+
+.commitShortSha {
+  flex-shrink: 0;
+  font-family: var(--bit-font-mono, monospace);
+  font-size: 0.6875rem;
+  color: rgba(var(--bit-rgb-accent-blue), 0.85);
+  background: rgba(var(--bit-rgb-accent-blue), 0.08);
+  padding: 1px 4px;
+  border-radius: var(--bit-radius-sm);
+}
+
+.commitMessage {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--repo-muted);
+}
+
+.loadCommitsButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--repo-border);
+  border-radius: var(--bit-radius-md);
+  background: var(--repo-surface-soft);
+  color: var(--bit-color-text);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background var(--motion-fast) var(--ease-balance),
+    border-color var(--motion-fast) var(--ease-balance);
+}
+
+.loadCommitsButton:hover {
+  border-color: var(--repo-border-strong);
+  background: var(--repo-hover);
+}
+
+.syncingBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  color: var(--repo-muted);
+  border: 1px solid var(--repo-border);
+  border-radius: var(--bit-radius-md);
+  background: rgba(var(--bit-rgb-surface-2), 0.4);
+}
+
+.spinIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.filesList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fileEntry {
+  border: 1px solid var(--repo-border);
+  border-radius: var(--bit-radius-md);
+  overflow: hidden;
+}
+
+.fileHeader {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: none;
+  background: rgba(var(--bit-rgb-surface-2), 0.38);
+  color: var(--bit-color-text);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--motion-fast) var(--ease-balance);
+}
+
+.fileHeader:hover {
+  background: rgba(var(--bit-rgb-surface-2), 0.55);
+}
+
+.fileStatusIcon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.fileStatusAdded {
+  color: rgba(var(--bit-rgb-accent-green-bright), 0.9);
+}
+
+.fileStatusRemoved {
+  color: rgba(var(--bit-rgb-accent-red), 0.9);
+}
+
+.fileStatusModified {
+  color: rgba(var(--bit-rgb-accent-yellow), 0.9);
+}
+
+.fileStatusRenamed {
+  color: rgba(var(--bit-rgb-accent-blue), 0.9);
+}
+
+.fileName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--bit-font-mono, monospace);
+  font-size: 0.75rem;
+}
+
+.previousFileName {
+  color: var(--repo-muted);
+}
+
+.fileStats {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.chevronCollapsed {
+  transform: rotate(-90deg);
+  transition: transform var(--motion-fast) var(--ease-smooth);
+}
+
+.chevronExpanded {
+  transform: rotate(0deg);
+  transition: transform var(--motion-fast) var(--ease-smooth);
+}
+
+.diffContainer {
+  border-top: 1px solid var(--repo-border);
+  overflow-x: auto;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.diffPlaceholder {
+  padding: 16px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--repo-muted);
+  border-top: 1px solid var(--repo-border);
+  background: rgba(var(--bit-rgb-surface-2), 0.2);
+}
+
 @media (max-width: 1200px) {
   .columns {
     grid-template-columns: 1fr;

@@ -202,6 +202,17 @@ export const schema = i.schema({
       createdAt: i.number(),
       updatedAt: i.number().indexed(),
     }),
+    pullRequestFiles: i.entity({
+      commitSha: i.string().indexed(),
+      filename: i.string().indexed(),
+      previousFilename: i.string().optional(),
+      status: i.string().indexed(),
+      additions: i.number().optional(),
+      deletions: i.number().optional(),
+      patch: i.string().optional(),
+      createdAt: i.number(),
+      updatedAt: i.number().indexed(),
+    }),
   },
 
   links: {
@@ -335,6 +346,18 @@ export const schema = i.schema({
         on: "pullRequests",
         has: "many",
         label: "pullRequestCommits",
+      },
+    },
+    pullRequestFilesLink: {
+      forward: {
+        on: "pullRequestFiles",
+        has: "one",
+        label: "pullRequest",
+      },
+      reverse: {
+        on: "pullRequests",
+        has: "many",
+        label: "pullRequestFiles",
       },
     },
   },
