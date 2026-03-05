@@ -55,6 +55,7 @@ interface RepoPullRequest {
     id: string
     githubId?: number | null
     inReplyToId?: number | null
+    pullRequestReviewId?: number | null
     authorLogin?: string | null
     authorAvatarUrl?: string | null
     body?: string | null
@@ -160,6 +161,7 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
       id: comment.id,
       githubId: comment.githubId ?? 0,
       inReplyToId: comment.inReplyToId ?? null,
+      pullRequestReviewId: comment.pullRequestReviewId ?? null,
       authorLogin: comment.authorLogin ?? "unknown",
       authorAvatarUrl: comment.authorAvatarUrl ?? null,
       body: comment.body ?? null,

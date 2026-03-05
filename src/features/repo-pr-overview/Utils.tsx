@@ -62,10 +62,36 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
     }
   }
 
+  const repliesByParent = new Map<number, typeof pr.pullRequestReviewComments>()
+  for (const comment of pr.pullRequestReviewComments) {
+    if (comment.inReplyToId != null) {
+      const list = repliesByParent.get(comment.inReplyToId) ?? []
+      list.push(comment)
+      repliesByParent.set(comment.inReplyToId, list)
+    }
+  }
+
   for (const review of pr.pullRequestReviews) {
     const ts = review.submittedAt ?? review.updatedAt
     if (ts) {
-      items.push({ type: "review", timestamp: ts, data: review })
+      const nestedCommentThreads = pr.pullRequestReviewComments
+        .filter(
+          (c) =>
+            c.inReplyToId == null &&
+            c.pullRequestReviewId != null &&
+            c.pullRequestReviewId === review.githubId,
+        )
+        .map((root) => ({
+          root,
+          replies: (repliesByParent.get(root.githubId) ?? []).sort(
+            (a, b) => a.createdAt - b.createdAt,
+          ),
+        }))
+      items.push({
+        type: "review",
+        timestamp: ts,
+        data: { ...review, nestedCommentThreads },
+      })
     }
   }
 
@@ -81,16 +107,9 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
     }
   }
 
-  const repliesByParent = new Map<number, typeof pr.pullRequestReviewComments>()
-  for (const comment of pr.pullRequestReviewComments) {
-    if (comment.inReplyToId != null) {
-      const list = repliesByParent.get(comment.inReplyToId) ?? []
-      list.push(comment)
-      repliesByParent.set(comment.inReplyToId, list)
-    }
-  }
   for (const comment of pr.pullRequestReviewComments) {
     if (comment.inReplyToId != null) continue
+    if (comment.pullRequestReviewId != null) continue
     const ts =
       comment.createdAt > 0 ? comment.createdAt : comment.updatedAt > 0 ? comment.updatedAt : 0
     if (ts > 0) {

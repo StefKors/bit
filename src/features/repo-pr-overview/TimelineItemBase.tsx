@@ -7,6 +7,7 @@ interface TimelineItemBaseProps {
   children?: ReactNode
   className?: string
   showConnector?: boolean
+  bodyWide?: boolean
 }
 
 export const TimelineItemBase = ({
@@ -15,6 +16,7 @@ export const TimelineItemBase = ({
   children,
   className,
   showConnector,
+  bodyWide,
 }: TimelineItemBaseProps) => {
   const hasBody = children != null
   const showLine = hasBody || showConnector
@@ -26,7 +28,15 @@ export const TimelineItemBase = ({
       {showLine && (
         <>
           <div className={styles.timelineLine} aria-hidden />
-          {hasBody && <div className={styles.timelineBody}>{children}</div>}
+          {hasBody && (
+            <div
+              className={
+                bodyWide ? `${styles.timelineBody} ${styles.timelineBodyWide}` : styles.timelineBody
+              }
+            >
+              {children}
+            </div>
+          )}
         </>
       )}
     </div>

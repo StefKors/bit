@@ -12,3 +12,76 @@
 .timelineContent {
   composes: timelineContent from "./TimelineItemBase.module.css";
 }
+
+.nestedThreads {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.nestedThread {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--bit-radius-md);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  background: rgba(var(--bit-rgb-surface-2), 0.2);
+}
+
+.nestedThreadHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.nestedFilePath {
+  font-family: var(--bit-font-mono, monospace);
+  font-size: 0.6875rem;
+  padding: 1px 6px;
+  border-radius: var(--bit-radius-sm);
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  color: rgba(var(--bit-rgb-fg), 0.58);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+.nestedTime {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  color: rgba(var(--bit-rgb-fg), 0.58);
+}
+
+.nestedContent {
+  font-size: 0.9375rem;
+  color: rgba(var(--bit-rgb-fg), 0.85);
+}
+
+.nestedReply {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  background: rgba(var(--bit-rgb-surface-2), 0.2);
+}
+
+.nestedReply:last-child {
+  border-radius: 0 0 var(--bit-radius-md) var(--bit-radius-md);
+}
+
+.nestedReplyHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nestedReplyBody {
+  font-size: 0.9375rem;
+  color: rgba(var(--bit-rgb-fg), 0.85);
+}

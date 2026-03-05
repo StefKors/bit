@@ -125,6 +125,7 @@ export const schema = i.schema({
       line: i.number().optional(),
       side: i.string().optional(),
       inReplyToId: i.number().optional(),
+      pullRequestReviewId: i.number().optional().indexed(),
       authorLogin: i.string().optional().indexed(),
       authorAvatarUrl: i.string().optional(),
       htmlUrl: i.string().optional(),

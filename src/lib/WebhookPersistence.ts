@@ -215,6 +215,7 @@ const upsertPullRequestReviewComment = async (
     line: asNumber(comment?.line),
     side: asString(comment?.side),
     inReplyToId: asNumber(comment?.in_reply_to_id),
+    pullRequestReviewId: asNumber(comment?.pull_request_review_id),
     authorLogin: asString(author?.login),
     authorAvatarUrl: asString(author?.avatar_url),
     htmlUrl: asString(comment?.html_url),

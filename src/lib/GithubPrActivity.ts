@@ -47,6 +47,7 @@ interface GitHubReviewComment {
   line: number | null
   side: string
   in_reply_to_id?: number
+  pull_request_review_id?: number | null
   user: { login: string; avatar_url: string } | null
   html_url: string
   created_at: string
@@ -296,6 +297,7 @@ async function upsertReviewCommentsFromApi(
       line: comment.line ?? undefined,
       side: comment.side,
       inReplyToId: comment.in_reply_to_id ?? undefined,
+      pullRequestReviewId: comment.pull_request_review_id ?? undefined,
       authorLogin: comment.user?.login ?? undefined,
       authorAvatarUrl: comment.user?.avatar_url ?? undefined,
       htmlUrl: comment.html_url,
