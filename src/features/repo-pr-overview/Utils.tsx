@@ -35,10 +35,16 @@ export const getCiDotVariant = (pr: PullRequestCard): "ready" | "blocked" | "che
 
 export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
   const items: TimelineItem[] = []
+  const prAuthor = { authorLogin: pr.authorLogin, authorAvatarUrl: pr.authorAvatarUrl }
+
+  if (pr.githubCreatedAt) {
+    items.push({ type: "opened", timestamp: pr.githubCreatedAt, data: prAuthor })
+  }
 
   for (const commit of pr.pullRequestCommits) {
-    if (commit.authoredAt) {
-      items.push({ type: "commit", timestamp: commit.authoredAt, data: commit })
+    const ts = commit.authoredAt ?? commit.createdAt ?? 0
+    if (ts > 0) {
+      items.push({ type: "commit", timestamp: ts, data: commit })
     }
   }
 
@@ -61,16 +67,46 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
     }
   }
 
+  const repliesByParent = new Map<number, typeof pr.pullRequestReviewComments>()
   for (const comment of pr.pullRequestReviewComments) {
+    if (comment.inReplyToId != null) {
+      const list = repliesByParent.get(comment.inReplyToId) ?? []
+      list.push(comment)
+      repliesByParent.set(comment.inReplyToId, list)
+    }
+  }
+  for (const comment of pr.pullRequestReviewComments) {
+    if (comment.inReplyToId != null) continue
     const ts =
       comment.createdAt > 0 ? comment.createdAt : comment.updatedAt > 0 ? comment.updatedAt : 0
     if (ts > 0) {
+      const replies = (repliesByParent.get(comment.githubId) ?? []).sort(
+        (a, b) => a.createdAt - b.createdAt,
+      )
       items.push({
         type: "review_comment",
         timestamp: ts,
-        data: comment,
+        data: { root: comment, replies },
       })
     }
+  }
+
+  for (const evt of pr.pullRequestEvents) {
+    if (evt.githubCreatedAt > 0) {
+      items.push({ type: "pr_event", timestamp: evt.githubCreatedAt, data: evt })
+    }
+  }
+
+  if (pr.merged && pr.githubMergedAt) {
+    const mergedActor = pr.mergedByLogin
+      ? { authorLogin: pr.mergedByLogin, authorAvatarUrl: pr.mergedByAvatarUrl }
+      : prAuthor
+    items.push({ type: "merged", timestamp: pr.githubMergedAt, data: mergedActor })
+  } else if (pr.state === "closed" && pr.githubClosedAt) {
+    const closedActor = pr.closedByLogin
+      ? { authorLogin: pr.closedByLogin, authorAvatarUrl: pr.closedByAvatarUrl }
+      : prAuthor
+    items.push({ type: "closed", timestamp: pr.githubClosedAt, data: closedActor })
   }
 
   items.sort((a, b) => a.timestamp - b.timestamp)

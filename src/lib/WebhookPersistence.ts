@@ -3,7 +3,7 @@ import { adminDb } from "@/lib/InstantAdmin"
 import { log } from "@/lib/Logger"
 import { extractInstallationId } from "@/lib/GithubApp"
 import { syncPRActivitySafely } from "@/lib/GithubPrActivity"
-import { syncPRFilesForCommit } from "@/lib/GithubPrFiles"
+import { syncPRFiles } from "@/lib/GithubPrFiles"
 
 type JsonPrimitive = string | number | boolean | null
 type JsonValue = JsonPrimitive | JsonObject | JsonValue[]
@@ -89,6 +89,7 @@ const upsertPullRequestFromPayload = async (
   const user = asObject(pullRequest?.user)
   const base = asObject(pullRequest?.base)
   const head = asObject(pullRequest?.head)
+  const mergedBy = asObject(pullRequest?.merged_by)
   const labels = asArray(pullRequest?.labels)
   const assignees = asArray(pullRequest?.assignees)
   const requestedReviewers = asArray(pullRequest?.requested_reviewers)
@@ -107,6 +108,14 @@ const upsertPullRequestFromPayload = async (
     htmlUrl: asString(pullRequest?.html_url),
     authorLogin: asString(user?.login),
     authorAvatarUrl: asString(user?.avatar_url),
+    mergedByLogin: asString(mergedBy?.login),
+    mergedByAvatarUrl: asString(mergedBy?.avatar_url),
+    closedByLogin:
+      asString(payload.action) === "closed" ? asString(asObject(payload.sender)?.login) : undefined,
+    closedByAvatarUrl:
+      asString(payload.action) === "closed"
+        ? asString(asObject(payload.sender)?.avatar_url)
+        : undefined,
     baseRef: asString(base?.ref),
     baseSha: asString(base?.sha),
     headRef: asString(head?.ref),
@@ -210,8 +219,8 @@ const upsertPullRequestReviewComment = async (
     authorAvatarUrl: asString(author?.avatar_url),
     htmlUrl: asString(comment?.html_url),
     payload: toJson(payload),
-    createdAt: existing?.createdAt ?? now,
-    updatedAt: now,
+    createdAt: existing?.createdAt ?? parseTimestamp(comment?.created_at) ?? now,
+    updatedAt: parseTimestamp(comment?.updated_at) ?? now,
   }
 
   if (existing) {
@@ -254,8 +263,8 @@ const upsertIssueComment = async (
     authorAvatarUrl: asString(author?.avatar_url),
     htmlUrl: asString(comment?.html_url),
     payload: toJson(payload),
-    createdAt: existing?.createdAt ?? now,
-    updatedAt: now,
+    createdAt: existing?.createdAt ?? parseTimestamp(comment?.created_at) ?? now,
+    updatedAt: parseTimestamp(comment?.updated_at) ?? now,
   }
 
   if (existing) {
@@ -390,6 +399,65 @@ const upsertCheckSuite = async (
   )
 }
 
+const PR_EVENT_ACTIONS = new Set([
+  "labeled",
+  "unlabeled",
+  "assigned",
+  "unassigned",
+  "review_requested",
+  "review_request_removed",
+])
+
+const insertPullRequestEvent = async (
+  pullRequestId: string,
+  payload: JsonObject,
+  now: number,
+): Promise<void> => {
+  const action = asString(payload.action)
+  if (!action || !PR_EVENT_ACTIONS.has(action)) return
+
+  const sender = asObject(payload.sender)
+  const actorLogin = asString(sender?.login)
+
+  let label: string | undefined
+  let targetLogin: string | undefined
+  let targetAvatarUrl: string | undefined
+
+  if (action === "labeled" || action === "unlabeled") {
+    const labelObj = asObject(payload.label)
+    label = asString(labelObj?.name)
+  } else if (action === "assigned" || action === "unassigned") {
+    const assignee = asObject(payload.assignee)
+    targetLogin = asString(assignee?.login)
+    targetAvatarUrl = asString(assignee?.avatar_url)
+  } else if (action === "review_requested" || action === "review_request_removed") {
+    const reviewer = asObject(payload.requested_reviewer)
+    targetLogin = asString(reviewer?.login)
+    targetAvatarUrl = asString(reviewer?.avatar_url)
+  }
+
+  const keyTarget = label ?? targetLogin ?? ""
+  const eventKey = `${pullRequestId}:${action}:${keyTarget}:${now}`
+
+  const eventId = id()
+  await adminDb.transact(
+    adminDb.tx.pullRequestEvents[eventId]
+      .update({
+        eventKey,
+        eventType: action,
+        actorLogin,
+        actorAvatarUrl: asString(sender?.avatar_url),
+        targetLogin,
+        targetAvatarUrl,
+        label,
+        githubCreatedAt: now,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .link({ pullRequest: pullRequestId }),
+  )
+}
+
 const SYNC_TRIGGER_ACTIONS = new Set(["opened", "synchronize", "reopened"])
 
 export const persistWebhookPayload = async (params: {
@@ -499,6 +567,9 @@ export const persistWebhookPayload = async (params: {
         log.error("Failed to sync PR files on pull_request", err)
       })
     }
+    if (action && PR_EVENT_ACTIONS.has(action)) {
+      await insertPullRequestEvent(pullRequestId, payloadRecord, now)
+    }
     return
   }
 
@@ -550,7 +621,7 @@ const triggerPRFileSync = async (
   const [owner, repo] = repoFullName.split("/")
   if (!owner || !repo) return
 
-  await syncPRFilesForCommit(pullRequestId, installationId, owner, repo, baseSha, headSha)
+  await syncPRFiles(pullRequestId, installationId, owner, repo, baseSha, headSha)
 }
 
 const triggerPushFileSync = async (
@@ -590,7 +661,7 @@ const triggerPushFileSync = async (
     // commit and the file list would appear empty.
     await adminDb.transact(adminDb.tx.pullRequests[pr.id].update({ headSha: afterSha }))
 
-    await syncPRFilesForCommit(pr.id, installationId, owner, repo, baseSha, afterSha)
+    await syncPRFiles(pr.id, installationId, owner, repo, baseSha, afterSha)
   }
 }
 

@@ -9,12 +9,15 @@ interface AuthorLabelProps {
 }
 
 export const AuthorLabel = ({ login, avatarUrl, size = 14 }: AuthorLabelProps) => {
+  const isBot = login.endsWith("[bot]")
+  const displayName = isBot ? login.slice(0, -5) : login
   const resolvedUrl = resolveOwnerAvatarUrl(login, avatarUrl)
 
   return (
     <span className={styles.authorLabel}>
       <Avatar src={resolvedUrl} name={login} size={size} />
-      <span className={styles.authorLogin}>{login}</span>
+      <span className={styles.authorLogin}>{displayName}</span>
+      {isBot && <span className={styles.botBadge}>bot</span>}
     </span>
   )
 }

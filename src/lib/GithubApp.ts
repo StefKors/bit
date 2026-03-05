@@ -5,6 +5,8 @@ import { adminDb } from "@/lib/InstantAdmin"
 
 const GITHUB_APP_ID = process.env.GITHUB_APP_ID
 const GITHUB_APP_PRIVATE_KEY = process.env.GITHUB_APP_PRIVATE_KEY?.replace(/\\n/g, "\n")
+const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID
+const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET
 
 interface CachedToken {
   token: string
@@ -107,6 +109,16 @@ export async function getInstallationToken(installationId: number): Promise<stri
   }
 }
 
+function parseInstallationId(resourceId: string | undefined | null): number | null {
+  if (!resourceId) return null
+  const parsed = Number.parseInt(resourceId, 10)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+/**
+ * Returns the first installation ID for a user.
+ * Prefer `getInstallationIdForRepo` when a repo owner is known.
+ */
 export async function getInstallationIdForUser(userId: string): Promise<number | null> {
   const { syncStates } = await adminDb.query({
     syncStates: {
@@ -120,13 +132,18 @@ export async function getInstallationIdForUser(userId: string): Promise<number |
   })
 
   const state = syncStates?.[0]
-  if (!state?.resourceId) return null
-
-  const parsed = Number.parseInt(state.resourceId, 10)
-  return Number.isFinite(parsed) ? parsed : null
+  return parseInstallationId(state?.resourceId)
 }
 
-export async function storeInstallationId(userId: string, installationId: string): Promise<void> {
+/**
+ * Returns the installation ID whose account matches `repoOwner`.
+ * Falls back to the first installation if no owner match is found.
+ * `lastEtag` stores the GitHub account login for installation records.
+ */
+export async function getInstallationIdForRepo(
+  userId: string,
+  repoOwner: string,
+): Promise<number | null> {
   const { syncStates } = await adminDb.query({
     syncStates: {
       $: {
@@ -138,8 +155,58 @@ export async function storeInstallationId(userId: string, installationId: string
     },
   })
 
-  const existingId = syncStates?.[0]?.id
-  const stateId = existingId ?? crypto.randomUUID()
+  if (!syncStates?.length) return null
+
+  const ownerLower = repoOwner.toLowerCase()
+  const match = syncStates.find((s) => s.lastEtag?.toLowerCase() === ownerLower)
+  const state = match ?? syncStates[0]
+  return parseInstallationId(state?.resourceId)
+}
+
+/** Returns all installation IDs for a user (for aggregating repos across accounts). */
+export async function getAllInstallationIdsForUser(userId: string): Promise<number[]> {
+  const { syncStates } = await adminDb.query({
+    syncStates: {
+      $: {
+        where: {
+          resourceType: "github:installation",
+          userId,
+        },
+      },
+    },
+  })
+
+  if (!syncStates?.length) return []
+
+  return syncStates
+    .map((s) => parseInstallationId(s.resourceId))
+    .filter((id): id is number => id !== null)
+}
+
+/**
+ * Stores a GitHub App installation for a user.
+ * Multiple installations are supported (personal + org).
+ * `accountLogin` is stored in `lastEtag` so we can route API calls
+ * to the right installation based on repo owner.
+ */
+export async function storeInstallationId(
+  userId: string,
+  installationId: string,
+  accountLogin?: string,
+): Promise<void> {
+  const { syncStates } = await adminDb.query({
+    syncStates: {
+      $: {
+        where: {
+          resourceType: "github:installation",
+          userId,
+        },
+      },
+    },
+  })
+
+  const existing = syncStates?.find((s) => s.resourceId === installationId)
+  const stateId = existing?.id ?? crypto.randomUUID()
   const now = Date.now()
 
   await adminDb.transact(
@@ -147,9 +214,10 @@ export async function storeInstallationId(userId: string, installationId: string
       .update({
         resourceType: "github:installation",
         resourceId: installationId,
+        lastEtag: accountLogin ?? existing?.lastEtag ?? undefined,
         syncStatus: "idle",
         userId,
-        createdAt: now,
+        createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       })
       .link({ user: userId }),
@@ -210,4 +278,49 @@ export function extractInstallationId(payload: unknown): number | null {
   const installation = (payload as { installation?: { id?: number } }).installation
   if (!installation || typeof installation.id !== "number") return null
   return installation.id
+}
+
+export function getGitHubOAuthClientId(): string | undefined {
+  return GITHUB_CLIENT_ID
+}
+
+export async function exchangeCodeForUserToken(code: string): Promise<string | null> {
+  if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
+    log.warn("GitHub OAuth: missing GITHUB_CLIENT_ID or GITHUB_CLIENT_SECRET")
+    return null
+  }
+
+  const response = await fetch("https://github.com/login/oauth/access_token", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      client_id: GITHUB_CLIENT_ID,
+      client_secret: GITHUB_CLIENT_SECRET,
+      code,
+    }),
+  })
+
+  if (!response.ok) {
+    log.warn("GitHub OAuth: token exchange failed", { status: response.status })
+    return null
+  }
+
+  const data = (await response.json()) as { access_token?: string; error?: string }
+  if (data.error || !data.access_token) {
+    log.warn("GitHub OAuth: token exchange error", { error: data.error })
+    return null
+  }
+
+  return data.access_token
+}
+
+export async function getUserGitHubToken(userId: string): Promise<string | null> {
+  const { $users } = await adminDb.query({
+    $users: { $: { where: { id: userId }, limit: 1 } },
+  })
+  const user = $users?.[0]
+  return (user as { githubAccessToken?: string } | undefined)?.githubAccessToken ?? null
 }

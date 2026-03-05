@@ -3,40 +3,78 @@ import { formatRelativeTime } from "@/lib/Format"
 import { AuthorLabel } from "@/components/AuthorLabel"
 import { Markdown } from "@/components/Markdown"
 import { getLanguageFromFilePath } from "@/lib/Markdown"
-import type { PullRequestReviewComment } from "./Types"
+import type { ReviewCommentThread, PullRequestReviewComment } from "./Types"
 import { TimelineItemBase } from "./TimelineItemBase"
 import styles from "./TimelineReviewCommentItem.module.css"
 
 interface TimelineReviewCommentItemProps {
-  comment: PullRequestReviewComment
+  thread: ReviewCommentThread
 }
 
-export const TimelineReviewCommentItem = ({ comment }: TimelineReviewCommentItemProps) => (
-  <TimelineItemBase
-    icon={<CodeIcon size={16} />}
-    header={
-      <>
-        <span className={styles.timelineReviewCommentInfo}>
-          <AuthorLabel login={comment.authorLogin} avatarUrl={comment.authorAvatarUrl} size={16} />
-          {comment.path && (
-            <code className={styles.timelineFilePath}>
-              {comment.path}
-              {comment.line != null ? `:${comment.line}` : ""}
-            </code>
-          )}
-        </span>
-        <time className={styles.timelineTime}>
-          {formatRelativeTime(comment.createdAt || comment.updatedAt)}
-        </time>
-      </>
-    }
-  >
+const ReplyItem = ({
+  comment,
+  defaultLanguage,
+}: {
+  comment: PullRequestReviewComment
+  defaultLanguage: string | undefined
+}) => (
+  <div className={styles.reply}>
+    <div className={styles.replyHeader}>
+      <AuthorLabel login={comment.authorLogin} avatarUrl={comment.authorAvatarUrl} size={14} />
+      <time className={styles.replyTime}>
+        {formatRelativeTime(comment.createdAt || comment.updatedAt)}
+      </time>
+    </div>
     {comment.body && (
       <Markdown
         content={comment.body}
-        className={styles.timelineContent}
-        defaultLanguage={getLanguageFromFilePath(comment.path)}
+        className={styles.replyBody}
+        defaultLanguage={defaultLanguage}
       />
     )}
-  </TimelineItemBase>
+  </div>
 )
+
+export const TimelineReviewCommentItem = ({ thread }: TimelineReviewCommentItemProps) => {
+  const { root, replies } = thread
+  const defaultLanguage = getLanguageFromFilePath(root.path) ?? undefined
+
+  return (
+    <TimelineItemBase
+      icon={<CodeIcon size={16} />}
+      header={
+        <>
+          <span className={styles.timelineReviewCommentInfo}>
+            <AuthorLabel login={root.authorLogin} avatarUrl={root.authorAvatarUrl} size={16} />
+            {root.path && (
+              <code className={styles.timelineFilePath}>
+                {root.path}
+                {root.line != null ? `:${root.line}` : ""}
+              </code>
+            )}
+          </span>
+          <time className={styles.timelineTime}>
+            {formatRelativeTime(root.createdAt || root.updatedAt)}
+          </time>
+        </>
+      }
+    >
+      <div className={styles.threadBody}>
+        {root.body && (
+          <Markdown
+            content={root.body}
+            className={styles.timelineContent}
+            defaultLanguage={defaultLanguage}
+          />
+        )}
+        {replies.length > 0 && (
+          <div className={styles.replies}>
+            {replies.map((reply) => (
+              <ReplyItem key={reply.id} comment={reply} defaultLanguage={defaultLanguage} />
+            ))}
+          </div>
+        )}
+      </div>
+    </TimelineItemBase>
+  )
+}

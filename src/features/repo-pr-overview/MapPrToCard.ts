@@ -17,6 +17,13 @@ interface RepoPullRequest {
   baseSha?: string | null
   headSha?: string | null
   updatedAt?: string | number | null
+  githubCreatedAt?: number | null
+  githubClosedAt?: number | null
+  githubMergedAt?: number | null
+  mergedByLogin?: string | null
+  mergedByAvatarUrl?: string | null
+  closedByLogin?: string | null
+  closedByAvatarUrl?: string | null
   commentsCount?: number | null
   reviewCommentsCount?: number | null
   commitsCount?: number | null
@@ -47,6 +54,7 @@ interface RepoPullRequest {
   pullRequestReviewComments?: Array<{
     id: string
     githubId?: number | null
+    inReplyToId?: number | null
     authorLogin?: string | null
     authorAvatarUrl?: string | null
     body?: string | null
@@ -64,6 +72,7 @@ interface RepoPullRequest {
     authorLogin?: string | null
     authorAvatarUrl?: string | null
     authoredAt?: number | null
+    createdAt?: number | null
     htmlUrl?: string | null
   }> | null
   checkRuns?: Array<{
@@ -73,9 +82,18 @@ interface RepoPullRequest {
     conclusion?: string | null
     updatedAt?: string | number | null
   }> | null
+  pullRequestEvents?: Array<{
+    id: string
+    eventType?: string | null
+    actorLogin?: string | null
+    actorAvatarUrl?: string | null
+    targetLogin?: string | null
+    targetAvatarUrl?: string | null
+    label?: string | null
+    githubCreatedAt?: number | null
+  }> | null
   pullRequestFiles?: Array<{
     id: string
-    commitSha: string
     filename: string
     previousFilename?: string | null
     status?: string | null
@@ -101,6 +119,13 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
   baseSha: pr.baseSha ?? null,
   headSha: pr.headSha ?? null,
   updatedAt: pr.updatedAt ?? null,
+  githubCreatedAt: pr.githubCreatedAt ?? null,
+  githubClosedAt: pr.githubClosedAt ?? null,
+  githubMergedAt: pr.githubMergedAt ?? null,
+  mergedByLogin: pr.mergedByLogin ?? null,
+  mergedByAvatarUrl: pr.mergedByAvatarUrl ?? null,
+  closedByLogin: pr.closedByLogin ?? null,
+  closedByAvatarUrl: pr.closedByAvatarUrl ?? null,
   commentsCount: pr.commentsCount ?? 0,
   reviewCommentsCount: pr.reviewCommentsCount ?? 0,
   commitsCount: pr.commitsCount ?? 0,
@@ -134,6 +159,7 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
     pr.pullRequestReviewComments?.map((comment) => ({
       id: comment.id,
       githubId: comment.githubId ?? 0,
+      inReplyToId: comment.inReplyToId ?? null,
       authorLogin: comment.authorLogin ?? "unknown",
       authorAvatarUrl: comment.authorAvatarUrl ?? null,
       body: comment.body ?? null,
@@ -152,6 +178,7 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
       authorLogin: commit.authorLogin ?? null,
       authorAvatarUrl: commit.authorAvatarUrl ?? null,
       authoredAt: commit.authoredAt ?? null,
+      createdAt: commit.createdAt ?? 0,
       htmlUrl: commit.htmlUrl ?? null,
     })) ?? [],
   checkRuns:
@@ -162,10 +189,20 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
       conclusion: check.conclusion ?? null,
       updatedAt: check.updatedAt ?? null,
     })) ?? [],
+  pullRequestEvents:
+    pr.pullRequestEvents?.map((evt) => ({
+      id: evt.id,
+      eventType: evt.eventType ?? "",
+      actorLogin: evt.actorLogin ?? null,
+      actorAvatarUrl: evt.actorAvatarUrl ?? null,
+      targetLogin: evt.targetLogin ?? null,
+      targetAvatarUrl: evt.targetAvatarUrl ?? null,
+      label: evt.label ?? null,
+      githubCreatedAt: evt.githubCreatedAt ?? 0,
+    })) ?? [],
   pullRequestFiles:
     pr.pullRequestFiles?.map((file) => ({
       id: file.id,
-      commitSha: file.commitSha,
       filename: file.filename,
       previousFilename: file.previousFilename,
       status: file.status ?? "modified",

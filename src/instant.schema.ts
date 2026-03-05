@@ -31,6 +31,7 @@ export const schema = i.schema({
       receivedEventsUrl: i.string().optional(),
       type: i.string().optional(),
       siteAdmin: i.boolean().optional(),
+      githubAccessToken: i.string().optional(),
     }),
 
     syncStates: i.entity({
@@ -93,6 +94,10 @@ export const schema = i.schema({
       githubUpdatedAt: i.number().optional().indexed(),
       githubClosedAt: i.number().optional(),
       githubMergedAt: i.number().optional(),
+      mergedByLogin: i.string().optional(),
+      mergedByAvatarUrl: i.string().optional(),
+      closedByLogin: i.string().optional(),
+      closedByAvatarUrl: i.string().optional(),
       payload: i.string().optional(),
       createdAt: i.number(),
       updatedAt: i.number().indexed(),
@@ -202,6 +207,19 @@ export const schema = i.schema({
       createdAt: i.number(),
       updatedAt: i.number().indexed(),
     }),
+    pullRequestEvents: i.entity({
+      eventKey: i.string().unique().indexed(),
+      eventType: i.string().indexed(),
+      actorLogin: i.string().optional().indexed(),
+      actorAvatarUrl: i.string().optional(),
+      targetLogin: i.string().optional(),
+      targetAvatarUrl: i.string().optional(),
+      label: i.string().optional(),
+      githubCreatedAt: i.number().indexed(),
+      createdAt: i.number(),
+      updatedAt: i.number().indexed(),
+    }),
+
     pullRequestFiles: i.entity({
       commitSha: i.string().indexed(),
       filename: i.string().indexed(),
@@ -346,6 +364,18 @@ export const schema = i.schema({
         on: "pullRequests",
         has: "many",
         label: "pullRequestCommits",
+      },
+    },
+    pullRequestEventsLink: {
+      forward: {
+        on: "pullRequestEvents",
+        has: "one",
+        label: "pullRequest",
+      },
+      reverse: {
+        on: "pullRequests",
+        has: "many",
+        label: "pullRequestEvents",
       },
     },
     pullRequestFilesLink: {

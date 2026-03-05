@@ -15,10 +15,11 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as OwnerRepoIndexRouteImport } from './routes/$owner/$repo/index'
 import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
 import { Route as ApiGithubOauthIndexRouteImport } from './routes/api/github/oauth/index'
-import { Route as ApiGithubSyncPrFilesRouteImport } from './routes/api/github/sync/pr-files'
-import { Route as ApiGithubSyncPrCommitsRouteImport } from './routes/api/github/sync/pr-commits'
 import { Route as ApiGithubReposEnableRouteImport } from './routes/api/github/repos/enable'
+import { Route as ApiGithubReposCommentRouteImport } from './routes/api/github/repos/comment'
+import { Route as ApiGithubOauthUserCallbackRouteImport } from './routes/api/github/oauth/user-callback'
 import { Route as ApiGithubOauthCallbackRouteImport } from './routes/api/github/oauth/callback'
+import { Route as ApiGithubOauthAuthorizeRouteImport } from './routes/api/github/oauth/authorize'
 import { Route as ApiGithubInstallationReposRouteImport } from './routes/api/github/installation/repos'
 import { Route as OwnerRepoPullNumberRouteImport } from './routes/$owner/$repo/pull.$number'
 
@@ -52,24 +53,30 @@ const ApiGithubOauthIndexRoute = ApiGithubOauthIndexRouteImport.update({
   path: '/api/github/oauth/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGithubSyncPrFilesRoute = ApiGithubSyncPrFilesRouteImport.update({
-  id: '/api/github/sync/pr-files',
-  path: '/api/github/sync/pr-files',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGithubSyncPrCommitsRoute = ApiGithubSyncPrCommitsRouteImport.update({
-  id: '/api/github/sync/pr-commits',
-  path: '/api/github/sync/pr-commits',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiGithubReposEnableRoute = ApiGithubReposEnableRouteImport.update({
   id: '/api/github/repos/enable',
   path: '/api/github/repos/enable',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGithubReposCommentRoute = ApiGithubReposCommentRouteImport.update({
+  id: '/api/github/repos/comment',
+  path: '/api/github/repos/comment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubOauthUserCallbackRoute =
+  ApiGithubOauthUserCallbackRouteImport.update({
+    id: '/api/github/oauth/user-callback',
+    path: '/api/github/oauth/user-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiGithubOauthCallbackRoute = ApiGithubOauthCallbackRouteImport.update({
   id: '/api/github/oauth/callback',
   path: '/api/github/oauth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubOauthAuthorizeRoute = ApiGithubOauthAuthorizeRouteImport.update({
+  id: '/api/github/oauth/authorize',
+  path: '/api/github/oauth/authorize',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubInstallationReposRoute =
@@ -92,10 +99,11 @@ export interface FileRoutesByFullPath {
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/installation/repos': typeof ApiGithubInstallationReposRoute
+  '/api/github/oauth/authorize': typeof ApiGithubOauthAuthorizeRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
+  '/api/github/oauth/user-callback': typeof ApiGithubOauthUserCallbackRoute
+  '/api/github/repos/comment': typeof ApiGithubReposCommentRoute
   '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
-  '/api/github/sync/pr-commits': typeof ApiGithubSyncPrCommitsRoute
-  '/api/github/sync/pr-files': typeof ApiGithubSyncPrFilesRoute
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
 }
 export interface FileRoutesByTo {
@@ -106,10 +114,11 @@ export interface FileRoutesByTo {
   '/$owner/$repo': typeof OwnerRepoIndexRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/installation/repos': typeof ApiGithubInstallationReposRoute
+  '/api/github/oauth/authorize': typeof ApiGithubOauthAuthorizeRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
+  '/api/github/oauth/user-callback': typeof ApiGithubOauthUserCallbackRoute
+  '/api/github/repos/comment': typeof ApiGithubReposCommentRoute
   '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
-  '/api/github/sync/pr-commits': typeof ApiGithubSyncPrCommitsRoute
-  '/api/github/sync/pr-files': typeof ApiGithubSyncPrFilesRoute
   '/api/github/oauth': typeof ApiGithubOauthIndexRoute
 }
 export interface FileRoutesById {
@@ -121,10 +130,11 @@ export interface FileRoutesById {
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/installation/repos': typeof ApiGithubInstallationReposRoute
+  '/api/github/oauth/authorize': typeof ApiGithubOauthAuthorizeRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
+  '/api/github/oauth/user-callback': typeof ApiGithubOauthUserCallbackRoute
+  '/api/github/repos/comment': typeof ApiGithubReposCommentRoute
   '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
-  '/api/github/sync/pr-commits': typeof ApiGithubSyncPrCommitsRoute
-  '/api/github/sync/pr-files': typeof ApiGithubSyncPrFilesRoute
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
 }
 export interface FileRouteTypes {
@@ -137,10 +147,11 @@ export interface FileRouteTypes {
     | '/$owner/$repo/'
     | '/$owner/$repo/pull/$number'
     | '/api/github/installation/repos'
+    | '/api/github/oauth/authorize'
     | '/api/github/oauth/callback'
+    | '/api/github/oauth/user-callback'
+    | '/api/github/repos/comment'
     | '/api/github/repos/enable'
-    | '/api/github/sync/pr-commits'
-    | '/api/github/sync/pr-files'
     | '/api/github/oauth/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -151,10 +162,11 @@ export interface FileRouteTypes {
     | '/$owner/$repo'
     | '/$owner/$repo/pull/$number'
     | '/api/github/installation/repos'
+    | '/api/github/oauth/authorize'
     | '/api/github/oauth/callback'
+    | '/api/github/oauth/user-callback'
+    | '/api/github/repos/comment'
     | '/api/github/repos/enable'
-    | '/api/github/sync/pr-commits'
-    | '/api/github/sync/pr-files'
     | '/api/github/oauth'
   id:
     | '__root__'
@@ -165,10 +177,11 @@ export interface FileRouteTypes {
     | '/$owner/$repo/'
     | '/$owner/$repo/pull/$number'
     | '/api/github/installation/repos'
+    | '/api/github/oauth/authorize'
     | '/api/github/oauth/callback'
+    | '/api/github/oauth/user-callback'
+    | '/api/github/repos/comment'
     | '/api/github/repos/enable'
-    | '/api/github/sync/pr-commits'
-    | '/api/github/sync/pr-files'
     | '/api/github/oauth/'
   fileRoutesById: FileRoutesById
 }
@@ -180,10 +193,11 @@ export interface RootRouteChildren {
   OwnerRepoIndexRoute: typeof OwnerRepoIndexRoute
   OwnerRepoPullNumberRoute: typeof OwnerRepoPullNumberRoute
   ApiGithubInstallationReposRoute: typeof ApiGithubInstallationReposRoute
+  ApiGithubOauthAuthorizeRoute: typeof ApiGithubOauthAuthorizeRoute
   ApiGithubOauthCallbackRoute: typeof ApiGithubOauthCallbackRoute
+  ApiGithubOauthUserCallbackRoute: typeof ApiGithubOauthUserCallbackRoute
+  ApiGithubReposCommentRoute: typeof ApiGithubReposCommentRoute
   ApiGithubReposEnableRoute: typeof ApiGithubReposEnableRoute
-  ApiGithubSyncPrCommitsRoute: typeof ApiGithubSyncPrCommitsRoute
-  ApiGithubSyncPrFilesRoute: typeof ApiGithubSyncPrFilesRoute
   ApiGithubOauthIndexRoute: typeof ApiGithubOauthIndexRoute
 }
 
@@ -231,20 +245,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubOauthIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/github/sync/pr-files': {
-      id: '/api/github/sync/pr-files'
-      path: '/api/github/sync/pr-files'
-      fullPath: '/api/github/sync/pr-files'
-      preLoaderRoute: typeof ApiGithubSyncPrFilesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/github/sync/pr-commits': {
-      id: '/api/github/sync/pr-commits'
-      path: '/api/github/sync/pr-commits'
-      fullPath: '/api/github/sync/pr-commits'
-      preLoaderRoute: typeof ApiGithubSyncPrCommitsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/github/repos/enable': {
       id: '/api/github/repos/enable'
       path: '/api/github/repos/enable'
@@ -252,11 +252,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubReposEnableRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/github/repos/comment': {
+      id: '/api/github/repos/comment'
+      path: '/api/github/repos/comment'
+      fullPath: '/api/github/repos/comment'
+      preLoaderRoute: typeof ApiGithubReposCommentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/oauth/user-callback': {
+      id: '/api/github/oauth/user-callback'
+      path: '/api/github/oauth/user-callback'
+      fullPath: '/api/github/oauth/user-callback'
+      preLoaderRoute: typeof ApiGithubOauthUserCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/github/oauth/callback': {
       id: '/api/github/oauth/callback'
       path: '/api/github/oauth/callback'
       fullPath: '/api/github/oauth/callback'
       preLoaderRoute: typeof ApiGithubOauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/oauth/authorize': {
+      id: '/api/github/oauth/authorize'
+      path: '/api/github/oauth/authorize'
+      fullPath: '/api/github/oauth/authorize'
+      preLoaderRoute: typeof ApiGithubOauthAuthorizeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/installation/repos': {
@@ -284,10 +305,11 @@ const rootRouteChildren: RootRouteChildren = {
   OwnerRepoIndexRoute: OwnerRepoIndexRoute,
   OwnerRepoPullNumberRoute: OwnerRepoPullNumberRoute,
   ApiGithubInstallationReposRoute: ApiGithubInstallationReposRoute,
+  ApiGithubOauthAuthorizeRoute: ApiGithubOauthAuthorizeRoute,
   ApiGithubOauthCallbackRoute: ApiGithubOauthCallbackRoute,
+  ApiGithubOauthUserCallbackRoute: ApiGithubOauthUserCallbackRoute,
+  ApiGithubReposCommentRoute: ApiGithubReposCommentRoute,
   ApiGithubReposEnableRoute: ApiGithubReposEnableRoute,
-  ApiGithubSyncPrCommitsRoute: ApiGithubSyncPrCommitsRoute,
-  ApiGithubSyncPrFilesRoute: ApiGithubSyncPrFilesRoute,
   ApiGithubOauthIndexRoute: ApiGithubOauthIndexRoute,
 }
 export const routeTree = rootRouteImport

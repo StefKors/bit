@@ -3,6 +3,7 @@ import path from "path"
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
 import viteReact from "@vitejs/plugin-react"
 import viteTsConfigPaths from "vite-tsconfig-paths"
+import { bundleStats } from "rollup-plugin-bundle-stats"
 
 export default defineConfig({
   build: {
@@ -28,5 +29,6 @@ export default defineConfig({
       },
     }),
     viteReact(),
+    bundleStats(),
   ],
 })

@@ -23,6 +23,45 @@
   max-width: 240px;
 }
 
+.threadBody {
+  display: flex;
+  flex-direction: column;
+}
+
 .timelineContent {
   composes: timelineContent from "./TimelineItemBase.module.css";
+}
+
+.replies {
+  display: flex;
+  flex-direction: column;
+}
+
+.reply {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  background: rgba(var(--bit-rgb-surface-2), 0.2);
+}
+
+.reply:last-child {
+  border-radius: 0 0 var(--bit-radius-md) var(--bit-radius-md);
+}
+
+.replyHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.replyTime {
+  font-size: 0.6875rem;
+  color: rgba(var(--bit-rgb-fg), 0.45);
+}
+
+.replyBody {
+  font-size: 1rem;
+  color: rgba(var(--bit-rgb-fg), 0.85);
 }

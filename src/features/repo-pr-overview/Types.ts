@@ -24,6 +24,7 @@ export interface PullRequestReview {
 export interface PullRequestReviewComment {
   id: string
   githubId: number
+  inReplyToId: number | null
   authorLogin: string
   authorAvatarUrl: string | null
   body: string | null
@@ -34,6 +35,11 @@ export interface PullRequestReviewComment {
   updatedAt: number
 }
 
+export interface ReviewCommentThread {
+  root: PullRequestReviewComment
+  replies: PullRequestReviewComment[]
+}
+
 export interface PullRequestCommit {
   id: string
   sha: string
@@ -42,7 +48,19 @@ export interface PullRequestCommit {
   authorLogin: string | null
   authorAvatarUrl: string | null
   authoredAt: number | null
+  createdAt: number
   htmlUrl: string | null
+}
+
+export interface PullRequestEvent {
+  id: string
+  eventType: string
+  actorLogin: string | null
+  actorAvatarUrl: string | null
+  targetLogin: string | null
+  targetAvatarUrl: string | null
+  label: string | null
+  githubCreatedAt: number
 }
 
 export interface PullRequestCheckRun {
@@ -53,15 +71,23 @@ export interface PullRequestCheckRun {
   updatedAt: string | number | null
 }
 
+export interface PrEventData {
+  authorLogin: string
+  authorAvatarUrl: string | null
+}
+
 export type TimelineItem =
   | { type: "commit"; timestamp: number; data: PullRequestCommit }
   | { type: "review"; timestamp: number; data: PullRequestReview }
   | { type: "issue_comment"; timestamp: number; data: PullRequestComment }
-  | { type: "review_comment"; timestamp: number; data: PullRequestReviewComment }
+  | { type: "review_comment"; timestamp: number; data: ReviewCommentThread }
+  | { type: "opened"; timestamp: number; data: PrEventData }
+  | { type: "merged"; timestamp: number; data: PrEventData }
+  | { type: "closed"; timestamp: number; data: PrEventData }
+  | { type: "pr_event"; timestamp: number; data: PullRequestEvent }
 
 export interface PullRequestFileEntry {
   id: string
-  commitSha: string
   filename: string
   previousFilename?: string | null
   status: string
@@ -86,6 +112,13 @@ export interface PullRequestCard {
   baseSha: string | null
   headSha: string | null
   updatedAt: string | number | null
+  githubCreatedAt: number | null
+  githubClosedAt: number | null
+  githubMergedAt: number | null
+  mergedByLogin: string | null
+  mergedByAvatarUrl: string | null
+  closedByLogin: string | null
+  closedByAvatarUrl: string | null
   commentsCount: number
   reviewCommentsCount: number
   commitsCount: number
@@ -97,5 +130,6 @@ export interface PullRequestCard {
   pullRequestReviewComments: PullRequestReviewComment[]
   pullRequestCommits: PullRequestCommit[]
   checkRuns: PullRequestCheckRun[]
+  pullRequestEvents: PullRequestEvent[]
   pullRequestFiles: PullRequestFileEntry[]
 }

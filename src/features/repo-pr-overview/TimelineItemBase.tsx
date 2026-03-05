@@ -4,7 +4,7 @@ import styles from "./TimelineItemBase.module.css"
 interface TimelineItemBaseProps {
   icon: ReactNode
   header: ReactNode
-  children: ReactNode
+  children?: ReactNode
   className?: string
 }
 
@@ -12,7 +12,11 @@ export const TimelineItemBase = ({ icon, header, children, className }: Timeline
   <div className={className ? `${styles.timelineItem} ${className}` : styles.timelineItem}>
     <div className={styles.timelineIcon}>{icon}</div>
     <div className={styles.timelineHeader}>{header}</div>
-    <div className={styles.timelineLine} aria-hidden />
-    <div className={styles.timelineBody}>{children}</div>
+    {children != null && (
+      <>
+        <div className={styles.timelineLine} aria-hidden />
+        <div className={styles.timelineBody}>{children}</div>
+      </>
+    )}
   </div>
 )
