@@ -29,7 +29,14 @@ interface AvatarProps {
 
 export const Avatar = ({ size, src, name, isOnline, isOrganization }: AvatarProps) => {
   const initial = name?.charAt(0).toUpperCase()
-  const sizeStyle = { width: `${size}px`, height: `${size}px` }
+  const borderWidth = Math.max(1, Math.round(size * 0.12))
+  const placeholderFontSize = Math.max(9, Math.round(size * 0.42))
+  const sizeStyle = {
+    width: `${size}px`,
+    height: `${size}px`,
+    "--avatar-border-width": `${borderWidth}px`,
+    "--avatar-placeholder-font-size": `${placeholderFontSize}px`,
+  } as React.CSSProperties
 
   return (
     <div className={styles.avatarContainer} style={sizeStyle}>
