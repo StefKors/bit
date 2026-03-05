@@ -85,7 +85,10 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
       : prAuthor
     items.push({ type: "merged", timestamp: pr.githubMergedAt, data: mergedActor })
   } else if (pr.state === "closed" && pr.githubClosedAt) {
-    items.push({ type: "closed", timestamp: pr.githubClosedAt, data: prAuthor })
+    const closedActor = pr.closedByLogin
+      ? { authorLogin: pr.closedByLogin, authorAvatarUrl: pr.closedByAvatarUrl }
+      : prAuthor
+    items.push({ type: "closed", timestamp: pr.githubClosedAt, data: closedActor })
   }
 
   items.sort((a, b) => a.timestamp - b.timestamp)

@@ -99,6 +99,8 @@ export interface PullRequestCard {
   githubMergedAt: number | null
   mergedByLogin: string | null
   mergedByAvatarUrl: string | null
+  closedByLogin: string | null
+  closedByAvatarUrl: string | null
   commentsCount: number
   reviewCommentsCount: number
   commitsCount: number

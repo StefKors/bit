@@ -96,6 +96,8 @@ export const schema = i.schema({
       githubMergedAt: i.number().optional(),
       mergedByLogin: i.string().optional(),
       mergedByAvatarUrl: i.string().optional(),
+      closedByLogin: i.string().optional(),
+      closedByAvatarUrl: i.string().optional(),
       payload: i.string().optional(),
       createdAt: i.number(),
       updatedAt: i.number().indexed(),

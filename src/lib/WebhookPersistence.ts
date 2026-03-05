@@ -110,6 +110,12 @@ const upsertPullRequestFromPayload = async (
     authorAvatarUrl: asString(user?.avatar_url),
     mergedByLogin: asString(mergedBy?.login),
     mergedByAvatarUrl: asString(mergedBy?.avatar_url),
+    closedByLogin:
+      asString(payload.action) === "closed" ? asString(asObject(payload.sender)?.login) : undefined,
+    closedByAvatarUrl:
+      asString(payload.action) === "closed"
+        ? asString(asObject(payload.sender)?.avatar_url)
+        : undefined,
     baseRef: asString(base?.ref),
     baseSha: asString(base?.sha),
     headRef: asString(head?.ref),
