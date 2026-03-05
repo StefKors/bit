@@ -1,13 +1,13 @@
 .selectedPrHeader {
   display: flex;
   flex-direction: column;
-  gap: var(--bit-space-6);
+  gap: var(--bit-space-4);
 }
 
 .selectedPrHeaderTop {
   display: flex;
   align-items: baseline;
-  gap: var(--bit-space-5);
+  gap: var(--bit-space-4);
   min-width: 0;
 }
 
@@ -61,7 +61,7 @@
 .selectedPrHeaderBottom {
   display: flex;
   align-items: center;
-  gap: var(--bit-space-3);
+  gap: var(--bit-space-2);
   font-size: var(--bit-font-size-meta);
   line-height: var(--bit-line-height-meta);
   color: var(--repo-muted, var(--bit-color-text-muted));

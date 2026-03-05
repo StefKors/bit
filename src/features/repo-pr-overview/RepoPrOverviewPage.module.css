@@ -30,7 +30,8 @@
     "sidebar header  header"
     "sidebar tabs    tabs"
     "sidebar content activity";
-  gap: var(--bit-space-8);
+  column-gap: var(--bit-space-8);
+  row-gap: 0;
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -49,6 +50,7 @@
 
 .prHeader {
   grid-area: header;
+  margin-bottom: var(--bit-space-9);
 }
 
 .prTabs {
