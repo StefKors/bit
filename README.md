@@ -24,17 +24,17 @@ Copy `.env.example` to `.env` and fill in the values:
 cp .env.example .env
 ```
 
-| Variable | Description |
-| --- | --- |
-| `BASE_URL` | Public app URL for webhook callbacks (default: `http://localhost:5173`) |
-| `GITHUB_CLIENT_ID` | GitHub App OAuth client ID |
-| `GITHUB_CLIENT_SECRET` | GitHub App OAuth client secret |
-| `GITHUB_APP_SLUG` | GitHub App slug (used for installation redirect) |
-| `GITHUB_APP_ID` | GitHub App ID (for generating JWTs) |
-| `GITHUB_APP_PRIVATE_KEY` | GitHub App private key (PEM, newlines escaped as `\n`) |
-| `GITHUB_WEBHOOK_SECRET` | Secret for verifying webhook signatures |
-| `INSTANT_APP_ID` | InstantDB app ID |
-| `INSTANT_ADMIN_TOKEN` | InstantDB admin token |
+| Variable                 | Description                                                             |
+| ------------------------ | ----------------------------------------------------------------------- |
+| `BASE_URL`               | Public app URL for webhook callbacks (default: `http://localhost:5173`) |
+| `GITHUB_CLIENT_ID`       | GitHub App OAuth client ID                                              |
+| `GITHUB_CLIENT_SECRET`   | GitHub App OAuth client secret                                          |
+| `GITHUB_APP_SLUG`        | GitHub App slug (used for installation redirect)                        |
+| `GITHUB_APP_ID`          | GitHub App ID (for generating JWTs)                                     |
+| `GITHUB_APP_PRIVATE_KEY` | GitHub App private key (PEM, newlines escaped as `\n`)                  |
+| `GITHUB_WEBHOOK_SECRET`  | Secret for verifying webhook signatures                                 |
+| `INSTANT_APP_ID`         | InstantDB app ID                                                        |
+| `INSTANT_ADMIN_TOKEN`    | InstantDB admin token                                                   |
 
 ### InstantDB Setup
 
@@ -76,38 +76,38 @@ The production server runs on port 3000 by default (override with `PORT`).
 
 ## Routes
 
-| Route | Description |
-| --- | --- |
-| `/` | Home — user profile, GitHub connect flow, list of enabled repos |
-| `/enable-repos` | Select which repos from your GitHub App installation to enable |
-| `/:owner/:repo` | Repo overview — PRs grouped by Draft / Needs Review / Ready to Merge |
-| `/:owner/:repo/pull/:number` | PR detail — state, checks, comments, reviews |
+| Route                        | Description                                                          |
+| ---------------------------- | -------------------------------------------------------------------- |
+| `/`                          | Home — user profile, GitHub connect flow, list of enabled repos      |
+| `/enable-repos`              | Select which repos from your GitHub App installation to enable       |
+| `/:owner/:repo`              | Repo overview — PRs grouped by Draft / Needs Review / Ready to Merge |
+| `/:owner/:repo/pull/:number` | PR detail — state, checks, comments, reviews                         |
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| GET | `/api/health` | Health check |
-| GET | `/api/github/oauth` | Redirects to GitHub App installation flow |
-| GET | `/api/github/oauth/callback` | Handles GitHub App installation callback |
-| GET | `/api/github/installation/repos` | Lists repos accessible to the installed GitHub App |
-| POST | `/api/github/repos/enable` | Enables Bit tracking on selected repos |
-| POST | `/api/github/webhook` | Receives and processes GitHub webhook events |
+| Method | Endpoint                         | Description                                        |
+| ------ | -------------------------------- | -------------------------------------------------- |
+| GET    | `/api/health`                    | Health check                                       |
+| GET    | `/api/github/oauth`              | Redirects to GitHub App installation flow          |
+| GET    | `/api/github/oauth/callback`     | Handles GitHub App installation callback           |
+| GET    | `/api/github/installation/repos` | Lists repos accessible to the installed GitHub App |
+| POST   | `/api/github/repos/enable`       | Enables Bit tracking on selected repos             |
+| POST   | `/api/github/webhook`            | Receives and processes GitHub webhook events       |
 
 ## Tech Stack
 
-| Layer | Technology |
-| --- | --- |
-| **Frontend** | React 19, TypeScript, Vite 7 |
-| **Routing** | TanStack Router + TanStack Start |
-| **Database / State** | InstantDB (offline-first, real-time sync) |
-| **Styling** | CSS Modules with CSS variables |
-| **UI Components** | Base UI, cmdk, Primer Octicons |
-| **Backend** | TanStack Start (Nitro), Hono |
-| **Auth** | InstantDB magic-code auth + GitHub App |
-| **GitHub** | Octokit, `@octokit/webhooks-types` |
-| **Code Highlighting** | Shiki, markdown-it |
-| **Validation** | Zod |
+| Layer                 | Technology                                |
+| --------------------- | ----------------------------------------- |
+| **Frontend**          | React 19, TypeScript, Vite 7              |
+| **Routing**           | TanStack Router + TanStack Start          |
+| **Database / State**  | InstantDB (offline-first, real-time sync) |
+| **Styling**           | CSS Modules with CSS variables            |
+| **UI Components**     | Base UI, cmdk, Primer Octicons            |
+| **Backend**           | TanStack Start (Nitro), Hono              |
+| **Auth**              | InstantDB magic-code auth + GitHub App    |
+| **GitHub**            | Octokit, `@octokit/webhooks-types`        |
+| **Code Highlighting** | Shiki, markdown-it                        |
+| **Validation**        | Zod                                       |
 
 ## Development
 
