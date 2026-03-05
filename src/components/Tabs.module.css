@@ -41,7 +41,7 @@
   position: relative;
   z-index: 1;
   flex-shrink: 0;
-  transition: color 0.15s ease;
+  transition: color 0.1s ease;
 }
 
 .tab:hover {
@@ -80,8 +80,8 @@
   height: 2px;
   background: var(--bit-color-accent-orange);
   transition:
-    left 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    left 0.12s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.12s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (max-width: 900px) {

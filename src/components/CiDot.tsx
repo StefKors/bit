@@ -1,3 +1,4 @@
+import { motion } from "motion/react"
 import styles from "./CiDot.module.css"
 
 type CiDotVariant = "ready" | "blocked" | "checking"
@@ -9,5 +10,13 @@ const variantClassMap: Record<CiDotVariant, string> = {
 }
 
 export const CiDot = ({ variant, title }: { variant: CiDotVariant; title?: string }) => (
-  <span className={`${styles.dot} ${variantClassMap[variant]}`} title={title} aria-hidden />
+  <motion.span
+    className={`${styles.dot} ${variantClassMap[variant]}`}
+    title={title}
+    aria-hidden
+    animate={variant === "checking" ? { opacity: [0.5, 1, 0.5] } : undefined}
+    transition={
+      variant === "checking" ? { duration: 1.8, repeat: Infinity, ease: "easeInOut" } : undefined
+    }
+  />
 )
