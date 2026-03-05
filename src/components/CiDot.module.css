@@ -1,0 +1,29 @@
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ready {
+  background: rgba(var(--bit-rgb-accent-green-bright), 0.9);
+}
+
+.blocked {
+  background: rgba(var(--bit-rgb-accent-red), 0.9);
+}
+
+.checking {
+  background: var(--bit-color-accent-orange);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}

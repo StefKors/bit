@@ -1,6 +1,9 @@
 import { id } from "@instantdb/admin"
 import { adminDb } from "@/lib/instantAdmin"
 import { log } from "@/lib/logger"
+import { extractInstallationId } from "@/lib/github-app"
+import { syncPRActivitySafely } from "@/lib/github-pr-activity"
+import { syncPRFilesForCommit } from "@/lib/github-pr-files"
 
 type JsonPrimitive = string | number | boolean | null
 type JsonValue = JsonPrimitive | JsonObject | JsonValue[]
@@ -387,6 +390,8 @@ const upsertCheckSuite = async (
   )
 }
 
+const SYNC_TRIGGER_ACTIONS = new Set(["opened", "synchronize", "reopened"])
+
 export const persistWebhookPayload = async (params: {
   event: string
   payload: object
@@ -399,6 +404,8 @@ export const persistWebhookPayload = async (params: {
   const repo = repoFullName ? await findRepoByFullName(repoFullName) : null
 
   if (!repo) return
+
+  const installationId = extractInstallationId(payloadRecord)
 
   if (event === "push") {
     const pushKey = `${repo.fullName}:${asString(payloadRecord.ref) ?? ""}:${asString(payloadRecord.after) ?? ""}`
@@ -435,6 +442,34 @@ export const persistWebhookPayload = async (params: {
 
     const pushId = id()
     await adminDb.transact(adminDb.tx.pushEvents[pushId].update(pushUpdate).link({ repo: repo.id }))
+
+    if (installationId) {
+      const pushRef = asString(payloadRecord.ref)
+      const branchName = pushRef?.replace("refs/heads/", "")
+      if (branchName) {
+        const { repos: reposWithPRs } = await adminDb.query({
+          repos: {
+            $: { where: { fullName: repo.fullName }, limit: 1 },
+            pullRequests: {
+              $: { where: { state: "open", headRef: branchName } },
+            },
+          },
+        })
+        const matchingPRs = reposWithPRs?.[0]?.pullRequests ?? []
+        for (const pr of matchingPRs) {
+          void syncPRActivitySafely({
+            pullRequestId: pr.id,
+            repoFullName: repo.fullName,
+            installationId,
+            prNumber: pr.number,
+          })
+        }
+      }
+    }
+
+    triggerPushFileSync(repo.fullName, payloadRecord).catch((err) => {
+      log.error("Failed to sync PR files on push", err)
+    })
     return
   }
 
@@ -445,6 +480,27 @@ export const persistWebhookPayload = async (params: {
     now,
   )
   if (!pullRequestId) return
+
+  if (event === "pull_request") {
+    const action = asString(payloadRecord.action)
+    if (action && SYNC_TRIGGER_ACTIONS.has(action) && installationId) {
+      const prNumber = getPullRequestNumber(payloadRecord)
+      if (prNumber !== undefined) {
+        void syncPRActivitySafely({
+          pullRequestId,
+          repoFullName: repo.fullName,
+          installationId,
+          prNumber,
+        })
+      }
+    }
+    if (action === "opened" || action === "synchronize" || action === "reopened") {
+      triggerPRFileSync(pullRequestId, repo.fullName, payloadRecord).catch((err) => {
+        log.error("Failed to sync PR files on pull_request", err)
+      })
+    }
+    return
+  }
 
   if (event === "pull_request_review") {
     await upsertPullRequestReview(pullRequestId, payloadRecord, now)
@@ -473,6 +529,61 @@ export const persistWebhookPayload = async (params: {
 
   if (event === "check_suite") {
     await upsertCheckSuite(pullRequestId, payloadRecord, now)
+  }
+}
+
+const triggerPRFileSync = async (
+  pullRequestId: string,
+  repoFullName: string,
+  payloadRecord: JsonObject,
+): Promise<void> => {
+  const installationId = extractInstallationId(payloadRecord)
+  if (!installationId) return
+
+  const pr = asObject(payloadRecord.pull_request)
+  const base = asObject(pr?.base)
+  const head = asObject(pr?.head)
+  const baseSha = asString(base?.sha)
+  const headSha = asString(head?.sha)
+  if (!baseSha || !headSha) return
+
+  const [owner, repo] = repoFullName.split("/")
+  if (!owner || !repo) return
+
+  await syncPRFilesForCommit(pullRequestId, installationId, owner, repo, baseSha, headSha)
+}
+
+const triggerPushFileSync = async (
+  repoFullName: string,
+  payloadRecord: JsonObject,
+): Promise<void> => {
+  const installationId = extractInstallationId(payloadRecord)
+  if (!installationId) return
+
+  const ref = asString(payloadRecord.ref)
+  if (!ref?.startsWith("refs/heads/")) return
+  const branch = ref.replace("refs/heads/", "")
+
+  const afterSha = asString(payloadRecord.after)
+  if (!afterSha) return
+
+  const [owner, repo] = repoFullName.split("/")
+  if (!owner || !repo) return
+
+  const { repos } = await adminDb.query({
+    repos: {
+      $: { where: { fullName: repoFullName }, limit: 1 },
+      pullRequests: {
+        $: { where: { state: "open", headRef: branch } },
+      },
+    },
+  })
+
+  const matchingPRs = repos?.[0]?.pullRequests ?? []
+  for (const pr of matchingPRs) {
+    const baseSha = pr.baseSha
+    if (!baseSha) continue
+    await syncPRFilesForCommit(pr.id, installationId, owner, repo, baseSha, afterSha)
   }
 }
 

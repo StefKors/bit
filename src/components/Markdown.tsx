@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { fromAsyncCodeToHtml } from "@shikijs/markdown-it/async"
 import MarkdownItAsync from "markdown-it-async"
+import taskLists from "markdown-it-task-lists"
 import { codeToHtml, bundledLanguages } from "shiki"
 import { rewriteImageUrl, type RepoContext } from "@/lib/markdown-images"
 import styles from "./Markdown.module.css"
@@ -104,6 +105,9 @@ const md = MarkdownItAsync({
   linkify: true,
   breaks: true,
 })
+
+// eslint-disable-next-line typescript-eslint/no-unsafe-argument -- untyped plugin
+md.use(taskLists, { enabled: false, label: true })
 
 // Custom image renderer that adds error handling and lazy loading
 const defaultImageRender =

@@ -14,11 +14,7 @@ src/routes/
 ├── $owner/
 │   ├── index.tsx        # Owner page (/:owner)
 │   └── $repo/
-│       ├── index.tsx    # Repo page (/:owner/:repo)
-│       ├── pulls.tsx    # PRs list (/:owner/:repo/pulls)
-│       ├── pull.$number.tsx  # PR detail
-│       ├── issues.tsx
-│       └── issues.$number.tsx
+│       └── index.tsx    # Repo PR overview (/:owner/:repo) — PR list, detail, and conversation inline
 └── api/                 # API routes
     └── github/
         └── webhook.ts

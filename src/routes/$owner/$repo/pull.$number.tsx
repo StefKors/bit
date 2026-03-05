@@ -1,6 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { motion } from "motion/react"
 import { db } from "@/lib/instantDb"
 import styles from "./pull.$number.module.css"
+
+const fadeIn = { opacity: 0 }
+const fadeInAnimate = { opacity: 1 }
+const slideUp = { opacity: 0, y: 8 }
+const slideUpAnimate = { opacity: 1, y: 0 }
+const transition = { duration: 0.24, ease: [0.16, 1, 0.3, 1] as const }
 
 const formatMergeableState = (mergeableState: string | null | undefined): string => {
   if (!mergeableState || mergeableState === "unknown") return "checking"
@@ -46,7 +53,12 @@ function PullDetailPage() {
 
   if (!pr) {
     return (
-      <div className={styles.container}>
+      <motion.div
+        className={styles.container}
+        initial={fadeIn}
+        animate={fadeInAnimate}
+        transition={transition}
+      >
         <Link
           to="/$owner/$repo"
           params={{ owner, repo }}
@@ -57,12 +69,17 @@ function PullDetailPage() {
         </Link>
         <h1 className={styles.title}>PR #{number}</h1>
         <p className={styles.emptyState}>No webhook-backed data found for this PR yet.</p>
-      </div>
+      </motion.div>
     )
   }
 
   return (
-    <div className={styles.container}>
+    <motion.div
+      className={styles.container}
+      initial={fadeIn}
+      animate={fadeInAnimate}
+      transition={transition}
+    >
       <Link
         to="/$owner/$repo"
         params={{ owner, repo }}
@@ -94,7 +111,12 @@ function PullDetailPage() {
 
       {pr.body && <p className={styles.body}>{pr.body}</p>}
 
-      <section className={styles.section}>
+      <motion.section
+        className={styles.section}
+        initial={slideUp}
+        animate={slideUpAnimate}
+        transition={{ ...transition, delay: 0.02 }}
+      >
         <h2 className={styles.sectionTitle}>Checks</h2>
         <ul className={styles.list}>
           {pr.checkRuns?.length ? (
@@ -108,9 +130,14 @@ function PullDetailPage() {
             <li className={styles.emptyItem}>No check runs captured</li>
           )}
         </ul>
-      </section>
+      </motion.section>
 
-      <section className={styles.section}>
+      <motion.section
+        className={styles.section}
+        initial={slideUp}
+        animate={slideUpAnimate}
+        transition={{ ...transition, delay: 0.05 }}
+      >
         <h2 className={styles.sectionTitle}>Conversation</h2>
         <ul className={styles.list}>
           {pr.issueComments?.length ? (
@@ -123,9 +150,14 @@ function PullDetailPage() {
             <li className={styles.emptyItem}>No issue comments captured</li>
           )}
         </ul>
-      </section>
+      </motion.section>
 
-      <section className={styles.section}>
+      <motion.section
+        className={styles.section}
+        initial={slideUp}
+        animate={slideUpAnimate}
+        transition={{ ...transition, delay: 0.08 }}
+      >
         <h2 className={styles.sectionTitle}>Reviews</h2>
         <ul className={styles.list}>
           {pr.pullRequestReviews?.length ? (
@@ -138,8 +170,8 @@ function PullDetailPage() {
             <li className={styles.emptyItem}>No reviews captured</li>
           )}
         </ul>
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   )
 }
 

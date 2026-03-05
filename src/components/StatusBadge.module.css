@@ -1,0 +1,37 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--bit-radius-pill);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.open {
+  color: rgba(var(--bit-rgb-accent-green-bright), 0.94);
+  background: rgba(var(--bit-rgb-accent-green-bright), 0.1);
+}
+
+.merged {
+  color: rgba(var(--bit-rgb-accent-purple), 0.94);
+  background: rgba(var(--bit-rgb-accent-purple), 0.1);
+}
+
+.closed {
+  color: rgba(var(--bit-rgb-accent-red), 0.94);
+  background: rgba(var(--bit-rgb-accent-red), 0.1);
+}
+
+.needsReview {
+  color: var(--bit-color-accent-yellow);
+  background: rgba(var(--bit-rgb-accent-yellow), 0.1);
+}
+
+.draft {
+  color: rgba(var(--bit-rgb-fg), 0.58);
+  background: rgba(var(--bit-rgb-surface-3), 0.4);
+}

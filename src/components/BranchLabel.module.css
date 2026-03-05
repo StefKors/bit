@@ -1,0 +1,44 @@
+.branchLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.75rem;
+  font-weight: 500;
+  user-select: text;
+}
+
+.name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--bit-color-text);
+}
+
+.sep {
+  flex-shrink: 0;
+  color: var(--bit-color-muted);
+}
+
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 2px;
+  margin-left: 2px;
+  border: none;
+  border-radius: var(--bit-radius-sm);
+  background: transparent;
+  color: rgba(var(--bit-rgb-fg), 0.4);
+  cursor: pointer;
+  transition:
+    color 110ms ease,
+    background 110ms ease;
+}
+
+.copyButton:hover {
+  color: var(--bit-color-text);
+  background: rgba(var(--bit-rgb-fg), 0.08);
+}

@@ -14,7 +14,6 @@
   flex-direction: column;
   gap: 12px;
   padding: 12px;
-  animation: fade-in var(--motion-entry) var(--ease-smooth);
 }
 
 .backLink {
@@ -108,7 +107,6 @@
   border: 1px solid var(--pr-border);
   border-radius: var(--bit-radius-md);
   background: var(--pr-surface);
-  animation: slide-in-up var(--motion-entry) var(--ease-smooth) both;
 }
 
 .sectionTitle {
@@ -173,47 +171,10 @@
   color: var(--pr-muted);
 }
 
-.section:nth-of-type(1) {
-  animation-delay: 20ms;
-}
-
-.section:nth-of-type(2) {
-  animation-delay: 50ms;
-}
-
-.section:nth-of-type(3) {
-  animation-delay: 80ms;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .container,
-  .section {
-    animation: none;
-  }
-
   .backLink,
   .metaPill,
   .listItem {
     transition: none;
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slide-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
