@@ -15,7 +15,8 @@
 }
 
 .title {
-  font-size: 22px;
+  font-size: var(--bit-font-size-heading-md);
+  line-height: var(--bit-line-height-heading-md);
   font-weight: var(--bit-font-weight-bold);
   color: var(--bit-color-heading);
   margin: 0 0 0.5rem;

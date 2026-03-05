@@ -24,15 +24,17 @@
 }
 
 .title {
-  font-size: 18px;
+  font-size: var(--bit-font-size-heading-sm);
+  line-height: var(--bit-line-height-heading-sm);
   font-weight: var(--bit-font-weight-bold);
-  color: var(--bit-color-fg);
+  color: var(--bit-color-text);
   margin: 0;
 }
 
 .subtitle {
   font-size: var(--bit-font-size-default);
-  color: var(--bit-color-fg-muted);
+  color: var(--bit-color-text-muted);
+  line-height: var(--bit-line-height-default);
   margin: 0;
 }
 
@@ -59,7 +61,7 @@
   font-weight: var(--bit-font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: var(--bit-color-fg-muted);
+  color: var(--bit-color-text-muted);
 }
 
 .settingRow {
@@ -79,13 +81,13 @@
   margin: 0;
   font-size: var(--bit-font-size-default);
   font-weight: var(--bit-font-weight-bold);
-  color: var(--bit-color-fg);
+  color: var(--bit-color-text);
 }
 
 .settingStatus {
   margin: 0;
   font-size: var(--bit-font-size-default);
-  color: var(--bit-color-fg-muted);
+  color: var(--bit-color-text-muted);
 }
 
 .settingActions {
@@ -98,7 +100,7 @@
   border: 1px solid var(--bit-color-border);
   border-radius: var(--bit-radius-sm);
   background: var(--bit-color-bg);
-  color: var(--bit-color-fg);
+  color: var(--bit-color-text);
   min-height: 2rem;
   padding: 0 0.75rem;
   font-size: var(--bit-font-size-default);
@@ -106,7 +108,7 @@
 }
 
 .settingsButton:hover {
-  border-color: var(--bit-color-fg-muted);
+  border-color: var(--bit-color-text-muted);
 }
 
 .settingsButtonDanger {
@@ -115,7 +117,7 @@
 
 .sectionText {
   font-size: var(--bit-font-size-default);
-  color: var(--bit-color-fg-muted);
+  color: var(--bit-color-text-muted);
   margin: 0;
 }
 
@@ -167,7 +169,7 @@
 }
 
 .enableLink:hover {
-  border-color: var(--bit-color-fg-muted);
+  border-color: var(--bit-color-text-muted);
 }
 
 .repoList {
@@ -179,7 +181,7 @@
 .repoListTitle {
   font-size: var(--bit-font-size-default);
   font-weight: var(--bit-font-weight-bold);
-  color: var(--bit-color-fg-muted);
+  color: var(--bit-color-text-muted);
   margin: 0 0 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -219,14 +221,14 @@
 .signOut {
   background: none;
   border: none;
-  color: var(--bit-color-fg-muted);
+  color: var(--bit-color-text-muted);
   font-size: var(--bit-font-size-default);
   cursor: pointer;
   padding: 0;
 }
 
 .signOut:hover {
-  color: var(--bit-color-fg);
+  color: var(--bit-color-text);
 }
 
 .loading {
@@ -234,5 +236,5 @@
   align-items: center;
   justify-content: center;
   min-height: 200px;
-  color: var(--bit-color-fg-muted);
+  color: var(--bit-color-text-muted);
 }

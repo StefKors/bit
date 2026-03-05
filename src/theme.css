@@ -11,12 +11,18 @@
   --bit-font-size-small: 12px;
   --bit-font-size-meta: var(--bit-font-size-small);
   --bit-font-size-title: var(--bit-font-size-body);
+  --bit-font-size-heading-sm: 18px;
+  --bit-font-size-heading-md: 22px;
+  --bit-font-size-heading-lg: 26px;
 
   --bit-line-height-default: 20px;
   --bit-line-height-body: 22px;
   --bit-line-height-small: 18px;
   --bit-line-height-meta: var(--bit-line-height-small);
   --bit-line-height-tight: 16px;
+  --bit-line-height-heading-sm: 24px;
+  --bit-line-height-heading-md: 28px;
+  --bit-line-height-heading-lg: 32px;
 
   /* Spacing scale */
   --bit-space-1: 2px;

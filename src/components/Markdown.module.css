@@ -42,7 +42,7 @@
   font-weight: var(--bit-font-weight-bold);
   margin-top: 1.5em;
   margin-bottom: 0.75em;
-  line-height: 1.25;
+  line-height: var(--bit-line-height-heading-sm);
 }
 
 .markdown h1:first-child,
@@ -52,23 +52,27 @@
 }
 
 .markdown h1 {
-  font-size: 22px;
+  font-size: var(--bit-font-size-heading-md);
+  line-height: var(--bit-line-height-heading-md);
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.1);
   padding-bottom: 0.5em;
 }
 
 .markdown h2 {
-  font-size: 19px;
+  font-size: var(--bit-font-size-heading-sm);
+  line-height: var(--bit-line-height-heading-sm);
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   padding-bottom: 0.4em;
 }
 
 .markdown h3 {
-  font-size: 17px;
+  font-size: var(--bit-font-size-body);
+  line-height: var(--bit-line-height-body);
 }
 
 .markdown h4 {
-  font-size: var(--bit-font-size-body);
+  font-size: var(--bit-font-size-default);
+  line-height: var(--bit-line-height-default);
 }
 
 .markdown p {

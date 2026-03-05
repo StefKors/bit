@@ -32,7 +32,7 @@
   border-radius: var(--bit-radius-pill);
   font-size: var(--bit-icon-size-xs);
   font-weight: var(--bit-font-weight-bold);
-  line-height: 1;
+  line-height: var(--bit-line-height-meta);
   color: rgba(var(--bit-rgb-fg), 0.5);
   background: rgba(var(--bit-rgb-fg), 0.07);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
