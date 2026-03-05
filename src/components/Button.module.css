@@ -11,11 +11,14 @@
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
+  user-select: none;
 }
 
 .button:focus-visible {
-  outline: 2px solid var(--bit-color-accent-blue);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--bit-color-bg),
+    0 0 0 4px var(--bit-color-accent-blue);
 }
 
 .button:disabled {
@@ -122,9 +125,11 @@
   font-weight: 600;
 }
 
-.primary:hover:not(:disabled) {
-  background: var(--bit-color-inverse-bg-hover);
-  box-shadow: var(--bit-shadow-md);
+@media (hover: hover) {
+  .primary:hover:not(:disabled) {
+    background: var(--bit-color-inverse-bg-hover);
+    box-shadow: var(--bit-shadow-md);
+  }
 }
 
 .primary:active:not(:disabled) {
@@ -139,9 +144,11 @@
   border-color: rgba(var(--bit-rgb-fg), 0.1);
 }
 
-.default:hover:not(:disabled) {
-  background: rgba(var(--bit-rgb-fg), 0.1);
-  border-color: rgba(var(--bit-rgb-fg), 0.2);
+@media (hover: hover) {
+  .default:hover:not(:disabled) {
+    background: rgba(var(--bit-rgb-fg), 0.1);
+    border-color: rgba(var(--bit-rgb-fg), 0.2);
+  }
 }
 
 .default:active:not(:disabled) {
@@ -156,9 +163,11 @@
   border-color: transparent;
 }
 
-.invisible:hover:not(:disabled) {
-  background: rgba(var(--bit-rgb-fg), 0.06);
-  color: rgba(var(--bit-rgb-fg), 0.9);
+@media (hover: hover) {
+  .invisible:hover:not(:disabled) {
+    background: rgba(var(--bit-rgb-fg), 0.06);
+    color: rgba(var(--bit-rgb-fg), 0.9);
+  }
 }
 
 .invisible:active:not(:disabled) {
@@ -173,10 +182,12 @@
   border-color: rgba(var(--bit-rgb-fg), 0.15);
 }
 
-.danger:hover:not(:disabled) {
-  background: var(--bit-color-danger-hover-bg);
-  border-color: var(--bit-color-danger-border);
-  color: var(--bit-color-accent-red);
+@media (hover: hover) {
+  .danger:hover:not(:disabled) {
+    background: var(--bit-color-danger-hover-bg);
+    border-color: var(--bit-color-danger-border);
+    color: var(--bit-color-accent-red);
+  }
 }
 
 .danger:active:not(:disabled) {
@@ -192,9 +203,11 @@
   font-weight: 500;
 }
 
-.success:hover:not(:disabled) {
-  background: var(--bit-gradient-success-hover);
-  box-shadow: var(--bit-shadow-glow-success);
+@media (hover: hover) {
+  .success:hover:not(:disabled) {
+    background: var(--bit-gradient-success-hover);
+    box-shadow: var(--bit-shadow-glow-success);
+  }
 }
 
 .success:active:not(:disabled) {

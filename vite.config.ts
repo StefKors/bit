@@ -7,7 +7,7 @@ import { bundleStats } from "rollup-plugin-bundle-stats"
 
 export default defineConfig({
   build: {
-    target: "es2022",
+    target: "es2023",
     outDir: "dist",
   },
   resolve: {

@@ -142,6 +142,8 @@ export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
               rows={4}
               disabled={submitting}
               aria-label="Comment"
+              spellCheck={false}
+              autoComplete="off"
             />
             <div className={styles.commentActions}>
               <Button type="submit" variant="primary" size="small" loading={submitting}>

@@ -74,9 +74,7 @@ export function RepoPrOverviewPage() {
         .map((pr) => pr.authorLogin)
         .filter((login): login is string => login !== "unknown"),
     ),
-  ]
-    .slice()
-    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
+  ].toSorted((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
 
   const authorLoginFilter =
     effectiveAuthorFilter === "me" && user?.login

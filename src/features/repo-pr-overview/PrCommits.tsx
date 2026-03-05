@@ -42,7 +42,7 @@ const CommitRow = ({ commit }: { commit: PullRequestCard["pullRequestCommits"][n
 }
 
 export function PrCommits({ pr }: PrCommitsProps) {
-  const commits = [...pr.pullRequestCommits].sort(
+  const commits = pr.pullRequestCommits.toSorted(
     (a, b) => (a.authoredAt ?? a.createdAt) - (b.authoredAt ?? b.createdAt),
   )
 

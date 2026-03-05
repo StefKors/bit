@@ -24,6 +24,7 @@ export const BranchLabel = ({ head, base }: { head: string; base: string }) => {
         type="button"
         className={styles.copyButton}
         onClick={handleCopy}
+        aria-label="Copy branch name"
         title="Copy branch name"
       >
         {copied ? <CheckIcon size={10} /> : <CopyIcon size={10} />}

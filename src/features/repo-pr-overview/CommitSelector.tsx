@@ -26,6 +26,7 @@ export function CommitSelector({ commits, selectedSha }: CommitSelectorProps) {
           setOpen((prev) => !prev)
         }}
         aria-expanded={open}
+        aria-label="Select commit"
       >
         <GitCommitIcon size={14} />
         <span className={styles.commitSelectorLabel}>{label}</span>

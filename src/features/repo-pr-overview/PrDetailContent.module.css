@@ -81,7 +81,7 @@
 .commentTextarea {
   width: 100%;
   padding: 10px 12px;
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-family: inherit;
   line-height: 1.5;
   color: var(--bit-color-text);
@@ -99,7 +99,12 @@
 .commentTextarea:focus {
   outline: none;
   border-color: var(--bit-color-accent-blue);
-  box-shadow: 0 0 0 2px rgba(var(--bit-rgb-accent-blue), 0.2);
+}
+
+.commentTextarea:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--bit-color-bg),
+    0 0 0 4px rgba(var(--bit-rgb-accent-blue), 0.3);
 }
 
 .commentTextarea:disabled {

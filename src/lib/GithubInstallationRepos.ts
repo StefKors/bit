@@ -115,7 +115,7 @@ export async function listInstallationRepos(userId: string): Promise<Installatio
     return true
   })
 
-  return [...deduped].sort((a, b) => {
+  return deduped.toSorted((a, b) => {
     const aPushed = a.pushedAt ? new Date(a.pushedAt).getTime() : 0
     const bPushed = b.pushedAt ? new Date(b.pushedAt).getTime() : 0
     return bPushed - aPushed

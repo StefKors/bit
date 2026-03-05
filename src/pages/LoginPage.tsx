@@ -178,6 +178,7 @@ function LoginPage() {
                 className={styles.input}
                 autoFocus
                 autoComplete="email"
+                spellCheck={false}
                 required
               />
             </div>
@@ -234,6 +235,7 @@ function LoginPage() {
               className={styles.input}
               autoFocus
               autoComplete="one-time-code"
+              spellCheck={false}
               inputMode="numeric"
               pattern="[0-9]*"
               maxLength={6}

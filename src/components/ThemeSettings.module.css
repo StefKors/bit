@@ -54,6 +54,13 @@
   color: var(--bit-color-text);
 }
 
+.closeButton:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--bit-color-bg),
+    0 0 0 4px var(--bit-color-accent-blue);
+}
+
 .body {
   flex: 1;
   overflow-y: auto;
