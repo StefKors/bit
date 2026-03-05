@@ -1,6 +1,7 @@
 .markdown {
   color: rgba(var(--bit-rgb-fg), 0.85);
-  font-size: var(--bit-font-size-body);
+  font-size: var(--bit-font-size-default);
+  line-height: var(--bit-line-height-small);
 }
 
 .loading {
@@ -72,8 +73,6 @@
 
 .markdown p {
   margin: 0 0 1em;
-  font-size: 13px;
-  line-height: 18px;
 }
 
 .markdown p:last-child {
@@ -249,21 +248,21 @@
 }
 
 /* Task lists - checkbox replaces bullet, aligned with text */
-.markdown ul.contains-task-list {
+.markdown :global(ul.contains-task-list) {
   list-style: none;
   padding-left: 0;
 }
 
-.markdown ul.contains-task-list ul {
+.markdown :global(ul.contains-task-list) ul {
   padding-left: 1.5em;
   margin-top: 0.25em;
 }
 
-.markdown ul.contains-task-list li {
+.markdown :global(ul.contains-task-list) li {
   list-style: none;
 }
 
-.markdown ul.contains-task-list li p {
+.markdown :global(ul.contains-task-list) li p {
   margin: 0;
   display: flex;
   align-items: flex-start;
@@ -271,7 +270,7 @@
   min-width: 0;
 }
 
-.markdown ul.contains-task-list li p > label {
+.markdown :global(ul.contains-task-list) li p > label {
   display: flex;
   align-items: flex-start;
   gap: 0.5em;
@@ -280,7 +279,7 @@
   cursor: default;
 }
 
-.markdown ul.contains-task-list input[type="checkbox"] {
+.markdown :global(ul.contains-task-list) input[type="checkbox"] {
   appearance: none;
   margin: 0;
   flex-shrink: 0;
@@ -294,12 +293,12 @@
   position: relative;
 }
 
-.markdown ul.contains-task-list input[type="checkbox"]:checked {
+.markdown :global(ul.contains-task-list) input[type="checkbox"]:checked {
   background: rgba(var(--bit-rgb-accent-green), 0.2);
   border-color: var(--bit-color-accent-green);
 }
 
-.markdown ul.contains-task-list input[type="checkbox"]:checked::after {
+.markdown :global(ul.contains-task-list) input[type="checkbox"]:checked::after {
   content: "";
   position: absolute;
   left: 0.32em;

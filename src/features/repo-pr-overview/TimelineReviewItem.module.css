@@ -58,7 +58,6 @@
 }
 
 .nestedContent {
-  font-size: var(--bit-font-size-body);
   color: rgba(var(--bit-rgb-fg), 0.85);
 }
 
@@ -82,6 +81,5 @@
 }
 
 .nestedReplyBody {
-  font-size: var(--bit-font-size-body);
   color: rgba(var(--bit-rgb-fg), 0.85);
 }

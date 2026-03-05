@@ -58,7 +58,6 @@
 }
 
 .timelineContent {
-  font-size: var(--bit-font-size-body);
   padding: 8px 12px;
   border-radius: var(--bit-radius-md);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);

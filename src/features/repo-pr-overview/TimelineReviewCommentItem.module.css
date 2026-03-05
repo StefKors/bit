@@ -62,6 +62,5 @@
 }
 
 .replyBody {
-  font-size: var(--bit-font-size-body);
   color: rgba(var(--bit-rgb-fg), 0.85);
 }
