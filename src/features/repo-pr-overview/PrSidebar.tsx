@@ -1,13 +1,13 @@
 import { AuthorLabel } from "@/components/AuthorLabel"
 import { StatusBadge } from "@/components/StatusBadge"
-import type { PullRequestCard, PullRequestReview } from "./types"
-import styles from "./PRSidebar.module.css"
+import type { PullRequestCard, PullRequestReview } from "./Types"
+import styles from "./PrSidebar.module.css"
 
-interface PRSidebarProps {
+interface PrSidebarProps {
   pr: PullRequestCard
 }
 
-export function PRSidebar({ pr }: PRSidebarProps) {
+export function PrSidebar({ pr }: PrSidebarProps) {
   const reviewerLogins = [...new Set(pr.pullRequestReviews.map((r) => r.authorLogin))]
   const latestReviewByAuthor = new Map<string, PullRequestReview>()
   for (const review of pr.pullRequestReviews) {

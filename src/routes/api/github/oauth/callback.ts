@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { adminDb } from "@/lib/instantAdmin"
-import { storeInstallationId, getInstallationAccount } from "@/lib/github-app"
-import { log } from "@/lib/logger"
+import { adminDb } from "@/lib/InstantAdmin"
+import { storeInstallationId, getInstallationAccount } from "@/lib/GithubApp"
+import { log } from "@/lib/Logger"
 
 export const Route = createFileRoute("/api/github/oauth/callback")({
   server: {

@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react"
 import { HeadContent, Scripts } from "@tanstack/react-router"
-import { isDev } from "@/lib/utils/isDevelopment"
+import { isDev } from "@/lib/utils/IsDevelopment"
 
 export function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   useEffect(() => {

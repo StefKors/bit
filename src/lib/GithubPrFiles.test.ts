@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-vi.mock("@/lib/instantAdmin", () => ({
+vi.mock("@/lib/InstantAdmin", () => ({
   adminDb: {
     query: vi.fn(),
     transact: vi.fn(),
@@ -20,11 +20,11 @@ vi.mock("@/lib/instantAdmin", () => ({
   },
 }))
 
-vi.mock("@/lib/github-app", () => ({
+vi.mock("@/lib/GithubApp", () => ({
   getInstallationToken: vi.fn(),
 }))
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/Logger", () => ({
   log: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }))
 
@@ -33,14 +33,14 @@ import {
   fetchPRFiles,
   fetchPRCommits,
   syncPRFilesForCommit,
-} from "./github-pr-files"
-import { getInstallationToken } from "@/lib/github-app"
-import { adminDb } from "@/lib/instantAdmin"
+} from "./GithubPrFiles"
+import { getInstallationToken } from "@/lib/GithubApp"
+import { adminDb } from "@/lib/InstantAdmin"
 
 const mockGetInstallationToken = vi.mocked(getInstallationToken)
 const mockAdminDb = vi.mocked(adminDb)
 
-describe("github-pr-files", () => {
+describe("GithubPrFiles", () => {
   beforeEach(() => {
     vi.resetAllMocks()
     vi.stubGlobal("fetch", vi.fn())

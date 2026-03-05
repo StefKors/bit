@@ -1,9 +1,9 @@
 import { id } from "@instantdb/admin"
-import { adminDb } from "@/lib/instantAdmin"
-import { log } from "@/lib/logger"
-import { extractInstallationId } from "@/lib/github-app"
-import { syncPRActivitySafely } from "@/lib/github-pr-activity"
-import { syncPRFilesForCommit } from "@/lib/github-pr-files"
+import { adminDb } from "@/lib/InstantAdmin"
+import { log } from "@/lib/Logger"
+import { extractInstallationId } from "@/lib/GithubApp"
+import { syncPRActivitySafely } from "@/lib/GithubPrActivity"
+import { syncPRFilesForCommit } from "@/lib/GithubPrFiles"
 
 type JsonPrimitive = string | number | boolean | null
 type JsonValue = JsonPrimitive | JsonObject | JsonValue[]

@@ -1,5 +1,5 @@
-import { parseJsonStringArray } from "@/lib/parse"
-import type { PullRequestCard } from "./types"
+import { parseJsonStringArray } from "@/lib/Parse"
+import type { PullRequestCard } from "./Types"
 
 interface RepoPullRequest {
   id: string

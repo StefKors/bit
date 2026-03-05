@@ -1,5 +1,5 @@
-import { getInstallationToken, getInstallationIdForUser } from "@/lib/github-app"
-import { log } from "@/lib/logger"
+import { getInstallationToken, getInstallationIdForUser } from "@/lib/GithubApp"
+import { log } from "@/lib/Logger"
 
 export interface InstallationRepo {
   id: number

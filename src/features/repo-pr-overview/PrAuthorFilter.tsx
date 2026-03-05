@@ -1,21 +1,21 @@
 import { useState } from "react"
 import { ChevronDownIcon } from "@primer/octicons-react"
 import { AuthorLabel } from "@/components/AuthorLabel"
-import styles from "./PRAuthorFilter.module.css"
+import styles from "./PrAuthorFilter.module.css"
 
-interface PRAuthorFilterProps {
+interface PrAuthorFilterProps {
   authorFilter: string
   userLogin: string | null
   uniqueAuthors: string[]
   onFilterChange: (value: string) => void
 }
 
-export function PRAuthorFilter({
+export function PrAuthorFilter({
   authorFilter,
   userLogin,
   uniqueAuthors,
   onFilterChange,
-}: PRAuthorFilterProps) {
+}: PrAuthorFilterProps) {
   const [open, setOpen] = useState(false)
 
   const isSpecificAuthor = authorFilter !== "all" && authorFilter !== "me"

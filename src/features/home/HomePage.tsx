@@ -1,10 +1,10 @@
 import { Link, useSearch } from "@tanstack/react-router"
 import { LinkExternalIcon, RepoIcon } from "@primer/octicons-react"
-import { useAuth } from "@/lib/hooks/useAuth"
-import { resolveUserAvatarUrl } from "@/lib/avatar"
+import { useAuth } from "@/lib/hooks/UseAuth"
+import { resolveUserAvatarUrl } from "@/lib/Avatar"
 import { Avatar } from "@/components/Avatar"
 import { Button } from "@/components/Button"
-import { db } from "@/lib/instantDb"
+import { db } from "@/lib/InstantDb"
 import styles from "./HomePage.module.css"
 
 export function HomePage() {

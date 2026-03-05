@@ -3,7 +3,8 @@ import { fromAsyncCodeToHtml } from "@shikijs/markdown-it/async"
 import MarkdownItAsync from "markdown-it-async"
 import taskLists from "markdown-it-task-lists"
 import { codeToHtml, bundledLanguages } from "shiki"
-import { rewriteImageUrl, type RepoContext } from "@/lib/markdown-images"
+import { rewriteImageUrl, type RepoContext } from "@/lib/MarkdownImages"
+import type { BundledLanguage } from "shiki"
 import styles from "./Markdown.module.css"
 
 const EXT_TO_LANG: Record<string, string> = {
@@ -99,64 +100,82 @@ const safeCodeToHtml: typeof codeToHtml = async (code, options) => {
   return codeToHtml(code, { ...options, lang })
 }
 
-// Initialize MarkdownIt instance with markdown-it-async
-const md = MarkdownItAsync({
-  html: true,
-  linkify: true,
-  breaks: true,
-})
+const mdCache = new Map<string, ReturnType<typeof MarkdownItAsync>>()
 
-// eslint-disable-next-line typescript-eslint/no-unsafe-argument -- untyped plugin
-md.use(taskLists, { enabled: false, label: true })
+const createMd = (defaultLanguage: string) => {
+  const md = MarkdownItAsync({
+    html: true,
+    linkify: true,
+    breaks: true,
+  })
 
-// Custom image renderer that adds error handling and lazy loading
-const defaultImageRender =
-  md.renderer.rules.image ||
-  function (tokens, idx, options, _env, self) {
-    return self.renderToken(tokens, idx, options)
+  // eslint-disable-next-line typescript-eslint/no-unsafe-argument -- untyped plugin
+  md.use(taskLists, { enabled: false, label: true })
+
+  const defaultImageRender =
+    md.renderer.rules.image ||
+    function (tokens, idx, options, _env, self) {
+      return self.renderToken(tokens, idx, options)
+    }
+
+  md.renderer.rules.image = function (tokens, idx, options, env, self) {
+    const token = tokens[idx]
+    const src = token.attrGet("src") || ""
+
+    if (src.includes("github.com/user-attachments/")) {
+      const alt = token.content || "Image"
+      return `<a href="${src}" target="_blank" rel="noopener noreferrer" class="${styles.imageLink}">📎 ${alt}</a>`
+    }
+
+    const repoCtx = env as RepoContext | undefined
+    const rewritten = rewriteImageUrl(src, repoCtx)
+    if (rewritten !== src) {
+      token.attrSet("src", rewritten)
+    }
+
+    token.attrSet("loading", "lazy")
+    token.attrSet("onerror", "this.style.display='none'")
+
+    return defaultImageRender(tokens, idx, options, env, self)
   }
 
-md.renderer.rules.image = function (tokens, idx, options, env, self) {
-  const token = tokens[idx]
-  const src = token.attrGet("src") || ""
+  /* eslint-disable @typescript-eslint/no-misused-promises -- markdown-it-async handles promises internally */
+  md.use(
+    fromAsyncCodeToHtml(safeCodeToHtml, {
+      themes: {
+        light: "github-light",
+        dark: "github-dark",
+      },
+      defaultLanguage: defaultLanguage as BundledLanguage,
+    }),
+  )
+  /* eslint-enable @typescript-eslint/no-misused-promises */
 
-  if (src.includes("github.com/user-attachments/")) {
-    const alt = token.content || "Image"
-    return `<a href="${src}" target="_blank" rel="noopener noreferrer" class="${styles.imageLink}">📎 ${alt}</a>`
-  }
-
-  const repoCtx = env as RepoContext | undefined
-  const rewritten = rewriteImageUrl(src, repoCtx)
-  if (rewritten !== src) {
-    token.attrSet("src", rewritten)
-  }
-
-  token.attrSet("loading", "lazy")
-  token.attrSet("onerror", "this.style.display='none'")
-
-  return defaultImageRender(tokens, idx, options, env, self)
+  return md
 }
 
-/* eslint-disable @typescript-eslint/no-misused-promises -- markdown-it-async handles promises internally */
-md.use(
-  fromAsyncCodeToHtml(safeCodeToHtml, {
-    themes: {
-      light: "github-light",
-      dark: "github-dark",
-    },
-  }),
-)
-/* eslint-enable @typescript-eslint/no-misused-promises */
+const getMd = (defaultLanguage?: string | null) => {
+  const key = defaultLanguage ?? "__none__"
+  let md = mdCache.get(key)
+  if (!md) {
+    md = createMd(key === "__none__" ? "text" : key)
+    mdCache.set(key, md)
+  }
+  return md
+}
 
 interface MarkdownProps {
   content: string
   className?: string
   repoContext?: RepoContext
+  /** Default language for code blocks without a language tag (e.g. from file path). */
+  defaultLanguage?: string | null
 }
 
-export function Markdown({ content, className, repoContext }: MarkdownProps) {
+export function Markdown({ content, className, repoContext, defaultLanguage }: MarkdownProps) {
   const [html, setHtml] = useState<string>("")
   const [loading, setLoading] = useState(true)
+  const md = getMd(defaultLanguage)
 
   useEffect(() => {
     let cancelled = false
@@ -192,7 +211,7 @@ export function Markdown({ content, className, repoContext }: MarkdownProps) {
     return () => {
       cancelled = true
     }
-  }, [content, repoContext])
+  }, [content, repoContext, defaultLanguage, md])
 
   if (loading) {
     return (

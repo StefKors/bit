@@ -1,5 +1,5 @@
 import { Avatar } from "./Avatar"
-import { resolveOwnerAvatarUrl } from "@/lib/avatar"
+import { resolveOwnerAvatarUrl } from "@/lib/Avatar"
 import styles from "./AuthorLabel.module.css"
 
 interface AuthorLabelProps {

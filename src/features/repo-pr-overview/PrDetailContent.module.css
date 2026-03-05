@@ -69,16 +69,4 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  position: relative;
-  padding-left: 28px;
-}
-
-.timeline::before {
-  content: "";
-  position: absolute;
-  left: 11px;
-  top: 8px;
-  bottom: 8px;
-  width: 1px;
-  background: rgba(var(--bit-rgb-fg), 0.1);
 }

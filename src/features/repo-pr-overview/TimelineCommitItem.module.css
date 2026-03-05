@@ -1,50 +1,5 @@
-.timelineItem {
-  display: flex;
-  gap: 12px;
-  position: relative;
-  padding: 8px 0;
-}
-
-.timelineIcon {
-  position: absolute;
-  left: -28px;
-  top: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--bit-color-surface-2);
-  color: rgba(var(--bit-rgb-fg), 0.58);
-  z-index: 1;
-  flex-shrink: 0;
-}
-
-.timelineCommit .timelineIcon {
-  color: rgba(var(--bit-rgb-accent-blue), 0.85);
-}
-
-.timelineBody {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.timelineHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
 .timelineTime {
-  margin-left: auto;
-  flex-shrink: 0;
-  font-size: 0.6875rem;
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  composes: timelineTime from "./timeline-item-base.module.css";
 }
 
 .timelineAuthor {

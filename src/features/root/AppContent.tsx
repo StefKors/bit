@@ -2,7 +2,7 @@ import { Outlet } from "@tanstack/react-router"
 import { Layout } from "@/layout"
 import { LoadingCube } from "@/components/LoadingCube"
 import LoginPage from "@/pages/LoginPage"
-import { useAuth } from "@/lib/hooks/useAuth"
+import { useAuth } from "@/lib/hooks/UseAuth"
 
 export function AppContent() {
   const { isLoading, user, error } = useAuth()

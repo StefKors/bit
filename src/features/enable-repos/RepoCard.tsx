@@ -1,5 +1,5 @@
 import { LinkExternalIcon, RepoIcon, CheckIcon } from "@primer/octicons-react"
-import type { InstallationRepo } from "@/lib/github-installation-repos"
+import type { InstallationRepo } from "@/lib/GithubInstallationRepos"
 import styles from "./RepoCard.module.css"
 
 interface RepoCardProps {

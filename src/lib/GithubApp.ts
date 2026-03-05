@@ -1,7 +1,7 @@
 import { createPrivateKey } from "node:crypto"
 import { SignJWT, importPKCS8 } from "jose"
-import { log } from "@/lib/logger"
-import { adminDb } from "@/lib/instantAdmin"
+import { log } from "@/lib/Logger"
+import { adminDb } from "@/lib/InstantAdmin"
 
 const GITHUB_APP_ID = process.env.GITHUB_APP_ID
 const GITHUB_APP_PRIVATE_KEY = process.env.GITHUB_APP_PRIVATE_KEY?.replace(/\\n/g, "\n")

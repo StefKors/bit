@@ -1,7 +1,7 @@
 import { Link, useParams } from "@tanstack/react-router"
 import { motion } from "motion/react"
-import { formatMergeableState } from "@/lib/format"
-import { db } from "@/lib/instantDb"
+import { formatMergeableState } from "@/lib/Format"
+import { db } from "@/lib/InstantDb"
 import styles from "./PullDetailPage.module.css"
 
 const fadeIn = { opacity: 0 }

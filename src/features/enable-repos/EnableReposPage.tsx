@@ -1,7 +1,7 @@
 import { useState } from "react"
-import { useAuth } from "@/lib/hooks/useAuth"
+import { useAuth } from "@/lib/hooks/UseAuth"
 import { Button } from "@/components/Button"
-import type { InstallationRepo } from "@/lib/github-installation-repos"
+import type { InstallationRepo } from "@/lib/GithubInstallationRepos"
 import { RepoCard } from "./RepoCard"
 import styles from "./EnableReposPage.module.css"
 

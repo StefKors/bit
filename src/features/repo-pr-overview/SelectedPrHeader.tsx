@@ -1,19 +1,19 @@
 import { LinkExternalIcon } from "@primer/octicons-react"
-import { formatMergeableState, formatRelativeTime } from "@/lib/format"
+import { formatMergeableState, formatRelativeTime } from "@/lib/Format"
 import { AuthorLabel } from "@/components/AuthorLabel"
 import { StatusBadge } from "@/components/StatusBadge"
 import { BranchLabel } from "@/components/BranchLabel"
 import { CiDot } from "@/components/CiDot"
-import { getPrStatusVariant, getCiDotVariant } from "./utils"
-import type { PullRequestCard } from "./types"
-import styles from "./SelectedPRHeader.module.css"
+import { getPrStatusVariant, getCiDotVariant } from "./Utils"
+import type { PullRequestCard } from "./Types"
+import styles from "./SelectedPrHeader.module.css"
 
-interface SelectedPRHeaderProps {
+interface SelectedPrHeaderProps {
   pr: PullRequestCard
   fullName: string
 }
 
-export function SelectedPRHeader({ pr, fullName }: SelectedPRHeaderProps) {
+export function SelectedPrHeader({ pr, fullName }: SelectedPrHeaderProps) {
   const prUrl = `https://github.com/${fullName}/pull/${pr.number}`
   const status = getPrStatusVariant(pr)
   const totalComments = pr.commentsCount + pr.reviewCommentsCount

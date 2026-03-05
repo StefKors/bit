@@ -1,14 +1,14 @@
 import { Link } from "@tanstack/react-router"
 import { motion } from "motion/react"
-import { formatRelativeTime } from "@/lib/format"
+import { formatRelativeTime } from "@/lib/Format"
 import { AuthorLabel } from "@/components/AuthorLabel"
 import { CiDot } from "@/components/CiDot"
-import { formatMergeableState } from "@/lib/format"
-import { getCiDotVariant } from "./utils"
-import type { PullRequestCard } from "./types"
-import styles from "./PRSelectionSection.module.css"
+import { formatMergeableState } from "@/lib/Format"
+import { getCiDotVariant } from "./Utils"
+import type { PullRequestCard } from "./Types"
+import styles from "./PrSelectionSection.module.css"
 
-interface PRSelectionSectionProps {
+interface PrSelectionSectionProps {
   owner: string
   repo: string
   sectionId: string
@@ -21,7 +21,7 @@ interface PRSelectionSectionProps {
   newPrIds: Set<string>
 }
 
-export function PRSelectionSection({
+export function PrSelectionSection({
   owner,
   repo,
   sectionId,
@@ -32,7 +32,7 @@ export function PRSelectionSection({
   isExpanded,
   onToggle,
   newPrIds,
-}: PRSelectionSectionProps) {
+}: PrSelectionSectionProps) {
   return (
     <section className={styles.prSection} data-section={sectionId} data-expanded={isExpanded}>
       <h3 className={styles.prSectionTitle}>

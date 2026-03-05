@@ -170,9 +170,16 @@
           {
             "allowConstantExport": true
           }
+        ],
+        "unicorn/filename-case": [
+          "error",
+          {
+            "case": "pascalCase",
+            "ignore": "vite-env\\.d\\.ts|instant\\.schema\\.ts|instant\\.perms\\.ts|vite\\.config\\.ts|vitest\\.config\\.ts|server\\.ts|router\\.tsx|layout\\.tsx"
+          }
         ]
       },
-      "plugins": ["typescript", "react"],
+      "plugins": ["typescript", "react", "unicorn"],
       "env": {
         "es2020": true,
         "browser": true
@@ -188,10 +195,10 @@
         "**/*.test.tsx",
         "src/lib/api/route-mocks.ts",
         "src/lib/github-client.ts",
-        "src/lib/logger.ts",
+        "src/lib/Logger.ts",
         "src/lib/api-handlers.ts",
         "src/lib/test-helpers.ts",
-        "src/lib/webhook-validation.ts",
+        "src/lib/WebhookValidation.ts",
         "src/lib/pr-filters.ts",
         "src/lib/issue-filters.ts",
         "src/lib/pr-layout-preference.ts",
@@ -209,6 +216,13 @@
         "no-console": "off"
       },
       "plugins": ["typescript"]
+    },
+    {
+      "files": ["src/routes/**/*.ts", "src/routes/**/*.tsx"],
+      "rules": {
+        "unicorn/filename-case": "off"
+      },
+      "plugins": ["typescript", "react", "unicorn"]
     }
   ]
 }

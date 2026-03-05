@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { createHmac, timingSafeEqual } from "crypto"
-import { persistWebhookPayloadSafely } from "@/lib/webhook-persistence"
-import { validateWebhookPayload } from "@/lib/webhook-validation"
-import { log } from "@/lib/logger"
+import { persistWebhookPayloadSafely } from "@/lib/WebhookPersistence"
+import { validateWebhookPayload } from "@/lib/WebhookValidation"
+import { log } from "@/lib/Logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {

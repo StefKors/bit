@@ -7,7 +7,7 @@ import {
   GitPullRequestDraftIcon,
   GitPullRequestIcon,
 } from "@primer/octicons-react"
-import type { PullRequestCard, TimelineItem } from "./types"
+import type { PullRequestCard, TimelineItem } from "./Types"
 
 export const getPrStatusVariant = (
   pr: PullRequestCard,
@@ -84,7 +84,7 @@ export const getReviewBadgeVariant = (state: string): "open" | "closed" | "draft
 }
 
 export const getReviewIcon = (state: string): ReactNode => {
-  if (state === "APPROVED") return <EyeIcon size={12} />
-  if (state === "CHANGES_REQUESTED") return <EyeIcon size={12} />
-  return <CommentDiscussionIcon size={12} />
+  if (state === "APPROVED") return <EyeIcon size={16} />
+  if (state === "CHANGES_REQUESTED") return <EyeIcon size={16} />
+  return <CommentDiscussionIcon size={16} />
 }

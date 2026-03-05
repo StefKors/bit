@@ -7,7 +7,7 @@ import {
   DiffRenamedIcon,
 } from "@primer/octicons-react"
 import { PatchDiff } from "@pierre/diffs/react"
-import type { PullRequestFileEntry } from "./types"
+import type { PullRequestFileEntry } from "./Types"
 import styles from "./FileEntry.module.css"
 
 const FILE_STATUS_ICON: Record<string, React.ReactNode> = {

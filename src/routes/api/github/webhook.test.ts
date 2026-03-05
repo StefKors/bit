@@ -2,10 +2,10 @@ import { createHmac } from "node:crypto"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { handleWebhookPost } from "./webhook"
 
-vi.mock("@/lib/logger", () => ({
+vi.mock("@/lib/Logger", () => ({
   log: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }))
-vi.mock("@/lib/webhook-persistence", () => ({
+vi.mock("@/lib/WebhookPersistence", () => ({
   persistWebhookPayloadSafely: vi.fn(async () => {}),
 }))
 

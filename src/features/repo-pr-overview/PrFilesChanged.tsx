@@ -1,23 +1,23 @@
 import { useRef, useState } from "react"
 import { FileIcon, SyncIcon } from "@primer/octicons-react"
-import { db } from "@/lib/instantDb"
+import { db } from "@/lib/InstantDb"
 import { CommitSelector } from "./CommitSelector"
 import { FileEntry } from "./FileEntry"
-import type { PullRequestCard } from "./types"
-import styles from "./PRFilesChanged.module.css"
+import type { PullRequestCard } from "./Types"
+import styles from "./PrFilesChanged.module.css"
 
 interface CommitInfo {
   sha: string
   message: string
 }
 
-interface PRFilesChangedProps {
+interface PrFilesChangedProps {
   pr: PullRequestCard
   owner: string
   repo: string
 }
 
-export function PRFilesChanged({ pr, owner, repo }: PRFilesChangedProps) {
+export function PrFilesChanged({ pr, owner, repo }: PrFilesChangedProps) {
   const { user: authUser } = db.useAuth()
   const [selectedCommitSha, setSelectedCommitSha] = useState<string | null>(null)
   const [commits, setCommits] = useState<CommitInfo[]>([])

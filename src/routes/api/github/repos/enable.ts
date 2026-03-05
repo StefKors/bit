@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { id } from "@instantdb/admin"
-import { adminDb } from "@/lib/instantAdmin"
-import type { InstallationRepo } from "@/lib/github-installation-repos"
+import { adminDb } from "@/lib/InstantAdmin"
+import type { InstallationRepo } from "@/lib/GithubInstallationRepos"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {

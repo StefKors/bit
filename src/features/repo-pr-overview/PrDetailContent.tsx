@@ -1,18 +1,18 @@
 import { Markdown } from "@/components/Markdown"
 import { CiDot } from "@/components/CiDot"
-import { buildTimeline } from "./utils"
+import { buildTimeline } from "./Utils"
 import { TimelineCommitItem } from "./TimelineCommitItem"
 import { TimelineReviewItem } from "./TimelineReviewItem"
 import { TimelineIssueCommentItem } from "./TimelineIssueCommentItem"
 import { TimelineReviewCommentItem } from "./TimelineReviewCommentItem"
-import type { PullRequestCard, TimelineItem } from "./types"
-import styles from "./PRDetailContent.module.css"
+import type { PullRequestCard, TimelineItem } from "./Types"
+import styles from "./PrDetailContent.module.css"
 
-interface PRDetailContentProps {
+interface PrDetailContentProps {
   pr: PullRequestCard
 }
 
-export function PRDetailContent({ pr }: PRDetailContentProps) {
+export function PrDetailContent({ pr }: PrDetailContentProps) {
   const timeline = buildTimeline(pr)
 
   return (

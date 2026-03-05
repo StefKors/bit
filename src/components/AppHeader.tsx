@@ -1,12 +1,12 @@
 import { useState, useRef } from "react"
 import { Link, useRouterState } from "@tanstack/react-router"
 import { SignOutIcon } from "@primer/octicons-react"
-import { useAuth } from "@/lib/hooks/useAuth"
-import { db } from "@/lib/instantDb"
-import { resolveUserAvatarUrl } from "@/lib/avatar"
+import { useAuth } from "@/lib/hooks/UseAuth"
+import { db } from "@/lib/InstantDb"
+import { resolveUserAvatarUrl } from "@/lib/Avatar"
 import { Avatar } from "./Avatar"
-import { isDev } from "@/lib/utils/isDevelopment"
-import { isLight } from "@/lib/utils/currentColorScheme"
+import { isDev } from "@/lib/utils/IsDevelopment"
+import { isLight } from "@/lib/utils/CurrentColorScheme"
 import styles from "./AppHeader.module.css"
 
 export const AppHeader = () => {

@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { adminDb } from "@/lib/instantAdmin"
-import { getInstallationIdForUser } from "@/lib/github-app"
-import { fetchPRCommits } from "@/lib/github-pr-files"
-import { log } from "@/lib/logger"
+import { adminDb } from "@/lib/InstantAdmin"
+import { getInstallationIdForUser } from "@/lib/GithubApp"
+import { fetchPRCommits } from "@/lib/GithubPrFiles"
+import { log } from "@/lib/Logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {

@@ -1,25 +1,25 @@
 import { useRef, useState } from "react"
 import { useParams, useSearch } from "@tanstack/react-router"
 import { motion } from "motion/react"
-import { useAuth } from "@/lib/hooks/useAuth"
-import { db } from "@/lib/instantDb"
+import { useAuth } from "@/lib/hooks/UseAuth"
+import { db } from "@/lib/InstantDb"
 import { Tabs } from "@/components/Tabs"
-import { PRAuthorFilter } from "./PRAuthorFilter"
-import { PRSelectionList } from "./PRSelectionList"
-import { SelectedPRHeader } from "./SelectedPRHeader"
-import { PRDetailContent } from "./PRDetailContent"
-import { PRFilesChanged } from "./PRFilesChanged"
-import { PRSidebar } from "./PRSidebar"
-import { mapPrToCard } from "./mapPrToCard"
-import type { PullRequestCard } from "./types"
-import styles from "./RepoPROverviewPage.module.css"
+import { PrAuthorFilter } from "./PrAuthorFilter"
+import { PrSelectionList } from "./PrSelectionList"
+import { SelectedPrHeader } from "./SelectedPrHeader"
+import { PrDetailContent } from "./PrDetailContent"
+import { PrFilesChanged } from "./PrFilesChanged"
+import { PrSidebar } from "./PrSidebar"
+import { mapPrToCard } from "./MapPrToCard"
+import type { PullRequestCard } from "./Types"
+import styles from "./RepoPrOverviewPage.module.css"
 
 const PR_TABS = [
   { value: "conversation", label: "Conversation" },
   { value: "files", label: "Files Changed" },
 ]
 
-export function RepoPROverviewPage() {
+export function RepoPrOverviewPage() {
   const { owner, repo } = useParams({ from: "/$owner/$repo/" })
   const { selectedPrNumber } = useSearch({ from: "/$owner/$repo/" })
   const { user } = useAuth()
@@ -139,13 +139,13 @@ export function RepoPROverviewPage() {
     >
       <div className={styles.columns}>
         <aside className={styles.column1}>
-          <PRAuthorFilter
+          <PrAuthorFilter
             authorFilter={effectiveAuthorFilter}
             userLogin={user?.login ?? null}
             uniqueAuthors={uniqueAuthors}
             onFilterChange={setAuthorFilter}
           />
-          <PRSelectionList
+          <PrSelectionList
             owner={owner}
             repo={repo}
             selectedPrNumber={selectedPR?.number ?? null}
@@ -159,7 +159,7 @@ export function RepoPROverviewPage() {
 
         {selectedPR && (
           <div className={styles.prHeader}>
-            <SelectedPRHeader pr={selectedPR} fullName={fullName} />
+            <SelectedPrHeader pr={selectedPR} fullName={fullName} />
           </div>
         )}
 
@@ -172,9 +172,9 @@ export function RepoPROverviewPage() {
         <section className={styles.column2}>
           {selectedPR ? (
             prTab === "conversation" ? (
-              <PRDetailContent pr={selectedPR} />
+              <PrDetailContent pr={selectedPR} />
             ) : (
-              <PRFilesChanged pr={selectedPR} owner={owner} repo={repo} />
+              <PrFilesChanged pr={selectedPR} owner={owner} repo={repo} />
             )
           ) : (
             <div className={styles.placeholder}>
@@ -187,7 +187,7 @@ export function RepoPROverviewPage() {
 
         <aside className={styles.column3}>
           {selectedPR ? (
-            <PRSidebar pr={selectedPR} />
+            <PrSidebar pr={selectedPR} />
           ) : (
             <p className={styles.placeholderText}>Select a PR to view details.</p>
           )}

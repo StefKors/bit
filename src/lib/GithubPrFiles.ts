@@ -1,7 +1,7 @@
 import { id } from "@instantdb/admin"
-import { adminDb } from "@/lib/instantAdmin"
-import { getInstallationToken } from "@/lib/github-app"
-import { log } from "@/lib/logger"
+import { adminDb } from "@/lib/InstantAdmin"
+import { getInstallationToken } from "@/lib/GithubApp"
+import { log } from "@/lib/Logger"
 
 export interface CompareFile {
   filename: string

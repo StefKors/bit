@@ -5,11 +5,11 @@ import {
   GitPullRequestIcon,
   SyncIcon,
 } from "@primer/octicons-react"
-import { PRSelectionSection } from "./PRSelectionSection"
-import type { PullRequestCard } from "./types"
-import styles from "./PRSelectionList.module.css"
+import { PrSelectionSection } from "./PrSelectionSection"
+import type { PullRequestCard } from "./Types"
+import styles from "./PrSelectionList.module.css"
 
-interface PRSelectionListProps {
+interface PrSelectionListProps {
   owner: string
   repo: string
   selectedPrNumber: number | null
@@ -20,7 +20,7 @@ interface PRSelectionListProps {
   newPrIds: Set<string>
 }
 
-export function PRSelectionList({
+export function PrSelectionList({
   owner,
   repo,
   selectedPrNumber,
@@ -29,7 +29,7 @@ export function PRSelectionList({
   readyToMergePRs,
   mergedPRs,
   newPrIds,
-}: PRSelectionListProps) {
+}: PrSelectionListProps) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     draft: true,
     needsReview: true,
@@ -43,7 +43,7 @@ export function PRSelectionList({
 
   return (
     <div className={styles.prSectionList}>
-      <PRSelectionSection
+      <PrSelectionSection
         owner={owner}
         repo={repo}
         sectionId="draft"
@@ -57,7 +57,7 @@ export function PRSelectionList({
         }}
         newPrIds={newPrIds}
       />
-      <PRSelectionSection
+      <PrSelectionSection
         owner={owner}
         repo={repo}
         sectionId="needsReview"
@@ -71,7 +71,7 @@ export function PRSelectionList({
         }}
         newPrIds={newPrIds}
       />
-      <PRSelectionSection
+      <PrSelectionSection
         owner={owner}
         repo={repo}
         sectionId="readyToMerge"
@@ -85,7 +85,7 @@ export function PRSelectionList({
         }}
         newPrIds={newPrIds}
       />
-      <PRSelectionSection
+      <PrSelectionSection
         owner={owner}
         repo={repo}
         sectionId="merged"
