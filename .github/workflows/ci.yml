@@ -66,6 +66,16 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    env:
+      CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+      GITHUB_APP_ID: ${{ secrets.APP_ID_GITHUB }}
+      GITHUB_APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY_GITHUB }}
+      GITHUB_APP_SLUG: ${{ secrets.APP_SLUG_GITHUB }}
+      GITHUB_CLIENT_ID: ${{ secrets.CLIENT_ID_GITHUB }}
+      GITHUB_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET_GITHUB }}
+      GITHUB_WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET_GITHUB }}
+      INSTANT_ADMIN_TOKEN: ${{ secrets.INSTANT_ADMIN_TOKEN }}
+      INSTANT_APP_ID: ${{ secrets.INSTANT_APP_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -92,6 +102,16 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    env:
+      CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+      GITHUB_APP_ID: ${{ secrets.APP_ID_GITHUB }}
+      GITHUB_APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY_GITHUB }}
+      GITHUB_APP_SLUG: ${{ secrets.APP_SLUG_GITHUB }}
+      GITHUB_CLIENT_ID: ${{ secrets.CLIENT_ID_GITHUB }}
+      GITHUB_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET_GITHUB }}
+      GITHUB_WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET_GITHUB }}
+      INSTANT_ADMIN_TOKEN: ${{ secrets.INSTANT_ADMIN_TOKEN }}
+      INSTANT_APP_ID: ${{ secrets.INSTANT_APP_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
