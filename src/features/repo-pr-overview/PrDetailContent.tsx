@@ -82,7 +82,9 @@ export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
               if (item.type === "issue_comment") {
                 return <TimelineIssueCommentItem key={`ic-${item.data.id}`} comment={item.data} />
               }
-              return <TimelineReviewCommentItem key={`rc-${item.data.id}`} comment={item.data} />
+              return (
+                <TimelineReviewCommentItem key={`rc-${item.data.root.id}`} thread={item.data} />
+              )
             })}
           </div>
         ) : (

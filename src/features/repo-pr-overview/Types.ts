@@ -24,6 +24,7 @@ export interface PullRequestReview {
 export interface PullRequestReviewComment {
   id: string
   githubId: number
+  inReplyToId: number | null
   authorLogin: string
   authorAvatarUrl: string | null
   body: string | null
@@ -32,6 +33,11 @@ export interface PullRequestReviewComment {
   htmlUrl: string | null
   createdAt: number
   updatedAt: number
+}
+
+export interface ReviewCommentThread {
+  root: PullRequestReviewComment
+  replies: PullRequestReviewComment[]
 }
 
 export interface PullRequestCommit {
@@ -74,7 +80,7 @@ export type TimelineItem =
   | { type: "commit"; timestamp: number; data: PullRequestCommit }
   | { type: "review"; timestamp: number; data: PullRequestReview }
   | { type: "issue_comment"; timestamp: number; data: PullRequestComment }
-  | { type: "review_comment"; timestamp: number; data: PullRequestReviewComment }
+  | { type: "review_comment"; timestamp: number; data: ReviewCommentThread }
   | { type: "opened"; timestamp: number; data: PrEventData }
   | { type: "merged"; timestamp: number; data: PrEventData }
   | { type: "closed"; timestamp: number; data: PrEventData }

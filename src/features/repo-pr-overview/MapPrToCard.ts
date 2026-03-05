@@ -54,6 +54,7 @@ interface RepoPullRequest {
   pullRequestReviewComments?: Array<{
     id: string
     githubId?: number | null
+    inReplyToId?: number | null
     authorLogin?: string | null
     authorAvatarUrl?: string | null
     body?: string | null
@@ -158,6 +159,7 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
     pr.pullRequestReviewComments?.map((comment) => ({
       id: comment.id,
       githubId: comment.githubId ?? 0,
+      inReplyToId: comment.inReplyToId ?? null,
       authorLogin: comment.authorLogin ?? "unknown",
       authorAvatarUrl: comment.authorAvatarUrl ?? null,
       body: comment.body ?? null,
