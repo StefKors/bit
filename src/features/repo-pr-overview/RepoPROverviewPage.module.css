@@ -95,16 +95,20 @@
   color: var(--bit-color-muted);
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1000px) {
   .columns {
     grid-template-columns: 1fr;
-    grid-template-rows: auto;
+    grid-template-rows: auto auto auto 1fr auto;
     grid-template-areas:
       "sidebar"
       "header"
       "tabs"
       "content"
       "activity";
+  }
+
+  .column1 {
+    grid-row: auto;
   }
 
   .column1,
