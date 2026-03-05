@@ -1,0 +1,109 @@
+[data-theme="github-classic"][data-color-mode="dark"] {
+  --bit-rgb-fg: 230, 237, 243;
+  --bit-rgb-bg: 13, 17, 23;
+  --bit-rgb-shadow: 1, 4, 9;
+  --bit-rgb-paper: 255, 255, 255;
+  --bit-rgb-paper-2: 240, 243, 246;
+  --bit-rgb-surface-1: 22, 27, 34;
+  --bit-rgb-surface-2: 33, 38, 45;
+  --bit-rgb-surface-3: 48, 54, 61;
+  --bit-rgb-accent-blue: 88, 166, 255;
+  --bit-rgb-accent-blue-strong: 56, 139, 253;
+  --bit-rgb-accent-green: 63, 185, 80;
+  --bit-rgb-accent-green-dark: 46, 160, 67;
+  --bit-rgb-accent-green-bright: 86, 211, 100;
+  --bit-rgb-accent-red: 248, 81, 73;
+  --bit-rgb-accent-yellow: 210, 153, 34;
+  --bit-rgb-accent-purple: 188, 140, 255;
+  --bit-rgb-muted: 139, 148, 158;
+
+  --bit-color-paper: #ffffff;
+  --bit-color-ink: #0d1117;
+  --bit-color-ink-muted: #161b22;
+  --bit-color-paper-hover: #e0e4e8;
+  --bit-color-paper-2: #f0f3f6;
+
+  --bit-color-accent-blue: #58a6ff;
+  --bit-color-accent-blue-strong: #388bfd;
+  --bit-color-accent-green: #3fb950;
+  --bit-color-accent-green-dark: #2ea043;
+  --bit-color-accent-green-bright: #56d364;
+  --bit-color-accent-red: #f85149;
+  --bit-color-accent-yellow: #d29922;
+  --bit-color-accent-purple: #bc8cff;
+  --bit-color-accent-orange: #ffa657;
+  --bit-color-muted: #8b949e;
+
+  --bit-color-heading: #e6edf3;
+  --bit-color-avatar-outline: #161b22;
+  --bit-alpha-accent-border-hover: 0.3;
+
+  --bit-color-diff-add-text: #aff5b4;
+  --bit-color-diff-del-text: #ffd7d5;
+
+  --bit-gradient-surface: linear-gradient(
+    145deg,
+    rgba(33, 38, 45, 0.95) 0%,
+    rgba(22, 27, 34, 0.98) 100%
+  );
+  --bit-color-panel-bg: rgba(33, 38, 45, 0.7);
+  --bit-color-code-bg: rgba(22, 27, 34, 0.9);
+  --bit-color-inverse-bg: #ffffff;
+  --bit-color-inverse-text: #0d1117;
+  --bit-color-inverse-bg-hover: #e0e4e8;
+}
+
+[data-theme="github-classic"][data-color-mode="light"] {
+  --bit-rgb-fg: 31, 35, 40;
+  --bit-rgb-bg: 255, 255, 255;
+  --bit-rgb-shadow: 31, 35, 40;
+  --bit-rgb-paper: 255, 255, 255;
+  --bit-rgb-paper-2: 246, 248, 250;
+  --bit-rgb-surface-1: 246, 248, 250;
+  --bit-rgb-surface-2: 234, 238, 242;
+  --bit-rgb-surface-3: 208, 215, 222;
+  --bit-rgb-accent-blue: 9, 105, 218;
+  --bit-rgb-accent-blue-strong: 5, 80, 174;
+  --bit-rgb-accent-green: 26, 127, 55;
+  --bit-rgb-accent-green-dark: 17, 99, 41;
+  --bit-rgb-accent-green-bright: 45, 164, 78;
+  --bit-rgb-accent-red: 207, 34, 46;
+  --bit-rgb-accent-yellow: 154, 103, 0;
+  --bit-rgb-accent-purple: 130, 80, 223;
+  --bit-rgb-muted: 101, 109, 118;
+
+  --bit-color-paper: #ffffff;
+  --bit-color-ink: #1f2328;
+  --bit-color-ink-muted: #32383f;
+  --bit-color-paper-hover: #eaeef2;
+  --bit-color-paper-2: #f6f8fa;
+
+  --bit-color-accent-blue: #0969da;
+  --bit-color-accent-blue-strong: #0550ae;
+  --bit-color-accent-green: #1a7f37;
+  --bit-color-accent-green-dark: #116329;
+  --bit-color-accent-green-bright: #2da44e;
+  --bit-color-accent-red: #cf222e;
+  --bit-color-accent-yellow: #9a6700;
+  --bit-color-accent-purple: #8250df;
+  --bit-color-accent-orange: #bc4c00;
+  --bit-color-muted: #656d76;
+
+  --bit-color-heading: #1f2328;
+  --bit-color-avatar-outline: #f6f8fa;
+  --bit-alpha-accent-border-hover: 0.5;
+
+  --bit-color-diff-add-text: #1a7f37;
+  --bit-color-diff-del-text: #cf222e;
+
+  --bit-gradient-surface: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(246, 248, 250, 0.98) 100%
+  );
+  --bit-color-panel-bg: rgba(255, 255, 255, 0.9);
+  --bit-color-code-bg: rgba(255, 255, 255, 0.9);
+  --bit-color-inverse-bg: #1f2328;
+  --bit-color-inverse-text: #ffffff;
+  --bit-color-inverse-bg-hover: #32383f;
+}

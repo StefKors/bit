@@ -1,0 +1,109 @@
+[data-theme="pastels"][data-color-mode="dark"] {
+  --bit-rgb-fg: 240, 235, 242;
+  --bit-rgb-bg: 30, 26, 34;
+  --bit-rgb-shadow: 18, 14, 22;
+  --bit-rgb-paper: 240, 235, 242;
+  --bit-rgb-paper-2: 226, 219, 230;
+  --bit-rgb-surface-1: 40, 36, 46;
+  --bit-rgb-surface-2: 50, 46, 56;
+  --bit-rgb-surface-3: 62, 58, 70;
+  --bit-rgb-accent-blue: 150, 190, 255;
+  --bit-rgb-accent-blue-strong: 122, 164, 232;
+  --bit-rgb-accent-green: 150, 220, 170;
+  --bit-rgb-accent-green-dark: 124, 196, 146;
+  --bit-rgb-accent-green-bright: 176, 236, 192;
+  --bit-rgb-accent-red: 255, 150, 160;
+  --bit-rgb-accent-yellow: 255, 230, 150;
+  --bit-rgb-accent-purple: 200, 170, 255;
+  --bit-rgb-muted: 160, 150, 170;
+
+  --bit-color-paper: #f0ebf2;
+  --bit-color-ink: #1e1a22;
+  --bit-color-ink-muted: #2a2630;
+  --bit-color-paper-hover: #d4ccd8;
+  --bit-color-paper-2: #e2dbe6;
+
+  --bit-color-accent-blue: #96beff;
+  --bit-color-accent-blue-strong: #7aa4e8;
+  --bit-color-accent-green: #96dcaa;
+  --bit-color-accent-green-dark: #7cc492;
+  --bit-color-accent-green-bright: #b0ecc0;
+  --bit-color-accent-red: #ff96a0;
+  --bit-color-accent-yellow: #ffe696;
+  --bit-color-accent-purple: #c8aaff;
+  --bit-color-accent-orange: #ffb496;
+  --bit-color-muted: #a096aa;
+
+  --bit-color-heading: #f0ebf2;
+  --bit-color-avatar-outline: #28242e;
+  --bit-alpha-accent-border-hover: 0.35;
+
+  --bit-color-diff-add-text: #b0ecc0;
+  --bit-color-diff-del-text: #ffb0b8;
+
+  --bit-gradient-surface: linear-gradient(
+    145deg,
+    rgba(50, 46, 56, 0.95) 0%,
+    rgba(40, 36, 46, 0.98) 100%
+  );
+  --bit-color-panel-bg: rgba(50, 46, 56, 0.7);
+  --bit-color-code-bg: rgba(40, 36, 46, 0.9);
+  --bit-color-inverse-bg: #f0ebf2;
+  --bit-color-inverse-text: #1e1a22;
+  --bit-color-inverse-bg-hover: #d4ccd8;
+}
+
+[data-theme="pastels"][data-color-mode="light"] {
+  --bit-rgb-fg: 74, 58, 82;
+  --bit-rgb-bg: 255, 245, 248;
+  --bit-rgb-shadow: 74, 58, 82;
+  --bit-rgb-paper: 255, 255, 255;
+  --bit-rgb-paper-2: 252, 240, 244;
+  --bit-rgb-surface-1: 255, 248, 250;
+  --bit-rgb-surface-2: 252, 240, 244;
+  --bit-rgb-surface-3: 244, 228, 236;
+  --bit-rgb-accent-blue: 104, 152, 212;
+  --bit-rgb-accent-blue-strong: 80, 128, 192;
+  --bit-rgb-accent-green: 92, 184, 122;
+  --bit-rgb-accent-green-dark: 72, 158, 100;
+  --bit-rgb-accent-green-bright: 112, 208, 142;
+  --bit-rgb-accent-red: 224, 104, 120;
+  --bit-rgb-accent-yellow: 212, 170, 64;
+  --bit-rgb-accent-purple: 152, 120, 204;
+  --bit-rgb-muted: 136, 120, 160;
+
+  --bit-color-paper: #ffffff;
+  --bit-color-ink: #4a3a52;
+  --bit-color-ink-muted: #5e4e66;
+  --bit-color-paper-hover: #f5e5ec;
+  --bit-color-paper-2: #fcf0f4;
+
+  --bit-color-accent-blue: #6898d4;
+  --bit-color-accent-blue-strong: #5080c0;
+  --bit-color-accent-green: #5cb87a;
+  --bit-color-accent-green-dark: #489e64;
+  --bit-color-accent-green-bright: #70d08e;
+  --bit-color-accent-red: #e06878;
+  --bit-color-accent-yellow: #d4aa40;
+  --bit-color-accent-purple: #9878cc;
+  --bit-color-accent-orange: #d88860;
+  --bit-color-muted: #8878a0;
+
+  --bit-color-heading: #4a3a52;
+  --bit-color-avatar-outline: #fcf0f4;
+  --bit-alpha-accent-border-hover: 0.5;
+
+  --bit-color-diff-add-text: #3a8a50;
+  --bit-color-diff-del-text: #c04050;
+
+  --bit-gradient-surface: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(252, 240, 244, 0.98) 100%
+  );
+  --bit-color-panel-bg: rgba(255, 255, 255, 0.9);
+  --bit-color-code-bg: rgba(255, 255, 255, 0.9);
+  --bit-color-inverse-bg: #4a3a52;
+  --bit-color-inverse-text: #ffffff;
+  --bit-color-inverse-bg-hover: #5e4e66;
+}
