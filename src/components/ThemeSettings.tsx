@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { XIcon, SunIcon, MoonIcon, DeviceDesktopIcon } from "@primer/octicons-react"
 import { type ColorMode, themes, type ThemeDefinition } from "@/lib/themes/ThemeDefinitions"
 import {
@@ -56,6 +56,20 @@ const groups = ["Standard", "Community", "Fun"] as const
 export const ThemeSettings = ({ onClose }: ThemeSettingsProps) => {
   const [activeThemeId, setActiveThemeId] = useState(getStoredThemeId)
   const [activeMode, setActiveMode] = useState(getStoredColorMode)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCloseRef.current()
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    panelRef.current?.focus()
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [])
 
   const previewMode = resolveColorMode(activeMode)
 
@@ -76,15 +90,15 @@ export const ThemeSettings = ({ onClose }: ThemeSettingsProps) => {
 
   return (
     <>
+      <div className={styles.backdrop} onClick={onClose} role="presentation" />
       <div
-        className={styles.backdrop}
-        onClick={onClose}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") onClose()
-        }}
-        role="presentation"
-      />
-      <div className={styles.panel} role="dialog" aria-label="Theme settings">
+        ref={panelRef}
+        className={styles.panel}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Theme settings"
+        tabIndex={-1}
+      >
         <div className={styles.header}>
           <span className={styles.title}>Appearance</span>
           <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">

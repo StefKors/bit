@@ -17,14 +17,13 @@ export function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 
     updateFavicon()
 
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.type === "attributes" && mutation.attributeName === "data-color-mode") {
-          updateFavicon()
-        }
-      }
+    const observer = new MutationObserver(() => {
+      updateFavicon()
     })
-    observer.observe(document.documentElement, { attributes: true })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-color-mode"],
+    })
 
     return () => {
       cleanup?.()

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useSyncExternalStore } from "react"
 import { Link, useRouterState } from "@tanstack/react-router"
 import { SignOutIcon, PaintbrushIcon } from "@primer/octicons-react"
 import { useAuth } from "@/lib/hooks/UseAuth"
@@ -7,7 +7,7 @@ import { resolveUserAvatarUrl } from "@/lib/Avatar"
 import { Avatar } from "./Avatar"
 import { ThemeSettings } from "./ThemeSettings"
 import { isDev } from "@/lib/utils/IsDevelopment"
-import { isLight } from "@/lib/utils/CurrentColorScheme"
+import { getResolvedColorMode, subscribeColorMode } from "@/lib/themes/ThemeManager"
 import styles from "./AppHeader.module.css"
 
 export const AppHeader = () => {
@@ -16,6 +16,7 @@ export const AppHeader = () => {
   const [themeSettingsOpen, setThemeSettingsOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const pathname = useRouterState({ select: (state) => state.location.pathname })
+  const colorMode = useSyncExternalStore(subscribeColorMode, getResolvedColorMode)
 
   const handleSignOut = () => {
     void db.auth.signOut()
@@ -42,6 +43,7 @@ export const AppHeader = () => {
     pathSegments[0] !== "__root__"
   const owner = hasRepoContext ? pathSegments[0] : null
   const repo = hasRepoContext ? pathSegments[1] : null
+  const lightLogo = colorMode === "light"
 
   return (
     <>
@@ -50,7 +52,7 @@ export const AppHeader = () => {
           <div className={styles.left}>
             <a href="/" className={styles.logo}>
               <img
-                src={`/bit-cube-small${isLight() ? "-light" : ""}${isDev ? "-dev" : ""}.png`}
+                src={`/bit-cube-small${lightLogo ? "-light" : ""}${isDev ? "-dev" : ""}.png`}
                 alt="Bit"
                 className={styles.logoImage}
               />
@@ -97,9 +99,6 @@ export const AppHeader = () => {
                   <div
                     className={styles.backdrop}
                     onClick={handleBackdropClick}
-                    onKeyDown={(e) => {
-                      if (e.key === "Escape") setUserMenuOpen(false)
-                    }}
                     role="presentation"
                   />
                   <div className={styles.userMenu} role="menu" aria-label="User menu">
