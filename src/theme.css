@@ -6,6 +6,10 @@
   --bit-font-weight-regular: 450;
   --bit-font-weight-bold: 500;
 
+  --bit-font-size-default: 13px;
+  --bit-font-size-body: 15px;
+  --bit-font-size-small: 12px;
+
   /*
     Theme tokens (dark by default).
 

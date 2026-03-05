@@ -3,7 +3,7 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
-  font-size: 0.9rem;
+  font-size: var(--bit-font-size-default);
   flex-wrap: wrap;
 }
 
@@ -33,7 +33,7 @@
 /* Compact variant for headers */
 .compact {
   margin-bottom: 0;
-  font-size: 13px;
+  font-size: var(--bit-font-size-default);
   gap: 0;
 }
 
@@ -56,5 +56,5 @@
 }
 
 .compact .breadcrumbCurrent {
-  font-weight: 500;
+  font-weight: var(--bit-font-weight-bold);
 }

@@ -23,8 +23,8 @@
   min-height: 32px;
   padding: 0 10px;
   color: var(--bit-color-text);
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: var(--bit-font-size-default);
+  font-weight: var(--bit-font-weight-bold);
   text-decoration: none;
   border: 1px solid var(--pr-border);
   border-radius: var(--bit-radius-md);
@@ -43,7 +43,7 @@
 
 .title {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--bit-font-size-body);
   line-height: 1.25;
   color: var(--bit-color-text);
 }
@@ -63,8 +63,8 @@
   padding: 0 8px;
   border-radius: var(--bit-radius-sm);
   border: 1px solid var(--pr-border);
-  font-size: 0.6875rem;
-  font-weight: 500;
+  font-size: var(--bit-font-size-small);
+  font-weight: var(--bit-font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--pr-muted);
@@ -91,7 +91,7 @@
   margin: 0;
   white-space: pre-wrap;
   color: var(--bit-color-text);
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-body);
   line-height: 1.5;
   padding: 10px 12px;
   border-radius: var(--bit-radius-md);
@@ -111,8 +111,8 @@
 
 .sectionTitle {
   margin: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--bit-font-size-small);
+  font-weight: var(--bit-font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--pr-muted);
@@ -133,7 +133,7 @@
   gap: 8px;
   min-height: 36px;
   padding: 8px 10px;
-  font-size: 0.8125rem;
+  font-size: var(--bit-font-size-default);
   line-height: 1.45;
   color: var(--bit-color-text);
   border: 1px solid var(--pr-border);
@@ -152,7 +152,7 @@
 }
 
 .listItem strong {
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   color: var(--pr-muted);
   white-space: nowrap;
   margin-top: 1px;
@@ -167,7 +167,7 @@
   padding: 6px 10px;
   border-radius: var(--bit-radius-md);
   border: 1px dashed var(--pr-border);
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   color: var(--pr-muted);
 }
 

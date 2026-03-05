@@ -77,7 +77,12 @@ export function PrSelectionSection({
                     <span className={styles.prUpdatedAt}>{formatRelativeTime(pr.updatedAt)}</span>
                   </span>
                   <span className={styles.prCellRow2}>
-                    <AuthorLabel login={pr.authorLogin} avatarUrl={pr.authorAvatarUrl} />
+                    <AuthorLabel
+                      login={pr.authorLogin}
+                      avatarUrl={pr.authorAvatarUrl}
+                      size={13}
+                      weight="regular"
+                    />
                     <span className={styles.prMetaTrail}>
                       {pr.commentsCount + pr.reviewCommentsCount}
                       <CiDot

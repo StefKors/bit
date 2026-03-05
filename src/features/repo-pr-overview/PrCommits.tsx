@@ -16,7 +16,7 @@ const CommitRow = ({ commit }: { commit: PullRequestCard["pullRequestCommits"][n
     <li className={styles.commitRow}>
       <div className={styles.commitMain}>
         {commit.authorLogin && (
-          <Avatar src={commit.authorAvatarUrl} name={commit.authorLogin} size={20} />
+          <Avatar src={commit.authorAvatarUrl} name={commit.authorLogin} size={16} />
         )}
         <span className={styles.commitMessage}>{message}</span>
       </div>

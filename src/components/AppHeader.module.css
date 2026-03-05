@@ -51,8 +51,8 @@
   align-items: center;
   gap: 0.25rem;
   min-width: 0;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: var(--bit-font-size-default);
+  font-weight: var(--bit-font-weight-bold);
 }
 
 .repoContextLink {
@@ -88,7 +88,7 @@
   border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   border-radius: var(--bit-radius-md);
   color: rgba(var(--bit-rgb-fg), 0.5);
-  font-size: 12px;
+  font-size: var(--bit-font-size-small);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -105,7 +105,7 @@
 
 .searchKbd {
   font-family: var(--bit-font-mono);
-  font-size: 10px;
+  font-size: 10px; /* kbd shortcut label, intentionally smaller */
   padding: 1px 4px;
   background: rgba(var(--bit-rgb-fg), 0.06);
   border-radius: 3px;
@@ -182,8 +182,8 @@
 }
 
 .userName {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--bit-font-size-default);
+  font-weight: var(--bit-font-weight-bold);
   color: var(--bit-color-text);
   white-space: nowrap;
   overflow: hidden;
@@ -191,7 +191,7 @@
 }
 
 .userLogin {
-  font-size: 12px;
+  font-size: var(--bit-font-size-small);
   color: var(--bit-color-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -217,7 +217,7 @@
   border: none;
   border-radius: var(--bit-radius-md);
   color: var(--bit-color-text);
-  font-size: 13px;
+  font-size: var(--bit-font-size-default);
   cursor: pointer;
   text-align: left;
 }

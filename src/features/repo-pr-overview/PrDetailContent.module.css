@@ -5,7 +5,7 @@
 }
 
 .prBody {
-  font-size: 1rem;
+  font-size: var(--bit-font-size-body);
 }
 
 .detailSection {
@@ -16,8 +16,8 @@
 
 .detailSectionTitle {
   margin: 0;
-  font-size: 0.6875rem;
-  font-weight: 600;
+  font-size: var(--bit-font-size-small);
+  font-weight: var(--bit-font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: rgba(var(--bit-rgb-fg), 0.58);
@@ -37,7 +37,7 @@
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  font-size: 0.8125rem;
+  font-size: var(--bit-font-size-default);
   color: var(--bit-color-text);
   border-radius: var(--bit-radius-sm);
   background: rgba(var(--bit-rgb-surface-2), 0.28);
@@ -52,14 +52,14 @@
 
 .detailListItemMeta {
   flex-shrink: 0;
-  font-size: 0.6875rem;
+  font-size: var(--bit-font-size-small);
   color: rgba(var(--bit-rgb-fg), 0.58);
 }
 
 .detailEmpty {
   margin: 0;
   padding: 8px;
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   color: rgba(var(--bit-rgb-fg), 0.58);
   border: 1px dashed rgba(var(--bit-rgb-fg), 0.1);
   border-radius: var(--bit-radius-md);
@@ -81,7 +81,7 @@
 .commentTextarea {
   width: 100%;
   padding: 10px 12px;
-  font-size: 1rem;
+  font-size: var(--bit-font-size-body);
   font-family: inherit;
   line-height: 1.5;
   color: var(--bit-color-text);
@@ -119,6 +119,6 @@
 }
 
 .commentError {
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   color: var(--bit-color-accent-red);
 }

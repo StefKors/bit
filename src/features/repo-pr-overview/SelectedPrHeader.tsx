@@ -41,7 +41,7 @@ export function SelectedPrHeader({ pr, fullName }: SelectedPrHeaderProps) {
         <StatusBadge variant={status.variant} icon={status.icon}>
           {status.label}
         </StatusBadge>
-        <AuthorLabel login={pr.authorLogin} avatarUrl={pr.authorAvatarUrl} size={14} />
+        <AuthorLabel login={pr.authorLogin} avatarUrl={pr.authorAvatarUrl} size={12} />
         <span className={styles.selectedPrHeaderSep} aria-hidden>
           ·
         </span>

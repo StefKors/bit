@@ -15,20 +15,20 @@
 }
 
 .title {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: var(--bit-font-weight-bold);
   color: var(--bit-color-heading);
   margin: 0 0 0.5rem;
 }
 
 .subtitle {
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   color: var(--bit-color-muted);
   margin: 0 0 1.5rem;
 }
 
 .sectionText {
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   color: var(--bit-color-muted);
   margin: 0 0 1rem;
 }
@@ -38,7 +38,7 @@
   background: var(--bit-color-danger-bg);
   border-radius: var(--bit-radius-md);
   color: var(--bit-color-accent-red);
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   margin-bottom: 1rem;
 }
 
@@ -66,7 +66,7 @@
   background: none;
   border: none;
   color: var(--bit-color-accent-blue);
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   cursor: pointer;
   padding: 0;
 }
@@ -76,7 +76,7 @@
 }
 
 .count {
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   color: var(--bit-color-muted);
 }
 
@@ -102,7 +102,7 @@
   background: none;
   border: none;
   color: var(--bit-color-muted);
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   cursor: pointer;
   padding: 0;
 }

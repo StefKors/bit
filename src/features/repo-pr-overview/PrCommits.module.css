@@ -14,8 +14,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--bit-font-size-small);
+  font-weight: var(--bit-font-weight-bold);
   color: rgba(var(--bit-rgb-fg), 0.58);
 }
 
@@ -49,8 +49,8 @@
 }
 
 .commitMessage {
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: var(--bit-font-size-default);
+  font-weight: var(--bit-font-weight-bold);
   color: var(--bit-color-text);
   overflow: hidden;
   white-space: nowrap;
@@ -65,12 +65,12 @@
 }
 
 .commitAuthor {
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   color: rgba(var(--bit-rgb-fg), 0.58);
 }
 
 .commitTime {
-  font-size: 0.6875rem;
+  font-size: var(--bit-font-size-small);
   color: rgba(var(--bit-rgb-fg), 0.45);
 }
 
@@ -79,7 +79,7 @@
   align-items: center;
   gap: 4px;
   font-family: var(--bit-font-mono, monospace);
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   padding: 1px 6px;
   border-radius: var(--bit-radius-sm);
   background: rgba(var(--bit-rgb-accent-blue), 0.1);
@@ -93,7 +93,7 @@
 
 .commitShaPlain {
   font-family: var(--bit-font-mono, monospace);
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   padding: 1px 6px;
   border-radius: var(--bit-radius-sm);
   background: rgba(var(--bit-rgb-fg), 0.06);
@@ -102,7 +102,7 @@
 
 .placeholder {
   padding: 12px;
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   color: rgba(var(--bit-rgb-fg), 0.58);
   border: 1px dashed rgba(var(--bit-rgb-fg), 0.1);
   border-radius: var(--bit-radius-md);

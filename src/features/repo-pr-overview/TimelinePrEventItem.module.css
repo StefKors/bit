@@ -10,7 +10,7 @@
 }
 
 .eventVerb {
-  font-size: 0.8125rem;
+  font-size: var(--bit-font-size-default);
   color: rgba(var(--bit-rgb-fg), 0.58);
 }
 

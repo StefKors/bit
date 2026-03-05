@@ -80,7 +80,7 @@
   justify-content: center;
   min-height: 220px;
   color: var(--repo-muted);
-  font-size: 0.8125rem;
+  font-size: var(--bit-font-size-default);
   padding: 12px;
   text-align: center;
   border: 1px dashed var(--repo-border);
@@ -89,7 +89,7 @@
 }
 
 .placeholderText {
-  font-size: 0.8125rem;
+  font-size: var(--bit-font-size-default);
   color: var(--bit-color-muted);
   margin: 0;
 }

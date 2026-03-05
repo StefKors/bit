@@ -4,8 +4,8 @@
   gap: 5px;
   padding: 2px 8px;
   border-radius: var(--bit-radius-pill);
-  font-size: 0.6875rem;
-  font-weight: 600;
+  font-size: var(--bit-font-size-small);
+  font-weight: var(--bit-font-weight-bold);
   letter-spacing: 0.02em;
   line-height: 1;
   white-space: nowrap;

@@ -13,7 +13,7 @@
   border: none;
   background: rgba(var(--bit-rgb-surface-2), 0.38);
   color: var(--bit-color-text);
-  font-size: 0.8125rem;
+  font-size: var(--bit-font-size-default);
   cursor: pointer;
   text-align: left;
   transition: background 110ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -51,7 +51,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--bit-font-mono, monospace);
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
 }
 
 .previousFileName {
@@ -63,8 +63,8 @@
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-  font-size: 0.6875rem;
-  font-weight: 600;
+  font-size: var(--bit-font-size-small);
+  font-weight: var(--bit-font-weight-bold);
 }
 
 .additionsStat {
@@ -88,14 +88,14 @@
 .diffContainer {
   border-top: 1px solid rgba(var(--bit-rgb-fg), 0.1);
   overflow-x: auto;
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   line-height: 1.5;
 }
 
 .diffPlaceholder {
   padding: 16px;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   color: rgba(var(--bit-rgb-fg), 0.58);
   border-top: 1px solid rgba(var(--bit-rgb-fg), 0.1);
   background: rgba(var(--bit-rgb-surface-2), 0.2);

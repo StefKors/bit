@@ -1,6 +1,6 @@
 .markdown {
   color: rgba(var(--bit-rgb-fg), 0.85);
-  font-size: 1rem;
+  font-size: var(--bit-font-size-body);
 }
 
 .loading {
@@ -38,7 +38,7 @@
 .markdown h5,
 .markdown h6 {
   color: var(--bit-color-heading);
-  font-weight: 600;
+  font-weight: var(--bit-font-weight-bold);
   margin-top: 1.5em;
   margin-bottom: 0.75em;
   line-height: 1.25;
@@ -51,23 +51,23 @@
 }
 
 .markdown h1 {
-  font-size: 1.5rem;
+  font-size: 22px;
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.1);
   padding-bottom: 0.5em;
 }
 
 .markdown h2 {
-  font-size: 1.25rem;
+  font-size: 19px;
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   padding-bottom: 0.4em;
 }
 
 .markdown h3 {
-  font-size: 1.1rem;
+  font-size: 17px;
 }
 
 .markdown h4 {
-  font-size: 1rem;
+  font-size: var(--bit-font-size-body);
 }
 
 .markdown p {
@@ -108,7 +108,7 @@
 /* Code */
 .markdown code {
   font-family: var(--bit-font-mono);
-  font-size: 0.9em;
+  font-size: 0.9em; /* relative to parent for inline code */
   background: rgba(var(--bit-rgb-fg), 0.08);
   padding: 0.2em 0.4em;
   border-radius: var(--bit-radius-sm);
@@ -126,7 +126,7 @@
 .markdown pre code {
   background: none;
   padding: 0;
-  font-size: 0.85rem;
+  font-size: var(--bit-font-size-default);
   line-height: 1.5;
 }
 
@@ -136,7 +136,7 @@
   padding: 1rem;
   border-radius: var(--bit-radius-lg);
   overflow-x: auto;
-  font-size: 0.85rem;
+  font-size: var(--bit-font-size-default);
   line-height: 1.5;
 }
 
@@ -193,7 +193,7 @@
   width: 100%;
   border-collapse: collapse;
   margin: 0 0 1em;
-  font-size: 0.9rem;
+  font-size: var(--bit-font-size-default);
 }
 
 .markdown th,
@@ -205,7 +205,7 @@
 
 .markdown th {
   background: rgba(var(--bit-rgb-fg), 0.05);
-  font-weight: 600;
+  font-weight: var(--bit-font-weight-bold);
 }
 
 .markdown tr:nth-child(even) {
@@ -236,7 +236,7 @@
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
   border-radius: var(--bit-radius-md);
   color: var(--bit-color-link);
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   text-decoration: none;
 }
 

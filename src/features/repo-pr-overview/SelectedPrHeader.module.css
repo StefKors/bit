@@ -14,7 +14,7 @@
 .selectedPrHeaderDate {
   flex-shrink: 0;
   margin-left: auto;
-  font-size: 0.6875rem;
+  font-size: var(--bit-font-size-small);
   color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
 }
 
@@ -39,8 +39,8 @@
 
 .selectedPrHeaderTitle {
   flex: 1;
-  font-weight: 600;
-  font-size: 1.0625rem;
+  font-weight: var(--bit-font-weight-bold);
+  font-size: var(--bit-font-size-body);
   line-height: 1.35;
   color: var(--bit-color-text);
   overflow: hidden;
@@ -51,7 +51,7 @@
 
 .selectedPrHeaderNumber {
   color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
-  font-weight: 500;
+  font-weight: var(--bit-font-weight-bold);
   margin-right: 6px;
 }
 
@@ -59,7 +59,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
   overflow: hidden;
 }
@@ -72,5 +72,5 @@
 .selectedPrHeaderComments {
   margin-left: auto;
   flex-shrink: 0;
-  font-size: 0.6875rem;
+  font-size: var(--bit-font-size-small);
 }

@@ -6,7 +6,7 @@
   gap: 0.5rem;
   border-radius: var(--bit-radius-lg);
   border: 1px solid transparent;
-  font-weight: 500;
+  font-weight: var(--bit-font-weight-bold);
   font-family: inherit;
   cursor: pointer;
   text-decoration: none;
@@ -34,17 +34,17 @@
 /* Sizes */
 .small {
   padding: 0.4rem 0.75rem;
-  font-size: 0.8rem;
+  font-size: var(--bit-font-size-small);
 }
 
 .medium {
   padding: 0.6rem 1rem;
-  font-size: 0.9rem;
+  font-size: var(--bit-font-size-default);
 }
 
 .large {
   padding: 1rem 1.5rem;
-  font-size: 1rem;
+  font-size: var(--bit-font-size-body);
 }
 
 /* Icons */
@@ -122,7 +122,7 @@
   background: var(--bit-color-inverse-bg);
   color: var(--bit-color-inverse-text);
   border-color: transparent;
-  font-weight: 600;
+  font-weight: var(--bit-font-weight-bold);
 }
 
 @media (hover: hover) {
@@ -200,7 +200,7 @@
   background: var(--bit-gradient-success);
   color: var(--bit-color-paper);
   border-color: transparent;
-  font-weight: 500;
+  font-weight: var(--bit-font-weight-bold);
 }
 
 @media (hover: hover) {

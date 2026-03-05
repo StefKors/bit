@@ -8,12 +8,12 @@
   gap: 6px;
   min-width: 0;
   flex: 1;
-  font-size: 0.8125rem;
+  font-size: var(--bit-font-size-default);
   color: var(--bit-color-text);
 }
 
 .timelineAuthor {
-  font-weight: 500;
+  font-weight: var(--bit-font-weight-bold);
   flex-shrink: 0;
 }
 
@@ -29,7 +29,7 @@
 .timelineCommitSha {
   flex-shrink: 0;
   font-family: var(--bit-font-mono, monospace);
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   padding: 1px 6px;
   border-radius: var(--bit-radius-sm);
   background: rgba(var(--bit-rgb-accent-blue), 0.1);
@@ -44,7 +44,7 @@
 .timelineCommitShaPlain {
   flex-shrink: 0;
   font-family: var(--bit-font-mono, monospace);
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   padding: 1px 6px;
   border-radius: var(--bit-radius-sm);
   background: rgba(var(--bit-rgb-fg), 0.06);

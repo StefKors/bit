@@ -20,7 +20,7 @@ const ReplyItem = ({
 }) => (
   <div className={styles.reply}>
     <div className={styles.replyHeader}>
-      <AuthorLabel login={comment.authorLogin} avatarUrl={comment.authorAvatarUrl} size={14} />
+      <AuthorLabel login={comment.authorLogin} avatarUrl={comment.authorAvatarUrl} size={12} />
       <time className={styles.replyTime}>
         {formatRelativeTime(comment.createdAt || comment.updatedAt)}
       </time>

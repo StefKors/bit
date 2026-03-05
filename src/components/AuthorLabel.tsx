@@ -6,17 +6,27 @@ interface AuthorLabelProps {
   login: string
   avatarUrl?: string | null
   size?: number
+  weight?: "regular" | "bold"
 }
 
-export const AuthorLabel = ({ login, avatarUrl, size = 14 }: AuthorLabelProps) => {
+export const AuthorLabel = ({ login, avatarUrl, size = 13, weight = "bold" }: AuthorLabelProps) => {
   const isBot = login.endsWith("[bot]")
   const displayName = isBot ? login.slice(0, -5) : login
   const resolvedUrl = resolveOwnerAvatarUrl(login, avatarUrl)
 
   return (
-    <span className={styles.authorLabel}>
-      <Avatar src={resolvedUrl} name={login} size={size} />
-      <span className={styles.authorLogin}>{displayName}</span>
+    <span
+      className={styles.authorLabel}
+      style={{ "--author-label-size": `${size}px` } as React.CSSProperties}
+    >
+      <span className={styles.authorAvatar}>
+        <Avatar src={resolvedUrl} name={login} size={size} />
+      </span>
+      <span
+        className={`${styles.authorLogin} ${weight === "regular" ? styles.authorLoginRegular : ""}`}
+      >
+        {displayName}
+      </span>
       {isBot && <span className={styles.botBadge}>bot</span>}
     </span>
   )

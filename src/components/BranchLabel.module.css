@@ -4,8 +4,8 @@
   gap: 0.25rem;
   min-width: 0;
   overflow: hidden;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--bit-font-size-small);
+  font-weight: var(--bit-font-weight-bold);
   user-select: text;
 }
 

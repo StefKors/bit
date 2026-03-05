@@ -35,8 +35,8 @@
   text-decoration: none;
   background: transparent;
   border: none;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: var(--bit-font-size-default);
+  font-weight: var(--bit-font-weight-bold);
   cursor: pointer;
   position: relative;
   z-index: 1;
@@ -69,7 +69,7 @@
   background: rgba(var(--bit-rgb-fg), 0.1);
   padding: 0.15rem 0.5rem;
   border-radius: var(--bit-radius-lg2);
-  font-size: 0.8rem;
+  font-size: var(--bit-font-size-small);
 }
 
 .indicator {

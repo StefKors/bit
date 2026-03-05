@@ -15,7 +15,7 @@ const NestedCommentThread = ({ thread }: { thread: ReviewCommentThread }) => {
   return (
     <div className={styles.nestedThread}>
       <div className={styles.nestedThreadHeader}>
-        <AuthorLabel login={root.authorLogin} avatarUrl={root.authorAvatarUrl} size={14} />
+        <AuthorLabel login={root.authorLogin} avatarUrl={root.authorAvatarUrl} size={12} />
         {root.path && (
           <code className={styles.nestedFilePath}>
             {root.path}
@@ -36,7 +36,7 @@ const NestedCommentThread = ({ thread }: { thread: ReviewCommentThread }) => {
       {replies.map((reply) => (
         <div key={reply.id} className={styles.nestedReply}>
           <div className={styles.nestedReplyHeader}>
-            <AuthorLabel login={reply.authorLogin} avatarUrl={reply.authorAvatarUrl} size={14} />
+            <AuthorLabel login={reply.authorLogin} avatarUrl={reply.authorAvatarUrl} size={12} />
             <time className={styles.nestedTime}>
               {formatRelativeTime(reply.createdAt || reply.updatedAt)}
             </time>

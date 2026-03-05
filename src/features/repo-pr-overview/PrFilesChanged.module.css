@@ -15,7 +15,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   color: rgba(var(--bit-rgb-fg), 0.58);
 }
 
@@ -23,20 +23,20 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-weight: 600;
+  font-weight: var(--bit-font-weight-bold);
   color: var(--bit-color-text);
 }
 
 .additionsStat {
   color: rgba(var(--bit-rgb-accent-green-bright), 0.9);
-  font-weight: 600;
-  font-size: 0.75rem;
+  font-weight: var(--bit-font-weight-bold);
+  font-size: var(--bit-font-size-small);
 }
 
 .deletionsStat {
   color: rgba(var(--bit-rgb-accent-red), 0.9);
-  font-weight: 600;
-  font-size: 0.75rem;
+  font-weight: var(--bit-font-weight-bold);
+  font-size: var(--bit-font-size-small);
 }
 
 .filesList {
@@ -52,7 +52,7 @@
   justify-content: center;
   min-height: 220px;
   color: rgba(var(--bit-rgb-fg), 0.58);
-  font-size: 0.8125rem;
+  font-size: var(--bit-font-size-default);
   padding: 12px;
   text-align: center;
   border: 1px dashed rgba(var(--bit-rgb-fg), 0.1);

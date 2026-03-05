@@ -58,18 +58,18 @@
 }
 
 .title {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: var(--bit-font-weight-bold);
   color: var(--bit-color-heading);
   margin: 0 0 0.5rem;
   letter-spacing: -0.02em;
 }
 
 .subtitle {
-  font-size: 0.9rem;
+  font-size: var(--bit-font-size-default);
   color: rgba(var(--bit-rgb-fg), 0.5);
   margin: 0;
-  font-weight: 400;
+  font-weight: var(--bit-font-weight-regular);
 }
 
 .userInfo {
@@ -92,26 +92,26 @@
 }
 
 .infoLabel {
-  font-size: 0.8rem;
+  font-size: var(--bit-font-size-small);
   color: rgba(var(--bit-rgb-fg), 0.4);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-weight: 500;
+  font-weight: var(--bit-font-weight-bold);
 }
 
 .infoValue {
-  font-size: 0.9rem;
+  font-size: var(--bit-font-size-default);
   color: rgba(var(--bit-rgb-fg), 0.9);
   font-family: var(--bit-font-mono);
 }
 
 .statusBadge {
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   color: var(--bit-color-accent-green);
   background: rgba(var(--bit-rgb-accent-green), 0.15);
   padding: 0.35rem 0.75rem;
   border-radius: var(--bit-radius-2xl);
-  font-weight: 600;
+  font-weight: var(--bit-font-weight-bold);
   border: 1px solid rgba(var(--bit-rgb-accent-green), 0.3);
 }
 
@@ -121,7 +121,7 @@
 }
 
 .footerText {
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   color: rgba(var(--bit-rgb-fg), 0.3);
   margin: 0;
 }
@@ -163,9 +163,9 @@
 }
 
 .inputLabel {
-  font-size: 0.8rem;
+  font-size: var(--bit-font-size-small);
   color: rgba(var(--bit-rgb-fg), 0.6);
-  font-weight: 500;
+  font-weight: var(--bit-font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -173,7 +173,7 @@
 .input {
   width: 100%;
   padding: 0.875rem 1rem;
-  font-size: 1rem;
+  font-size: var(--bit-font-size-body);
   color: var(--bit-color-fg);
   background: rgba(var(--bit-rgb-fg), 0.03);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
@@ -195,7 +195,7 @@
 
 .error {
   padding: 0.75rem 1rem;
-  font-size: 0.85rem;
+  font-size: var(--bit-font-size-default);
   color: var(--bit-color-accent-red);
   background: rgba(var(--bit-rgb-accent-red), 0.1);
   border: 1px solid rgba(var(--bit-rgb-accent-red), 0.2);
@@ -212,7 +212,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  font-size: 0.85rem;
+  font-size: var(--bit-font-size-default);
   color: rgba(var(--bit-rgb-fg), 0.5);
   background: transparent;
   border: none;
@@ -246,7 +246,7 @@
   }
 
   .title {
-    font-size: 1.4rem;
+    font-size: 22px;
   }
 }
 
@@ -257,6 +257,6 @@
   }
 
   .title {
-    font-size: 1.25rem;
+    font-size: 19px;
   }
 }

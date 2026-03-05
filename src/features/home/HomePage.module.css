@@ -24,14 +24,14 @@
 }
 
 .title {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: var(--bit-font-weight-bold);
   color: var(--bit-color-fg);
   margin: 0;
 }
 
 .subtitle {
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   color: var(--bit-color-fg-muted);
   margin: 0;
 }
@@ -55,8 +55,8 @@
 
 .settingsTitle {
   margin: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--bit-font-size-small);
+  font-weight: var(--bit-font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--bit-color-fg-muted);
@@ -77,14 +77,14 @@
 
 .settingName {
   margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 600;
+  font-size: var(--bit-font-size-default);
+  font-weight: var(--bit-font-weight-bold);
   color: var(--bit-color-fg);
 }
 
 .settingStatus {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: var(--bit-font-size-default);
   color: var(--bit-color-fg-muted);
 }
 
@@ -101,7 +101,7 @@
   color: var(--bit-color-fg);
   min-height: 2rem;
   padding: 0 0.75rem;
-  font-size: 0.8125rem;
+  font-size: var(--bit-font-size-default);
   cursor: pointer;
 }
 
@@ -114,7 +114,7 @@
 }
 
 .sectionText {
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   color: var(--bit-color-fg-muted);
   margin: 0;
 }
@@ -124,7 +124,7 @@
   background: rgba(var(--bit-rgb-danger), 0.1);
   border-radius: var(--bit-radius-md);
   color: var(--bit-color-accent-red);
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   margin-bottom: 1rem;
 }
 
@@ -133,7 +133,7 @@
   background: rgba(var(--bit-rgb-success), 0.1);
   border-radius: var(--bit-radius-md);
   color: var(--bit-color-accent-green);
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   margin-bottom: 1rem;
 }
 
@@ -141,7 +141,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   color: var(--bit-color-link);
   text-decoration: none;
 }
@@ -155,8 +155,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  font-size: 0.9375rem;
-  font-weight: 500;
+  font-size: var(--bit-font-size-default);
+  font-weight: var(--bit-font-weight-bold);
   color: var(--bit-color-accent-blue);
   text-decoration: none;
   min-height: 2.25rem;
@@ -177,8 +177,8 @@
 }
 
 .repoListTitle {
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: var(--bit-font-size-default);
+  font-weight: var(--bit-font-weight-bold);
   color: var(--bit-color-fg-muted);
   margin: 0 0 0.5rem;
   text-transform: uppercase;
@@ -202,7 +202,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   color: var(--bit-color-link);
   text-decoration: none;
 }
@@ -220,7 +220,7 @@
   background: none;
   border: none;
   color: var(--bit-color-fg-muted);
-  font-size: 0.875rem;
+  font-size: var(--bit-font-size-default);
   cursor: pointer;
   padding: 0;
 }

@@ -24,8 +24,8 @@
   border-radius: var(--bit-radius-sm);
   background: transparent;
   color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--bit-font-size-small);
+  font-weight: var(--bit-font-weight-bold);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -71,7 +71,7 @@
   border-radius: var(--bit-radius-sm);
   background: transparent;
   color: var(--bit-color-text);
-  font-size: 0.8125rem;
+  font-size: var(--bit-font-size-default);
   cursor: pointer;
   text-align: left;
 }
@@ -86,7 +86,7 @@
 
 .authorDropdownEmpty {
   padding: 6px;
-  font-size: 0.75rem;
+  font-size: var(--bit-font-size-small);
   color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
   text-align: center;
 }

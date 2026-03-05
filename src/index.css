@@ -4,7 +4,7 @@
   font-family: var(--bit-font);
   line-height: 1.5;
   font-weight: var(--bit-font-weight-regular);
-  font-size: 13px;
+  font-size: var(--bit-font-size-default);
 
   color-scheme: light dark;
   color: var(--bit-color-text);

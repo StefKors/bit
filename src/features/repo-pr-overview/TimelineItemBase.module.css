@@ -53,12 +53,12 @@
 .timelineTime {
   margin-left: auto;
   flex-shrink: 0;
-  font-size: 0.6875rem;
+  font-size: var(--bit-font-size-small);
   color: rgba(var(--bit-rgb-fg), 0.58);
 }
 
 .timelineContent {
-  font-size: 1rem;
+  font-size: var(--bit-font-size-body);
   padding: 8px 12px;
   border-radius: var(--bit-radius-md);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);

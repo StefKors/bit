@@ -22,14 +22,14 @@
 }
 
 .title {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
+  font-size: var(--bit-font-size-body);
+  font-weight: var(--bit-font-weight-bold);
   color: var(--color-fg-default);
   margin: 0;
 }
 
 .message {
-  font-size: var(--font-size-sm);
+  font-size: var(--bit-font-size-default);
   color: var(--color-fg-muted);
   margin: 0;
   line-height: 1.5;
@@ -44,8 +44,8 @@
 
 .retryButton {
   padding: var(--spacing-xs) var(--spacing-md);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-size: var(--bit-font-size-default);
+  font-weight: var(--bit-font-weight-bold);
   color: var(--color-fg-on-emphasis);
   background: var(--color-accent);
   border: none;
@@ -60,8 +60,8 @@
 
 .homeButton {
   padding: var(--spacing-xs) var(--spacing-md);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-size: var(--bit-font-size-default);
+  font-weight: var(--bit-font-weight-bold);
   color: var(--color-fg-default);
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border-default);

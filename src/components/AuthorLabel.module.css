@@ -1,23 +1,34 @@
 .authorLabel {
+  --author-label-size: 13px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
   min-width: 0;
 }
 
+.authorAvatar {
+  flex-shrink: 0;
+}
+
 .authorLogin {
+  font-size: var(--author-label-size);
+  line-height: 1;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-weight: 600;
+  font-weight: var(--bit-font-weight-bold);
+}
+
+.authorLoginRegular {
+  font-weight: var(--bit-font-weight-regular);
 }
 
 .botBadge {
   flex-shrink: 0;
   padding: 0 6px;
   border-radius: var(--bit-radius-pill);
-  font-size: 0.625rem;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: var(--bit-font-weight-bold);
   line-height: 1.6;
   color: rgba(var(--bit-rgb-fg), 0.5);
   background: rgba(var(--bit-rgb-fg), 0.07);
