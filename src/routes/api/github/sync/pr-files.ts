@@ -36,9 +36,7 @@ export const Route = createFileRoute("/api/github/sync/pr-files")({
           owner: string
           repo: string
           pullNumber: number
-          baseSha: string
           commitSha: string
-          pullRequestId: string
         }
         try {
           body = (await request.json()) as typeof body
@@ -46,12 +44,31 @@ export const Route = createFileRoute("/api/github/sync/pr-files")({
           return jsonResponse({ error: "Invalid JSON body" }, 400)
         }
 
-        const { owner, repo, pullNumber, baseSha, commitSha, pullRequestId } = body
-        if (!owner || !repo || !pullNumber || !baseSha || !commitSha || !pullRequestId) {
-          return jsonResponse(
-            { error: "owner, repo, pullNumber, baseSha, commitSha, pullRequestId are required" },
-            400,
-          )
+        const { owner, repo, pullNumber, commitSha } = body
+        if (!owner || !repo || !pullNumber || !commitSha) {
+          return jsonResponse({ error: "owner, repo, pullNumber, commitSha are required" }, 400)
+        }
+
+        const fullName = `${owner}/${repo}`
+        const { repos } = await adminDb.query({
+          repos: {
+            $: {
+              where: {
+                fullName,
+                "users.id": user.id,
+              },
+              limit: 1,
+            },
+            pullRequests: {
+              $: { where: { number: pullNumber }, limit: 1 },
+            },
+          },
+        })
+
+        const repoRecord = repos?.[0]
+        const pr = repoRecord?.pullRequests?.[0]
+        if (!pr?.baseSha) {
+          return jsonResponse({ error: "Pull request not found or not authorized" }, 404)
         }
 
         const installationId = await getInstallationIdForUser(user.id)
@@ -60,7 +77,7 @@ export const Route = createFileRoute("/api/github/sync/pr-files")({
         }
 
         try {
-          await syncPRFilesForCommit(pullRequestId, installationId, owner, repo, baseSha, commitSha)
+          await syncPRFilesForCommit(pr.id, installationId, owner, repo, pr.baseSha, commitSha)
           return jsonResponse({ synced: true })
         } catch (err) {
           log.error("Failed to sync PR files on-demand", err)

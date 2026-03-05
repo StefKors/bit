@@ -44,6 +44,23 @@ export const Route = createFileRoute("/api/github/sync/pr-commits")({
           return jsonResponse({ error: "owner, repo, pullNumber are required" }, 400)
         }
 
+        const fullName = `${owner}/${repo}`
+        const { repos } = await adminDb.query({
+          repos: {
+            $: {
+              where: {
+                fullName,
+                "users.id": user.id,
+              },
+              limit: 1,
+            },
+          },
+        })
+
+        if (!repos?.length) {
+          return jsonResponse({ error: "Repository not found or not authorized" }, 404)
+        }
+
         const installationId = await getInstallationIdForUser(user.id)
         if (!installationId) {
           return jsonResponse({ error: "No GitHub installation found for user" }, 400)

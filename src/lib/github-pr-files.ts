@@ -28,12 +28,16 @@ interface CommitEntry {
 
 const GITHUB_API = "https://api.github.com"
 
+const GITHUB_HEADERS = {
+  Accept: "application/vnd.github+json",
+  "X-GitHub-Api-Version": "2022-11-28",
+}
+
 const githubFetch = async <T>(url: string, token: string): Promise<T | null> => {
   const response = await fetch(url, {
     headers: {
       Authorization: `token ${token}`,
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
+      ...GITHUB_HEADERS,
     },
   })
   if (!response.ok) {
@@ -41,6 +45,12 @@ const githubFetch = async <T>(url: string, token: string): Promise<T | null> => 
     return null
   }
   return (await response.json()) as T
+}
+
+const parseLinkNext = (linkHeader: string | null): string | null => {
+  if (!linkHeader) return null
+  const match = linkHeader.match(/<([^>]+)>;\s*rel="next"/)
+  return match?.[1] ?? null
 }
 
 export const fetchFilesForCommit = async (
@@ -53,9 +63,33 @@ export const fetchFilesForCommit = async (
   const token = await getInstallationToken(installationId)
   if (!token) return []
 
-  const url = `${GITHUB_API}/repos/${owner}/${repo}/compare/${baseSha}...${commitSha}`
-  const data = await githubFetch<CompareResponse>(url, token)
-  return data?.files ?? []
+  const allFiles: CompareFile[] = []
+  let url: string | null = `${GITHUB_API}/repos/${owner}/${repo}/compare/${baseSha}...${commitSha}`
+
+  while (url) {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `token ${token}`,
+        ...GITHUB_HEADERS,
+      },
+    })
+    if (!response.ok) {
+      log.error("GitHub API request failed", `HTTP ${response.status}: ${url}`)
+      break
+    }
+    const data = (await response.json()) as CompareResponse
+    const files = data?.files ?? []
+    allFiles.push(...files)
+
+    const nextUrl = parseLinkNext(response.headers.get("Link"))
+    if (nextUrl && files.length > 0) {
+      url = nextUrl
+    } else {
+      url = null
+    }
+  }
+
+  return allFiles
 }
 
 export const fetchPRFiles = async (

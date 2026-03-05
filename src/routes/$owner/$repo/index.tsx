@@ -605,7 +605,7 @@ function PRFilesChanged({ pr, owner, repo }: { pr: PullRequestCard; owner: strin
   }
 
   const handleSyncFiles = (sha: string) => {
-    if (!refreshToken || !pr.baseSha || syncingCommit) return
+    if (!refreshToken || syncingCommit) return
     setSyncingCommit(sha)
     fetch("/api/github/sync/pr-files", {
       method: "POST",
@@ -617,9 +617,7 @@ function PRFilesChanged({ pr, owner, repo }: { pr: PullRequestCard; owner: strin
         owner,
         repo,
         pullNumber: pr.number,
-        baseSha: pr.baseSha,
         commitSha: sha,
-        pullRequestId: pr.id,
       }),
     })
       .catch(() => {})

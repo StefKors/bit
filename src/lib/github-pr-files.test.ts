@@ -97,6 +97,27 @@ describe("github-pr-files", () => {
       const result = await fetchFilesForCommit(123, "owner", "repo", "abc", "def")
       expect(result).toEqual([])
     })
+
+    it("paginates through Link header when more than 300 files", async () => {
+      mockGetInstallationToken.mockResolvedValue("token-123")
+      const page1 = [{ filename: "a.ts", status: "modified", additions: 1, deletions: 0 }]
+      const page2 = [{ filename: "b.ts", status: "added", additions: 10, deletions: 0 }]
+
+      vi.mocked(globalThis.fetch)
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ files: page1 }), {
+            status: 200,
+            headers: {
+              Link: '<https://api.github.com/repos/o/r/compare/base...head?page=2>; rel="next"',
+            },
+          }),
+        )
+        .mockResolvedValueOnce(new Response(JSON.stringify({ files: page2 }), { status: 200 }))
+
+      const result = await fetchFilesForCommit(123, "owner", "repo", "base", "head")
+      expect(result).toEqual([...page1, ...page2])
+      expect(globalThis.fetch).toHaveBeenCalledTimes(2)
+    })
   })
 
   describe("fetchPRFiles", () => {
