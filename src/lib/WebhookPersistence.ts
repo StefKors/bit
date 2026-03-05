@@ -219,8 +219,8 @@ const upsertPullRequestReviewComment = async (
     authorAvatarUrl: asString(author?.avatar_url),
     htmlUrl: asString(comment?.html_url),
     payload: toJson(payload),
-    createdAt: existing?.createdAt ?? now,
-    updatedAt: now,
+    createdAt: existing?.createdAt ?? parseTimestamp(comment?.created_at) ?? now,
+    updatedAt: parseTimestamp(comment?.updated_at) ?? now,
   }
 
   if (existing) {
@@ -263,8 +263,8 @@ const upsertIssueComment = async (
     authorAvatarUrl: asString(author?.avatar_url),
     htmlUrl: asString(comment?.html_url),
     payload: toJson(payload),
-    createdAt: existing?.createdAt ?? now,
-    updatedAt: now,
+    createdAt: existing?.createdAt ?? parseTimestamp(comment?.created_at) ?? now,
+    updatedAt: parseTimestamp(comment?.updated_at) ?? now,
   }
 
   if (existing) {
