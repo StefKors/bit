@@ -159,7 +159,7 @@ export function RepoPROverviewPage() {
 
         {selectedPR && (
           <div className={styles.prHeader}>
-            <SelectedPRHeader pr={selectedPR} />
+            <SelectedPRHeader pr={selectedPR} fullName={fullName} />
           </div>
         )}
 

@@ -1,3 +1,4 @@
+import { LinkExternalIcon } from "@primer/octicons-react"
 import { formatMergeableState, formatRelativeTime } from "@/lib/format"
 import { AuthorLabel } from "@/components/AuthorLabel"
 import { StatusBadge } from "@/components/StatusBadge"
@@ -9,9 +10,11 @@ import styles from "./SelectedPRHeader.module.css"
 
 interface SelectedPRHeaderProps {
   pr: PullRequestCard
+  fullName: string
 }
 
-export function SelectedPRHeader({ pr }: SelectedPRHeaderProps) {
+export function SelectedPRHeader({ pr, fullName }: SelectedPRHeaderProps) {
+  const prUrl = `https://github.com/${fullName}/pull/${pr.number}`
   const status = getPrStatusVariant(pr)
   const totalComments = pr.commentsCount + pr.reviewCommentsCount
 
@@ -23,6 +26,15 @@ export function SelectedPRHeader({ pr }: SelectedPRHeaderProps) {
           {pr.title}
         </span>
         <span className={styles.selectedPrHeaderDate}>{formatRelativeTime(pr.updatedAt)}</span>
+        <a
+          href={prUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.selectedPrHeaderGitHubLink}
+          title="Open PR on GitHub"
+        >
+          <LinkExternalIcon size={14} />
+        </a>
       </span>
 
       <span className={styles.selectedPrHeaderBottom}>

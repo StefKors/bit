@@ -18,6 +18,25 @@
   color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
 }
 
+.selectedPrHeaderGitHubLink {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  margin-left: 4px;
+  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
+  border-radius: var(--radius-sm, 4px);
+  transition:
+    color 0.15s,
+    background-color 0.15s;
+}
+
+.selectedPrHeaderGitHubLink:hover {
+  color: var(--bit-color-text);
+  background-color: rgba(var(--bit-rgb-fg), 0.08);
+}
+
 .selectedPrHeaderTitle {
   flex: 1;
   font-weight: 600;
