@@ -32,7 +32,7 @@
   font-size: var(--bit-font-size-default);
   color: var(--color-fg-muted);
   margin: 0;
-  line-height: 1.5;
+  line-height: var(--bit-line-height-default);
   word-break: break-word;
 }
 

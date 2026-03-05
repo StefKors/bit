@@ -13,6 +13,7 @@ export const AuthorLabel = ({ login, avatarUrl, size = 13, weight = "bold" }: Au
   const isBot = login.endsWith("[bot]")
   const displayName = isBot ? login.slice(0, -5) : login
   const resolvedUrl = resolveOwnerAvatarUrl(login, avatarUrl)
+  const avatarSize = Math.max(size, 14)
 
   return (
     <span
@@ -20,7 +21,7 @@ export const AuthorLabel = ({ login, avatarUrl, size = 13, weight = "bold" }: Au
       style={{ "--author-label-size": `${size}px` } as React.CSSProperties}
     >
       <span className={styles.authorAvatar}>
-        <Avatar src={resolvedUrl} name={login} size={size} />
+        <Avatar src={resolvedUrl} name={login} size={avatarSize} />
       </span>
       <span
         className={`${styles.authorLogin} ${weight === "regular" ? styles.authorLoginRegular : ""}`}

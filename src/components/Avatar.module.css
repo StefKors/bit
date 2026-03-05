@@ -10,6 +10,7 @@
 
 .avatar {
   border-radius: 50%;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   box-shadow: var(--bit-shadow-md);
   color: transparent;
@@ -17,6 +18,7 @@
 
 .avatarPlaceholder {
   border-radius: 50%;
+  aspect-ratio: 1 / 1;
   background: var(--bit-color-panel-bg);
   display: flex;
   align-items: center;

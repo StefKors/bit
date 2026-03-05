@@ -2,7 +2,7 @@
 
 :root {
   font-family: var(--bit-font);
-  line-height: 1.5;
+  line-height: var(--bit-line-height-default);
   font-weight: var(--bit-font-weight-regular);
   font-size: var(--bit-font-size-default);
 

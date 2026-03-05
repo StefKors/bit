@@ -41,7 +41,7 @@
   flex: 1;
   font-weight: var(--bit-font-weight-bold);
   font-size: var(--bit-font-size-body);
-  line-height: 1.35;
+  line-height: var(--bit-line-height-body);
   color: var(--bit-color-text);
   overflow: hidden;
   white-space: nowrap;

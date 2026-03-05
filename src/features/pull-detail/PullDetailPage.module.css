@@ -44,7 +44,7 @@
 .title {
   margin: 0;
   font-size: var(--bit-font-size-body);
-  line-height: 1.25;
+  line-height: var(--bit-line-height-body);
   color: var(--bit-color-text);
 }
 
@@ -92,7 +92,7 @@
   white-space: pre-wrap;
   color: var(--bit-color-text);
   font-size: var(--bit-font-size-body);
-  line-height: 1.5;
+  line-height: var(--bit-line-height-body);
   padding: 10px 12px;
   border-radius: var(--bit-radius-md);
   border: 1px solid var(--pr-border);
@@ -134,7 +134,7 @@
   min-height: 36px;
   padding: 8px 10px;
   font-size: var(--bit-font-size-default);
-  line-height: 1.45;
+  line-height: var(--bit-line-height-default);
   color: var(--bit-color-text);
   border: 1px solid var(--pr-border);
   border-radius: var(--bit-radius-md);

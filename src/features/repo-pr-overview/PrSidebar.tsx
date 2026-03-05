@@ -27,7 +27,7 @@ export function PrSidebar({ pr }: PrSidebarProps) {
               const review = latestReviewByAuthor.get(login)
               return (
                 <li key={login} className={styles.sidebarListItem}>
-                  <AuthorLabel login={login} avatarUrl={review?.authorAvatarUrl} size={16} />
+                  <AuthorLabel login={login} avatarUrl={review?.authorAvatarUrl} />
                   {review && (
                     <StatusBadge
                       variant={
@@ -48,7 +48,7 @@ export function PrSidebar({ pr }: PrSidebarProps) {
               .filter((login) => !reviewerLogins.includes(login))
               .map((login) => (
                 <li key={login} className={styles.sidebarListItem}>
-                  <AuthorLabel login={login} size={16} />
+                  <AuthorLabel login={login} />
                   <span className={styles.sidebarMuted}>pending</span>
                 </li>
               ))}
@@ -64,7 +64,7 @@ export function PrSidebar({ pr }: PrSidebarProps) {
           <ul className={styles.sidebarList}>
             {pr.assignees.map((login) => (
               <li key={login} className={styles.sidebarListItem}>
-                <AuthorLabel login={login} size={16} />
+                <AuthorLabel login={login} />
               </li>
             ))}
           </ul>

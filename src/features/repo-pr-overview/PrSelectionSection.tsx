@@ -80,11 +80,10 @@ export function PrSelectionSection({
                     <AuthorLabel
                       login={pr.authorLogin}
                       avatarUrl={pr.authorAvatarUrl}
-                      size={13}
+                      size={12}
                       weight="regular"
                     />
                     <span className={styles.prMetaTrail}>
-                      {pr.commentsCount + pr.reviewCommentsCount}
                       <CiDot
                         variant={getCiDotVariant(pr)}
                         title={pr.merged ? "Merged" : formatMergeableState(pr.mergeableState)}

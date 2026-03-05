@@ -10,6 +10,10 @@
   --bit-font-size-body: 15px;
   --bit-font-size-small: 12px;
 
+  --bit-line-height-default: 20px;
+  --bit-line-height-body: 22px;
+  --bit-line-height-small: 18px;
+
   /*
     Theme tokens (dark by default).
 

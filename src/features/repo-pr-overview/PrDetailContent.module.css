@@ -6,6 +6,7 @@
 
 .prBody {
   font-size: var(--bit-font-size-body);
+  max-width: 800px;
 }
 
 .detailSection {
@@ -83,7 +84,7 @@
   padding: 10px 12px;
   font-size: var(--bit-font-size-body);
   font-family: inherit;
-  line-height: 1.5;
+  line-height: var(--bit-line-height-body);
   color: var(--bit-color-text);
   background: rgba(var(--bit-rgb-surface-2), 0.28);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.12);

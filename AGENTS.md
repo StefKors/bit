@@ -77,13 +77,13 @@ bun run instant:push
 
 Reusable UI components live in `src/components/`. Use these instead of inlining equivalent markup:
 
-| Component     | File              | Props                                                                           | Usage                                   |
-| ------------- | ----------------- | ------------------------------------------------------------------------------- | --------------------------------------- |
-| `Avatar`      | `Avatar.tsx`      | `src`, `name`, `size`, `isOnline?`, `isOrganization?`                           | User/org avatar with fallback           |
-| `AuthorLabel` | `AuthorLabel.tsx` | `login`, `avatarUrl?`, `size?` (default 14)                                     | Avatar + login text inline              |
-| `StatusBadge` | `StatusBadge.tsx` | `variant` (`open`/`merged`/`closed`/`needsReview`/`draft`), `icon?`, `children` | Colored pill badge for PR state         |
-| `BranchLabel` | `BranchLabel.tsx` | `head`, `base`                                                                  | Displays `base ← head` with copy button |
-| `CiDot`       | `CiDot.tsx`       | `variant` (`ready`/`blocked`/`checking`), `title?`                              | 6px colored CI status dot               |
+| Component     | File              | Props                                                                                        | Usage                                   |
+| ------------- | ----------------- | -------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `Avatar`      | `Avatar.tsx`      | `src`, `name`, `size`, `isOnline?`, `isOrganization?`                                        | User/org avatar with fallback           |
+| `AuthorLabel` | `AuthorLabel.tsx` | `login`, `avatarUrl?`, `size?` (default 14), `weight?` (`regular` \| `bold`, default `bold`) | Avatar + login text inline              |
+| `StatusBadge` | `StatusBadge.tsx` | `variant` (`open`/`merged`/`closed`/`needsReview`/`draft`), `icon?`, `children`              | Colored pill badge for PR state         |
+| `BranchLabel` | `BranchLabel.tsx` | `head`, `base`                                                                               | Displays `base ← head` with copy button |
+| `CiDot`       | `CiDot.tsx`       | `variant` (`ready`/`blocked`/`checking`), `title?`                                           | 6px colored CI status dot               |
 
 # Shared Utilities
 
