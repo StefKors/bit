@@ -46,13 +46,6 @@
   color: rgba(var(--bit-rgb-fg), 0.58);
 }
 
-.sidebarValue {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--bit-color-text);
-}
-
 .labelList {
   display: flex;
   flex-wrap: wrap;

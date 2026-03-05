@@ -54,7 +54,15 @@ export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
       )}
 
       <div className={styles.detailSection}>
-        <h3 className={styles.detailSectionTitle}>Activity</h3>
+        <h3 className={styles.detailSectionTitle}>
+          Activity
+          {pr.commitsCount > 0 && (
+            <span className={styles.detailSectionMeta}>
+              {" "}
+              · {pr.commitsCount} commit{pr.commitsCount !== 1 ? "s" : ""}
+            </span>
+          )}
+        </h3>
         {timeline.length > 0 ? (
           <div className={styles.timeline}>
             {timeline.map((item: TimelineItem) => {

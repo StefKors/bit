@@ -23,6 +23,11 @@
   color: rgba(var(--bit-rgb-fg), 0.58);
 }
 
+.detailSectionMeta {
+  font-weight: 400;
+  text-transform: none;
+}
+
 .detailList {
   list-style: none;
   margin: 0;

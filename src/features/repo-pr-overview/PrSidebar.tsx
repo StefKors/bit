@@ -87,11 +87,6 @@ export function PrSidebar({ pr }: PrSidebarProps) {
           <p className={styles.sidebarEmpty}>None</p>
         )}
       </div>
-
-      <div className={styles.sidebarSection}>
-        <h3 className={styles.sidebarSectionTitle}>Commits</h3>
-        <p className={styles.sidebarValue}>{pr.commitsCount}</p>
-      </div>
     </div>
   )
 }
