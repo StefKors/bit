@@ -1,0 +1,93 @@
+.authorFilter {
+  display: flex;
+  align-items: center;
+}
+
+.authorFilterPills {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--bit-radius-md);
+  background: rgba(var(--bit-rgb-surface-3), 0.35);
+}
+
+.authorPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--bit-radius-sm);
+  background: transparent;
+  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 110ms cubic-bezier(0.45, 0, 0.55, 1),
+    color 110ms cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.authorPill:hover {
+  color: var(--bit-color-text);
+  background: rgba(var(--bit-rgb-fg), 0.06);
+}
+
+.authorPillActive {
+  color: var(--bit-color-text);
+  background: rgba(var(--bit-rgb-fg), 0.1);
+}
+
+.authorDropdownWrap {
+  position: relative;
+}
+
+.authorDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 50;
+  min-width: 180px;
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  border-radius: var(--bit-radius-md);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  background: rgba(var(--bit-rgb-surface-2), 0.98);
+  box-shadow: var(--bit-shadow-lg);
+  backdrop-filter: blur(12px);
+}
+
+.authorDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: none;
+  border-radius: var(--bit-radius-sm);
+  background: transparent;
+  color: var(--bit-color-text);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 110ms cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.authorDropdownItem:hover {
+  background: rgba(var(--bit-rgb-fg), 0.05);
+}
+
+.authorDropdownItemActive {
+  background: rgba(var(--bit-rgb-fg), 0.08);
+}
+
+.authorDropdownEmpty {
+  padding: 8px;
+  font-size: 0.75rem;
+  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
+  text-align: center;
+}

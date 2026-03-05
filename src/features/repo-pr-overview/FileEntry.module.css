@@ -1,0 +1,102 @@
+.fileEntry {
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-md);
+  overflow: hidden;
+}
+
+.fileHeader {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: none;
+  background: rgba(var(--bit-rgb-surface-2), 0.38);
+  color: var(--bit-color-text);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 110ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fileHeader:hover {
+  background: rgba(var(--bit-rgb-surface-2), 0.55);
+}
+
+.fileStatusIcon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.fileStatusAdded {
+  color: rgba(var(--bit-rgb-accent-green-bright), 0.9);
+}
+
+.fileStatusRemoved {
+  color: rgba(var(--bit-rgb-accent-red), 0.9);
+}
+
+.fileStatusModified {
+  color: rgba(var(--bit-rgb-accent-yellow), 0.9);
+}
+
+.fileStatusRenamed {
+  color: rgba(var(--bit-rgb-accent-blue), 0.9);
+}
+
+.fileName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--bit-font-mono, monospace);
+  font-size: 0.75rem;
+}
+
+.previousFileName {
+  color: rgba(var(--bit-rgb-fg), 0.58);
+}
+
+.fileStats {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.additionsStat {
+  color: rgba(var(--bit-rgb-accent-green-bright), 0.9);
+}
+
+.deletionsStat {
+  color: rgba(var(--bit-rgb-accent-red), 0.9);
+}
+
+.chevronCollapsed {
+  transform: rotate(-90deg);
+  transition: transform 110ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chevronExpanded {
+  transform: rotate(0deg);
+  transition: transform 110ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.diffContainer {
+  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  overflow-x: auto;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.diffPlaceholder {
+  padding: 16px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.58);
+  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  background: rgba(var(--bit-rgb-surface-2), 0.2);
+}

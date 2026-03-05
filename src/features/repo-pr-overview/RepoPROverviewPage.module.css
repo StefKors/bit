@@ -1,0 +1,115 @@
+.container {
+  --repo-border: rgba(var(--bit-rgb-fg), 0.1);
+  --repo-border-strong: rgba(var(--bit-rgb-fg), 0.14);
+  --repo-surface: rgba(var(--bit-rgb-surface-2), 0.62);
+  --repo-surface-soft: rgba(var(--bit-rgb-surface-3), 0.35);
+  --repo-hover: rgba(var(--bit-rgb-fg), 0.05);
+  --repo-muted: rgba(var(--bit-rgb-fg), 0.58);
+  --motion-fast: 110ms;
+  --motion-base: 180ms;
+  --motion-entry: 240ms;
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-balance: cubic-bezier(0.45, 0, 0.55, 1);
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px;
+  gap: 16px;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 272px 1fr 312px;
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    "sidebar header  header"
+    "sidebar tabs    tabs"
+    "sidebar content activity";
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+}
+
+.column1 {
+  grid-area: sidebar;
+  grid-row: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.prHeader {
+  grid-area: header;
+}
+
+.prTabs {
+  grid-area: tabs;
+}
+
+.column2 {
+  grid-area: content;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.column3 {
+  grid-area: activity;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: auto;
+}
+
+.placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  color: var(--repo-muted);
+  font-size: 0.8125rem;
+  padding: 12px;
+  text-align: center;
+  border: 1px dashed var(--repo-border);
+  border-radius: var(--bit-radius-lg);
+  background: rgba(var(--bit-rgb-surface-2), 0.32);
+}
+
+.placeholderText {
+  font-size: 0.8125rem;
+  color: var(--bit-color-muted);
+  margin: 0;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--bit-color-muted);
+}
+
+@media (max-width: 1200px) {
+  .columns {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    grid-template-areas:
+      "sidebar"
+      "header"
+      "tabs"
+      "content"
+      "activity";
+  }
+
+  .column1,
+  .column2,
+  .column3 {
+    max-height: none;
+  }
+}

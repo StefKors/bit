@@ -1,0 +1,57 @@
+.selectedPrHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selectedPrHeaderTop {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.selectedPrHeaderDate {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 0.6875rem;
+  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
+}
+
+.selectedPrHeaderTitle {
+  flex: 1;
+  font-weight: 600;
+  font-size: 1.0625rem;
+  line-height: 1.35;
+  color: var(--bit-color-text);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.selectedPrHeaderNumber {
+  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
+  font-weight: 500;
+  margin-right: 6px;
+}
+
+.selectedPrHeaderBottom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
+  overflow: hidden;
+}
+
+.selectedPrHeaderSep {
+  flex-shrink: 0;
+  opacity: 0.4;
+}
+
+.selectedPrHeaderComments {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+}

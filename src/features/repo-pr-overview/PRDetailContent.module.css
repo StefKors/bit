@@ -1,0 +1,84 @@
+.detailContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.prBody {
+  font-size: 0.8125rem;
+}
+
+.detailSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detailSectionTitle {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(var(--bit-rgb-fg), 0.58);
+}
+
+.detailList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detailListItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  font-size: 0.8125rem;
+  color: var(--bit-color-text);
+  border-radius: var(--bit-radius-sm);
+  background: rgba(var(--bit-rgb-surface-2), 0.28);
+}
+
+.detailListItemText {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.detailListItemMeta {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  color: rgba(var(--bit-rgb-fg), 0.58);
+}
+
+.detailEmpty {
+  margin: 0;
+  padding: 8px;
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.58);
+  border: 1px dashed rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-md);
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  padding-left: 28px;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: rgba(var(--bit-rgb-fg), 0.1);
+}

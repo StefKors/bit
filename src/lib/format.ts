@@ -24,3 +24,9 @@ export const formatActivityDate = (dateValue: string | number | null): string =>
   if (Number.isNaN(date.getTime())) return "Unknown time"
   return date.toLocaleString()
 }
+
+export const formatMergeableState = (mergeableState: string | null | undefined): string => {
+  if (!mergeableState || mergeableState === "unknown") return "checking"
+  if (mergeableState === "blocked") return "blocked"
+  return mergeableState.replaceAll("_", " ")
+}

@@ -1,0 +1,110 @@
+.filesChangedContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filesChangedToolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filesChangedStats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.58);
+}
+
+.filesCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--bit-color-text);
+}
+
+.additionsStat {
+  color: rgba(var(--bit-rgb-accent-green-bright), 0.9);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.deletionsStat {
+  color: rgba(var(--bit-rgb-accent-red), 0.9);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.loadCommitsButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-md);
+  background: rgba(var(--bit-rgb-surface-3), 0.35);
+  color: var(--bit-color-text);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 110ms cubic-bezier(0.45, 0, 0.55, 1),
+    border-color 110ms cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.loadCommitsButton:hover {
+  border-color: rgba(var(--bit-rgb-fg), 0.14);
+  background: rgba(var(--bit-rgb-fg), 0.05);
+}
+
+.syncingBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.58);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-md);
+  background: rgba(var(--bit-rgb-surface-2), 0.4);
+}
+
+.spinIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.filesList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  color: rgba(var(--bit-rgb-fg), 0.58);
+  font-size: 0.8125rem;
+  padding: 12px;
+  text-align: center;
+  border: 1px dashed rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-lg);
+  background: rgba(var(--bit-rgb-surface-2), 0.32);
+  flex-direction: column;
+  gap: 8px;
+}

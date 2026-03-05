@@ -1,15 +1,12 @@
 /// <reference types="vite/client" />
-import { useEffect, type ReactNode } from "react"
-import { createRootRoute, Outlet, HeadContent, Scripts } from "@tanstack/react-router"
-import { Layout } from "@/layout"
-import { LoadingCube } from "@/components/LoadingCube"
+import { createRootRoute } from "@tanstack/react-router"
+import { RootDocument } from "@/features/root/RootDocument"
+import { AppContent } from "@/features/root/AppContent"
 import { ErrorFallback } from "@/components/ErrorFallback"
-import LoginPage from "@/pages/LoginPage"
-import { useAuth } from "@/lib/hooks/useAuth"
-import "@/theme.css"
-import "@/index.css"
 import { isDev } from "@/lib/utils/isDevelopment"
 import { isLight } from "@/lib/utils/currentColorScheme"
+import "@/theme.css"
+import "@/index.css"
 
 export const Route = createRootRoute({
   head: () => ({
@@ -35,67 +32,5 @@ function RootComponent() {
     <RootDocument>
       <AppContent />
     </RootDocument>
-  )
-}
-
-function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
-    const updateFavicon = () => {
-      const light = !mediaQuery.matches
-      const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
-      if (link) {
-        link.href = `/bit-cube-small${light ? "-light" : ""}${isDev ? "-dev" : ""}.png`
-      }
-    }
-    updateFavicon()
-    mediaQuery.addEventListener("change", updateFavicon)
-    return () => {
-      mediaQuery.removeEventListener("change", updateFavicon)
-    }
-  }, [])
-
-  return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  )
-}
-
-function AppContent() {
-  const { isLoading, user, error } = useAuth()
-
-  if (isLoading) {
-    return (
-      <Layout>
-        <LoadingCube />
-      </Layout>
-    )
-  }
-
-  if (error) {
-    return (
-      <Layout>
-        <div style={{ padding: "2rem", color: "#f85149" }}>
-          Authentication error: {error.message}
-        </div>
-      </Layout>
-    )
-  }
-
-  if (!user) {
-    return <LoginPage />
-  }
-
-  return (
-    <Layout>
-      <Outlet />
-    </Layout>
   )
 }

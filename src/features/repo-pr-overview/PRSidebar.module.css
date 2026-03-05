@@ -1,0 +1,71 @@
+.sidebarContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sidebarSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebarSectionTitle {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(var(--bit-rgb-fg), 0.58);
+}
+
+.sidebarList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebarListItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebarMuted {
+  font-size: 0.6875rem;
+  color: rgba(var(--bit-rgb-fg), 0.58);
+  font-style: italic;
+}
+
+.sidebarEmpty {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgba(var(--bit-rgb-fg), 0.58);
+}
+
+.sidebarValue {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--bit-color-text);
+}
+
+.labelList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--bit-radius-pill);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--bit-color-text);
+  background: rgba(var(--bit-rgb-surface-3), 0.5);
+}
