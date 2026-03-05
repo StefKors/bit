@@ -61,7 +61,6 @@ export type TimelineItem =
 
 export interface PullRequestFileEntry {
   id: string
-  commitSha: string
   filename: string
   previousFilename?: string | null
   status: string

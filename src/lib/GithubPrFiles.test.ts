@@ -28,12 +28,7 @@ vi.mock("@/lib/Logger", () => ({
   log: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }))
 
-import {
-  fetchFilesForCommit,
-  fetchPRFiles,
-  fetchPRCommits,
-  syncPRFilesForCommit,
-} from "./GithubPrFiles"
+import { fetchFilesForCommit, syncPRFiles } from "./GithubPrFiles"
 import { getInstallationToken } from "@/lib/GithubApp"
 import { adminDb } from "@/lib/InstantAdmin"
 
@@ -120,65 +115,14 @@ describe("GithubPrFiles", () => {
     })
   })
 
-  describe("fetchPRFiles", () => {
-    it("returns null when no installation token", async () => {
-      mockGetInstallationToken.mockResolvedValue(null)
-      const result = await fetchPRFiles(123, "owner", "repo", 1)
-      expect(result).toBeNull()
-    })
-
-    it("returns null when PR fetch fails", async () => {
-      mockGetInstallationToken.mockResolvedValue("token-123")
-      vi.mocked(globalThis.fetch).mockResolvedValue(new Response("Not Found", { status: 404 }))
-
-      const result = await fetchPRFiles(123, "owner", "repo", 1)
-      expect(result).toBeNull()
-    })
-
-    it("fetches PR then compare files", async () => {
-      mockGetInstallationToken.mockResolvedValue("token-123")
-      const prData = { base: { sha: "base-sha" }, head: { sha: "head-sha" } }
-      const files = [{ filename: "a.ts", status: "modified", additions: 1, deletions: 0 }]
-
-      vi.mocked(globalThis.fetch)
-        .mockResolvedValueOnce(new Response(JSON.stringify(prData), { status: 200 }))
-        .mockResolvedValueOnce(new Response(JSON.stringify({ files }), { status: 200 }))
-
-      const result = await fetchPRFiles(123, "owner", "repo", 42)
-      expect(result).toEqual({ files, baseSha: "base-sha", headSha: "head-sha" })
-    })
-  })
-
-  describe("fetchPRCommits", () => {
-    it("returns empty array when no installation token", async () => {
-      mockGetInstallationToken.mockResolvedValue(null)
-      const result = await fetchPRCommits(123, "owner", "repo", 1)
-      expect(result).toEqual([])
-    })
-
-    it("returns commits list", async () => {
-      mockGetInstallationToken.mockResolvedValue("token-123")
-      const commits = [
-        { sha: "abc", commit: { message: "first" } },
-        { sha: "def", commit: { message: "second" } },
-      ]
-      vi.mocked(globalThis.fetch).mockResolvedValue(
-        new Response(JSON.stringify(commits), { status: 200 }),
-      )
-
-      const result = await fetchPRCommits(123, "owner", "repo", 42)
-      expect(result).toEqual(commits)
-    })
-  })
-
-  describe("syncPRFilesForCommit", () => {
+  describe("syncPRFiles", () => {
     it("does nothing when no files returned", async () => {
       mockGetInstallationToken.mockResolvedValue("token-123")
       vi.mocked(globalThis.fetch).mockResolvedValue(
         new Response(JSON.stringify({ files: [] }), { status: 200 }),
       )
 
-      await syncPRFilesForCommit("pr-id", 123, "owner", "repo", "base", "head")
+      await syncPRFiles("pr-id", 123, "owner", "repo", "base", "head")
       expect(mockAdminDb.query).not.toHaveBeenCalled()
     })
 
@@ -196,7 +140,7 @@ describe("GithubPrFiles", () => {
       } as never)
       mockAdminDb.transact.mockResolvedValue({} as never)
 
-      await syncPRFilesForCommit("pr-id", 123, "owner", "repo", "base", "head")
+      await syncPRFiles("pr-id", 123, "owner", "repo", "base", "head")
 
       expect(mockAdminDb.query).toHaveBeenCalledTimes(1)
       expect(mockAdminDb.transact).toHaveBeenCalledTimes(2)
@@ -214,7 +158,7 @@ describe("GithubPrFiles", () => {
       } as never)
       mockAdminDb.transact.mockResolvedValue({} as never)
 
-      await syncPRFilesForCommit("pr-id", 123, "owner", "repo", "base", "head")
+      await syncPRFiles("pr-id", 123, "owner", "repo", "base", "head")
 
       expect(mockAdminDb.transact).toHaveBeenCalledTimes(1)
     })

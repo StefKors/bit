@@ -3,7 +3,7 @@ import { adminDb } from "@/lib/InstantAdmin"
 import { log } from "@/lib/Logger"
 import { extractInstallationId } from "@/lib/GithubApp"
 import { syncPRActivitySafely } from "@/lib/GithubPrActivity"
-import { syncPRFilesForCommit } from "@/lib/GithubPrFiles"
+import { syncPRFiles } from "@/lib/GithubPrFiles"
 
 type JsonPrimitive = string | number | boolean | null
 type JsonValue = JsonPrimitive | JsonObject | JsonValue[]
@@ -550,7 +550,7 @@ const triggerPRFileSync = async (
   const [owner, repo] = repoFullName.split("/")
   if (!owner || !repo) return
 
-  await syncPRFilesForCommit(pullRequestId, installationId, owner, repo, baseSha, headSha)
+  await syncPRFiles(pullRequestId, installationId, owner, repo, baseSha, headSha)
 }
 
 const triggerPushFileSync = async (
@@ -590,7 +590,7 @@ const triggerPushFileSync = async (
     // commit and the file list would appear empty.
     await adminDb.transact(adminDb.tx.pullRequests[pr.id].update({ headSha: afterSha }))
 
-    await syncPRFilesForCommit(pr.id, installationId, owner, repo, baseSha, afterSha)
+    await syncPRFiles(pr.id, installationId, owner, repo, baseSha, afterSha)
   }
 }
 

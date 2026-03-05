@@ -6,10 +6,9 @@ import styles from "./CommitSelector.module.css"
 interface CommitSelectorProps {
   commits: PullRequestCommit[]
   selectedSha: string
-  onSelect: (sha: string) => void
 }
 
-export function CommitSelector({ commits, selectedSha, onSelect }: CommitSelectorProps) {
+export function CommitSelector({ commits, selectedSha }: CommitSelectorProps) {
   const [open, setOpen] = useState(false)
 
   const selectedCommit = commits.find((c) => c.sha === selectedSha)
@@ -37,20 +36,15 @@ export function CommitSelector({ commits, selectedSha, onSelect }: CommitSelecto
           {commits.map((commit) => {
             const isActive = commit.sha === selectedSha
             return (
-              <button
+              <div
                 key={commit.sha}
-                type="button"
                 className={`${styles.commitDropdownItem} ${isActive ? styles.commitDropdownItemActive : ""}`}
-                onClick={() => {
-                  onSelect(commit.sha)
-                  setOpen(false)
-                }}
               >
                 <code className={styles.commitShortSha}>{commit.sha.slice(0, 7)}</code>
                 <span className={styles.commitMessage}>
                   {commit.messageShort ?? commit.sha.slice(0, 7)}
                 </span>
-              </button>
+              </div>
             )
           })}
         </div>

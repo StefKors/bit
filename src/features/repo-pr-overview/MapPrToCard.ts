@@ -75,7 +75,6 @@ interface RepoPullRequest {
   }> | null
   pullRequestFiles?: Array<{
     id: string
-    commitSha: string
     filename: string
     previousFilename?: string | null
     status?: string | null
@@ -165,7 +164,6 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
   pullRequestFiles:
     pr.pullRequestFiles?.map((file) => ({
       id: file.id,
-      commitSha: file.commitSha,
       filename: file.filename,
       previousFilename: file.previousFilename,
       status: file.status ?? "modified",
