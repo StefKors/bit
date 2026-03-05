@@ -48,7 +48,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
             )
           }
 
-          await storeInstallationId(state, installationId)
+          await storeInstallationId(state, installationId, account?.login)
 
           return new Response(null, {
             status: 302,

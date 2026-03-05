@@ -1,4 +1,4 @@
-import { getInstallationToken, getInstallationIdForUser } from "@/lib/GithubApp"
+import { getInstallationToken, getAllInstallationIdsForUser } from "@/lib/GithubApp"
 import { log } from "@/lib/Logger"
 
 export interface InstallationRepo {
@@ -80,38 +80,46 @@ function toInstallationRepo(r: GitHubRepo): InstallationRepo {
   }
 }
 
-export async function listInstallationRepos(userId: string): Promise<InstallationRepo[]> {
-  const installationId = await getInstallationIdForUser(userId)
-  if (!installationId) {
+async function listReposForInstallation(installationId: number): Promise<InstallationRepo[]> {
+  const token = await getInstallationToken(installationId)
+  if (!token) {
+    log.warn("listReposForInstallation: no token", { installationId })
     return []
   }
 
-  const token = await getInstallationToken(installationId)
-  if (!token) {
-    throw new Error("Failed to get GitHub installation token")
-  }
-
-  const allRepos: InstallationRepo[] = []
+  const repos: InstallationRepo[] = []
   let page = 1
   let hasMore = true
 
   while (hasMore) {
     const data = await fetchInstallationReposPage(token, page)
-    const repos = data.repositories.map(toInstallationRepo)
-    allRepos.push(...repos)
-
-    if (repos.length < 100) {
-      hasMore = false
-    } else {
-      page++
-    }
+    repos.push(...data.repositories.map(toInstallationRepo))
+    hasMore = repos.length < data.total_count && data.repositories.length === 100
+    page++
   }
 
-  allRepos.sort((a, b) => {
+  return repos
+}
+
+export async function listInstallationRepos(userId: string): Promise<InstallationRepo[]> {
+  const installationIds = await getAllInstallationIdsForUser(userId)
+  if (installationIds.length === 0) return []
+
+  const results = await Promise.all(installationIds.map(listReposForInstallation))
+  const allRepos = results.flat()
+
+  const seen = new Set<number>()
+  const deduped = allRepos.filter((r) => {
+    if (seen.has(r.id)) return false
+    seen.add(r.id)
+    return true
+  })
+
+  deduped.sort((a, b) => {
     const aPushed = a.pushedAt ? new Date(a.pushedAt).getTime() : 0
     const bPushed = b.pushedAt ? new Date(b.pushedAt).getTime() : 0
     return bPushed - aPushed
   })
 
-  return allRepos
+  return deduped
 }

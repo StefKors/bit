@@ -1,4 +1,4 @@
-import { getInstallationToken, getInstallationIdForUser } from "@/lib/GithubApp"
+import { getInstallationToken, getInstallationIdForRepo } from "@/lib/GithubApp"
 import { log } from "@/lib/Logger"
 
 const GITHUB_API = "https://api.github.com"
@@ -16,9 +16,9 @@ export async function createIssueComment(params: {
 }): Promise<{ htmlUrl: string } | null> {
   const { userId, owner, repo, issueNumber, body } = params
 
-  const installationId = await getInstallationIdForUser(userId)
+  const installationId = await getInstallationIdForRepo(userId, owner)
   if (!installationId) {
-    log.warn("createIssueComment: no installation for user", { userId })
+    log.warn("createIssueComment: no installation for user/owner", { userId, owner })
     return null
   }
 

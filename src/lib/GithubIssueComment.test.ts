@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 vi.mock("@/lib/GithubApp", () => ({
-  getInstallationIdForUser: vi.fn(),
+  getInstallationIdForRepo: vi.fn(),
   getInstallationToken: vi.fn(),
 }))
 
@@ -10,9 +10,9 @@ vi.mock("@/lib/Logger", () => ({
 }))
 
 import { createIssueComment } from "./GithubIssueComment"
-import { getInstallationIdForUser, getInstallationToken } from "@/lib/GithubApp"
+import { getInstallationIdForRepo, getInstallationToken } from "@/lib/GithubApp"
 
-const mockGetInstallationIdForUser = vi.mocked(getInstallationIdForUser)
+const mockGetInstallationIdForRepo = vi.mocked(getInstallationIdForRepo)
 const mockGetInstallationToken = vi.mocked(getInstallationToken)
 
 describe("createIssueComment", () => {
@@ -22,7 +22,7 @@ describe("createIssueComment", () => {
   })
 
   it("returns null when no installation for user", async () => {
-    mockGetInstallationIdForUser.mockResolvedValue(null)
+    mockGetInstallationIdForRepo.mockResolvedValue(null)
 
     const result = await createIssueComment({
       userId: "user-1",
@@ -37,7 +37,7 @@ describe("createIssueComment", () => {
   })
 
   it("returns null when no installation token", async () => {
-    mockGetInstallationIdForUser.mockResolvedValue(123)
+    mockGetInstallationIdForRepo.mockResolvedValue(123)
     mockGetInstallationToken.mockResolvedValue(null)
 
     const result = await createIssueComment({
@@ -53,7 +53,7 @@ describe("createIssueComment", () => {
   })
 
   it("returns null on GitHub API error", async () => {
-    mockGetInstallationIdForUser.mockResolvedValue(123)
+    mockGetInstallationIdForRepo.mockResolvedValue(123)
     mockGetInstallationToken.mockResolvedValue("token-123")
     vi.mocked(globalThis.fetch).mockResolvedValue(new Response("Forbidden", { status: 403 }))
 
@@ -69,7 +69,7 @@ describe("createIssueComment", () => {
   })
 
   it("returns htmlUrl on success", async () => {
-    mockGetInstallationIdForUser.mockResolvedValue(123)
+    mockGetInstallationIdForRepo.mockResolvedValue(123)
     mockGetInstallationToken.mockResolvedValue("token-123")
     vi.mocked(globalThis.fetch).mockResolvedValue(
       new Response(
@@ -103,7 +103,7 @@ describe("createIssueComment", () => {
   })
 
   it("returns empty htmlUrl when response has no html_url", async () => {
-    mockGetInstallationIdForUser.mockResolvedValue(123)
+    mockGetInstallationIdForRepo.mockResolvedValue(123)
     mockGetInstallationToken.mockResolvedValue("token-123")
     vi.mocked(globalThis.fetch).mockResolvedValue(new Response(JSON.stringify({}), { status: 201 }))
 

@@ -107,6 +107,16 @@ export async function getInstallationToken(installationId: number): Promise<stri
   }
 }
 
+function parseInstallationId(resourceId: string | undefined | null): number | null {
+  if (!resourceId) return null
+  const parsed = Number.parseInt(resourceId, 10)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+/**
+ * Returns the first installation ID for a user.
+ * Prefer `getInstallationIdForRepo` when a repo owner is known.
+ */
 export async function getInstallationIdForUser(userId: string): Promise<number | null> {
   const { syncStates } = await adminDb.query({
     syncStates: {
@@ -120,13 +130,18 @@ export async function getInstallationIdForUser(userId: string): Promise<number |
   })
 
   const state = syncStates?.[0]
-  if (!state?.resourceId) return null
-
-  const parsed = Number.parseInt(state.resourceId, 10)
-  return Number.isFinite(parsed) ? parsed : null
+  return parseInstallationId(state?.resourceId)
 }
 
-export async function storeInstallationId(userId: string, installationId: string): Promise<void> {
+/**
+ * Returns the installation ID whose account matches `repoOwner`.
+ * Falls back to the first installation if no owner match is found.
+ * `lastEtag` stores the GitHub account login for installation records.
+ */
+export async function getInstallationIdForRepo(
+  userId: string,
+  repoOwner: string,
+): Promise<number | null> {
   const { syncStates } = await adminDb.query({
     syncStates: {
       $: {
@@ -138,8 +153,58 @@ export async function storeInstallationId(userId: string, installationId: string
     },
   })
 
-  const existingId = syncStates?.[0]?.id
-  const stateId = existingId ?? crypto.randomUUID()
+  if (!syncStates?.length) return null
+
+  const ownerLower = repoOwner.toLowerCase()
+  const match = syncStates.find((s) => s.lastEtag?.toLowerCase() === ownerLower)
+  const state = match ?? syncStates[0]
+  return parseInstallationId(state?.resourceId)
+}
+
+/** Returns all installation IDs for a user (for aggregating repos across accounts). */
+export async function getAllInstallationIdsForUser(userId: string): Promise<number[]> {
+  const { syncStates } = await adminDb.query({
+    syncStates: {
+      $: {
+        where: {
+          resourceType: "github:installation",
+          userId,
+        },
+      },
+    },
+  })
+
+  if (!syncStates?.length) return []
+
+  return syncStates
+    .map((s) => parseInstallationId(s.resourceId))
+    .filter((id): id is number => id !== null)
+}
+
+/**
+ * Stores a GitHub App installation for a user.
+ * Multiple installations are supported (personal + org).
+ * `accountLogin` is stored in `lastEtag` so we can route API calls
+ * to the right installation based on repo owner.
+ */
+export async function storeInstallationId(
+  userId: string,
+  installationId: string,
+  accountLogin?: string,
+): Promise<void> {
+  const { syncStates } = await adminDb.query({
+    syncStates: {
+      $: {
+        where: {
+          resourceType: "github:installation",
+          userId,
+        },
+      },
+    },
+  })
+
+  const existing = syncStates?.find((s) => s.resourceId === installationId)
+  const stateId = existing?.id ?? crypto.randomUUID()
   const now = Date.now()
 
   await adminDb.transact(
@@ -147,9 +212,10 @@ export async function storeInstallationId(userId: string, installationId: string
       .update({
         resourceType: "github:installation",
         resourceId: installationId,
+        lastEtag: accountLogin ?? existing?.lastEtag ?? undefined,
         syncStatus: "idle",
         userId,
-        createdAt: now,
+        createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       })
       .link({ user: userId }),

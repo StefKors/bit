@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { adminDb } from "@/lib/InstantAdmin"
-import { getInstallationIdForUser } from "@/lib/GithubApp"
+import { getInstallationIdForRepo } from "@/lib/GithubApp"
 import { createIssueComment } from "@/lib/GithubIssueComment"
 import { syncPRActivitySafely } from "@/lib/GithubPrActivity"
 
@@ -88,7 +88,7 @@ export const Route = createFileRoute("/api/github/repos/comment")({
 
         const pr = repos?.[0]?.pullRequests?.[0]
         if (pr) {
-          const installationId = await getInstallationIdForUser(user.id)
+          const installationId = await getInstallationIdForRepo(user.id, owner)
           if (installationId) {
             syncPRActivitySafely({
               pullRequestId: pr.id,
