@@ -6,17 +6,29 @@ interface TimelineItemBaseProps {
   header: ReactNode
   children?: ReactNode
   className?: string
+  showConnector?: boolean
 }
 
-export const TimelineItemBase = ({ icon, header, children, className }: TimelineItemBaseProps) => (
-  <div className={className ? `${styles.timelineItem} ${className}` : styles.timelineItem}>
-    <div className={styles.timelineIcon}>{icon}</div>
-    <div className={styles.timelineHeader}>{header}</div>
-    {children != null && (
-      <>
-        <div className={styles.timelineLine} aria-hidden />
-        <div className={styles.timelineBody}>{children}</div>
-      </>
-    )}
-  </div>
-)
+export const TimelineItemBase = ({
+  icon,
+  header,
+  children,
+  className,
+  showConnector,
+}: TimelineItemBaseProps) => {
+  const hasBody = children != null
+  const showLine = hasBody || showConnector
+
+  return (
+    <div className={className ? `${styles.timelineItem} ${className}` : styles.timelineItem}>
+      <div className={styles.timelineIcon}>{icon}</div>
+      <div className={styles.timelineHeader}>{header}</div>
+      {showLine && (
+        <>
+          <div className={styles.timelineLine} aria-hidden />
+          {hasBody && <div className={styles.timelineBody}>{children}</div>}
+        </>
+      )}
+    </div>
+  )
+}

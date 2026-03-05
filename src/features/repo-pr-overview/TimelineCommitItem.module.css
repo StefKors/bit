@@ -2,34 +2,28 @@
   composes: timelineTime from "./TimelineItemBase.module.css";
 }
 
-.timelineAuthor {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--bit-color-text);
-}
-
-.timelineCommitVerb {
-  font-size: 0.75rem;
-  color: rgba(var(--bit-rgb-fg), 0.58);
-}
-
-.timelineCommitInfo {
+.timelineCommitLine {
   display: flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
-}
-
-.timelineCommitMessage {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  flex: 1;
   font-size: 0.8125rem;
   color: var(--bit-color-text);
-  line-height: 1.4;
+}
+
+.timelineAuthor {
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.timelineCommitTitle {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(var(--bit-rgb-fg), 0.85);
 }
 
 .timelineCommitSha {

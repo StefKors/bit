@@ -246,7 +246,65 @@
   text-decoration: none;
 }
 
-/* Task lists */
-.markdown input[type="checkbox"] {
-  margin-right: 0.5em;
+/* Task lists - checkbox replaces bullet, aligned with text */
+.markdown ul.contains-task-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.markdown ul.contains-task-list ul {
+  padding-left: 1.5em;
+  margin-top: 0.25em;
+}
+
+.markdown ul.contains-task-list li {
+  list-style: none;
+}
+
+.markdown ul.contains-task-list li p {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+  min-width: 0;
+}
+
+.markdown ul.contains-task-list li p > label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+  flex: 1;
+  min-width: 0;
+  cursor: default;
+}
+
+.markdown ul.contains-task-list input[type="checkbox"] {
+  appearance: none;
+  margin: 0;
+  flex-shrink: 0;
+  margin-top: 0.2em;
+  width: 1.125em;
+  height: 1.125em;
+  border: 1.5px solid rgba(var(--bit-rgb-fg), 0.3);
+  border-radius: 4px;
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  cursor: default;
+  position: relative;
+}
+
+.markdown ul.contains-task-list input[type="checkbox"]:checked {
+  background: rgba(var(--bit-rgb-accent-green), 0.2);
+  border-color: var(--bit-color-accent-green);
+}
+
+.markdown ul.contains-task-list input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 0.32em;
+  top: 0.08em;
+  width: 0.32em;
+  height: 0.55em;
+  border: solid var(--bit-color-accent-green);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }

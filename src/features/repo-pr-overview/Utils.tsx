@@ -7,7 +7,21 @@ import {
   GitPullRequestDraftIcon,
   GitPullRequestIcon,
 } from "@primer/octicons-react"
-import type { PullRequestCard, TimelineItem } from "./Types"
+import type { PullRequestCard, PullRequestCheckRun, TimelineItem } from "./Types"
+
+export const getCheckRunsCiVariant = (
+  checkRuns: PullRequestCheckRun[],
+): "ready" | "blocked" | "checking" | null => {
+  if (checkRuns.length === 0) return null
+  const hasFailure = checkRuns.some(
+    (c) =>
+      c.conclusion === "failure" || c.conclusion === "cancelled" || c.conclusion === "timed_out",
+  )
+  const hasInProgress = checkRuns.some((c) => c.status === "in_progress" || !c.conclusion)
+  if (hasFailure) return "blocked"
+  if (hasInProgress) return "checking"
+  return "ready"
+}
 
 export const getPrStatusVariant = (
   pr: PullRequestCard,

@@ -74,7 +74,14 @@ export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
                 return <TimelinePrActionItem key={`pe-${item.data.id}`} event={item.data} />
               }
               if (item.type === "commit") {
-                return <TimelineCommitItem key={`c-${item.data.id}`} commit={item.data} />
+                return (
+                  <TimelineCommitItem
+                    key={`c-${item.data.id}`}
+                    commit={item.data}
+                    checkRuns={pr.checkRuns}
+                    headSha={pr.headSha}
+                  />
+                )
               }
               if (item.type === "review") {
                 return <TimelineReviewItem key={`r-${item.data.id}`} review={item.data} />
