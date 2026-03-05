@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as OwnerRepoIndexRouteImport } from './routes/$owner/$repo/index'
 import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
+import { Route as OwnerRepoPrNumberRouteImport } from './routes/$owner/$repo/$prNumber'
 import { Route as ApiGithubOauthIndexRouteImport } from './routes/api/github/oauth/index'
 import { Route as ApiGithubReposEnableRouteImport } from './routes/api/github/repos/enable'
 import { Route as ApiGithubReposCommentRouteImport } from './routes/api/github/repos/comment'
@@ -46,6 +47,11 @@ const OwnerRepoIndexRoute = OwnerRepoIndexRouteImport.update({
 const ApiGithubWebhookRoute = ApiGithubWebhookRouteImport.update({
   id: '/api/github/webhook',
   path: '/api/github/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OwnerRepoPrNumberRoute = OwnerRepoPrNumberRouteImport.update({
+  id: '/$owner/$repo/$prNumber',
+  path: '/$owner/$repo/$prNumber',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubOauthIndexRoute = ApiGithubOauthIndexRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/enable-repos': typeof EnableReposRoute
   '/api/health': typeof ApiHealthRoute
+  '/$owner/$repo/$prNumber': typeof OwnerRepoPrNumberRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/enable-repos': typeof EnableReposRoute
   '/api/health': typeof ApiHealthRoute
+  '/$owner/$repo/$prNumber': typeof OwnerRepoPrNumberRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/$owner/$repo': typeof OwnerRepoIndexRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/enable-repos': typeof EnableReposRoute
   '/api/health': typeof ApiHealthRoute
+  '/$owner/$repo/$prNumber': typeof OwnerRepoPrNumberRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/'
     | '/enable-repos'
     | '/api/health'
+    | '/$owner/$repo/$prNumber'
     | '/api/github/webhook'
     | '/$owner/$repo/'
     | '/$owner/$repo/pull/$number'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/'
     | '/enable-repos'
     | '/api/health'
+    | '/$owner/$repo/$prNumber'
     | '/api/github/webhook'
     | '/$owner/$repo'
     | '/$owner/$repo/pull/$number'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/'
     | '/enable-repos'
     | '/api/health'
+    | '/$owner/$repo/$prNumber'
     | '/api/github/webhook'
     | '/$owner/$repo/'
     | '/$owner/$repo/pull/$number'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EnableReposRoute: typeof EnableReposRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  OwnerRepoPrNumberRoute: typeof OwnerRepoPrNumberRoute
   ApiGithubWebhookRoute: typeof ApiGithubWebhookRoute
   OwnerRepoIndexRoute: typeof OwnerRepoIndexRoute
   OwnerRepoPullNumberRoute: typeof OwnerRepoPullNumberRoute
@@ -236,6 +249,13 @@ declare module '@tanstack/react-router' {
       path: '/api/github/webhook'
       fullPath: '/api/github/webhook'
       preLoaderRoute: typeof ApiGithubWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$owner/$repo/$prNumber': {
+      id: '/$owner/$repo/$prNumber'
+      path: '/$owner/$repo/$prNumber'
+      fullPath: '/$owner/$repo/$prNumber'
+      preLoaderRoute: typeof OwnerRepoPrNumberRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/oauth/': {
@@ -301,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EnableReposRoute: EnableReposRoute,
   ApiHealthRoute: ApiHealthRoute,
+  OwnerRepoPrNumberRoute: OwnerRepoPrNumberRoute,
   ApiGithubWebhookRoute: ApiGithubWebhookRoute,
   OwnerRepoIndexRoute: OwnerRepoIndexRoute,
   OwnerRepoPullNumberRoute: OwnerRepoPullNumberRoute,

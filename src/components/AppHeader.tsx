@@ -75,7 +75,6 @@ export const AppHeader = () => {
                 <Link
                   to="/$owner/$repo"
                   params={{ owner, repo }}
-                  search={{ selectedPrNumber: undefined }}
                   className={styles.repoContextLink}
                 >
                   {repo}

@@ -40,12 +40,8 @@ export function PrSelectionList({
             transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
           >
             <Link
-              to="/$owner/$repo"
-              params={{ owner, repo }}
-              search={(prev) => ({
-                ...prev,
-                selectedPrNumber: String(pr.number),
-              })}
+              to="/$owner/$repo/$prNumber"
+              params={{ owner, repo, prNumber: String(pr.number) }}
               preload="intent"
               className={`${styles.prCell} ${isSelected ? styles.prCellSelected : ""}`}
               aria-current={isSelected ? "true" : undefined}

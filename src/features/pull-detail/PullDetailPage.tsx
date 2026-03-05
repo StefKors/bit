@@ -56,9 +56,8 @@ export function PullDetailPage() {
         transition={transition}
       >
         <Link
-          to="/$owner/$repo"
-          params={{ owner, repo }}
-          search={{ selectedPrNumber: number }}
+          to="/$owner/$repo/$prNumber"
+          params={{ owner, repo, prNumber: number }}
           className={styles.backLink}
         >
           ← Back to {owner}/{repo}
@@ -77,9 +76,8 @@ export function PullDetailPage() {
       transition={transition}
     >
       <Link
-        to="/$owner/$repo"
-        params={{ owner, repo }}
-        search={{ selectedPrNumber: number }}
+        to="/$owner/$repo/$prNumber"
+        params={{ owner, repo, prNumber: number }}
         className={styles.backLink}
       >
         ← Back to {owner}/{repo}

@@ -1,5 +1,4 @@
 import { useRef, useState } from "react"
-import { useParams, useSearch } from "@tanstack/react-router"
 import { motion } from "motion/react"
 import { useAuth } from "@/lib/hooks/UseAuth"
 import { db } from "@/lib/InstantDb"
@@ -25,9 +24,13 @@ const buildPrTabs = (pr: PullRequestCard | null) => [
   { value: "files", label: "Files Changed", count: pr?.pullRequestFiles.length ?? 0 },
 ]
 
-export function RepoPrOverviewPage() {
-  const { owner, repo } = useParams({ from: "/$owner/$repo/" })
-  const { selectedPrNumber } = useSearch({ from: "/$owner/$repo/" })
+interface RepoPrOverviewPageProps {
+  owner: string
+  repo: string
+  selectedPrNumber: number | null
+}
+
+export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOverviewPageProps) {
   const { user } = useAuth()
   const [prTab, setPrTab] = useState("conversation")
   const [authorFilter, setAuthorFilter] = useState<string | null>(null)
@@ -105,10 +108,6 @@ export function RepoPrOverviewPage() {
       : stateFilter === "open"
         ? filteredPRsByAuthor.filter((pr) => !pr.merged)
         : filteredPRsByAuthor.filter((pr) => getPrBucket(pr) === stateFilter)
-  const parsedSelectedPrNumber = selectedPrNumber ? Number(selectedPrNumber) : NaN
-  const normalizedSelectedPrNumber = Number.isNaN(parsedSelectedPrNumber)
-    ? null
-    : parsedSelectedPrNumber
   const prevPrIdsRef = useRef<Set<string>>(new Set())
   const hasInitiallyLoadedRef = useRef(false)
   const ownerRepoRef = useRef(fullName)
@@ -126,8 +125,8 @@ export function RepoPrOverviewPage() {
   prevPrIdsRef.current = currentIds
 
   const selectedPR =
-    filteredPRs.find((pr) => pr.number === normalizedSelectedPrNumber) ??
-    (normalizedSelectedPrNumber === null ? filteredPRs[0] : null)
+    filteredPRs.find((pr) => pr.number === selectedPrNumber) ??
+    (selectedPrNumber === null ? filteredPRs[0] : null)
 
   if (!repoData) {
     return (
