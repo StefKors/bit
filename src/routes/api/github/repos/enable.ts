@@ -1,13 +1,54 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { id } from "@instantdb/admin"
 import { adminDb } from "@/lib/InstantAdmin"
+import { getInstallationIdForRepo } from "@/lib/GithubApp"
+import { syncPRFiles } from "@/lib/GithubPrFiles"
 import type { InstallationRepo } from "@/lib/GithubInstallationRepos"
+import { log } from "@/lib/Logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
     status,
     headers: { "Content-Type": "application/json" },
   })
+
+const backfillOpenPullRequestFiles = async (
+  userId: string,
+  repos: InstallationRepo[],
+): Promise<number> => {
+  let backfilledCount = 0
+
+  for (const repo of repos) {
+    const installationId = await getInstallationIdForRepo(userId, repo.owner)
+    if (!installationId) continue
+
+    const { repos: repoRecords } = await adminDb.query({
+      repos: {
+        $: { where: { fullName: repo.fullName }, limit: 1 },
+        pullRequests: {
+          $: { where: { state: "open" } },
+        },
+      },
+    })
+    const pullRequests = repoRecords?.[0]?.pullRequests ?? []
+
+    for (const pr of pullRequests) {
+      if (!pr.baseSha || !pr.headSha) continue
+      try {
+        await syncPRFiles(pr.id, installationId, repo.owner, repo.name, pr.baseSha, pr.headSha)
+        backfilledCount += 1
+      } catch (error) {
+        log.error("Failed to backfill PR files on repo enable", error, {
+          userId,
+          repoFullName: repo.fullName,
+          prNumber: pr.number,
+        })
+      }
+    }
+  }
+
+  return backfilledCount
+}
 
 export const Route = createFileRoute("/api/github/repos/enable")({
   server: {
@@ -87,7 +128,10 @@ export const Route = createFileRoute("/api/github/repos/enable")({
 
         try {
           await adminDb.transact(tx)
-          return jsonResponse({ enabled: repos.length })
+
+          const backfilledPullRequests = await backfillOpenPullRequestFiles(userId, repos)
+
+          return jsonResponse({ enabled: repos.length, backfilledPullRequests })
         } catch (err) {
           const msg = err instanceof Error ? err.message : "Failed to enable repos"
           return jsonResponse({ error: msg }, 500)
