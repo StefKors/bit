@@ -2,6 +2,13 @@ import { createHmac } from "node:crypto"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { handleWebhookPost } from "./webhook"
 
+vi.mock("@/lib/logger", () => ({
+  log: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+}))
+vi.mock("@/lib/webhook-persistence", () => ({
+  persistWebhookPayloadSafely: vi.fn(async () => {}),
+}))
+
 const signPayload = (payload: string, secret: string): string => {
   const digest = createHmac("sha256", secret).update(payload).digest("hex")
   return `sha256=${digest}`
