@@ -99,6 +99,9 @@ export const AppHeader = () => {
                   <div
                     className={styles.backdrop}
                     onClick={handleBackdropClick}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") setUserMenuOpen(false)
+                    }}
                     role="presentation"
                   />
                   <div className={styles.userMenu} role="menu" aria-label="User menu">
@@ -138,13 +141,7 @@ export const AppHeader = () => {
         </div>
       </header>
 
-      {themeSettingsOpen && (
-        <ThemeSettings
-          onClose={() => {
-            setThemeSettingsOpen(false)
-          }}
-        />
-      )}
+      <ThemeSettings open={themeSettingsOpen} onOpenChange={setThemeSettingsOpen} />
     </>
   )
 }

@@ -3,19 +3,9 @@
   inset: 0;
   background: rgba(var(--bit-rgb-shadow), 0.4);
   z-index: 200;
-  animation: fadeIn 0.15s ease-out;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.panel {
+.popup {
   position: fixed;
   top: 0;
   right: 0;
@@ -26,17 +16,8 @@
   z-index: 201;
   display: flex;
   flex-direction: column;
-  animation: slideIn 0.2s ease-out;
   overflow: hidden;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  outline: none;
 }
 
 .header {
@@ -52,6 +33,7 @@
   font-size: 15px;
   font-weight: 600;
   color: var(--bit-color-heading);
+  margin: 0;
 }
 
 .closeButton {
@@ -208,7 +190,7 @@
 }
 
 @media (max-width: 480px) {
-  .panel {
+  .popup {
     width: 100vw;
   }
 

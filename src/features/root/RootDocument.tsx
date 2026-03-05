@@ -5,7 +5,7 @@ import { initTheme, getResolvedColorMode } from "@/lib/themes/ThemeManager"
 
 export function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   useEffect(() => {
-    const cleanup = initTheme()
+    const cleanupTheme = initTheme()
 
     const updateFavicon = () => {
       const light = getResolvedColorMode() === "light"
@@ -26,7 +26,7 @@ export function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
     })
 
     return () => {
-      cleanup?.()
+      cleanupTheme()
       observer.disconnect()
     }
   }, [])

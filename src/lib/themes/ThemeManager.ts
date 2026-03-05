@@ -123,6 +123,26 @@ export const subscribeColorMode = (listener: () => void): (() => void) => {
   }
 }
 
+let systemModeCleanup: (() => void) | null = null
+
+const manageSystemModeListener = (colorMode: ColorMode): void => {
+  if (systemModeCleanup) {
+    systemModeCleanup()
+    systemModeCleanup = null
+  }
+
+  if (colorMode === "system" && typeof window !== "undefined") {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)")
+    const handler = () => {
+      applyTheme()
+    }
+    mq.addEventListener("change", handler)
+    systemModeCleanup = () => {
+      mq.removeEventListener("change", handler)
+    }
+  }
+}
+
 export const applyTheme = (themeId?: string, mode?: ColorMode): void => {
   if (typeof document === "undefined") return
 
@@ -136,6 +156,7 @@ export const applyTheme = (themeId?: string, mode?: ColorMode): void => {
   root.style.colorScheme = resolvedMode
 
   loadThemeCss(id)
+  manageSystemModeListener(colorMode)
   notifyColorModeListeners()
 }
 
@@ -151,23 +172,14 @@ export const setColorMode = (mode: ColorMode): void => {
   applyTheme(undefined, mode)
 }
 
-export const initTheme = (): (() => void) | undefined => {
-  if (typeof window === "undefined") return undefined
-
+export const initTheme = (): (() => void) => {
   applyTheme()
-
-  const storedMode = getStoredColorMode()
-  if (storedMode === "system") {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)")
-    const handler = () => {
-      applyTheme()
-    }
-    mq.addEventListener("change", handler)
-    return () => {
-      mq.removeEventListener("change", handler)
+  return () => {
+    if (systemModeCleanup) {
+      systemModeCleanup()
+      systemModeCleanup = null
     }
   }
-  return undefined
 }
 
 export const getThemePreviewColors = (themeId: string, mode: "light" | "dark"): string[] => {
