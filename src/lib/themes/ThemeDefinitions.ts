@@ -75,6 +75,15 @@ export const themes: ThemeDefinition[] = [
     },
   },
   {
+    id: "devouring-details",
+    name: "Devouring Details",
+    group: "Community",
+    previewColors: {
+      dark: ["#0d0d0c", "#201e1c", "#93c5fd", "#86efac", "#c4b5fd", "#fca5a5"],
+      light: ["#fffcf8", "#faf8f5", "#3b82f6", "#22c55e", "#8b5cf6", "#ef4444"],
+    },
+  },
+  {
     id: "ayu",
     name: "Ayu",
     group: "Community",

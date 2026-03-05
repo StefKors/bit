@@ -50,6 +50,8 @@ const importThemeCss = (themeId: string): Promise<void> => {
       return import("./css/dracula.css").then(() => {})
     case "gruvbox":
       return import("./css/gruvbox.css").then(() => {})
+    case "devouring-details":
+      return import("./css/devouring-details.css").then(() => {})
     case "ayu":
       return import("./css/ayu.css").then(() => {})
     case "copilot":
