@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import styles from "./timeline-item-base.module.css"
+import styles from "./TimelineItemBase.module.css"
 
 interface TimelineItemBaseProps {
   icon: ReactNode

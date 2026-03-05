@@ -5,7 +5,7 @@
 }
 
 .prBody {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
 }
 
 .detailSection {
@@ -68,5 +68,5 @@
 .timeline {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 6px;
 }

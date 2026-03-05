@@ -1,7 +1,7 @@
 .timelineTime {
-  composes: timelineTime from "./timeline-item-base.module.css";
+  composes: timelineTime from "./TimelineItemBase.module.css";
 }
 
 .timelineContent {
-  composes: timelineContent from "./timeline-item-base.module.css";
+  composes: timelineContent from "./TimelineItemBase.module.css";
 }

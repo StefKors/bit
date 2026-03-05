@@ -1,5 +1,5 @@
 .timelineTime {
-  composes: timelineTime from "./timeline-item-base.module.css";
+  composes: timelineTime from "./TimelineItemBase.module.css";
 }
 
 .timelineAuthor {
