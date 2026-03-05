@@ -1,26 +1,21 @@
 import { useState } from "react"
 import { ChevronDownIcon, GitCommitIcon } from "@primer/octicons-react"
+import type { PullRequestCommit } from "./Types"
 import styles from "./CommitSelector.module.css"
 
-interface CommitInfo {
-  sha: string
-  message: string
-}
-
 interface CommitSelectorProps {
-  commits: CommitInfo[]
+  commits: PullRequestCommit[]
   selectedSha: string
   onSelect: (sha: string) => void
-  loading: boolean
 }
 
-export function CommitSelector({ commits, selectedSha, onSelect, loading }: CommitSelectorProps) {
+export function CommitSelector({ commits, selectedSha, onSelect }: CommitSelectorProps) {
   const [open, setOpen] = useState(false)
 
   const selectedCommit = commits.find((c) => c.sha === selectedSha)
   const shortSha = selectedSha.slice(0, 7)
-  const label = selectedCommit
-    ? `${shortSha} ${selectedCommit.message.split("\n")[0]?.slice(0, 50) ?? ""}`
+  const label = selectedCommit?.messageShort
+    ? `${shortSha} ${selectedCommit.messageShort}`
     : shortSha
 
   return (
@@ -32,10 +27,9 @@ export function CommitSelector({ commits, selectedSha, onSelect, loading }: Comm
           setOpen((prev) => !prev)
         }}
         aria-expanded={open}
-        disabled={loading}
       >
         <GitCommitIcon size={14} />
-        <span className={styles.commitSelectorLabel}>{loading ? "Loading commits…" : label}</span>
+        <span className={styles.commitSelectorLabel}>{label}</span>
         <ChevronDownIcon size={12} />
       </button>
       {open && commits.length > 0 && (
@@ -54,7 +48,7 @@ export function CommitSelector({ commits, selectedSha, onSelect, loading }: Comm
               >
                 <code className={styles.commitShortSha}>{commit.sha.slice(0, 7)}</code>
                 <span className={styles.commitMessage}>
-                  {commit.message.split("\n")[0]?.slice(0, 60) ?? ""}
+                  {commit.messageShort ?? commit.sha.slice(0, 7)}
                 </span>
               </button>
             )

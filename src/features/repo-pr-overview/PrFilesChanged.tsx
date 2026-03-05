@@ -1,15 +1,10 @@
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { FileIcon, SyncIcon } from "@primer/octicons-react"
 import { db } from "@/lib/InstantDb"
 import { CommitSelector } from "./CommitSelector"
 import { FileEntry } from "./FileEntry"
 import type { PullRequestCard } from "./Types"
 import styles from "./PrFilesChanged.module.css"
-
-interface CommitInfo {
-  sha: string
-  message: string
-}
 
 interface PrFilesChangedProps {
   pr: PullRequestCard
@@ -20,43 +15,15 @@ interface PrFilesChangedProps {
 export function PrFilesChanged({ pr, owner, repo }: PrFilesChangedProps) {
   const { user: authUser } = db.useAuth()
   const [selectedCommitSha, setSelectedCommitSha] = useState<string | null>(null)
-  const [commits, setCommits] = useState<CommitInfo[]>([])
-  const [commitsLoading, setCommitsLoading] = useState(false)
   const [syncingCommit, setSyncingCommit] = useState<string | null>(null)
-  const commitsFetchedRef = useRef<string | null>(null)
 
   const effectiveSha = selectedCommitSha ?? pr.headSha
-
   const refreshToken = authUser?.refresh_token
 
   const filesForSha = effectiveSha
     ? pr.pullRequestFiles.filter((f) => f.commitSha === effectiveSha)
     : []
   const hasFiles = filesForSha.length > 0
-
-  const handleLoadCommits = () => {
-    if (!refreshToken || commitsLoading || commitsFetchedRef.current === pr.id) return
-    setCommitsLoading(true)
-    commitsFetchedRef.current = pr.id
-    fetch("/api/github/sync/pr-commits", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${refreshToken}`,
-      },
-      body: JSON.stringify({ owner, repo, pullNumber: pr.number }),
-    })
-      .then((res) => res.json() as Promise<{ commits?: CommitInfo[] }>)
-      .then((data) => {
-        setCommits(data.commits ?? [])
-      })
-      .catch(() => {
-        commitsFetchedRef.current = null
-      })
-      .finally(() => {
-        setCommitsLoading(false)
-      })
-  }
 
   const handleSyncFiles = (sha: string) => {
     if (!refreshToken || syncingCommit) return
@@ -107,16 +74,10 @@ export function PrFilesChanged({ pr, owner, repo }: PrFilesChangedProps) {
           )}
         </div>
         <CommitSelector
-          commits={commits}
+          commits={pr.pullRequestCommits}
           selectedSha={effectiveSha ?? ""}
           onSelect={handleCommitSelect}
-          loading={commitsLoading}
         />
-        {commits.length === 0 && !commitsLoading && (
-          <button type="button" className={styles.loadCommitsButton} onClick={handleLoadCommits}>
-            Load commits
-          </button>
-        )}
       </div>
 
       {Boolean(syncingCommit) && (
