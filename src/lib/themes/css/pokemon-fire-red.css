@@ -1,0 +1,109 @@
+[data-theme="pokemon-fire-red"][data-color-mode="dark"] {
+  --bit-rgb-fg: 255, 240, 220;
+  --bit-rgb-bg: 28, 12, 8;
+  --bit-rgb-shadow: 16, 6, 4;
+  --bit-rgb-paper: 255, 240, 220;
+  --bit-rgb-paper-2: 240, 220, 196;
+  --bit-rgb-surface-1: 40, 20, 16;
+  --bit-rgb-surface-2: 52, 28, 20;
+  --bit-rgb-surface-3: 68, 40, 28;
+  --bit-rgb-accent-blue: 80, 144, 208;
+  --bit-rgb-accent-blue-strong: 60, 120, 184;
+  --bit-rgb-accent-green: 120, 200, 80;
+  --bit-rgb-accent-green-dark: 96, 168, 64;
+  --bit-rgb-accent-green-bright: 140, 224, 104;
+  --bit-rgb-accent-red: 229, 57, 53;
+  --bit-rgb-accent-yellow: 255, 183, 77;
+  --bit-rgb-accent-purple: 180, 120, 200;
+  --bit-rgb-muted: 180, 150, 130;
+
+  --bit-color-paper: #fff0dc;
+  --bit-color-ink: #1c0c08;
+  --bit-color-ink-muted: #2c1810;
+  --bit-color-paper-hover: #e4ccb0;
+  --bit-color-paper-2: #f0dcc4;
+
+  --bit-color-accent-blue: #5090d0;
+  --bit-color-accent-blue-strong: #3c78b8;
+  --bit-color-accent-green: #78c850;
+  --bit-color-accent-green-dark: #60a840;
+  --bit-color-accent-green-bright: #8ce068;
+  --bit-color-accent-red: #e53935;
+  --bit-color-accent-yellow: #ffb74d;
+  --bit-color-accent-purple: #b478c8;
+  --bit-color-accent-orange: #ff8f00;
+  --bit-color-muted: #b49682;
+
+  --bit-color-heading: #fff0dc;
+  --bit-color-avatar-outline: #281410;
+  --bit-alpha-accent-border-hover: 0.35;
+
+  --bit-color-diff-add-text: #8ce068;
+  --bit-color-diff-del-text: #ff8a80;
+
+  --bit-gradient-surface: linear-gradient(
+    145deg,
+    rgba(52, 28, 20, 0.95) 0%,
+    rgba(40, 20, 16, 0.98) 100%
+  );
+  --bit-color-panel-bg: rgba(52, 28, 20, 0.7);
+  --bit-color-code-bg: rgba(40, 20, 16, 0.9);
+  --bit-color-inverse-bg: #fff0dc;
+  --bit-color-inverse-text: #1c0c08;
+  --bit-color-inverse-bg-hover: #e4ccb0;
+}
+
+[data-theme="pokemon-fire-red"][data-color-mode="light"] {
+  --bit-rgb-fg: 60, 24, 16;
+  --bit-rgb-bg: 255, 248, 240;
+  --bit-rgb-shadow: 60, 24, 16;
+  --bit-rgb-paper: 255, 255, 255;
+  --bit-rgb-paper-2: 255, 232, 208;
+  --bit-rgb-surface-1: 255, 248, 240;
+  --bit-rgb-surface-2: 255, 238, 216;
+  --bit-rgb-surface-3: 255, 224, 192;
+  --bit-rgb-accent-blue: 56, 112, 168;
+  --bit-rgb-accent-blue-strong: 40, 88, 144;
+  --bit-rgb-accent-green: 80, 136, 48;
+  --bit-rgb-accent-green-dark: 64, 112, 32;
+  --bit-rgb-accent-green-bright: 96, 168, 64;
+  --bit-rgb-accent-red: 211, 47, 47;
+  --bit-rgb-accent-yellow: 212, 144, 48;
+  --bit-rgb-accent-purple: 136, 80, 168;
+  --bit-rgb-muted: 144, 112, 96;
+
+  --bit-color-paper: #ffffff;
+  --bit-color-ink: #3c1810;
+  --bit-color-ink-muted: #58281c;
+  --bit-color-paper-hover: #ffd8b8;
+  --bit-color-paper-2: #ffe8d0;
+
+  --bit-color-accent-blue: #3870a8;
+  --bit-color-accent-blue-strong: #285890;
+  --bit-color-accent-green: #508830;
+  --bit-color-accent-green-dark: #407020;
+  --bit-color-accent-green-bright: #60a840;
+  --bit-color-accent-red: #d32f2f;
+  --bit-color-accent-yellow: #d49030;
+  --bit-color-accent-purple: #8850a8;
+  --bit-color-accent-orange: #d87000;
+  --bit-color-muted: #907060;
+
+  --bit-color-heading: #3c1810;
+  --bit-color-avatar-outline: #ffeed8;
+  --bit-alpha-accent-border-hover: 0.5;
+
+  --bit-color-diff-add-text: #407020;
+  --bit-color-diff-del-text: #b82020;
+
+  --bit-gradient-surface: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 232, 208, 0.98) 100%
+  );
+  --bit-color-panel-bg: rgba(255, 255, 255, 0.9);
+  --bit-color-code-bg: rgba(255, 255, 255, 0.9);
+  --bit-color-inverse-bg: #3c1810;
+  --bit-color-inverse-text: #ffffff;
+  --bit-color-inverse-bg-hover: #58281c;
+}

@@ -146,7 +146,7 @@
 }
 
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not([data-theme]) {
     --bit-rgb-fg: 0, 0, 0;
     --bit-rgb-bg: 255, 255, 255;
 

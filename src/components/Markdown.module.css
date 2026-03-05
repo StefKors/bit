@@ -146,17 +146,29 @@
 }
 
 /* Dark/Light mode for shiki */
+:global([data-color-mode="light"]) .markdown :global(.shiki),
+:global([data-color-mode="light"]) .markdown :global(.shiki span) {
+  color: var(--shiki-light) !important;
+  background-color: var(--shiki-light-bg) !important;
+}
+
+:global([data-color-mode="dark"]) .markdown :global(.shiki),
+:global([data-color-mode="dark"]) .markdown :global(.shiki span) {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}
+
 @media (prefers-color-scheme: light) {
-  .markdown :global(.shiki),
-  .markdown :global(.shiki span) {
+  :global(:root:not([data-theme])) .markdown :global(.shiki),
+  :global(:root:not([data-theme])) .markdown :global(.shiki span) {
     color: var(--shiki-light) !important;
     background-color: var(--shiki-light-bg) !important;
   }
 }
 
 @media (prefers-color-scheme: dark) {
-  .markdown :global(.shiki),
-  .markdown :global(.shiki span) {
+  :global(:root:not([data-theme])) .markdown :global(.shiki),
+  :global(:root:not([data-theme])) .markdown :global(.shiki span) {
     color: var(--shiki-dark) !important;
     background-color: var(--shiki-dark-bg) !important;
   }

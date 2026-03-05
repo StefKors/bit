@@ -1,21 +1,33 @@
 import { useEffect, type ReactNode } from "react"
 import { HeadContent, Scripts } from "@tanstack/react-router"
 import { isDev } from "@/lib/utils/IsDevelopment"
+import { initTheme, getResolvedColorMode } from "@/lib/themes/ThemeManager"
 
 export function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
+    const cleanupTheme = initTheme()
+
     const updateFavicon = () => {
-      const light = !mediaQuery.matches
+      const light = getResolvedColorMode() === "light"
       const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
       if (link) {
         link.href = `/bit-cube-small${light ? "-light" : ""}${isDev ? "-dev" : ""}.png`
       }
     }
+
     updateFavicon()
-    mediaQuery.addEventListener("change", updateFavicon)
+
+    const observer = new MutationObserver(() => {
+      updateFavicon()
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-color-mode"],
+    })
+
     return () => {
-      mediaQuery.removeEventListener("change", updateFavicon)
+      cleanupTheme()
+      observer.disconnect()
     }
   }, [])
 
