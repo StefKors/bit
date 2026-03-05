@@ -16,7 +16,11 @@ export const AppHeader = () => {
   const [themeSettingsOpen, setThemeSettingsOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const pathname = useRouterState({ select: (state) => state.location.pathname })
-  const colorMode = useSyncExternalStore(subscribeColorMode, getResolvedColorMode)
+  const colorMode = useSyncExternalStore(
+    subscribeColorMode,
+    getResolvedColorMode,
+    getResolvedColorMode,
+  )
 
   const handleSignOut = () => {
     void db.auth.signOut()
