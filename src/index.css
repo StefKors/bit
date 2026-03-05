@@ -1,7 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900&display=swap");
+
 :root {
   font-family: var(--bit-font);
   line-height: 1.5;
-  font-weight: 400;
+  font-weight: var(--bit-font-weight-regular);
   font-size: 13px;
 
   color-scheme: light dark;
@@ -33,7 +35,12 @@ body {
 }
 
 a {
-  font-weight: 500;
+  font-weight: var(--bit-font-weight-bold);
   color: var(--bit-color-link);
   text-decoration: none;
+}
+
+b,
+strong {
+  font-weight: var(--bit-font-weight-bold);
 }
