@@ -17,7 +17,9 @@ import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhoo
 import { Route as ApiGithubOauthIndexRouteImport } from './routes/api/github/oauth/index'
 import { Route as ApiGithubReposEnableRouteImport } from './routes/api/github/repos/enable'
 import { Route as ApiGithubReposCommentRouteImport } from './routes/api/github/repos/comment'
+import { Route as ApiGithubOauthUserCallbackRouteImport } from './routes/api/github/oauth/user-callback'
 import { Route as ApiGithubOauthCallbackRouteImport } from './routes/api/github/oauth/callback'
+import { Route as ApiGithubOauthAuthorizeRouteImport } from './routes/api/github/oauth/authorize'
 import { Route as ApiGithubInstallationReposRouteImport } from './routes/api/github/installation/repos'
 import { Route as OwnerRepoPullNumberRouteImport } from './routes/$owner/$repo/pull.$number'
 
@@ -61,9 +63,20 @@ const ApiGithubReposCommentRoute = ApiGithubReposCommentRouteImport.update({
   path: '/api/github/repos/comment',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGithubOauthUserCallbackRoute =
+  ApiGithubOauthUserCallbackRouteImport.update({
+    id: '/api/github/oauth/user-callback',
+    path: '/api/github/oauth/user-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiGithubOauthCallbackRoute = ApiGithubOauthCallbackRouteImport.update({
   id: '/api/github/oauth/callback',
   path: '/api/github/oauth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubOauthAuthorizeRoute = ApiGithubOauthAuthorizeRouteImport.update({
+  id: '/api/github/oauth/authorize',
+  path: '/api/github/oauth/authorize',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubInstallationReposRoute =
@@ -86,7 +99,9 @@ export interface FileRoutesByFullPath {
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/installation/repos': typeof ApiGithubInstallationReposRoute
+  '/api/github/oauth/authorize': typeof ApiGithubOauthAuthorizeRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
+  '/api/github/oauth/user-callback': typeof ApiGithubOauthUserCallbackRoute
   '/api/github/repos/comment': typeof ApiGithubReposCommentRoute
   '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
@@ -99,7 +114,9 @@ export interface FileRoutesByTo {
   '/$owner/$repo': typeof OwnerRepoIndexRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/installation/repos': typeof ApiGithubInstallationReposRoute
+  '/api/github/oauth/authorize': typeof ApiGithubOauthAuthorizeRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
+  '/api/github/oauth/user-callback': typeof ApiGithubOauthUserCallbackRoute
   '/api/github/repos/comment': typeof ApiGithubReposCommentRoute
   '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
   '/api/github/oauth': typeof ApiGithubOauthIndexRoute
@@ -113,7 +130,9 @@ export interface FileRoutesById {
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
   '/api/github/installation/repos': typeof ApiGithubInstallationReposRoute
+  '/api/github/oauth/authorize': typeof ApiGithubOauthAuthorizeRoute
   '/api/github/oauth/callback': typeof ApiGithubOauthCallbackRoute
+  '/api/github/oauth/user-callback': typeof ApiGithubOauthUserCallbackRoute
   '/api/github/repos/comment': typeof ApiGithubReposCommentRoute
   '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
@@ -128,7 +147,9 @@ export interface FileRouteTypes {
     | '/$owner/$repo/'
     | '/$owner/$repo/pull/$number'
     | '/api/github/installation/repos'
+    | '/api/github/oauth/authorize'
     | '/api/github/oauth/callback'
+    | '/api/github/oauth/user-callback'
     | '/api/github/repos/comment'
     | '/api/github/repos/enable'
     | '/api/github/oauth/'
@@ -141,7 +162,9 @@ export interface FileRouteTypes {
     | '/$owner/$repo'
     | '/$owner/$repo/pull/$number'
     | '/api/github/installation/repos'
+    | '/api/github/oauth/authorize'
     | '/api/github/oauth/callback'
+    | '/api/github/oauth/user-callback'
     | '/api/github/repos/comment'
     | '/api/github/repos/enable'
     | '/api/github/oauth'
@@ -154,7 +177,9 @@ export interface FileRouteTypes {
     | '/$owner/$repo/'
     | '/$owner/$repo/pull/$number'
     | '/api/github/installation/repos'
+    | '/api/github/oauth/authorize'
     | '/api/github/oauth/callback'
+    | '/api/github/oauth/user-callback'
     | '/api/github/repos/comment'
     | '/api/github/repos/enable'
     | '/api/github/oauth/'
@@ -168,7 +193,9 @@ export interface RootRouteChildren {
   OwnerRepoIndexRoute: typeof OwnerRepoIndexRoute
   OwnerRepoPullNumberRoute: typeof OwnerRepoPullNumberRoute
   ApiGithubInstallationReposRoute: typeof ApiGithubInstallationReposRoute
+  ApiGithubOauthAuthorizeRoute: typeof ApiGithubOauthAuthorizeRoute
   ApiGithubOauthCallbackRoute: typeof ApiGithubOauthCallbackRoute
+  ApiGithubOauthUserCallbackRoute: typeof ApiGithubOauthUserCallbackRoute
   ApiGithubReposCommentRoute: typeof ApiGithubReposCommentRoute
   ApiGithubReposEnableRoute: typeof ApiGithubReposEnableRoute
   ApiGithubOauthIndexRoute: typeof ApiGithubOauthIndexRoute
@@ -232,11 +259,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubReposCommentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/github/oauth/user-callback': {
+      id: '/api/github/oauth/user-callback'
+      path: '/api/github/oauth/user-callback'
+      fullPath: '/api/github/oauth/user-callback'
+      preLoaderRoute: typeof ApiGithubOauthUserCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/github/oauth/callback': {
       id: '/api/github/oauth/callback'
       path: '/api/github/oauth/callback'
       fullPath: '/api/github/oauth/callback'
       preLoaderRoute: typeof ApiGithubOauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/oauth/authorize': {
+      id: '/api/github/oauth/authorize'
+      path: '/api/github/oauth/authorize'
+      fullPath: '/api/github/oauth/authorize'
+      preLoaderRoute: typeof ApiGithubOauthAuthorizeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/installation/repos': {
@@ -264,7 +305,9 @@ const rootRouteChildren: RootRouteChildren = {
   OwnerRepoIndexRoute: OwnerRepoIndexRoute,
   OwnerRepoPullNumberRoute: OwnerRepoPullNumberRoute,
   ApiGithubInstallationReposRoute: ApiGithubInstallationReposRoute,
+  ApiGithubOauthAuthorizeRoute: ApiGithubOauthAuthorizeRoute,
   ApiGithubOauthCallbackRoute: ApiGithubOauthCallbackRoute,
+  ApiGithubOauthUserCallbackRoute: ApiGithubOauthUserCallbackRoute,
   ApiGithubReposCommentRoute: ApiGithubReposCommentRoute,
   ApiGithubReposEnableRoute: ApiGithubReposEnableRoute,
   ApiGithubOauthIndexRoute: ApiGithubOauthIndexRoute,

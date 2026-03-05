@@ -5,6 +5,8 @@ import { adminDb } from "@/lib/InstantAdmin"
 
 const GITHUB_APP_ID = process.env.GITHUB_APP_ID
 const GITHUB_APP_PRIVATE_KEY = process.env.GITHUB_APP_PRIVATE_KEY?.replace(/\\n/g, "\n")
+const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID
+const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET
 
 interface CachedToken {
   token: string
@@ -276,4 +278,49 @@ export function extractInstallationId(payload: unknown): number | null {
   const installation = (payload as { installation?: { id?: number } }).installation
   if (!installation || typeof installation.id !== "number") return null
   return installation.id
+}
+
+export function getGitHubOAuthClientId(): string | undefined {
+  return GITHUB_CLIENT_ID
+}
+
+export async function exchangeCodeForUserToken(code: string): Promise<string | null> {
+  if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
+    log.warn("GitHub OAuth: missing GITHUB_CLIENT_ID or GITHUB_CLIENT_SECRET")
+    return null
+  }
+
+  const response = await fetch("https://github.com/login/oauth/access_token", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      client_id: GITHUB_CLIENT_ID,
+      client_secret: GITHUB_CLIENT_SECRET,
+      code,
+    }),
+  })
+
+  if (!response.ok) {
+    log.warn("GitHub OAuth: token exchange failed", { status: response.status })
+    return null
+  }
+
+  const data = (await response.json()) as { access_token?: string; error?: string }
+  if (data.error || !data.access_token) {
+    log.warn("GitHub OAuth: token exchange error", { error: data.error })
+    return null
+  }
+
+  return data.access_token
+}
+
+export async function getUserGitHubToken(userId: string): Promise<string | null> {
+  const { $users } = await adminDb.query({
+    $users: { $: { where: { id: userId }, limit: 1 } },
+  })
+  const user = $users?.[0]
+  return (user as { githubAccessToken?: string } | undefined)?.githubAccessToken ?? null
 }

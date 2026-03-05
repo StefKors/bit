@@ -31,6 +31,7 @@ export const schema = i.schema({
       receivedEventsUrl: i.string().optional(),
       type: i.string().optional(),
       siteAdmin: i.boolean().optional(),
+      githubAccessToken: i.string().optional(),
     }),
 
     syncStates: i.entity({

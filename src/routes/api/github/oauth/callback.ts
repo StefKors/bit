@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { adminDb } from "@/lib/InstantAdmin"
-import { storeInstallationId, getInstallationAccount } from "@/lib/GithubApp"
+import {
+  storeInstallationId,
+  getInstallationAccount,
+  exchangeCodeForUserToken,
+} from "@/lib/GithubApp"
 import { log } from "@/lib/Logger"
 
 export const Route = createFileRoute("/api/github/oauth/callback")({
@@ -13,6 +17,7 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
         const errorDescription = url.searchParams.get("error_description")
         const installationId = url.searchParams.get("installation_id")
         const setupAction = url.searchParams.get("setup_action")
+        const code = url.searchParams.get("code")
 
         if (error) {
           log.error("GitHub installation error", error, { description: errorDescription })
@@ -35,19 +40,25 @@ export const Route = createFileRoute("/api/github/oauth/callback")({
           }
 
           const account = await getInstallationAccount(instId)
+          const now = Date.now()
+          const userUpdate: Record<string, string | number> = { updatedAt: now }
+
           if (account) {
-            const now = Date.now()
-            await adminDb.transact(
-              adminDb.tx.$users[state].update({
-                login: account.login,
-                githubId: account.githubId,
-                avatarUrl: account.avatarUrl,
-                htmlUrl: account.htmlUrl,
-                updatedAt: now,
-              }),
-            )
+            userUpdate.login = account.login
+            userUpdate.githubId = account.githubId
+            userUpdate.avatarUrl = account.avatarUrl
+            userUpdate.htmlUrl = account.htmlUrl
           }
 
+          if (code) {
+            const accessToken = await exchangeCodeForUserToken(code)
+            if (accessToken) {
+              userUpdate.githubAccessToken = accessToken
+              log.info("GitHub OAuth: stored user token during installation", { userId: state })
+            }
+          }
+
+          await adminDb.transact(adminDb.tx.$users[state].update(userUpdate))
           await storeInstallationId(state, installationId, account?.login)
 
           return new Response(null, {
