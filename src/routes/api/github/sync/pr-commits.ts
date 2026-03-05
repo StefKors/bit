@@ -67,7 +67,11 @@ export const Route = createFileRoute("/api/github/sync/pr-commits")({
         }
 
         try {
-          const commits = await fetchPRCommits(installationId, owner, repo, pullNumber)
+          const raw = await fetchPRCommits(installationId, owner, repo, pullNumber)
+          const commits = raw.map((c) => ({
+            sha: c.sha,
+            message: c.commit.message,
+          }))
           return jsonResponse({ commits })
         } catch (err) {
           log.error("Failed to fetch PR commits", err)
