@@ -7,6 +7,7 @@ interface TimelineItemBaseProps {
   children?: ReactNode
   className?: string
   showConnector?: boolean
+  hideConnector?: boolean
   bodyWide?: boolean
 }
 
@@ -16,10 +17,11 @@ export const TimelineItemBase = ({
   children,
   className,
   showConnector,
+  hideConnector,
   bodyWide,
 }: TimelineItemBaseProps) => {
   const hasBody = children != null
-  const showLine = hasBody || showConnector
+  const showLine = !hideConnector && (hasBody || showConnector)
 
   return (
     <div className={className ? `${styles.timelineItem} ${className}` : styles.timelineItem}>

@@ -77,6 +77,7 @@ export const TimelineReviewItem = ({ review }: TimelineReviewItemProps) => {
   return (
     <TimelineItemBase
       icon={getReviewIcon(review.state)}
+      showConnector
       bodyWide={hasContent}
       header={
         <>

@@ -27,6 +27,7 @@ export const TimelinePrActionItem = ({ event }: TimelinePrActionItemProps) => {
   return (
     <TimelineItemBase
       icon={config.icon}
+      showConnector
       header={
         <>
           <span className={styles.eventInfo}>

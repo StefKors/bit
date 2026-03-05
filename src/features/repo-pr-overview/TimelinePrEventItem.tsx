@@ -36,6 +36,7 @@ export const TimelinePrEventItem = ({ event, type, timestamp }: TimelinePrEventI
     <TimelineItemBase
       icon={icon}
       className={className}
+      showConnector
       header={
         <>
           <span className={styles.eventInfo}>

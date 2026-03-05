@@ -65,12 +65,24 @@
 }
 
 .nestedReply {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--bit-space-2);
-  padding: var(--bit-space-4) var(--bit-space-6);
+  margin-left: var(--bit-space-6);
+  padding: var(--bit-space-4) var(--bit-space-6) var(--bit-space-4) var(--bit-space-5);
   border-top: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   background: rgba(var(--bit-rgb-surface-2), 0.2);
+}
+
+.nestedReply::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(var(--bit-rgb-fg), 0.12);
 }
 
 .nestedReply:last-child {
