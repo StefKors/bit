@@ -9,4 +9,17 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.botBadge {
+  flex-shrink: 0;
+  padding: 0 6px;
+  border-radius: var(--bit-radius-pill);
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  background: rgba(var(--bit-rgb-fg), 0.07);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
 }
