@@ -27,7 +27,7 @@ export function PrSidebar({ pr }: PrSidebarProps) {
               const review = latestReviewByAuthor.get(login)
               return (
                 <li key={login} className={styles.sidebarListItem}>
-                  <AuthorLabel login={login} size={16} />
+                  <AuthorLabel login={login} avatarUrl={review?.authorAvatarUrl} size={16} />
                   {review && (
                     <StatusBadge
                       variant={

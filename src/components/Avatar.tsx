@@ -1,13 +1,13 @@
+import { Avatar as BaseAvatar } from "@base-ui/react/avatar"
 import { OrganizationIcon, PersonIcon } from "@primer/octicons-react"
 import styles from "./Avatar.module.css"
-import { useState } from "react"
 
-interface AvatarFallbackProps {
+interface AvatarFallbackContentProps {
   isOrganization?: boolean | null
   initials?: string | null
 }
 
-const AvatarFallback = ({ isOrganization, initials }: AvatarFallbackProps) => {
+const AvatarFallbackContent = ({ isOrganization, initials }: AvatarFallbackContentProps) => {
   if (initials) {
     return <span>{initials}</span>
   }
@@ -29,29 +29,24 @@ interface AvatarProps {
 
 export const Avatar = ({ size, src, name, isOnline, isOrganization }: AvatarProps) => {
   const initial = name?.charAt(0).toUpperCase()
-  const [hasError, setHasError] = useState(false)
+  const sizeStyle = { width: `${size}px`, height: `${size}px` }
 
   return (
-    <div className={styles.avatarContainer} style={{ width: `${size}px`, height: `${size}px` }}>
-      {src && !hasError ? (
-        <img
-          src={src}
-          onError={() => {
-            setHasError(true)
-          }}
-          alt={name ?? undefined}
-          className={styles.avatar}
-          style={{ width: `${size}px`, height: `${size}px` }}
-        />
-      ) : (
-        <div
-          className={styles.avatarPlaceholder}
-          style={{ width: `${size}px`, height: `${size}px` }}
-        >
-          {<AvatarFallback initials={initial} isOrganization={isOrganization} />}
-        </div>
-      )}
-      {isOnline && <div className={styles.onlineIndicator} />}
+    <div className={styles.avatarContainer} style={sizeStyle}>
+      <BaseAvatar.Root className={styles.avatarRoot} style={sizeStyle}>
+        {src ? (
+          <BaseAvatar.Image
+            src={src}
+            alt={name ?? undefined}
+            className={styles.avatar}
+            style={sizeStyle}
+          />
+        ) : null}
+        <BaseAvatar.Fallback className={styles.avatarPlaceholder} style={sizeStyle}>
+          <AvatarFallbackContent initials={initial} isOrganization={isOrganization} />
+        </BaseAvatar.Fallback>
+      </BaseAvatar.Root>
+      {Boolean(isOnline) && <div className={styles.onlineIndicator} />}
     </div>
   )
 }
