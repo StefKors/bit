@@ -40,7 +40,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {loading && <span className={styles.spinner} />}
         {!loading && leadingIcon && <span className={styles.icon}>{leadingIcon}</span>}
-        {children && <span className={styles.label}>{children}</span>}
+        {children != null && children !== "" ? (
+          <span className={styles.label}>{children}</span>
+        ) : null}
         {!loading && trailingIcon && <span className={styles.icon}>{trailingIcon}</span>}
       </button>
     )

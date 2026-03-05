@@ -83,7 +83,7 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
         )
         .map((root) => ({
           root,
-          replies: (repliesByParent.get(root.githubId) ?? []).sort(
+          replies: [...(repliesByParent.get(root.githubId) ?? [])].sort(
             (a, b) => a.createdAt - b.createdAt,
           ),
         }))
@@ -113,7 +113,7 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
     const ts =
       comment.createdAt > 0 ? comment.createdAt : comment.updatedAt > 0 ? comment.updatedAt : 0
     if (ts > 0) {
-      const replies = (repliesByParent.get(comment.githubId) ?? []).sort(
+      const replies = [...(repliesByParent.get(comment.githubId) ?? [])].sort(
         (a, b) => a.createdAt - b.createdAt,
       )
       items.push({
@@ -142,8 +142,7 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
     items.push({ type: "closed", timestamp: pr.githubClosedAt, data: closedActor })
   }
 
-  items.sort((a, b) => a.timestamp - b.timestamp)
-  return items
+  return [...items].sort((a, b) => a.timestamp - b.timestamp)
 }
 
 export const getReviewBadgeVariant = (state: string): "open" | "closed" | "draft" => {
