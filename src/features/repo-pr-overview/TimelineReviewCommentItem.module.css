@@ -5,18 +5,20 @@
 .timelineReviewCommentInfo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--bit-space-4);
   min-width: 0;
   overflow: hidden;
 }
 
 .timelineFilePath {
   font-family: var(--bit-font-mono, monospace);
-  font-size: var(--bit-font-size-small);
-  padding: 1px 6px;
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  min-height: var(--bit-line-height-tight);
+  padding: 0 var(--bit-space-3);
   border-radius: var(--bit-radius-sm);
   background: rgba(var(--bit-rgb-fg), 0.06);
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  color: var(--bit-color-text-muted);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -40,8 +42,8 @@
 .reply {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px 12px;
+  gap: var(--bit-space-2);
+  padding: var(--bit-space-4) var(--bit-space-6);
   border-top: 1px solid rgba(var(--bit-rgb-fg), 0.08);
   background: rgba(var(--bit-rgb-surface-2), 0.2);
 }
@@ -53,11 +55,12 @@
 .replyHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--bit-space-4);
 }
 
 .replyTime {
-  font-size: var(--bit-font-size-small);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
   color: rgba(var(--bit-rgb-fg), 0.45);
 }
 

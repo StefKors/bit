@@ -1,5 +1,6 @@
 .authorLabel {
   --author-label-size: 13px;
+  --author-label-line-height: var(--bit-line-height-meta);
   display: inline-flex;
   align-items: center;
   gap: var(--bit-space-2);
@@ -12,7 +13,7 @@
 
 .authorLogin {
   font-size: var(--author-label-size);
-  line-height: var(--bit-line-height-meta);
+  line-height: var(--author-label-line-height);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;

@@ -28,7 +28,7 @@ export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
 
   return (
     <div className={styles.detailContent}>
-      {pr.body && <Markdown content={pr.body} className={styles.prBody} />}
+      {pr.body && <Markdown content={pr.body} />}
 
       {pr.checkRuns.length > 0 && (
         <div className={styles.detailSection}>

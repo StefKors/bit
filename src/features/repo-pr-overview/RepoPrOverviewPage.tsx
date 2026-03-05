@@ -31,6 +31,9 @@ export function RepoPrOverviewPage() {
   const { user } = useAuth()
   const [prTab, setPrTab] = useState("conversation")
   const [authorFilter, setAuthorFilter] = useState<string | null>(null)
+  const [stateFilter, setStateFilter] = useState<
+    "all" | "open" | "draft" | "needsReview" | "readyToMerge" | "merged"
+  >("open")
   const fullName = `${owner}/${repo}`
 
   const effectiveAuthorFilter = authorFilter ?? (user?.login ? "me" : "all")
@@ -86,23 +89,26 @@ export function RepoPrOverviewPage() {
   const filterByAuthor = (prs: PullRequestCard[]) =>
     authorLoginFilter ? prs.filter((pr) => pr.authorLogin === authorLoginFilter) : prs
 
-  const draftPRs = filterByAuthor(allPRs.filter((pr) => pr.draft))
-  const needsReviewPRs = filterByAuthor(
-    allPRs.filter(
-      (pr) => !pr.draft && (pr.mergeableState === "blocked" || pr.mergeableState === "unknown"),
-    ),
-  )
-  const readyToMergePRs = filterByAuthor(
-    allPRs.filter(
-      (pr) => !pr.draft && pr.mergeableState !== "blocked" && pr.mergeableState !== "unknown",
-    ),
-  )
-  const filteredMergedPRs = filterByAuthor(mergedPRs)
+  const getPrBucket = (
+    pr: PullRequestCard,
+  ): "draft" | "needsReview" | "readyToMerge" | "merged" => {
+    if (pr.merged) return "merged"
+    if (pr.draft) return "draft"
+    if (pr.mergeableState === "blocked" || pr.mergeableState === "unknown") return "needsReview"
+    return "readyToMerge"
+  }
+
+  const filteredPRsByAuthor = filterByAuthor([...allPRs, ...mergedPRs])
+  const filteredPRs =
+    stateFilter === "all"
+      ? filteredPRsByAuthor
+      : stateFilter === "open"
+        ? filteredPRsByAuthor.filter((pr) => !pr.merged)
+        : filteredPRsByAuthor.filter((pr) => getPrBucket(pr) === stateFilter)
   const parsedSelectedPrNumber = selectedPrNumber ? Number(selectedPrNumber) : NaN
   const normalizedSelectedPrNumber = Number.isNaN(parsedSelectedPrNumber)
     ? null
     : parsedSelectedPrNumber
-  const allFilteredPRs = [...draftPRs, ...needsReviewPRs, ...readyToMergePRs, ...filteredMergedPRs]
   const prevPrIdsRef = useRef<Set<string>>(new Set())
   const hasInitiallyLoadedRef = useRef(false)
   const ownerRepoRef = useRef(fullName)
@@ -111,7 +117,7 @@ export function RepoPrOverviewPage() {
     hasInitiallyLoadedRef.current = false
     prevPrIdsRef.current = new Set()
   }
-  const currentIds = new Set(allFilteredPRs.map((pr) => pr.id))
+  const currentIds = new Set(filteredPRs.map((pr) => pr.id))
   if (!hasInitiallyLoadedRef.current) {
     hasInitiallyLoadedRef.current = true
     prevPrIdsRef.current = new Set(currentIds)
@@ -120,11 +126,8 @@ export function RepoPrOverviewPage() {
   prevPrIdsRef.current = currentIds
 
   const selectedPR =
-    allFilteredPRs.find((pr) => pr.number === normalizedSelectedPrNumber) ??
-    (normalizedSelectedPrNumber === null
-      ? (draftPRs[0] ?? needsReviewPRs[0] ?? readyToMergePRs[0] ?? filteredMergedPRs[0])
-      : null) ??
-    null
+    filteredPRs.find((pr) => pr.number === normalizedSelectedPrNumber) ??
+    (normalizedSelectedPrNumber === null ? filteredPRs[0] : null)
 
   if (!repoData) {
     return (
@@ -150,18 +153,17 @@ export function RepoPrOverviewPage() {
         <aside className={styles.column1}>
           <PrAuthorFilter
             authorFilter={effectiveAuthorFilter}
+            stateFilter={stateFilter}
             userLogin={user?.login ?? null}
             uniqueAuthors={uniqueAuthors}
             onFilterChange={setAuthorFilter}
+            onStateFilterChange={setStateFilter}
           />
           <PrSelectionList
             owner={owner}
             repo={repo}
             selectedPrNumber={selectedPR?.number ?? null}
-            draftPRs={draftPRs}
-            needsReviewPRs={needsReviewPRs}
-            readyToMergePRs={readyToMergePRs}
-            mergedPRs={filteredMergedPRs}
+            prs={filteredPRs}
             newPrIds={newPrIds}
           />
         </aside>
@@ -190,7 +192,9 @@ export function RepoPrOverviewPage() {
           ) : (
             <div className={styles.placeholder}>
               {allPRs.length === 0
-                ? "No PR data yet. Trigger webhooks by opening/updating a PR."
+                ? mergedPRs.length === 0
+                  ? "No PR data yet. Trigger webhooks by opening/updating a PR."
+                  : "Select a PR from the left column."
                 : "Select a PR from the left column."}
             </div>
           )}

@@ -4,10 +4,6 @@
   gap: var(--bit-space-7);
 }
 
-.prBody {
-  max-width: 800px;
-}
-
 .detailSection {
   display: flex;
   flex-direction: column;

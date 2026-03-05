@@ -1,11 +1,10 @@
-import { useState } from "react"
-import {
-  GitMergeIcon,
-  GitPullRequestDraftIcon,
-  GitPullRequestIcon,
-  SyncIcon,
-} from "@primer/octicons-react"
-import { PrSelectionSection } from "./PrSelectionSection"
+import { Link } from "@tanstack/react-router"
+import { motion } from "motion/react"
+import { formatRelativeTime } from "@/lib/Format"
+import { AuthorLabel } from "@/components/AuthorLabel"
+import { CiDot } from "@/components/CiDot"
+import { formatMergeableState } from "@/lib/Format"
+import { getCiDotVariant } from "./Utils"
 import type { PullRequestCard } from "./Types"
 import styles from "./PrSelectionList.module.css"
 
@@ -13,10 +12,7 @@ interface PrSelectionListProps {
   owner: string
   repo: string
   selectedPrNumber: number | null
-  draftPRs: PullRequestCard[]
-  needsReviewPRs: PullRequestCard[]
-  readyToMergePRs: PullRequestCard[]
-  mergedPRs: PullRequestCard[]
+  prs: PullRequestCard[]
   newPrIds: Set<string>
 }
 
@@ -24,81 +20,60 @@ export function PrSelectionList({
   owner,
   repo,
   selectedPrNumber,
-  draftPRs,
-  needsReviewPRs,
-  readyToMergePRs,
-  mergedPRs,
+  prs,
   newPrIds,
 }: PrSelectionListProps) {
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({
-    draft: true,
-    needsReview: true,
-    readyToMerge: true,
-    merged: false,
-  })
-
-  const toggleSection = (id: string) => {
-    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }))
+  if (prs.length === 0) {
+    return <p className={styles.empty}>No pull requests match the current filters.</p>
   }
 
   return (
-    <div className={styles.prSectionList}>
-      <PrSelectionSection
-        owner={owner}
-        repo={repo}
-        sectionId="draft"
-        title="Draft"
-        icon={<GitPullRequestDraftIcon size={12} />}
-        prs={draftPRs}
-        selectedPrNumber={selectedPrNumber}
-        isExpanded={expanded.draft}
-        onToggle={() => {
-          toggleSection("draft")
-        }}
-        newPrIds={newPrIds}
-      />
-      <PrSelectionSection
-        owner={owner}
-        repo={repo}
-        sectionId="needsReview"
-        title="Needs Review"
-        icon={<SyncIcon size={12} />}
-        prs={needsReviewPRs}
-        selectedPrNumber={selectedPrNumber}
-        isExpanded={expanded.needsReview}
-        onToggle={() => {
-          toggleSection("needsReview")
-        }}
-        newPrIds={newPrIds}
-      />
-      <PrSelectionSection
-        owner={owner}
-        repo={repo}
-        sectionId="readyToMerge"
-        title="Ready to Merge"
-        icon={<GitPullRequestIcon size={12} />}
-        prs={readyToMergePRs}
-        selectedPrNumber={selectedPrNumber}
-        isExpanded={expanded.readyToMerge}
-        onToggle={() => {
-          toggleSection("readyToMerge")
-        }}
-        newPrIds={newPrIds}
-      />
-      <PrSelectionSection
-        owner={owner}
-        repo={repo}
-        sectionId="merged"
-        title="Merged"
-        icon={<GitMergeIcon size={12} />}
-        prs={mergedPRs}
-        selectedPrNumber={selectedPrNumber}
-        isExpanded={expanded.merged}
-        onToggle={() => {
-          toggleSection("merged")
-        }}
-        newPrIds={newPrIds}
-      />
-    </div>
+    <ul className={styles.prList}>
+      {prs.map((pr) => {
+        const isSelected = selectedPrNumber === pr.number
+        const isNew = newPrIds.has(pr.id)
+        return (
+          <motion.li
+            key={pr.id}
+            initial={isNew ? { opacity: 0, y: 8 } : false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <Link
+              to="/$owner/$repo"
+              params={{ owner, repo }}
+              search={(prev) => ({
+                ...prev,
+                selectedPrNumber: String(pr.number),
+              })}
+              preload="intent"
+              className={`${styles.prCell} ${isSelected ? styles.prCellSelected : ""}`}
+              aria-current={isSelected ? "true" : undefined}
+            >
+              <span className={styles.prCellRow1}>
+                <span className={styles.prTitle}>
+                  #{pr.number} {pr.title}
+                </span>
+                <span className={styles.prUpdatedAt}>{formatRelativeTime(pr.updatedAt)}</span>
+              </span>
+              <span className={styles.prCellRow2}>
+                <AuthorLabel
+                  login={pr.authorLogin}
+                  avatarUrl={pr.authorAvatarUrl}
+                  size={12}
+                  weight="regular"
+                />
+                <span className={styles.prMetaTrail}>
+                  <CiDot
+                    variant={getCiDotVariant(pr)}
+                    title={pr.merged ? "Merged" : formatMergeableState(pr.mergeableState)}
+                  />
+                </span>
+              </span>
+            </Link>
+          </motion.li>
+        )
+      })}
+    </ul>
   )
 }

@@ -15,7 +15,12 @@ export const TimelineIssueCommentItem = ({ comment }: TimelineIssueCommentItemPr
     icon={<CommentDiscussionIcon size={16} />}
     header={
       <>
-        <AuthorLabel login={comment.authorLogin} avatarUrl={comment.authorAvatarUrl} size={16} />
+        <AuthorLabel
+          login={comment.authorLogin}
+          avatarUrl={comment.authorAvatarUrl}
+          size={13}
+          lineHeight="default"
+        />
         <time className={styles.timelineTime}>
           {formatRelativeTime(comment.createdAt || comment.updatedAt)}
         </time>

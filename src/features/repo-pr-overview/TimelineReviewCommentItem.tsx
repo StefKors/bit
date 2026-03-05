@@ -20,7 +20,12 @@ const ReplyItem = ({
 }) => (
   <div className={styles.reply}>
     <div className={styles.replyHeader}>
-      <AuthorLabel login={comment.authorLogin} avatarUrl={comment.authorAvatarUrl} size={12} />
+      <AuthorLabel
+        login={comment.authorLogin}
+        avatarUrl={comment.authorAvatarUrl}
+        size={13}
+        lineHeight="default"
+      />
       <time className={styles.replyTime}>
         {formatRelativeTime(comment.createdAt || comment.updatedAt)}
       </time>
@@ -45,7 +50,12 @@ export const TimelineReviewCommentItem = ({ thread }: TimelineReviewCommentItemP
       header={
         <>
           <span className={styles.timelineReviewCommentInfo}>
-            <AuthorLabel login={root.authorLogin} avatarUrl={root.authorAvatarUrl} size={16} />
+            <AuthorLabel
+              login={root.authorLogin}
+              avatarUrl={root.authorAvatarUrl}
+              size={13}
+              lineHeight="default"
+            />
             {root.path && (
               <code className={styles.timelineFilePath}>
                 {root.path}

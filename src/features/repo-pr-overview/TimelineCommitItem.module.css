@@ -13,11 +13,6 @@
   color: var(--bit-color-text);
 }
 
-.timelineAuthor {
-  font-weight: var(--bit-font-weight-bold);
-  flex-shrink: 0;
-}
-
 .timelineCommitTitle {
   flex: 1;
   min-width: 0;

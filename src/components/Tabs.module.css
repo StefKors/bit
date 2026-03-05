@@ -7,6 +7,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  padding-bottom: var(--bit-space-2);
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.12);
   margin-bottom: 1.5rem;
   position: relative;
@@ -30,7 +31,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: var(--bit-space-3) var(--bit-space-5);
+  border-radius: var(--bit-radius-md);
   color: rgba(var(--bit-rgb-fg), 0.65);
   text-decoration: none;
   background: transparent;
@@ -41,15 +43,19 @@
   position: relative;
   z-index: 1;
   flex-shrink: 0;
-  transition: color 0.1s ease;
+  transition:
+    color 0.1s ease,
+    background-color 0.1s ease;
 }
 
 .tab:hover {
   color: var(--bit-color-heading);
+  background: rgba(var(--bit-rgb-surface-2), 0.2);
 }
 
 .tab[data-active] {
   color: var(--bit-color-heading);
+  background: rgba(var(--bit-rgb-fg), 0.1);
 }
 
 .icon {
@@ -73,15 +79,7 @@
 }
 
 .indicator {
-  position: absolute;
-  bottom: -1px;
-  left: var(--active-tab-left, 0);
-  width: var(--active-tab-width, 0);
-  height: 2px;
-  background: var(--bit-color-accent-orange);
-  transition:
-    left 0.12s cubic-bezier(0.4, 0, 0.2, 1),
-    width 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  display: none;
 }
 
 @media (max-width: 900px) {
@@ -105,7 +103,7 @@
   }
 
   .tab {
-    padding: 0.65rem 0.85rem;
+    padding: var(--bit-space-3) var(--bit-space-4);
   }
 
   .indicator {

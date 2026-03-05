@@ -39,7 +39,12 @@ export const TimelinePrEventItem = ({ event, type, timestamp }: TimelinePrEventI
       header={
         <>
           <span className={styles.eventInfo}>
-            <AuthorLabel login={event.authorLogin} avatarUrl={event.authorAvatarUrl} size={16} />
+            <AuthorLabel
+              login={event.authorLogin}
+              avatarUrl={event.authorAvatarUrl}
+              size={13}
+              lineHeight="default"
+            />
             <span className={styles.eventVerb}>{verb}</span>
           </span>
           <time className={styles.timelineTime}>{formatRelativeTime(timestamp)}</time>

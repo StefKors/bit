@@ -15,7 +15,12 @@ const NestedCommentThread = ({ thread }: { thread: ReviewCommentThread }) => {
   return (
     <div className={styles.nestedThread}>
       <div className={styles.nestedThreadHeader}>
-        <AuthorLabel login={root.authorLogin} avatarUrl={root.authorAvatarUrl} size={12} />
+        <AuthorLabel
+          login={root.authorLogin}
+          avatarUrl={root.authorAvatarUrl}
+          size={13}
+          lineHeight="default"
+        />
         {root.path && (
           <code className={styles.nestedFilePath}>
             {root.path}
@@ -36,7 +41,12 @@ const NestedCommentThread = ({ thread }: { thread: ReviewCommentThread }) => {
       {replies.map((reply) => (
         <div key={reply.id} className={styles.nestedReply}>
           <div className={styles.nestedReplyHeader}>
-            <AuthorLabel login={reply.authorLogin} avatarUrl={reply.authorAvatarUrl} size={12} />
+            <AuthorLabel
+              login={reply.authorLogin}
+              avatarUrl={reply.authorAvatarUrl}
+              size={13}
+              lineHeight="default"
+            />
             <time className={styles.nestedTime}>
               {formatRelativeTime(reply.createdAt || reply.updatedAt)}
             </time>
@@ -71,7 +81,12 @@ export const TimelineReviewItem = ({ review }: TimelineReviewItemProps) => {
       header={
         <>
           <span className={styles.timelineReviewInfo}>
-            <AuthorLabel login={review.authorLogin} avatarUrl={review.authorAvatarUrl} size={16} />
+            <AuthorLabel
+              login={review.authorLogin}
+              avatarUrl={review.authorAvatarUrl}
+              size={13}
+              lineHeight="default"
+            />
             <StatusBadge
               variant={getReviewBadgeVariant(review.state)}
               icon={getReviewIcon(review.state)}

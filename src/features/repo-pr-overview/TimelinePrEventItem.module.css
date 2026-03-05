@@ -5,13 +5,14 @@
 .eventInfo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--bit-space-4);
   min-width: 0;
 }
 
 .eventVerb {
   font-size: var(--bit-font-size-default);
-  color: rgba(var(--bit-rgb-fg), 0.58);
+  line-height: var(--bit-line-height-default);
+  color: var(--bit-color-text-muted);
 }
 
 .opened > div:first-child {
