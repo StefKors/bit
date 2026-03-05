@@ -207,6 +207,19 @@ export const schema = i.schema({
       createdAt: i.number(),
       updatedAt: i.number().indexed(),
     }),
+    pullRequestEvents: i.entity({
+      eventKey: i.string().unique().indexed(),
+      eventType: i.string().indexed(),
+      actorLogin: i.string().optional().indexed(),
+      actorAvatarUrl: i.string().optional(),
+      targetLogin: i.string().optional(),
+      targetAvatarUrl: i.string().optional(),
+      label: i.string().optional(),
+      githubCreatedAt: i.number().indexed(),
+      createdAt: i.number(),
+      updatedAt: i.number().indexed(),
+    }),
+
     pullRequestFiles: i.entity({
       commitSha: i.string().indexed(),
       filename: i.string().indexed(),
@@ -351,6 +364,18 @@ export const schema = i.schema({
         on: "pullRequests",
         has: "many",
         label: "pullRequestCommits",
+      },
+    },
+    pullRequestEventsLink: {
+      forward: {
+        on: "pullRequestEvents",
+        has: "one",
+        label: "pullRequest",
+      },
+      reverse: {
+        on: "pullRequests",
+        has: "many",
+        label: "pullRequestEvents",
       },
     },
     pullRequestFilesLink: {

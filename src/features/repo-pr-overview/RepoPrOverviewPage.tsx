@@ -55,6 +55,9 @@ export function RepoPrOverviewPage() {
         checkRuns: {
           $: { order: { updatedAt: "desc" }, limit: 10 },
         },
+        pullRequestEvents: {
+          $: { order: { updatedAt: "desc" }, limit: 50 },
+        },
         pullRequestFiles: {},
       },
     },

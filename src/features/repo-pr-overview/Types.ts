@@ -46,6 +46,17 @@ export interface PullRequestCommit {
   htmlUrl: string | null
 }
 
+export interface PullRequestEvent {
+  id: string
+  eventType: string
+  actorLogin: string | null
+  actorAvatarUrl: string | null
+  targetLogin: string | null
+  targetAvatarUrl: string | null
+  label: string | null
+  githubCreatedAt: number
+}
+
 export interface PullRequestCheckRun {
   id: string
   name: string
@@ -67,6 +78,7 @@ export type TimelineItem =
   | { type: "opened"; timestamp: number; data: PrEventData }
   | { type: "merged"; timestamp: number; data: PrEventData }
   | { type: "closed"; timestamp: number; data: PrEventData }
+  | { type: "pr_event"; timestamp: number; data: PullRequestEvent }
 
 export interface PullRequestFileEntry {
   id: string
@@ -112,5 +124,6 @@ export interface PullRequestCard {
   pullRequestReviewComments: PullRequestReviewComment[]
   pullRequestCommits: PullRequestCommit[]
   checkRuns: PullRequestCheckRun[]
+  pullRequestEvents: PullRequestEvent[]
   pullRequestFiles: PullRequestFileEntry[]
 }

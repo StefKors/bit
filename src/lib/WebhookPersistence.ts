@@ -399,6 +399,65 @@ const upsertCheckSuite = async (
   )
 }
 
+const PR_EVENT_ACTIONS = new Set([
+  "labeled",
+  "unlabeled",
+  "assigned",
+  "unassigned",
+  "review_requested",
+  "review_request_removed",
+])
+
+const insertPullRequestEvent = async (
+  pullRequestId: string,
+  payload: JsonObject,
+  now: number,
+): Promise<void> => {
+  const action = asString(payload.action)
+  if (!action || !PR_EVENT_ACTIONS.has(action)) return
+
+  const sender = asObject(payload.sender)
+  const actorLogin = asString(sender?.login)
+
+  let label: string | undefined
+  let targetLogin: string | undefined
+  let targetAvatarUrl: string | undefined
+
+  if (action === "labeled" || action === "unlabeled") {
+    const labelObj = asObject(payload.label)
+    label = asString(labelObj?.name)
+  } else if (action === "assigned" || action === "unassigned") {
+    const assignee = asObject(payload.assignee)
+    targetLogin = asString(assignee?.login)
+    targetAvatarUrl = asString(assignee?.avatar_url)
+  } else if (action === "review_requested" || action === "review_request_removed") {
+    const reviewer = asObject(payload.requested_reviewer)
+    targetLogin = asString(reviewer?.login)
+    targetAvatarUrl = asString(reviewer?.avatar_url)
+  }
+
+  const keyTarget = label ?? targetLogin ?? ""
+  const eventKey = `${pullRequestId}:${action}:${keyTarget}:${now}`
+
+  const eventId = id()
+  await adminDb.transact(
+    adminDb.tx.pullRequestEvents[eventId]
+      .update({
+        eventKey,
+        eventType: action,
+        actorLogin,
+        actorAvatarUrl: asString(sender?.avatar_url),
+        targetLogin,
+        targetAvatarUrl,
+        label,
+        githubCreatedAt: now,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .link({ pullRequest: pullRequestId }),
+  )
+}
+
 const SYNC_TRIGGER_ACTIONS = new Set(["opened", "synchronize", "reopened"])
 
 export const persistWebhookPayload = async (params: {
@@ -507,6 +566,9 @@ export const persistWebhookPayload = async (params: {
       triggerPRFileSync(pullRequestId, repo.fullName, payloadRecord).catch((err) => {
         log.error("Failed to sync PR files on pull_request", err)
       })
+    }
+    if (action && PR_EVENT_ACTIONS.has(action)) {
+      await insertPullRequestEvent(pullRequestId, payloadRecord, now)
     }
     return
   }

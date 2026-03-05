@@ -81,6 +81,16 @@ interface RepoPullRequest {
     conclusion?: string | null
     updatedAt?: string | number | null
   }> | null
+  pullRequestEvents?: Array<{
+    id: string
+    eventType?: string | null
+    actorLogin?: string | null
+    actorAvatarUrl?: string | null
+    targetLogin?: string | null
+    targetAvatarUrl?: string | null
+    label?: string | null
+    githubCreatedAt?: number | null
+  }> | null
   pullRequestFiles?: Array<{
     id: string
     filename: string
@@ -176,6 +186,17 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
       status: check.status ?? "unknown",
       conclusion: check.conclusion ?? null,
       updatedAt: check.updatedAt ?? null,
+    })) ?? [],
+  pullRequestEvents:
+    pr.pullRequestEvents?.map((evt) => ({
+      id: evt.id,
+      eventType: evt.eventType ?? "",
+      actorLogin: evt.actorLogin ?? null,
+      actorAvatarUrl: evt.actorAvatarUrl ?? null,
+      targetLogin: evt.targetLogin ?? null,
+      targetAvatarUrl: evt.targetAvatarUrl ?? null,
+      label: evt.label ?? null,
+      githubCreatedAt: evt.githubCreatedAt ?? 0,
     })) ?? [],
   pullRequestFiles:
     pr.pullRequestFiles?.map((file) => ({

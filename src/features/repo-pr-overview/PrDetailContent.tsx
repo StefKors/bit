@@ -9,6 +9,7 @@ import { TimelineReviewItem } from "./TimelineReviewItem"
 import { TimelineIssueCommentItem } from "./TimelineIssueCommentItem"
 import { TimelineReviewCommentItem } from "./TimelineReviewCommentItem"
 import { TimelinePrEventItem } from "./TimelinePrEventItem"
+import { TimelinePrActionItem } from "./TimelinePrActionItem"
 import type { PullRequestCard, TimelineItem } from "./Types"
 import styles from "./PrDetailContent.module.css"
 
@@ -68,6 +69,9 @@ export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
                     timestamp={item.timestamp}
                   />
                 )
+              }
+              if (item.type === "pr_event") {
+                return <TimelinePrActionItem key={`pe-${item.data.id}`} event={item.data} />
               }
               if (item.type === "commit") {
                 return <TimelineCommitItem key={`c-${item.data.id}`} commit={item.data} />

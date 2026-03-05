@@ -79,6 +79,12 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
     }
   }
 
+  for (const evt of pr.pullRequestEvents) {
+    if (evt.githubCreatedAt > 0) {
+      items.push({ type: "pr_event", timestamp: evt.githubCreatedAt, data: evt })
+    }
+  }
+
   if (pr.merged && pr.githubMergedAt) {
     const mergedActor = pr.mergedByLogin
       ? { authorLogin: pr.mergedByLogin, authorAvatarUrl: pr.mergedByAvatarUrl }
