@@ -583,6 +583,13 @@ const triggerPushFileSync = async (
   for (const pr of matchingPRs) {
     const baseSha = pr.baseSha
     if (!baseSha) continue
+
+    // Keep PR headSha in sync so the UI can find files for the latest commit.
+    // Push webhooks often arrive before the pull_request synchronize event,
+    // so without this the PR's headSha would still point to the previous
+    // commit and the file list would appear empty.
+    await adminDb.transact(adminDb.tx.pullRequests[pr.id].update({ headSha: afterSha }))
+
     await syncPRFilesForCommit(pr.id, installationId, owner, repo, baseSha, afterSha)
   }
 }
