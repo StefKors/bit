@@ -251,61 +251,54 @@
 .markdown :global(ul.contains-task-list) {
   list-style: none;
   padding-left: 0;
+  margin: 0 0 1em;
 }
 
 .markdown :global(ul.contains-task-list) ul {
   padding-left: 1.5em;
-  margin-top: 0.25em;
+  margin-top: 2px;
 }
 
 .markdown :global(ul.contains-task-list) li {
   list-style: none;
+  margin-bottom: 2px;
+  position: relative;
+  padding-left: 20px;
+  min-width: 0;
 }
 
 .markdown :global(ul.contains-task-list) li p {
   margin: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5em;
-  min-width: 0;
-}
-
-.markdown :global(ul.contains-task-list) li p > label {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5em;
-  flex: 1;
-  min-width: 0;
-  cursor: default;
 }
 
 .markdown :global(ul.contains-task-list) input[type="checkbox"] {
   appearance: none;
+  box-sizing: border-box;
   margin: 0;
-  flex-shrink: 0;
-  margin-top: 0.2em;
-  width: 1.125em;
-  height: 1.125em;
-  border: 1.5px solid rgba(var(--bit-rgb-fg), 0.3);
-  border-radius: 4px;
-  background: rgba(var(--bit-rgb-fg), 0.06);
+  padding: 0;
+  width: 14px;
+  height: 14px;
+  position: absolute;
+  left: 0;
+  top: 2px;
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.25);
+  border-radius: 3px;
+  background: transparent;
   cursor: default;
-  position: relative;
+}
+
+.markdown :global(ul.contains-task-list) li > label,
+.markdown :global(ul.contains-task-list) li > p > label {
+  display: block;
+  min-width: 0;
+  cursor: default;
 }
 
 .markdown :global(ul.contains-task-list) input[type="checkbox"]:checked {
-  background: rgba(var(--bit-rgb-accent-green), 0.2);
-  border-color: var(--bit-color-accent-green);
-}
-
-.markdown :global(ul.contains-task-list) input[type="checkbox"]:checked::after {
-  content: "";
-  position: absolute;
-  left: 0.32em;
-  top: 0.08em;
-  width: 0.32em;
-  height: 0.55em;
-  border: solid var(--bit-color-accent-green);
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+  background-color: var(--bit-color-accent-blue);
+  background-image: url("data:image/svg+xml,%3Csvg fill='%23fff' width='10' height='10' viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.1603 1.12218C9.50684 1.34873 9.60427 1.81354 9.37792 2.16038L5.13603 8.66012C5.01614 8.8438 4.82192 8.96576 4.60451 8.99384C4.3871 9.02194 4.1683 8.95335 4.00574 8.80615L1.24664 6.30769C0.939709 6.02975 0.916013 5.55541 1.19372 5.24822C1.47142 4.94102 1.94536 4.91731 2.2523 5.19524L4.36085 7.10461L8.12299 1.33999C8.34934 0.993152 8.81376 0.895638 9.1603 1.12218Z'/%3E%3C/svg%3E");
+  background-size: 10px;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-color: transparent;
 }
