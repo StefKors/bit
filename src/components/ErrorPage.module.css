@@ -15,11 +15,7 @@
   padding: var(--bit-space-8);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.12);
   border-radius: var(--bit-radius-xl);
-  background: linear-gradient(
-    180deg,
-    rgba(var(--bit-rgb-surface-3), 0.42) 0%,
-    rgba(var(--bit-rgb-surface-2), 0.64) 100%
-  );
+  background: var(--bit-color-panel-bg);
   box-shadow:
     0 16px 28px rgba(0, 0, 0, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
