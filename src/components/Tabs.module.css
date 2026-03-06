@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding-bottom: var(--bit-space-9);
+  padding-bottom: var(--bit-space-4);
   border-bottom: 1px solid rgba(var(--bit-rgb-fg), 0.12);
   margin-bottom: var(--bit-space-9);
   position: relative;
