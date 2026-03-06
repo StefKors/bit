@@ -14,7 +14,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--bit-max-width);
   height: 100%;
   min-width: 0;
   margin: 0 auto;
@@ -24,7 +24,7 @@
 
 .columns {
   display: grid;
-  grid-template-columns: minmax(0, 272px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 332px) minmax(0, 1fr);
   grid-template-rows: auto auto 1fr;
   grid-template-areas:
     "sidebar header"
@@ -54,7 +54,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--bit-space-6);
-  margin-bottom: var(--bit-space-7);
+  margin-bottom: var(--bit-space-12);
 }
 
 .prTabs {

@@ -16,7 +16,7 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--bit-max-width);
   margin: 0 auto;
   gap: 0.75rem;
 }

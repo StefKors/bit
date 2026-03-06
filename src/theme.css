@@ -34,6 +34,12 @@
   --bit-space-7: 16px;
   --bit-space-8: 20px;
   --bit-space-9: 24px;
+  --bit-space-10: 32px;
+  --bit-space-11: 40px;
+  --bit-space-12: 48px;
+
+  /* Layout */
+  --bit-max-width: 1600px;
 
   /* Icon scale */
   --bit-icon-size-xs: 10px;
