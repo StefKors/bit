@@ -11,18 +11,21 @@
   --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-balance: cubic-bezier(0.45, 0, 0.55, 1);
 
+  flex: 1;
   display: flex;
   flex-direction: column;
   width: 100%;
   max-width: var(--bit-max-width);
-  height: 100%;
+  min-height: 0;
   min-width: 0;
   margin: 0 auto;
   padding: var(--bit-space-7) 0;
   gap: var(--bit-space-7);
+  overflow: hidden;
 }
 
 .columns {
+  flex: 1;
   display: grid;
   grid-template-columns: minmax(0, 332px) minmax(0, 1fr);
   grid-template-rows: auto auto 1fr;
@@ -32,9 +35,9 @@
     "sidebar content";
   column-gap: var(--bit-space-8);
   row-gap: 0;
-  flex: 1;
   min-height: 0;
   min-width: 0;
+  overflow: hidden;
 }
 
 .column1 {
@@ -42,10 +45,68 @@
   grid-row: 1 / -1;
   display: flex;
   flex-direction: column;
-  gap: var(--bit-space-4);
   min-height: 0;
   min-width: 0;
-  overflow-y: auto;
+  overflow: hidden;
+}
+
+.column1Viewport {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+
+  &::before,
+  &::after {
+    content: "";
+    display: block;
+    left: 0;
+    width: 100%;
+    position: absolute;
+    pointer-events: none;
+    border-radius: var(--bit-radius-lg);
+    transition: height 0.1s ease-out;
+  }
+
+  &::before {
+    --scroll-area-overflow-y-start: inherit;
+    top: 0;
+    height: min(40px, var(--scroll-area-overflow-y-start));
+    background: linear-gradient(to bottom, var(--bit-color-bg), transparent);
+  }
+
+  &::after {
+    --scroll-area-overflow-y-end: inherit;
+    bottom: 0;
+    height: min(40px, var(--scroll-area-overflow-y-end, 40px));
+    background: linear-gradient(to top, var(--bit-color-bg), transparent);
+  }
+}
+
+.column1Content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bit-space-4);
+}
+
+.column1Scrollbar {
+  width: 8px;
+  border-radius: var(--bit-radius-pill);
+  background: rgba(var(--bit-rgb-fg), 0.06);
+}
+
+.column1Scrollbar[data-state="hidden"] {
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+}
+
+.column1Thumb {
+  flex: 1;
+  border-radius: var(--bit-radius-pill);
+  background: rgba(var(--bit-rgb-fg), 0.2);
+}
+
+.column1Thumb:hover {
+  background: rgba(var(--bit-rgb-fg), 0.3);
 }
 
 .prHeader {
@@ -65,10 +126,68 @@
   grid-area: content;
   display: flex;
   flex-direction: column;
-  gap: var(--bit-space-7);
   min-height: 0;
   min-width: 0;
-  overflow-y: auto;
+  overflow: hidden;
+}
+
+.column2Viewport {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+
+  &::before,
+  &::after {
+    content: "";
+    display: block;
+    left: 0;
+    width: 100%;
+    position: absolute;
+    pointer-events: none;
+    border-radius: var(--bit-radius-lg);
+    transition: height 0.1s ease-out;
+  }
+
+  &::before {
+    --scroll-area-overflow-y-start: inherit;
+    top: 0;
+    height: min(40px, var(--scroll-area-overflow-y-start));
+    background: linear-gradient(to bottom, var(--bit-color-bg), transparent);
+  }
+
+  &::after {
+    --scroll-area-overflow-y-end: inherit;
+    bottom: 0;
+    height: min(40px, var(--scroll-area-overflow-y-end, 40px));
+    background: linear-gradient(to top, var(--bit-color-bg), transparent);
+  }
+}
+
+.column2Content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bit-space-7);
+}
+
+.column2Scrollbar {
+  width: 8px;
+  border-radius: var(--bit-radius-pill);
+  background: rgba(var(--bit-rgb-fg), 0.06);
+}
+
+.column2Scrollbar[data-state="hidden"] {
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+}
+
+.column2Thumb {
+  flex: 1;
+  border-radius: var(--bit-radius-pill);
+  background: rgba(var(--bit-rgb-fg), 0.2);
+}
+
+.column2Thumb:hover {
+  background: rgba(var(--bit-rgb-fg), 0.3);
 }
 
 .placeholder {

@@ -1,5 +1,6 @@
 import { useRef, useState } from "react"
 import { motion } from "motion/react"
+import { ScrollArea } from "@base-ui/react/scroll-area"
 import { useAuth } from "@/lib/hooks/UseAuth"
 import { db } from "@/lib/InstantDb"
 import { Tabs } from "@/components/Tabs"
@@ -140,23 +141,30 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
       transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className={styles.columns}>
-        <aside className={styles.column1}>
-          <PrAuthorFilter
-            authorFilter={effectiveAuthorFilter}
-            stateFilter={stateFilter}
-            userLogin={user?.login ?? null}
-            uniqueAuthors={uniqueAuthors}
-            onFilterChange={setAuthorFilter}
-            onStateFilterChange={setStateFilter}
-          />
-          <PrSelectionList
-            owner={owner}
-            repo={repo}
-            selectedPrNumber={selectedPR?.number ?? null}
-            prs={filteredPRs}
-            newPrIds={newPrIds}
-          />
-        </aside>
+        <ScrollArea.Root className={styles.column1}>
+          <ScrollArea.Viewport className={styles.column1Viewport}>
+            <ScrollArea.Content className={styles.column1Content}>
+              <PrAuthorFilter
+                authorFilter={effectiveAuthorFilter}
+                stateFilter={stateFilter}
+                userLogin={user?.login ?? null}
+                uniqueAuthors={uniqueAuthors}
+                onFilterChange={setAuthorFilter}
+                onStateFilterChange={setStateFilter}
+              />
+              <PrSelectionList
+                owner={owner}
+                repo={repo}
+                selectedPrNumber={selectedPR?.number ?? null}
+                prs={filteredPRs}
+                newPrIds={newPrIds}
+              />
+            </ScrollArea.Content>
+          </ScrollArea.Viewport>
+          <ScrollArea.Scrollbar className={styles.column1Scrollbar}>
+            <ScrollArea.Thumb className={styles.column1Thumb} />
+          </ScrollArea.Scrollbar>
+        </ScrollArea.Root>
 
         {selectedPR && (
           <div className={styles.prHeader}>
@@ -171,29 +179,36 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
           </div>
         )}
 
-        <section className={styles.column2}>
-          {selectedPR ? (
-            prTab === "conversation" ? (
-              <PrDetailContent pr={selectedPR} owner={owner} repo={repo} />
-            ) : prTab === "commits" ? (
-              <PrCommits pr={selectedPR} />
-            ) : (
-              <PrFilesChanged pr={selectedPR} />
-            )
-          ) : (
-            <div className={styles.placeholder}>
-              {isRepoLoading
-                ? "Loading pull requests..."
-                : !repoData
-                  ? "Repository not found. Enable access on this repository to start syncing pull requests."
-                  : allPRs.length === 0
-                    ? mergedPRs.length === 0
-                      ? "No PR data yet. Trigger webhooks by opening/updating a PR."
-                      : "Select a PR from the left column."
-                    : "Select a PR from the left column."}
-            </div>
-          )}
-        </section>
+        <ScrollArea.Root className={styles.column2}>
+          <ScrollArea.Viewport className={styles.column2Viewport}>
+            <ScrollArea.Content className={styles.column2Content}>
+              {selectedPR ? (
+                prTab === "conversation" ? (
+                  <PrDetailContent pr={selectedPR} owner={owner} repo={repo} />
+                ) : prTab === "commits" ? (
+                  <PrCommits pr={selectedPR} />
+                ) : (
+                  <PrFilesChanged pr={selectedPR} />
+                )
+              ) : (
+                <div className={styles.placeholder}>
+                  {isRepoLoading
+                    ? "Loading pull requests..."
+                    : !repoData
+                      ? "Repository not found. Enable access on this repository to start syncing pull requests."
+                      : allPRs.length === 0
+                        ? mergedPRs.length === 0
+                          ? "No PR data yet. Trigger webhooks by opening/updating a PR."
+                          : "Select a PR from the left column."
+                        : "Select a PR from the left column."}
+                </div>
+              )}
+            </ScrollArea.Content>
+          </ScrollArea.Viewport>
+          <ScrollArea.Scrollbar className={styles.column2Scrollbar}>
+            <ScrollArea.Thumb className={styles.column2Thumb} />
+          </ScrollArea.Scrollbar>
+        </ScrollArea.Root>
       </div>
     </motion.div>
   )
