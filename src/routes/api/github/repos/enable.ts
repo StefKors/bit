@@ -128,14 +128,22 @@ export const Route = createFileRoute("/api/github/repos/enable")({
 
         try {
           await adminDb.transact(tx)
-
-          const backfilledPullRequests = await backfillOpenPullRequestFiles(userId, repos)
-
-          return jsonResponse({ enabled: repos.length, backfilledPullRequests })
         } catch (err) {
           const msg = err instanceof Error ? err.message : "Failed to enable repos"
           return jsonResponse({ error: msg }, 500)
         }
+
+        let backfilledPullRequests = 0
+        try {
+          backfilledPullRequests = await backfillOpenPullRequestFiles(userId, repos)
+        } catch (error) {
+          log.error("Backfill failed but repos were enabled", error, {
+            userId,
+            enabledRepos: repos.length,
+          })
+        }
+
+        return jsonResponse({ enabled: repos.length, backfilledPullRequests })
       },
     },
   },

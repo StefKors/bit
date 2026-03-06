@@ -43,8 +43,6 @@ const mockLog = vi.mocked(log)
 describe("GithubPrFiles", () => {
   beforeEach(() => {
     vi.resetAllMocks()
-    pullRequestFileUpdateMock.mockClear()
-    pullRequestFileDeleteMock.mockClear()
     vi.stubGlobal("fetch", vi.fn())
   })
 
@@ -201,6 +199,36 @@ describe("GithubPrFiles", () => {
           filesCount: 1,
         }),
       )
+    })
+
+    it("logs and throws when delete transaction fails", async () => {
+      mockGetInstallationToken.mockResolvedValue("token-123")
+      const files = [{ filename: "c.ts", status: "modified", additions: 1, deletions: 1 }]
+      vi.mocked(globalThis.fetch).mockResolvedValue(
+        new Response(JSON.stringify({ files }), { status: 200 }),
+      )
+
+      mockAdminDb.query.mockResolvedValue({
+        pullRequestFiles: [{ id: "existing-1" }],
+      } as never)
+      mockAdminDb.transact.mockRejectedValueOnce(new Error("delete failed"))
+
+      await expect(syncPRFiles("pr-id", 123, "owner", "repo", "base", "head")).rejects.toThrow(
+        "delete failed",
+      )
+      expect(mockLog.error).toHaveBeenCalledWith(
+        "Failed to delete existing pull request files",
+        expect.any(Error),
+        expect.objectContaining({
+          pullRequestId: "pr-id",
+          owner: "owner",
+          repo: "repo",
+          baseSha: "base",
+          headSha: "head",
+          existingCount: 1,
+        }),
+      )
+      expect(mockAdminDb.transact).toHaveBeenCalledTimes(1)
     })
   })
 })
