@@ -9,6 +9,21 @@ import {
 } from "@primer/octicons-react"
 import type { PullRequestCard, PullRequestCheckRun, TimelineItem } from "./Types"
 
+const parseThreadCollapseState = (payload: string | null): boolean | null => {
+  if (!payload) return null
+
+  try {
+    const parsed = JSON.parse(payload) as {
+      thread?: {
+        isCollapsed?: boolean
+      }
+    }
+    return typeof parsed.thread?.isCollapsed === "boolean" ? parsed.thread.isCollapsed : null
+  } catch {
+    return null
+  }
+}
+
 export const getCheckRunsCiVariant = (
   checkRuns: PullRequestCheckRun[],
 ): "ready" | "blocked" | "checking" | null => {
@@ -50,6 +65,17 @@ export const getCiDotVariant = (pr: PullRequestCard): "ready" | "blocked" | "che
 export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
   const items: TimelineItem[] = []
   const prAuthor = { authorLogin: pr.authorLogin, authorAvatarUrl: pr.authorAvatarUrl }
+  const threadStateByThreadId = new Map(
+    pr.pullRequestReviewThreads
+      .filter((thread) => thread.threadId.length > 0)
+      .map((thread) => [
+        thread.threadId,
+        {
+          isResolved: thread.resolved,
+          isCollapsed: parseThreadCollapseState(thread.payload),
+        },
+      ]),
+  )
 
   if (pr.githubCreatedAt) {
     items.push({ type: "opened", timestamp: pr.githubCreatedAt, data: prAuthor })
@@ -81,12 +107,19 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
             c.pullRequestReviewId != null &&
             c.pullRequestReviewId === review.githubId,
         )
-        .map((root) => ({
-          root,
-          replies: (repliesByParent.get(root.githubId) ?? []).toSorted(
-            (a, b) => a.createdAt - b.createdAt,
-          ),
-        }))
+        .map((root) => {
+          const threadState = root.threadId ? threadStateByThreadId.get(root.threadId) : undefined
+          const isResolved = threadState?.isResolved ?? root.threadResolved ?? false
+          const isCollapsed = threadState?.isCollapsed ?? root.threadCollapsed ?? isResolved
+          return {
+            root,
+            replies: (repliesByParent.get(root.githubId) ?? []).toSorted(
+              (a, b) => a.createdAt - b.createdAt,
+            ),
+            isResolved,
+            isCollapsed,
+          }
+        })
       items.push({
         type: "review",
         timestamp: ts,
@@ -116,10 +149,13 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
       const replies = (repliesByParent.get(comment.githubId) ?? []).toSorted(
         (a, b) => a.createdAt - b.createdAt,
       )
+      const threadState = comment.threadId ? threadStateByThreadId.get(comment.threadId) : undefined
+      const isResolved = threadState?.isResolved ?? comment.threadResolved ?? false
+      const isCollapsed = threadState?.isCollapsed ?? comment.threadCollapsed ?? isResolved
       items.push({
         type: "review_comment",
         timestamp: ts,
-        data: { root: comment, replies },
+        data: { root: comment, replies, isResolved, isCollapsed },
       })
     }
   }

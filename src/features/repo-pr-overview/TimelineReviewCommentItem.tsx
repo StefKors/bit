@@ -46,9 +46,10 @@ const ReplyItem = ({
 )
 
 export const TimelineReviewCommentItem = ({ thread }: TimelineReviewCommentItemProps) => {
-  const { root, replies } = thread
+  const { root, replies, isResolved, isCollapsed } = thread
   const defaultLanguage = getLanguageFromFilePath(root.path) ?? undefined
   const hasReplies = replies.length > 0
+  const shouldCollapse = isResolved || isCollapsed
 
   return (
     <TimelineItem>
@@ -78,17 +79,26 @@ export const TimelineReviewCommentItem = ({ thread }: TimelineReviewCommentItemP
       </TimelineItemHeader>
       <TimelineItemBody wide={hasReplies}>
         <div className={styles.threadBody}>
-          {root.body && (
-            <TimelineItemContent>
-              <Markdown content={root.body} defaultLanguage={defaultLanguage} />
-            </TimelineItemContent>
-          )}
-          {replies.length > 0 && (
-            <div className={styles.replies}>
-              {replies.map((reply) => (
-                <ReplyItem key={reply.id} comment={reply} defaultLanguage={defaultLanguage} />
-              ))}
+          {shouldCollapse ? (
+            <div className={styles.collapsedNotice}>
+              {isResolved ? "Resolved thread" : "Collapsed thread"}
+              {hasReplies ? ` (${replies.length} repl${replies.length === 1 ? "y" : "ies"})` : ""}
             </div>
+          ) : (
+            <>
+              {root.body && (
+                <TimelineItemContent>
+                  <Markdown content={root.body} defaultLanguage={defaultLanguage} />
+                </TimelineItemContent>
+              )}
+              {hasReplies && (
+                <div className={styles.replies}>
+                  {replies.map((reply) => (
+                    <ReplyItem key={reply.id} comment={reply} defaultLanguage={defaultLanguage} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </TimelineItemBody>

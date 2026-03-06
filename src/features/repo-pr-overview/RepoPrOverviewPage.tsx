@@ -55,6 +55,9 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
         pullRequestReviewComments: {
           $: { order: { updatedAt: "desc" }, limit: 20 },
         },
+        pullRequestReviewThreads: {
+          $: { order: { updatedAt: "desc" }, limit: 50 },
+        },
         pullRequestCommits: {
           $: { order: { updatedAt: "desc" }, limit: 50 },
         },

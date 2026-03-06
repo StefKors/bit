@@ -1,6 +1,45 @@
 import { parseJsonStringArray } from "@/lib/Parse"
 import type { PullRequestCard } from "./Types"
 
+const parseThreadMetaFromPayload = (
+  payload: string | null | undefined,
+): {
+  threadId: string | null
+  threadResolved: boolean | null
+  threadCollapsed: boolean | null
+} => {
+  if (!payload) {
+    return { threadId: null, threadResolved: null, threadCollapsed: null }
+  }
+
+  try {
+    const parsed = JSON.parse(payload) as {
+      thread?: {
+        id?: string | number
+        resolved?: boolean
+        isResolved?: boolean
+        isCollapsed?: boolean
+      }
+    }
+    const thread = parsed.thread
+    const threadIdValue = thread?.id
+    const threadId =
+      typeof threadIdValue === "string" || typeof threadIdValue === "number"
+        ? String(threadIdValue)
+        : null
+    const threadResolved =
+      typeof thread?.resolved === "boolean"
+        ? thread.resolved
+        : typeof thread?.isResolved === "boolean"
+          ? thread.isResolved
+          : null
+    const threadCollapsed = typeof thread?.isCollapsed === "boolean" ? thread.isCollapsed : null
+    return { threadId, threadResolved, threadCollapsed }
+  } catch {
+    return { threadId: null, threadResolved: null, threadCollapsed: null }
+  }
+}
+
 interface RepoPullRequest {
   id: string
   number?: number | null
@@ -54,14 +93,24 @@ interface RepoPullRequest {
   pullRequestReviewComments?: Array<{
     id: string
     githubId?: number | null
+    nodeId?: string | null
     inReplyToId?: number | null
     pullRequestReviewId?: number | null
+    payload?: string | null
     authorLogin?: string | null
     authorAvatarUrl?: string | null
     body?: string | null
     path?: string | null
     line?: number | null
     htmlUrl?: string | null
+    createdAt?: number | null
+    updatedAt?: number | null
+  }> | null
+  pullRequestReviewThreads?: Array<{
+    id: string
+    threadId?: string | null
+    resolved?: boolean | null
+    payload?: string | null
     createdAt?: number | null
     updatedAt?: number | null
   }> | null
@@ -157,19 +206,37 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
       updatedAt: review.updatedAt ?? 0,
     })) ?? [],
   pullRequestReviewComments:
-    pr.pullRequestReviewComments?.map((comment) => ({
-      id: comment.id,
-      githubId: comment.githubId ?? 0,
-      inReplyToId: comment.inReplyToId ?? null,
-      pullRequestReviewId: comment.pullRequestReviewId ?? null,
-      authorLogin: comment.authorLogin ?? "unknown",
-      authorAvatarUrl: comment.authorAvatarUrl ?? null,
-      body: comment.body ?? null,
-      path: comment.path ?? null,
-      line: comment.line ?? null,
-      htmlUrl: comment.htmlUrl ?? null,
-      createdAt: comment.createdAt ?? 0,
-      updatedAt: comment.updatedAt ?? 0,
+    pr.pullRequestReviewComments?.map((comment) => {
+      const { threadId, threadResolved, threadCollapsed } = parseThreadMetaFromPayload(
+        comment.payload,
+      )
+      return {
+        id: comment.id,
+        githubId: comment.githubId ?? 0,
+        nodeId: comment.nodeId ?? null,
+        inReplyToId: comment.inReplyToId ?? null,
+        pullRequestReviewId: comment.pullRequestReviewId ?? null,
+        threadId,
+        threadResolved,
+        threadCollapsed,
+        authorLogin: comment.authorLogin ?? "unknown",
+        authorAvatarUrl: comment.authorAvatarUrl ?? null,
+        body: comment.body ?? null,
+        path: comment.path ?? null,
+        line: comment.line ?? null,
+        htmlUrl: comment.htmlUrl ?? null,
+        createdAt: comment.createdAt ?? 0,
+        updatedAt: comment.updatedAt ?? 0,
+      }
+    }) ?? [],
+  pullRequestReviewThreads:
+    pr.pullRequestReviewThreads?.map((thread) => ({
+      id: thread.id,
+      threadId: thread.threadId ?? "",
+      resolved: Boolean(thread.resolved),
+      payload: thread.payload ?? null,
+      createdAt: thread.createdAt ?? 0,
+      updatedAt: thread.updatedAt ?? 0,
     })) ?? [],
   pullRequestCommits:
     pr.pullRequestCommits?.map((commit) => ({

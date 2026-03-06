@@ -10,8 +10,8 @@ import {
   TimelineItemHeader,
   TimelineItemIcon,
 } from "./TimelineItemBase"
-import { TimelineReviewNestedCommentThread } from "./TimelineReviewNestedCommentThread"
 import styles from "./TimelineReviewItem.module.css"
+import { TimelineReviewNestedCommentThread } from "./TimelineReviewNestedCommentThread"
 
 interface TimelineReviewItemProps {
   review: PullRequestReviewWithComments
@@ -48,7 +48,7 @@ export const TimelineReviewItem = ({ review }: TimelineReviewItemProps) => {
         </>
       </TimelineItemHeader>
       {hasContent && (
-        <TimelineItemBody wide>
+        <TimelineItemBody wide={true}>
           <>
             {review.body && <Markdown content={review.body} className={styles.timelineContent} />}
             {hasNested && (

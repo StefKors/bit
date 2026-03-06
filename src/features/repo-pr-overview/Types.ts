@@ -24,8 +24,12 @@ export interface PullRequestReview {
 export interface PullRequestReviewComment {
   id: string
   githubId: number
+  nodeId: string | null
   inReplyToId: number | null
   pullRequestReviewId: number | null
+  threadId: string | null
+  threadResolved: boolean | null
+  threadCollapsed: boolean | null
   authorLogin: string
   authorAvatarUrl: string | null
   body: string | null
@@ -39,6 +43,17 @@ export interface PullRequestReviewComment {
 export interface ReviewCommentThread {
   root: PullRequestReviewComment
   replies: PullRequestReviewComment[]
+  isResolved: boolean
+  isCollapsed: boolean
+}
+
+export interface PullRequestReviewThread {
+  id: string
+  threadId: string
+  resolved: boolean
+  payload: string | null
+  createdAt: number
+  updatedAt: number
 }
 
 export interface PullRequestReviewWithComments extends PullRequestReview {
@@ -133,6 +148,7 @@ export interface PullRequestCard {
   issueComments: PullRequestComment[]
   pullRequestReviews: PullRequestReview[]
   pullRequestReviewComments: PullRequestReviewComment[]
+  pullRequestReviewThreads: PullRequestReviewThread[]
   pullRequestCommits: PullRequestCommit[]
   checkRuns: PullRequestCheckRun[]
   pullRequestEvents: PullRequestEvent[]

@@ -16,7 +16,7 @@
   grid-template-columns: 22px 1fr;
   grid-template-rows: auto auto;
   column-gap: var(--bit-space-6);
-  row-gap: var(--bit-space-3);
+  /* row-gap: var(--bit-space-3); */
 }
 
 .timelineIconWrapper {

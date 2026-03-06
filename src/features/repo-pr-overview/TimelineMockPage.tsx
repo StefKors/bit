@@ -96,8 +96,12 @@ const buildMockTimelineItem = (index: number, timestamp: number): TimelineItem =
         root: {
           id: `review-comment-root-${index}`,
           githubId: index + 3000,
+          nodeId: null,
           inReplyToId: null,
           pullRequestReviewId: null,
+          threadId: `thread-${index}`,
+          threadResolved: index % 2 === 0,
+          threadCollapsed: index % 2 === 0,
           authorLogin: "designer",
           authorAvatarUrl: "https://avatars.githubusercontent.com/u/1?v=4",
           body: "What if we reduce the delay between items?",
@@ -111,8 +115,12 @@ const buildMockTimelineItem = (index: number, timestamp: number): TimelineItem =
           {
             id: `review-comment-reply-${index}`,
             githubId: index + 4000,
+            nodeId: null,
             inReplyToId: index + 3000,
             pullRequestReviewId: null,
+            threadId: `thread-${index}`,
+            threadResolved: index % 2 === 0,
+            threadCollapsed: index % 2 === 0,
             authorLogin: "stefkors",
             authorAvatarUrl: "https://avatars.githubusercontent.com/u/1133416?v=4",
             body: "Yep, testing 60ms stagger now.",
@@ -123,6 +131,8 @@ const buildMockTimelineItem = (index: number, timestamp: number): TimelineItem =
             updatedAt: timestamp + 20_000,
           },
         ],
+        isResolved: index % 2 === 0,
+        isCollapsed: index % 2 === 0,
       },
     }
   }
