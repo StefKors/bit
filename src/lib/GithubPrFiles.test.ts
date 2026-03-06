@@ -42,7 +42,7 @@ const mockLog = vi.mocked(log)
 
 describe("GithubPrFiles", () => {
   beforeEach(() => {
-    vi.resetAllMocks()
+    vi.clearAllMocks()
     vi.stubGlobal("fetch", vi.fn())
   })
 

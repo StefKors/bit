@@ -12,42 +12,74 @@ const jsonResponse = <T>(data: T, status = 200) =>
     headers: { "Content-Type": "application/json" },
   })
 
+interface PullRequestBackfillTarget {
+  id: string
+  number?: number | null
+  baseSha: string
+  headSha: string
+}
+
+interface PullRequestCandidate {
+  id: string
+  number?: number | null
+  baseSha?: string | null
+  headSha?: string | null
+}
+
+const isPullRequestBackfillTarget = (
+  pr: PullRequestCandidate,
+): pr is PullRequestBackfillTarget =>
+  typeof pr.baseSha === "string" && typeof pr.headSha === "string"
+
 const backfillOpenPullRequestFiles = async (
   userId: string,
   repos: InstallationRepo[],
 ): Promise<number> => {
-  let backfilledCount = 0
-
-  for (const repo of repos) {
-    const installationId = await getInstallationIdForRepo(userId, repo.owner)
-    if (!installationId) continue
-
-    const { repos: repoRecords } = await adminDb.query({
-      repos: {
-        $: { where: { fullName: repo.fullName }, limit: 1 },
-        pullRequests: {
-          $: { where: { state: "open" } },
-        },
-      },
-    })
-    const pullRequests = repoRecords?.[0]?.pullRequests ?? []
-
-    for (const pr of pullRequests) {
-      if (!pr.baseSha || !pr.headSha) continue
+  const counts = await Promise.all(
+    repos.map(async (repo): Promise<number> => {
       try {
-        await syncPRFiles(pr.id, installationId, repo.owner, repo.name, pr.baseSha, pr.headSha)
-        backfilledCount += 1
+        const installationId = await getInstallationIdForRepo(userId, repo.owner)
+        if (!installationId) return 0
+
+        const { repos: repoRecords } = await adminDb.query({
+          repos: {
+            $: { where: { fullName: repo.fullName }, limit: 1 },
+            pullRequests: {
+              $: { where: { state: "open" } },
+            },
+          },
+        })
+        const pullRequests = (repoRecords?.[0]?.pullRequests ?? []) as PullRequestCandidate[]
+        const eligiblePullRequests = pullRequests.filter(isPullRequestBackfillTarget)
+
+        const results = await Promise.all(
+          eligiblePullRequests.map(async (pr): Promise<boolean> => {
+            try {
+              await syncPRFiles(pr.id, installationId, repo.owner, repo.name, pr.baseSha, pr.headSha)
+              return true
+            } catch (error) {
+              log.error("Failed to backfill PR files on repo enable", error, {
+                userId,
+                repoFullName: repo.fullName,
+                prNumber: pr.number,
+              })
+              return false
+            }
+          }),
+        )
+
+        return results.filter(Boolean).length
       } catch (error) {
-        log.error("Failed to backfill PR files on repo enable", error, {
+        log.error("Failed to query PRs for backfill on repo enable", error, {
           userId,
           repoFullName: repo.fullName,
-          prNumber: pr.number,
         })
+        return 0
       }
-    }
-  }
+    }),
+  )
 
-  return backfilledCount
+  return counts.reduce((total, count) => total + count, 0)
 }
 
 export const Route = createFileRoute("/api/github/repos/enable")({
