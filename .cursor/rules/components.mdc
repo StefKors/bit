@@ -31,26 +31,19 @@ const PRListItem = ({ pr }: { pr: GithubPullRequest }) => {
 export const PRListItem = ({ pr }) => <div>{pr.title}</div>
 ```
 
-## One Component Per File (Usually)
+## One Component Per File (Strict)
 
-Keep one main component per file. Colocate small helper components:
+Declare exactly one component per `.tsx` file.
 
-```tsx
-// PRListItem.tsx
+- If a file contains multiple component declarations, extract each extra component into its own file.
+- Each extracted component must have its own CSS module file with the same base name.
+- Prefer shared components in `src/components/` and feature-specific components in `src/features/`.
+- Allowed exceptions: tiny inline render helpers that are not components (no JSX return).
 
-// Small helper - colocate here
-const StatusBadge = ({ state }: { state: string }) => (
-  <span className={styles.badge}>{state}</span>
-)
+Example split:
 
-// Main component - one per file
-export const PRListItem = ({ pr }) => (
-  <div>
-    <StatusBadge state={pr.state} />
-    {pr.title}
-  </div>
-)
-```
+- `TimelineReviewItem.tsx` + `TimelineReviewItem.module.css`
+- `TimelineReviewCommentItem.tsx` + `TimelineReviewCommentItem.module.css`
 
 ## Extract Components When Mapping
 

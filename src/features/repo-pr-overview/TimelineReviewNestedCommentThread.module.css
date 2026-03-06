@@ -1,0 +1,64 @@
+.nestedThread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bit-space-3);
+  padding: var(--bit-space-4) var(--bit-space-6);
+  border-radius: var(--bit-radius-md);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  background: rgba(var(--bit-rgb-surface-1), 1);
+}
+
+.nestedThreadHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-4);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.nestedFilePath {
+  font-family: var(--bit-font-mono, monospace);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  min-height: var(--bit-line-height-tight);
+  padding: 0 var(--bit-space-3);
+  border-radius: var(--bit-radius-sm);
+  background: rgba(var(--bit-rgb-fg), 0.06);
+  color: var(--bit-color-text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+.nestedTime {
+  margin-left: auto;
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--bit-color-text-muted);
+}
+
+.nestedContent {
+  color: rgba(var(--bit-rgb-fg), 0.85);
+}
+
+.nestedReply {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bit-space-2);
+  margin-left: var(--bit-space-6);
+  padding: var(--bit-space-4) var(--bit-space-6) var(--bit-space-4) var(--bit-space-5);
+  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.08);
+  background: rgba(var(--bit-rgb-surface-1), 1);
+}
+
+.nestedReplyHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-4);
+}
+
+.nestedReplyBody {
+  color: rgba(var(--bit-rgb-fg), 0.85);
+}
