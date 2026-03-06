@@ -30,11 +30,11 @@
 }
 
 .prCell:hover {
-  background: rgba(var(--bit-rgb-surface-2), 0.24);
+  background: var(--bit-color-paper-hover);
 }
 
 .prCellSelected {
-  background: rgba(var(--bit-rgb-fg), 0.1);
+  background: var(--bit-color-paper-2);
 }
 
 .prCell:focus-visible {

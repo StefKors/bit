@@ -50,12 +50,12 @@
 
 .tab:hover {
   color: var(--bit-color-heading);
-  background: rgba(var(--bit-rgb-surface-2), 0.2);
+  background: var(--bit-color-paper-hover);
 }
 
 .tab[data-active] {
   color: var(--bit-color-heading);
-  background: rgba(var(--bit-rgb-fg), 0.1);
+  background: var(--bit-color-paper-2);
 }
 
 .icon {
@@ -72,7 +72,7 @@
 }
 
 .count {
-  background: rgba(var(--bit-rgb-fg), 0.1);
+  background: var(--bit-color-paper-hover);
   padding: 0.15rem 0.5rem;
   border-radius: var(--bit-radius-lg2);
   font-size: var(--bit-font-size-small);

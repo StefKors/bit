@@ -20,7 +20,7 @@
   padding: 4px 8px;
   border: none;
   border-radius: var(--bit-radius-sm);
-  background: rgba(var(--bit-rgb-surface-3), 0.35);
+  background: transparent;
   color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
   font-size: var(--bit-font-size-small);
   font-weight: var(--bit-font-weight-bold);
@@ -30,12 +30,12 @@
 
 .authorPill:hover {
   color: var(--bit-color-text);
-  background: rgba(var(--bit-rgb-fg), 0.06);
+  background: var(--bit-color-paper-hover);
 }
 
 .authorPillActive {
   color: var(--bit-color-text);
-  background: rgba(var(--bit-rgb-fg), 0.1);
+  background: var(--bit-color-paper-2);
 }
 
 .authorDropdownWrap {
@@ -60,9 +60,8 @@
   padding: 2px;
   border-radius: var(--bit-radius-md);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
-  background: rgba(var(--bit-rgb-surface-2), 0.98);
+  background: var(--bit-color-paper);
   box-shadow: var(--bit-shadow-lg);
-  backdrop-filter: blur(12px);
 }
 
 .authorDropdownItem {
@@ -80,11 +79,11 @@
 }
 
 .authorDropdownItem:hover {
-  background: rgba(var(--bit-rgb-fg), 0.05);
+  background: var(--bit-color-paper-hover);
 }
 
 .authorDropdownItemActive {
-  background: rgba(var(--bit-rgb-fg), 0.08);
+  background: var(--bit-color-paper-2);
 }
 
 .authorDropdownEmpty {
