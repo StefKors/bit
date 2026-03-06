@@ -50,7 +50,6 @@ export function PrSelectionList({
                 <span className={styles.prTitle}>
                   #{pr.number} {pr.title}
                 </span>
-                <span className={styles.prUpdatedAt}>{formatRelativeTime(pr.updatedAt)}</span>
               </span>
               <span className={styles.prCellRow2}>
                 <AuthorLabel
@@ -60,6 +59,7 @@ export function PrSelectionList({
                   weight="regular"
                 />
                 <span className={styles.prMetaTrail}>
+                  <span className={styles.prUpdatedAt}>{formatRelativeTime(pr.updatedAt)}</span>
                   <CiDot
                     variant={getCiDotVariant(pr)}
                     title={pr.merged ? "Merged" : formatMergeableState(pr.mergeableState)}
