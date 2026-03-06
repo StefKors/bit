@@ -173,6 +173,7 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
         {selectedPR && (
           <div className={styles.prHeader}>
             <SelectedPrHeader pr={selectedPR} fullName={fullName} />
+            <PrSidebar pr={selectedPR} />
           </div>
         )}
 
@@ -201,14 +202,6 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
             </div>
           )}
         </section>
-
-        <aside className={styles.column3}>
-          {selectedPR ? (
-            <PrSidebar pr={selectedPR} />
-          ) : (
-            <p className={styles.placeholderText}>Select a PR to view details.</p>
-          )}
-        </aside>
       </div>
     </motion.div>
   )

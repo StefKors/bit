@@ -24,12 +24,12 @@
 
 .columns {
   display: grid;
-  grid-template-columns: minmax(0, 272px) minmax(0, 1fr) minmax(0, 312px);
+  grid-template-columns: minmax(0, 272px) minmax(0, 1fr);
   grid-template-rows: auto auto 1fr;
   grid-template-areas:
-    "sidebar header  header"
-    "sidebar tabs    tabs"
-    "sidebar content activity";
+    "sidebar header"
+    "sidebar tabs"
+    "sidebar content";
   column-gap: var(--bit-space-8);
   row-gap: 0;
   flex: 1;
@@ -50,7 +50,12 @@
 
 .prHeader {
   grid-area: header;
-  margin-bottom: var(--bit-space-9);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: var(--bit-space-8);
+  row-gap: var(--bit-space-4);
+  margin-bottom: var(--bit-space-7);
 }
 
 .prTabs {
@@ -65,15 +70,6 @@
   min-height: 0;
   min-width: 0;
   overflow-y: auto;
-}
-
-.column3 {
-  grid-area: activity;
-  display: flex;
-  flex-direction: column;
-  gap: var(--bit-space-7);
-  min-width: 0;
-  overflow: auto;
 }
 
 .placeholder {
@@ -91,12 +87,6 @@
   background: rgba(var(--bit-rgb-surface-2), 0.32);
 }
 
-.placeholderText {
-  font-size: var(--bit-font-size-default);
-  color: var(--bit-color-muted);
-  margin: 0;
-}
-
 .loading {
   display: flex;
   align-items: center;
@@ -108,22 +98,25 @@
 @media (max-width: 1100px) {
   .columns {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto 1fr auto;
+    grid-template-rows: auto auto auto 1fr;
     grid-template-areas:
       "sidebar"
       "header"
       "tabs"
-      "content"
-      "activity";
+      "content";
   }
 
   .column1 {
     grid-row: auto;
   }
 
+  .prHeader {
+    grid-template-columns: 1fr;
+    row-gap: var(--bit-space-6);
+  }
+
   .column1,
-  .column2,
-  .column3 {
+  .column2 {
     max-height: none;
   }
 }
