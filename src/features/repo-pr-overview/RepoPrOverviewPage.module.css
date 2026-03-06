@@ -50,11 +50,10 @@
 
 .prHeader {
   grid-area: header;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  column-gap: var(--bit-space-8);
-  row-gap: var(--bit-space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--bit-space-6);
   margin-bottom: var(--bit-space-7);
 }
 
@@ -100,11 +99,6 @@
 
   .column1 {
     grid-row: auto;
-  }
-
-  .prHeader {
-    grid-template-columns: 1fr;
-    row-gap: var(--bit-space-6);
   }
 
   .column1,
