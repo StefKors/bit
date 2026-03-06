@@ -43,6 +43,17 @@
 
 .timelineBodyWide {
   grid-column: 1 / -1;
+  position: relative;
+}
+
+.timelineBodyWide::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 100%;
+  width: 2px;
+  height: var(--bit-space-4);
+  background: rgba(var(--bit-rgb-fg), 0.1);
 }
 
 .timelineHeader {

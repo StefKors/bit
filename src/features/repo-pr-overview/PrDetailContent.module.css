@@ -70,6 +70,10 @@
   gap: var(--bit-space-3);
 }
 
+.timelineItemMotion {
+  will-change: transform, opacity;
+}
+
 .commentForm {
   display: flex;
   flex-direction: column;

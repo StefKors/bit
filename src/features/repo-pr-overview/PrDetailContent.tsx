@@ -1,4 +1,5 @@
 import { useRef, useState } from "react"
+import { motion } from "motion/react"
 import { Markdown } from "@/components/Markdown"
 import { CiDot } from "@/components/CiDot"
 import { Button } from "@/components/Button"
@@ -19,12 +20,47 @@ interface PrDetailContentProps {
   repo: string
 }
 
+const TIMELINE_ENTER_INITIAL = { opacity: 0, y: 14 }
+const TIMELINE_ENTER_ANIMATE = { opacity: 1, y: 0 }
+const TIMELINE_ENTER_TRANSITION = { duration: 0.42, ease: [0.22, 1, 0.36, 1] as const }
+
+const getTimelineItemKey = (item: TimelineItem): string => {
+  if (item.type === "opened" || item.type === "merged" || item.type === "closed") {
+    return `${item.type}-${item.timestamp}`
+  }
+  if (item.type === "pr_event") return `pe-${item.data.id}`
+  if (item.type === "commit") return `c-${item.data.id}`
+  if (item.type === "review") return `r-${item.data.id}`
+  if (item.type === "issue_comment") return `ic-${item.data.id}`
+  return `rc-${item.data.root.id}`
+}
+
 export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
   const { user } = useAuth()
   const commentRef = useRef<HTMLTextAreaElement | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const timeline = buildTimeline(pr)
+  const activePrIdRef = useRef(pr.id)
+  const hasInitiallyLoadedTimelineRef = useRef(false)
+  const prevTimelineItemIdsRef = useRef(new Set<string>())
+
+  if (activePrIdRef.current !== pr.id) {
+    activePrIdRef.current = pr.id
+    hasInitiallyLoadedTimelineRef.current = false
+    prevTimelineItemIdsRef.current = new Set<string>()
+  }
+
+  const currentTimelineItemIds = new Set(timeline.map(getTimelineItemKey))
+  if (!hasInitiallyLoadedTimelineRef.current) {
+    hasInitiallyLoadedTimelineRef.current = true
+    prevTimelineItemIdsRef.current = new Set(currentTimelineItemIds)
+  }
+
+  const newTimelineItemIds = new Set(
+    [...currentTimelineItemIds].filter((id) => !prevTimelineItemIdsRef.current.has(id)),
+  )
+  prevTimelineItemIdsRef.current = currentTimelineItemIds
 
   return (
     <div className={styles.detailContent}>
@@ -60,37 +96,92 @@ export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
         {timeline.length > 0 ? (
           <div className={styles.timeline}>
             {timeline.map((item: TimelineItem) => {
+              const itemKey = getTimelineItemKey(item)
+              const shouldAnimateIn = newTimelineItemIds.has(itemKey)
+
               if (item.type === "opened" || item.type === "merged" || item.type === "closed") {
                 return (
-                  <TimelinePrEventItem
-                    key={item.type}
-                    type={item.type}
-                    event={item.data}
-                    timestamp={item.timestamp}
-                  />
+                  <motion.div
+                    key={itemKey}
+                    className={styles.timelineItemMotion}
+                    initial={shouldAnimateIn ? TIMELINE_ENTER_INITIAL : false}
+                    animate={TIMELINE_ENTER_ANIMATE}
+                    transition={TIMELINE_ENTER_TRANSITION}
+                  >
+                    <TimelinePrEventItem
+                      type={item.type}
+                      event={item.data}
+                      timestamp={item.timestamp}
+                    />
+                  </motion.div>
                 )
               }
               if (item.type === "pr_event") {
-                return <TimelinePrActionItem key={`pe-${item.data.id}`} event={item.data} />
+                return (
+                  <motion.div
+                    key={itemKey}
+                    className={styles.timelineItemMotion}
+                    initial={shouldAnimateIn ? TIMELINE_ENTER_INITIAL : false}
+                    animate={TIMELINE_ENTER_ANIMATE}
+                    transition={TIMELINE_ENTER_TRANSITION}
+                  >
+                    <TimelinePrActionItem event={item.data} />
+                  </motion.div>
+                )
               }
               if (item.type === "commit") {
                 return (
-                  <TimelineCommitItem
-                    key={`c-${item.data.id}`}
-                    commit={item.data}
-                    checkRuns={pr.checkRuns}
-                    headSha={pr.headSha}
-                  />
+                  <motion.div
+                    key={itemKey}
+                    className={styles.timelineItemMotion}
+                    initial={shouldAnimateIn ? TIMELINE_ENTER_INITIAL : false}
+                    animate={TIMELINE_ENTER_ANIMATE}
+                    transition={TIMELINE_ENTER_TRANSITION}
+                  >
+                    <TimelineCommitItem
+                      commit={item.data}
+                      checkRuns={pr.checkRuns}
+                      headSha={pr.headSha}
+                    />
+                  </motion.div>
                 )
               }
               if (item.type === "review") {
-                return <TimelineReviewItem key={`r-${item.data.id}`} review={item.data} />
+                return (
+                  <motion.div
+                    key={itemKey}
+                    className={styles.timelineItemMotion}
+                    initial={shouldAnimateIn ? TIMELINE_ENTER_INITIAL : false}
+                    animate={TIMELINE_ENTER_ANIMATE}
+                    transition={TIMELINE_ENTER_TRANSITION}
+                  >
+                    <TimelineReviewItem review={item.data} />
+                  </motion.div>
+                )
               }
               if (item.type === "issue_comment") {
-                return <TimelineIssueCommentItem key={`ic-${item.data.id}`} comment={item.data} />
+                return (
+                  <motion.div
+                    key={itemKey}
+                    className={styles.timelineItemMotion}
+                    initial={shouldAnimateIn ? TIMELINE_ENTER_INITIAL : false}
+                    animate={TIMELINE_ENTER_ANIMATE}
+                    transition={TIMELINE_ENTER_TRANSITION}
+                  >
+                    <TimelineIssueCommentItem comment={item.data} />
+                  </motion.div>
+                )
               }
               return (
-                <TimelineReviewCommentItem key={`rc-${item.data.root.id}`} thread={item.data} />
+                <motion.div
+                  key={itemKey}
+                  className={styles.timelineItemMotion}
+                  initial={shouldAnimateIn ? TIMELINE_ENTER_INITIAL : false}
+                  animate={TIMELINE_ENTER_ANIMATE}
+                  transition={TIMELINE_ENTER_TRANSITION}
+                >
+                  <TimelineReviewCommentItem thread={item.data} />
+                </motion.div>
               )
             })}
           </div>

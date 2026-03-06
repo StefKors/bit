@@ -1,0 +1,59 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: var(--bit-space-7) 0;
+  gap: var(--bit-space-6);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bit-space-3);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--bit-font-size-default);
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--bit-color-muted);
+  font-size: var(--bit-font-size-small);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bit-space-3);
+}
+
+.timelineSection {
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
+  border-radius: var(--bit-radius-lg);
+  background: rgba(var(--bit-rgb-surface-2), 0.32);
+  padding: var(--bit-space-5);
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timelineItemMotion {
+  will-change: transform, opacity;
+}
+
+.timelineItemMotion:not(:last-child) {
+  padding-bottom: var(--bit-space-2);
+}
+
+.emptyState {
+  margin: 0;
+  color: var(--bit-color-muted);
+}

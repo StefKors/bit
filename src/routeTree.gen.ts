@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as OwnerRepoIndexRouteImport } from './routes/$owner/$repo/index'
 import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhook'
+import { Route as OwnerRepoTimelineMockRouteImport } from './routes/$owner/$repo/timeline-mock'
 import { Route as OwnerRepoPrNumberRouteImport } from './routes/$owner/$repo/$prNumber'
 import { Route as ApiGithubOauthIndexRouteImport } from './routes/api/github/oauth/index'
 import { Route as ApiGithubReposEnableRouteImport } from './routes/api/github/repos/enable'
@@ -47,6 +48,11 @@ const OwnerRepoIndexRoute = OwnerRepoIndexRouteImport.update({
 const ApiGithubWebhookRoute = ApiGithubWebhookRouteImport.update({
   id: '/api/github/webhook',
   path: '/api/github/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OwnerRepoTimelineMockRoute = OwnerRepoTimelineMockRouteImport.update({
+  id: '/$owner/$repo/timeline-mock',
+  path: '/$owner/$repo/timeline-mock',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OwnerRepoPrNumberRoute = OwnerRepoPrNumberRouteImport.update({
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/enable-repos': typeof EnableReposRoute
   '/api/health': typeof ApiHealthRoute
   '/$owner/$repo/$prNumber': typeof OwnerRepoPrNumberRoute
+  '/$owner/$repo/timeline-mock': typeof OwnerRepoTimelineMockRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/enable-repos': typeof EnableReposRoute
   '/api/health': typeof ApiHealthRoute
   '/$owner/$repo/$prNumber': typeof OwnerRepoPrNumberRoute
+  '/$owner/$repo/timeline-mock': typeof OwnerRepoTimelineMockRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/$owner/$repo': typeof OwnerRepoIndexRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/enable-repos': typeof EnableReposRoute
   '/api/health': typeof ApiHealthRoute
   '/$owner/$repo/$prNumber': typeof OwnerRepoPrNumberRoute
+  '/$owner/$repo/timeline-mock': typeof OwnerRepoTimelineMockRoute
   '/api/github/webhook': typeof ApiGithubWebhookRoute
   '/$owner/$repo/': typeof OwnerRepoIndexRoute
   '/$owner/$repo/pull/$number': typeof OwnerRepoPullNumberRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/enable-repos'
     | '/api/health'
     | '/$owner/$repo/$prNumber'
+    | '/$owner/$repo/timeline-mock'
     | '/api/github/webhook'
     | '/$owner/$repo/'
     | '/$owner/$repo/pull/$number'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/enable-repos'
     | '/api/health'
     | '/$owner/$repo/$prNumber'
+    | '/$owner/$repo/timeline-mock'
     | '/api/github/webhook'
     | '/$owner/$repo'
     | '/$owner/$repo/pull/$number'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/enable-repos'
     | '/api/health'
     | '/$owner/$repo/$prNumber'
+    | '/$owner/$repo/timeline-mock'
     | '/api/github/webhook'
     | '/$owner/$repo/'
     | '/$owner/$repo/pull/$number'
@@ -202,6 +214,7 @@ export interface RootRouteChildren {
   EnableReposRoute: typeof EnableReposRoute
   ApiHealthRoute: typeof ApiHealthRoute
   OwnerRepoPrNumberRoute: typeof OwnerRepoPrNumberRoute
+  OwnerRepoTimelineMockRoute: typeof OwnerRepoTimelineMockRoute
   ApiGithubWebhookRoute: typeof ApiGithubWebhookRoute
   OwnerRepoIndexRoute: typeof OwnerRepoIndexRoute
   OwnerRepoPullNumberRoute: typeof OwnerRepoPullNumberRoute
@@ -249,6 +262,13 @@ declare module '@tanstack/react-router' {
       path: '/api/github/webhook'
       fullPath: '/api/github/webhook'
       preLoaderRoute: typeof ApiGithubWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$owner/$repo/timeline-mock': {
+      id: '/$owner/$repo/timeline-mock'
+      path: '/$owner/$repo/timeline-mock'
+      fullPath: '/$owner/$repo/timeline-mock'
+      preLoaderRoute: typeof OwnerRepoTimelineMockRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$owner/$repo/$prNumber': {
@@ -322,6 +342,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnableReposRoute: EnableReposRoute,
   ApiHealthRoute: ApiHealthRoute,
   OwnerRepoPrNumberRoute: OwnerRepoPrNumberRoute,
+  OwnerRepoTimelineMockRoute: OwnerRepoTimelineMockRoute,
   ApiGithubWebhookRoute: ApiGithubWebhookRoute,
   OwnerRepoIndexRoute: OwnerRepoIndexRoute,
   OwnerRepoPullNumberRoute: OwnerRepoPullNumberRoute,
