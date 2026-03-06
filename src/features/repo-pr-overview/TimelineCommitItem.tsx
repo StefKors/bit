@@ -4,7 +4,12 @@ import { AuthorLabel } from "@/components/AuthorLabel"
 import { CiDot } from "@/components/CiDot"
 import type { PullRequestCheckRun, PullRequestCommit } from "./Types"
 import { getCheckRunsCiVariant } from "./Utils"
-import { TimelineItemBase } from "./TimelineItemBase"
+import {
+  TimelineItem,
+  TimelineItemConnector,
+  TimelineItemHeader,
+  TimelineItemIcon,
+} from "./TimelineItemBase"
 import styles from "./TimelineCommitItem.module.css"
 
 interface TimelineCommitItemProps {
@@ -25,10 +30,11 @@ export const TimelineCommitItem = ({
   const ciVariant = isHeadCommit ? getCheckRunsCiVariant(checkRuns) : null
 
   return (
-    <TimelineItemBase
-      icon={<GitCommitIcon size={10} />}
-      showConnector
-      header={
+    <TimelineItem>
+      <TimelineItemIcon>
+        <GitCommitIcon size={10} />
+      </TimelineItemIcon>
+      <TimelineItemHeader>
         <span className={styles.timelineCommitLine}>
           <AuthorLabel
             login={authorLogin}
@@ -52,7 +58,8 @@ export const TimelineCommitItem = ({
           <time className={styles.timelineTime}>{formatRelativeTime(commit.authoredAt)}</time>
           {ciVariant != null && <CiDot variant={ciVariant} />}
         </span>
-      }
-    />
+      </TimelineItemHeader>
+      <TimelineItemConnector />
+    </TimelineItem>
   )
 }

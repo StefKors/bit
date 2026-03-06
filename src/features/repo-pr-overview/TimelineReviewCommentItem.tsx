@@ -4,7 +4,13 @@ import { AuthorLabel } from "@/components/AuthorLabel"
 import { Markdown } from "@/components/Markdown"
 import { getLanguageFromFilePath } from "@/lib/Markdown"
 import type { ReviewCommentThread, PullRequestReviewComment } from "./Types"
-import { TimelineItemBase } from "./TimelineItemBase"
+import {
+  TimelineItem,
+  TimelineItemBody,
+  TimelineItemConnector,
+  TimelineItemHeader,
+  TimelineItemIcon,
+} from "./TimelineItemBase"
 import styles from "./TimelineReviewCommentItem.module.css"
 
 interface TimelineReviewCommentItemProps {
@@ -46,11 +52,11 @@ export const TimelineReviewCommentItem = ({ thread }: TimelineReviewCommentItemP
   const hasReplies = replies.length > 0
 
   return (
-    <TimelineItemBase
-      icon={<CodeIcon size={10} />}
-      hideConnector={hasReplies}
-      bodyWide={hasReplies}
-      header={
+    <TimelineItem>
+      <TimelineItemIcon>
+        <CodeIcon size={10} />
+      </TimelineItemIcon>
+      <TimelineItemHeader>
         <>
           <span className={styles.timelineReviewCommentInfo}>
             <AuthorLabel
@@ -70,24 +76,26 @@ export const TimelineReviewCommentItem = ({ thread }: TimelineReviewCommentItemP
             {formatRelativeTime(root.createdAt || root.updatedAt)}
           </time>
         </>
-      }
-    >
-      <div className={styles.threadBody}>
-        {root.body && (
-          <Markdown
-            content={root.body}
-            className={styles.timelineContent}
-            defaultLanguage={defaultLanguage}
-          />
-        )}
-        {replies.length > 0 && (
-          <div className={styles.replies}>
-            {replies.map((reply) => (
-              <ReplyItem key={reply.id} comment={reply} defaultLanguage={defaultLanguage} />
-            ))}
-          </div>
-        )}
-      </div>
-    </TimelineItemBase>
+      </TimelineItemHeader>
+      {!hasReplies && <TimelineItemConnector />}
+      <TimelineItemBody wide={hasReplies}>
+        <div className={styles.threadBody}>
+          {root.body && (
+            <Markdown
+              content={root.body}
+              className={styles.timelineContent}
+              defaultLanguage={defaultLanguage}
+            />
+          )}
+          {replies.length > 0 && (
+            <div className={styles.replies}>
+              {replies.map((reply) => (
+                <ReplyItem key={reply.id} comment={reply} defaultLanguage={defaultLanguage} />
+              ))}
+            </div>
+          )}
+        </div>
+      </TimelineItemBody>
+    </TimelineItem>
   )
 }

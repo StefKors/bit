@@ -2,7 +2,12 @@ import { TagIcon, PersonIcon, EyeIcon } from "@primer/octicons-react"
 import { formatRelativeTime } from "@/lib/Format"
 import { AuthorLabel } from "@/components/AuthorLabel"
 import type { PullRequestEvent } from "./Types"
-import { TimelineItemBase } from "./TimelineItemBase"
+import {
+  TimelineItem,
+  TimelineItemConnector,
+  TimelineItemHeader,
+  TimelineItemIcon,
+} from "./TimelineItemBase"
 import styles from "./TimelinePrActionItem.module.css"
 
 interface TimelinePrActionItemProps {
@@ -25,10 +30,9 @@ export const TimelinePrActionItem = ({ event }: TimelinePrActionItemProps) => {
   const isLabel = event.eventType === "labeled" || event.eventType === "unlabeled"
 
   return (
-    <TimelineItemBase
-      icon={config.icon}
-      showConnector
-      header={
+    <TimelineItem>
+      <TimelineItemIcon>{config.icon}</TimelineItemIcon>
+      <TimelineItemHeader>
         <>
           <span className={styles.eventInfo}>
             {event.actorLogin && (
@@ -52,7 +56,8 @@ export const TimelinePrActionItem = ({ event }: TimelinePrActionItemProps) => {
           </span>
           <time className={styles.timelineTime}>{formatRelativeTime(event.githubCreatedAt)}</time>
         </>
-      }
-    />
+      </TimelineItemHeader>
+      <TimelineItemConnector />
+    </TimelineItem>
   )
 }

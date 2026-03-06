@@ -3,7 +3,13 @@ import { formatRelativeTime } from "@/lib/Format"
 import { AuthorLabel } from "@/components/AuthorLabel"
 import { Markdown } from "@/components/Markdown"
 import type { PullRequestComment } from "./Types"
-import { TimelineItemBase } from "./TimelineItemBase"
+import {
+  TimelineItem,
+  TimelineItemBody,
+  TimelineItemConnector,
+  TimelineItemHeader,
+  TimelineItemIcon,
+} from "./TimelineItemBase"
 import styles from "./TimelineIssueCommentItem.module.css"
 
 interface TimelineIssueCommentItemProps {
@@ -11,10 +17,11 @@ interface TimelineIssueCommentItemProps {
 }
 
 export const TimelineIssueCommentItem = ({ comment }: TimelineIssueCommentItemProps) => (
-  <TimelineItemBase
-    icon={<CommentDiscussionIcon size={10} />}
-    showConnector
-    header={
+  <TimelineItem>
+    <TimelineItemIcon>
+      <CommentDiscussionIcon size={10} />
+    </TimelineItemIcon>
+    <TimelineItemHeader>
       <>
         <AuthorLabel
           login={comment.authorLogin}
@@ -26,8 +33,12 @@ export const TimelineIssueCommentItem = ({ comment }: TimelineIssueCommentItemPr
           {formatRelativeTime(comment.createdAt || comment.updatedAt)}
         </time>
       </>
-    }
-  >
-    {comment.body && <Markdown content={comment.body} className={styles.timelineContent} />}
-  </TimelineItemBase>
+    </TimelineItemHeader>
+    <TimelineItemConnector />
+    {comment.body && (
+      <TimelineItemBody>
+        <Markdown content={comment.body} className={styles.timelineContent} />
+      </TimelineItemBody>
+    )}
+  </TimelineItem>
 )

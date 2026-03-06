@@ -1,42 +1,44 @@
 import type { ReactNode } from "react"
 import styles from "./TimelineItemBase.module.css"
 
-interface TimelineItemBaseProps {
-  icon: ReactNode
-  header: ReactNode
-  children?: ReactNode
+interface TimelineItemProps {
   className?: string
-  showConnector?: boolean
-  hideConnector?: boolean
-  bodyWide?: boolean
+  children: ReactNode
 }
 
-export const TimelineItemBase = ({
-  icon,
-  header,
-  children,
-  className,
-  showConnector,
-  hideConnector,
-  bodyWide,
-}: TimelineItemBaseProps) => {
-  const hasBody = children != null
-  const showLine = !hideConnector && (hasBody || showConnector)
+interface TimelineItemBodyProps {
+  children: ReactNode
+  wide?: boolean
+}
 
+interface TimelineItemIconProps {
+  children: ReactNode
+}
+
+interface TimelineItemHeaderProps {
+  children: ReactNode
+}
+
+export const TimelineItem = ({ children, className }: TimelineItemProps) => {
   return (
     <div className={className ? `${styles.timelineItem} ${className}` : styles.timelineItem}>
-      <div className={styles.timelineIcon}>{icon}</div>
-      <div className={styles.timelineHeader}>{header}</div>
-      {showLine && <div className={styles.timelineLine} aria-hidden />}
-      {hasBody && (
-        <div
-          className={
-            bodyWide ? `${styles.timelineBody} ${styles.timelineBodyWide}` : styles.timelineBody
-          }
-        >
-          {children}
-        </div>
-      )}
+      {children}
     </div>
   )
 }
+
+export const TimelineItemIcon = ({ children }: TimelineItemIconProps) => (
+  <div className={styles.timelineIcon}>{children}</div>
+)
+
+export const TimelineItemHeader = ({ children }: TimelineItemHeaderProps) => (
+  <div className={styles.timelineHeader}>{children}</div>
+)
+
+export const TimelineItemConnector = () => <div className={styles.timelineLine} aria-hidden />
+
+export const TimelineItemBody = ({ children, wide }: TimelineItemBodyProps) => (
+  <div className={wide ? `${styles.timelineBody} ${styles.timelineBodyWide}` : styles.timelineBody}>
+    {children}
+  </div>
+)

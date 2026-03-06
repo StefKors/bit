@@ -5,7 +5,13 @@ import { StatusBadge } from "@/components/StatusBadge"
 import { getLanguageFromFilePath } from "@/lib/Markdown"
 import { getReviewBadgeVariant, getReviewIcon } from "./Utils"
 import type { PullRequestReviewWithComments, ReviewCommentThread } from "./Types"
-import { TimelineItemBase } from "./TimelineItemBase"
+import {
+  TimelineItem,
+  TimelineItemBody,
+  TimelineItemConnector,
+  TimelineItemHeader,
+  TimelineItemIcon,
+} from "./TimelineItemBase"
 import styles from "./TimelineReviewItem.module.css"
 
 const NestedCommentThread = ({ thread }: { thread: ReviewCommentThread }) => {
@@ -75,12 +81,9 @@ export const TimelineReviewItem = ({ review }: TimelineReviewItemProps) => {
   const hasContent = hasBody || hasNested
 
   return (
-    <TimelineItemBase
-      icon={getReviewIcon(review.state)}
-      showConnector={!hasContent}
-      hideConnector={hasContent}
-      bodyWide={hasContent}
-      header={
+    <TimelineItem>
+      <TimelineItemIcon>{getReviewIcon(review.state)}</TimelineItemIcon>
+      <TimelineItemHeader>
         <>
           <span className={styles.timelineReviewInfo}>
             <AuthorLabel
@@ -100,20 +103,22 @@ export const TimelineReviewItem = ({ review }: TimelineReviewItemProps) => {
             {formatRelativeTime(review.submittedAt ?? review.updatedAt)}
           </time>
         </>
-      }
-    >
+      </TimelineItemHeader>
+      {!hasContent && <TimelineItemConnector />}
       {hasContent && (
-        <>
-          {review.body && <Markdown content={review.body} className={styles.timelineContent} />}
-          {hasNested && (
-            <div className={styles.nestedThreads}>
-              {review.nestedCommentThreads.map((thread) => (
-                <NestedCommentThread key={thread.root.id} thread={thread} />
-              ))}
-            </div>
-          )}
-        </>
+        <TimelineItemBody wide>
+          <>
+            {review.body && <Markdown content={review.body} className={styles.timelineContent} />}
+            {hasNested && (
+              <div className={styles.nestedThreads}>
+                {review.nestedCommentThreads.map((thread) => (
+                  <NestedCommentThread key={thread.root.id} thread={thread} />
+                ))}
+              </div>
+            )}
+          </>
+        </TimelineItemBody>
       )}
-    </TimelineItemBase>
+    </TimelineItem>
   )
 }

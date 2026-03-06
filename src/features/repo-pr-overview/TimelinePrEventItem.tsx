@@ -2,7 +2,12 @@ import { GitMergeIcon, GitPullRequestIcon, GitPullRequestClosedIcon } from "@pri
 import { formatRelativeTime } from "@/lib/Format"
 import { AuthorLabel } from "@/components/AuthorLabel"
 import type { PrEventData } from "./Types"
-import { TimelineItemBase } from "./TimelineItemBase"
+import {
+  TimelineItem,
+  TimelineItemConnector,
+  TimelineItemHeader,
+  TimelineItemIcon,
+} from "./TimelineItemBase"
 import styles from "./TimelinePrEventItem.module.css"
 
 interface TimelinePrEventItemProps {
@@ -33,24 +38,21 @@ export const TimelinePrEventItem = ({ event, type, timestamp }: TimelinePrEventI
   const { icon, verb, className } = config[type]
 
   return (
-    <TimelineItemBase
-      icon={icon}
-      className={className}
-      showConnector
-      header={
-        <>
-          <span className={styles.eventInfo}>
-            <AuthorLabel
-              login={event.authorLogin}
-              avatarUrl={event.authorAvatarUrl}
-              size={13}
-              lineHeight="default"
-            />
-            <span className={styles.eventVerb}>{verb}</span>
-          </span>
-          <time className={styles.timelineTime}>{formatRelativeTime(timestamp)}</time>
-        </>
-      }
-    />
+    <TimelineItem className={className}>
+      <TimelineItemIcon>{icon}</TimelineItemIcon>
+      <TimelineItemHeader>
+        <span className={styles.eventInfo}>
+          <AuthorLabel
+            login={event.authorLogin}
+            avatarUrl={event.authorAvatarUrl}
+            size={13}
+            lineHeight="default"
+          />
+          <span className={styles.eventVerb}>{verb}</span>
+        </span>
+        <time className={styles.timelineTime}>{formatRelativeTime(timestamp)}</time>
+      </TimelineItemHeader>
+      <TimelineItemConnector />
+    </TimelineItem>
   )
 }
