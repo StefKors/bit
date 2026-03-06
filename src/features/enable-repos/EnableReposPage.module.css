@@ -1,7 +1,9 @@
 .container {
+  flex: 1;
+  min-height: 0;
   display: flex;
   justify-content: center;
-  min-height: 100%;
+  overflow: auto;
   padding: 2rem;
 }
 

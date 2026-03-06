@@ -1,8 +1,9 @@
 .container {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: min(68vh, 560px);
+  min-height: 0;
   width: 100%;
   padding: var(--bit-space-8);
 }
