@@ -1,13 +1,91 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { id } from "@instantdb/admin"
 import { adminDb } from "@/lib/InstantAdmin"
+import { getInstallationIdForRepo } from "@/lib/GithubApp"
+import { syncPRFiles } from "@/lib/GithubPrFiles"
 import type { InstallationRepo } from "@/lib/GithubInstallationRepos"
+import { log } from "@/lib/Logger"
 
 const jsonResponse = <T>(data: T, status = 200) =>
   new Response(JSON.stringify(data), {
     status,
     headers: { "Content-Type": "application/json" },
   })
+
+interface PullRequestBackfillTarget {
+  id: string
+  number?: number | null
+  baseSha: string
+  headSha: string
+}
+
+interface PullRequestCandidate {
+  id: string
+  number?: number | null
+  baseSha?: string | null
+  headSha?: string | null
+}
+
+const isPullRequestBackfillTarget = (pr: PullRequestCandidate): pr is PullRequestBackfillTarget =>
+  typeof pr.baseSha === "string" && typeof pr.headSha === "string"
+
+const backfillOpenPullRequestFiles = async (
+  userId: string,
+  repos: InstallationRepo[],
+): Promise<number> => {
+  const counts = await Promise.all(
+    repos.map(async (repo): Promise<number> => {
+      try {
+        const installationId = await getInstallationIdForRepo(userId, repo.owner)
+        if (!installationId) return 0
+
+        const { repos: repoRecords } = await adminDb.query({
+          repos: {
+            $: { where: { fullName: repo.fullName }, limit: 1 },
+            pullRequests: {
+              $: { where: { state: "open" } },
+            },
+          },
+        })
+        const pullRequests = (repoRecords?.[0]?.pullRequests ?? []) as PullRequestCandidate[]
+        const eligiblePullRequests = pullRequests.filter(isPullRequestBackfillTarget)
+
+        const results = await Promise.all(
+          eligiblePullRequests.map(async (pr): Promise<boolean> => {
+            try {
+              await syncPRFiles(
+                pr.id,
+                installationId,
+                repo.owner,
+                repo.name,
+                pr.baseSha,
+                pr.headSha,
+              )
+              return true
+            } catch (error) {
+              log.error("Failed to backfill PR files on repo enable", error, {
+                userId,
+                repoFullName: repo.fullName,
+                prNumber: pr.number,
+              })
+              return false
+            }
+          }),
+        )
+
+        return results.filter(Boolean).length
+      } catch (error) {
+        log.error("Failed to query PRs for backfill on repo enable", error, {
+          userId,
+          repoFullName: repo.fullName,
+        })
+        return 0
+      }
+    }),
+  )
+
+  return counts.reduce((total, count) => total + count, 0)
+}
 
 export const Route = createFileRoute("/api/github/repos/enable")({
   server: {
@@ -87,11 +165,22 @@ export const Route = createFileRoute("/api/github/repos/enable")({
 
         try {
           await adminDb.transact(tx)
-          return jsonResponse({ enabled: repos.length })
         } catch (err) {
           const msg = err instanceof Error ? err.message : "Failed to enable repos"
           return jsonResponse({ error: msg }, 500)
         }
+
+        let backfilledPullRequests = 0
+        try {
+          backfilledPullRequests = await backfillOpenPullRequestFiles(userId, repos)
+        } catch (error) {
+          log.error("Backfill failed but repos were enabled", error, {
+            userId,
+            enabledRepos: repos.length,
+          })
+        }
+
+        return jsonResponse({ enabled: repos.length, backfilledPullRequests })
       },
     },
   },

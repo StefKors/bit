@@ -96,13 +96,26 @@ export const syncPRFiles = async (
 
   const deleteTxs = (existing ?? []).map((f) => adminDb.tx.pullRequestFiles[f.id].delete())
   if (deleteTxs.length > 0) {
-    await adminDb.transact(deleteTxs)
+    try {
+      await adminDb.transact(deleteTxs)
+    } catch (error) {
+      log.error("Failed to delete existing pull request files", error, {
+        pullRequestId,
+        owner,
+        repo,
+        baseSha,
+        headSha,
+        existingCount: deleteTxs.length,
+      })
+      throw error
+    }
   }
 
   const insertTxs = files.map((file) => {
     const fileId = id()
     return adminDb.tx.pullRequestFiles[fileId]
       .update({
+        commitSha: headSha,
         filename: file.filename,
         previousFilename: file.previous_filename,
         status: file.status,
@@ -116,6 +129,18 @@ export const syncPRFiles = async (
   })
 
   if (insertTxs.length > 0) {
-    await adminDb.transact(insertTxs)
+    try {
+      await adminDb.transact(insertTxs)
+    } catch (error) {
+      log.error("Failed to insert pull request files", error, {
+        pullRequestId,
+        owner,
+        repo,
+        baseSha,
+        headSha,
+        filesCount: insertTxs.length,
+      })
+      throw error
+    }
   }
 }
