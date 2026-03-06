@@ -65,7 +65,6 @@
   border: 1px solid var(--pr-border);
   font-size: var(--bit-font-size-small);
   font-weight: var(--bit-font-weight-bold);
-  text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--pr-muted);
   background: rgba(var(--bit-rgb-surface-3), 0.45);
@@ -113,7 +112,6 @@
   margin: 0;
   font-size: var(--bit-font-size-small);
   font-weight: var(--bit-font-weight-bold);
-  text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--pr-muted);
 }

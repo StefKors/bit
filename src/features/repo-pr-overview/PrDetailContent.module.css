@@ -15,7 +15,6 @@
   font-size: var(--bit-font-size-meta);
   line-height: var(--bit-line-height-meta);
   font-weight: var(--bit-font-weight-bold);
-  text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--bit-color-text-muted);
 }

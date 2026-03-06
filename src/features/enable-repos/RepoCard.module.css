@@ -54,7 +54,6 @@
   padding: 0.125rem 0.5rem;
   font-size: var(--bit-font-size-small);
   font-weight: var(--bit-font-weight-bold);
-  text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--bit-color-accent-green);
   background: rgba(var(--bit-rgb-accent-green), 0.15);

@@ -80,7 +80,6 @@
 .sectionLabel {
   font-size: var(--bit-font-size-small);
   font-weight: var(--bit-font-weight-bold);
-  text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--bit-color-muted);
 }
@@ -133,7 +132,6 @@
 .groupLabel {
   font-size: 11px; /* intentionally smaller for group labels */
   font-weight: var(--bit-font-weight-bold);
-  text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--bit-color-muted);
 }

@@ -1,6 +1,6 @@
 import { Link, useParams } from "@tanstack/react-router"
 import { motion } from "motion/react"
-import { formatMergeableState } from "@/lib/Format"
+import { formatMergeableState, formatPrState, formatReviewState } from "@/lib/Format"
 import { db } from "@/lib/InstantDb"
 import styles from "./PullDetailPage.module.css"
 
@@ -91,7 +91,7 @@ export function PullDetailPage() {
             pr.state === "open" ? styles.metaStateOpen : styles.metaStateBlocked
           }`}
         >
-          {pr.state ?? "unknown"}
+          {formatPrState(pr.state)}
         </span>
         <span
           className={`${styles.metaPill} ${
@@ -100,7 +100,7 @@ export function PullDetailPage() {
         >
           {formatMergeableState(pr.mergeableState)}
         </span>
-        <span className={styles.metaPill}>{pr.draft ? "draft" : "ready for review"}</span>
+        <span className={styles.metaPill}>{pr.draft ? "Draft" : "Ready for Review"}</span>
       </p>
 
       {pr.body && <p className={styles.body}>{pr.body}</p>}
@@ -157,7 +157,8 @@ export function PullDetailPage() {
           {pr.pullRequestReviews?.length ? (
             pr.pullRequestReviews.map((review) => (
               <li key={review.id} className={styles.listItem}>
-                <strong>{review.authorLogin ?? "unknown"}</strong> - {review.state ?? "COMMENTED"}
+                <strong>{review.authorLogin ?? "unknown"}</strong> -{" "}
+                {formatReviewState(review.state)}
               </li>
             ))
           ) : (

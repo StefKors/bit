@@ -25,8 +25,16 @@ export const formatActivityDate = (dateValue: string | number | null): string =>
   return date.toLocaleString()
 }
 
+const toTitleCase = (s: string): string => s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+
+export const formatPrState = (state: string | null | undefined): string =>
+  toTitleCase(state ?? "unknown")
+
+export const formatReviewState = (state: string | null | undefined): string =>
+  toTitleCase((state ?? "commented").replaceAll("_", " "))
+
 export const formatMergeableState = (mergeableState: string | null | undefined): string => {
-  if (!mergeableState || mergeableState === "unknown") return "checking"
-  if (mergeableState === "blocked") return "blocked"
-  return mergeableState.replaceAll("_", " ")
+  if (!mergeableState || mergeableState === "unknown") return "Checking"
+  if (mergeableState === "blocked") return "Blocked"
+  return toTitleCase(mergeableState.replaceAll("_", " "))
 }

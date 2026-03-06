@@ -1,4 +1,4 @@
-import { formatRelativeTime } from "@/lib/Format"
+import { formatRelativeTime, formatReviewState } from "@/lib/Format"
 import { AuthorLabel } from "@/components/AuthorLabel"
 import { Markdown } from "@/components/Markdown"
 import { StatusBadge } from "@/components/StatusBadge"
@@ -18,7 +18,7 @@ interface TimelineReviewItemProps {
 }
 
 export const TimelineReviewItem = ({ review }: TimelineReviewItemProps) => {
-  const stateLabel = review.state.toLowerCase().replaceAll("_", " ")
+  const stateLabel = formatReviewState(review.state)
   const hasBody = Boolean(review.body)
   const hasNested = review.nestedCommentThreads.length > 0
   const hasContent = hasBody || hasNested

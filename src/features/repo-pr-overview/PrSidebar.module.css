@@ -1,18 +1,17 @@
 .sidebarContent {
   display: flex;
-  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: flex-start;
   gap: var(--bit-space-8);
+  width: 100%;
 }
 
 .sidebarSection {
   display: flex;
   flex-direction: column;
   gap: var(--bit-space-4);
-  min-width: 180px;
-  max-width: 260px;
   flex: 0 1 auto;
+  width: 100%;
 }
 
 .sidebarSectionTitle {
@@ -20,7 +19,6 @@
   font-size: var(--bit-font-size-meta);
   line-height: var(--bit-line-height-meta);
   font-weight: var(--bit-font-weight-bold);
-  text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--bit-color-text-muted);
 }
