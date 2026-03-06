@@ -30,10 +30,31 @@ interface FileEntryProps {
   file: PullRequestFileEntry
 }
 
+const buildPatchForViewer = (file: PullRequestFileEntry): string | null => {
+  const rawPatch = file.patch?.trim()
+  if (!rawPatch) return null
+
+  const diffHeaders = rawPatch.match(/^diff --git /gm) ?? []
+  if (diffHeaders.length > 1) return null
+  if (diffHeaders.length === 1) return rawPatch
+
+  if (!rawPatch.includes("@@")) return null
+
+  const previousPath = file.previousFilename || file.filename
+  const fromPath = file.status === "added" ? "/dev/null" : `a/${previousPath}`
+  const toPath = file.status === "removed" ? "/dev/null" : `b/${file.filename}`
+
+  return `diff --git a/${previousPath} b/${file.filename}
+--- ${fromPath}
++++ ${toPath}
+${rawPatch}`
+}
+
 export function FileEntry({ file }: FileEntryProps) {
   const [collapsed, setCollapsed] = useState(false)
   const statusClass = FILE_STATUS_CLASS[file.status] ?? "fileStatusModified"
   const icon = FILE_STATUS_ICON[file.status] ?? <DiffModifiedIcon size={14} />
+  const viewerPatch = buildPatchForViewer(file)
 
   return (
     <div className={styles.fileEntry}>
@@ -65,10 +86,10 @@ export function FileEntry({ file }: FileEntryProps) {
           className={collapsed ? styles.chevronCollapsed : styles.chevronExpanded}
         />
       </button>
-      {!collapsed && file.patch && (
+      {!collapsed && viewerPatch && (
         <div className={styles.diffContainer}>
           <PatchDiff
-            patch={file.patch}
+            patch={viewerPatch}
             options={{
               diffStyle: "unified",
               disableLineNumbers: false,
@@ -77,7 +98,7 @@ export function FileEntry({ file }: FileEntryProps) {
           />
         </div>
       )}
-      {!collapsed && !file.patch && (
+      {!collapsed && !viewerPatch && (
         <div className={styles.diffPlaceholder}>
           {file.status === "removed" ? "File deleted" : "Binary file or diff too large to display"}
         </div>
