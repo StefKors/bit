@@ -3,7 +3,6 @@ import { motion } from "motion/react"
 import { useAuth } from "@/lib/hooks/UseAuth"
 import { db } from "@/lib/InstantDb"
 import { Tabs } from "@/components/Tabs"
-import { ErrorPage } from "@/components/ErrorPage"
 import { PrAuthorFilter } from "./PrAuthorFilter"
 import { PrSelectionList } from "./PrSelectionList"
 import { SelectedPrHeader } from "./SelectedPrHeader"
@@ -42,7 +41,7 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
 
   const effectiveAuthorFilter = authorFilter ?? (user?.login ? "me" : "all")
 
-  const { data } = db.useQuery({
+  const { data, isLoading } = db.useQuery({
     repos: {
       $: { where: { fullName }, limit: 1 },
       pullRequests: {
@@ -74,6 +73,7 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
   })
 
   const repoData = data?.repos?.[0] ?? null
+  const isRepoLoading = isLoading || data === undefined
 
   const allPRs = repoData?.pullRequests.filter((pr) => pr.state === "open").map(mapPrToCard) ?? []
   const mergedPRs = repoData?.pullRequests.filter((pr) => pr.merged === true).map(mapPrToCard) ?? []
@@ -132,23 +132,6 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
     filteredPRs.find((pr) => pr.number === selectedPrNumber) ??
     (selectedPrNumber === null ? filteredPRs[0] : null)
 
-  if (!repoData) {
-    return (
-      <motion.div
-        className={styles.container}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <ErrorPage
-          title="Repository not found"
-          message="This repository is not available in Bit yet. Enable access to start syncing pull requests."
-          showHomeAction={false}
-        />
-      </motion.div>
-    )
-  }
-
   return (
     <motion.div
       className={styles.container}
@@ -199,11 +182,15 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
             )
           ) : (
             <div className={styles.placeholder}>
-              {allPRs.length === 0
-                ? mergedPRs.length === 0
-                  ? "No PR data yet. Trigger webhooks by opening/updating a PR."
-                  : "Select a PR from the left column."
-                : "Select a PR from the left column."}
+              {isRepoLoading
+                ? "Loading pull requests..."
+                : !repoData
+                  ? "Repository not found. Enable access on this repository to start syncing pull requests."
+                  : allPRs.length === 0
+                    ? mergedPRs.length === 0
+                      ? "No PR data yet. Trigger webhooks by opening/updating a PR."
+                      : "Select a PR from the left column."
+                    : "Select a PR from the left column."}
             </div>
           )}
         </section>
