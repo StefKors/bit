@@ -1,5 +1,6 @@
 import { AuthorLabel } from "@/components/AuthorLabel"
 import { StatusBadge } from "@/components/StatusBadge"
+import { formatReviewState } from "@/lib/Format"
 import type { PullRequestCard, PullRequestReview } from "./Types"
 import styles from "./PrSidebar.module.css"
 
@@ -17,11 +18,15 @@ export function PrSidebar({ pr }: PrSidebarProps) {
     }
   }
 
+  const hasReviewers = reviewerLogins.length > 0 || pr.requestedReviewers.length > 0
+  const hasAssignees = pr.assignees.length > 0
+  const hasLabels = pr.labels.length > 0
+
   return (
     <div className={styles.sidebarContent}>
-      <div className={styles.sidebarSection}>
-        <h3 className={styles.sidebarSectionTitle}>Reviewers</h3>
-        {reviewerLogins.length > 0 || pr.requestedReviewers.length > 0 ? (
+      {hasReviewers && (
+        <div className={styles.sidebarSection}>
+          <h3 className={styles.sidebarSectionTitle}>Reviewers</h3>
           <ul className={styles.sidebarList}>
             {reviewerLogins.map((login) => {
               const review = latestReviewByAuthor.get(login)
@@ -38,7 +43,7 @@ export function PrSidebar({ pr }: PrSidebarProps) {
                             : "draft"
                       }
                     >
-                      {review.state.toLowerCase().replaceAll("_", " ")}
+                      {formatReviewState(review.state)}
                     </StatusBadge>
                   )}
                 </li>
@@ -49,18 +54,16 @@ export function PrSidebar({ pr }: PrSidebarProps) {
               .map((login) => (
                 <li key={login} className={styles.sidebarListItem}>
                   <AuthorLabel login={login} />
-                  <span className={styles.sidebarMuted}>pending</span>
+                  <span className={styles.sidebarMuted}>Pending</span>
                 </li>
               ))}
           </ul>
-        ) : (
-          <p className={styles.sidebarEmpty}>None</p>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className={styles.sidebarSection}>
-        <h3 className={styles.sidebarSectionTitle}>Assignees</h3>
-        {pr.assignees.length > 0 ? (
+      {hasAssignees && (
+        <div className={styles.sidebarSection}>
+          <h3 className={styles.sidebarSectionTitle}>Assignees</h3>
           <ul className={styles.sidebarList}>
             {pr.assignees.map((login) => (
               <li key={login} className={styles.sidebarListItem}>
@@ -68,14 +71,12 @@ export function PrSidebar({ pr }: PrSidebarProps) {
               </li>
             ))}
           </ul>
-        ) : (
-          <p className={styles.sidebarEmpty}>None</p>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className={styles.sidebarSection}>
-        <h3 className={styles.sidebarSectionTitle}>Labels</h3>
-        {pr.labels.length > 0 ? (
+      {hasLabels && (
+        <div className={styles.sidebarSection}>
+          <h3 className={styles.sidebarSectionTitle}>Labels</h3>
           <div className={styles.labelList}>
             {pr.labels.map((label) => (
               <span key={label} className={styles.label}>
@@ -83,10 +84,8 @@ export function PrSidebar({ pr }: PrSidebarProps) {
               </span>
             ))}
           </div>
-        ) : (
-          <p className={styles.sidebarEmpty}>None</p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
