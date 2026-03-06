@@ -13,7 +13,7 @@ interface TimelineIssueCommentItemProps {
 export const TimelineIssueCommentItem = ({ comment }: TimelineIssueCommentItemProps) => (
   <TimelineItemBase
     icon={<CommentDiscussionIcon size={10} />}
-    hideConnector
+    showConnector
     header={
       <>
         <AuthorLabel
