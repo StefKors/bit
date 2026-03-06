@@ -1,7 +1,3 @@
-.timelineTime {
-  composes: timelineTime from "./TimelineItemBase.module.css";
-}
-
 .timelineReviewCommentInfo {
   display: flex;
   align-items: center;
@@ -30,10 +26,6 @@
   flex-direction: column;
 }
 
-.timelineContent {
-  composes: timelineContent from "./TimelineItemBase.module.css";
-}
-
 .replies {
   display: flex;
   flex-direction: column;
@@ -46,36 +38,10 @@
   gap: var(--bit-space-2);
   margin-left: var(--bit-space-6);
   padding: var(--bit-space-4) var(--bit-space-6) var(--bit-space-4) var(--bit-space-5);
-  border-top: 1px solid rgba(var(--bit-rgb-fg), 0.08);
-  background: rgba(var(--bit-rgb-surface-2), 0.2);
-}
-
-.reply::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: rgba(var(--bit-rgb-fg), 0.12);
-}
-
-.reply:last-child {
-  border-radius: 0 0 var(--bit-radius-md) var(--bit-radius-md);
 }
 
 .replyHeader {
   display: flex;
   align-items: center;
   gap: var(--bit-space-4);
-}
-
-.replyTime {
-  font-size: var(--bit-font-size-meta);
-  line-height: var(--bit-line-height-meta);
-  color: rgba(var(--bit-rgb-fg), 0.45);
-}
-
-.replyBody {
-  color: rgba(var(--bit-rgb-fg), 0.85);
 }

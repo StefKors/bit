@@ -1,12 +1,7 @@
 import { useState } from "react"
-import { motion } from "motion/react"
 import { Button } from "@/components/Button"
-import { TimelineCommitItem } from "./TimelineCommitItem"
-import { TimelineIssueCommentItem } from "./TimelineIssueCommentItem"
-import { TimelinePrActionItem } from "./TimelinePrActionItem"
-import { TimelinePrEventItem } from "./TimelinePrEventItem"
-import { TimelineReviewCommentItem } from "./TimelineReviewCommentItem"
-import { TimelineReviewItem } from "./TimelineReviewItem"
+import { Timeline } from "./Timeline"
+import { getTimelineItemKey } from "./TimelineUtils"
 import type { TimelineItem } from "./Types"
 import styles from "./TimelineMockPage.module.css"
 
@@ -24,10 +19,6 @@ const CHECK_RUNS = [
     updatedAt: Date.now(),
   },
 ]
-
-const ENTER_INITIAL = { opacity: 0, y: 14 }
-const ENTER_ANIMATE = { opacity: 1, y: 0 }
-const ENTER_TRANSITION = { duration: 0.42, ease: [0.22, 1, 0.36, 1] as const }
 
 const buildMockTimelineItem = (index: number, timestamp: number): TimelineItem => {
   const variant = index % 7
@@ -163,17 +154,6 @@ const buildMockTimelineItem = (index: number, timestamp: number): TimelineItem =
   }
 }
 
-const getTimelineItemKey = (item: TimelineItem): string => {
-  if (item.type === "opened" || item.type === "merged" || item.type === "closed") {
-    return `${item.type}-${item.timestamp}`
-  }
-  if (item.type === "commit") return `commit-${item.data.id}`
-  if (item.type === "review") return `review-${item.data.id}`
-  if (item.type === "issue_comment") return `issue-comment-${item.data.id}`
-  if (item.type === "review_comment") return `review-comment-${item.data.root.id}`
-  return `event-${item.data.id}`
-}
-
 export const TimelineMockPage = ({ owner, repo }: TimelineMockPageProps) => {
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([])
   const [animatedItemKeys, setAnimatedItemKeys] = useState<Set<string>>(new Set())
@@ -226,113 +206,22 @@ export const TimelineMockPage = ({ owner, repo }: TimelineMockPageProps) => {
 
       <section className={styles.timelineSection}>
         {timelineItems.length > 0 ? (
-          <div className={styles.timeline}>
-            {timelineItems.map((item) => {
-              const itemKey = getTimelineItemKey(item)
-              const shouldAnimateIn = animatedItemKeys.has(itemKey)
-              const handleAnimationComplete = shouldAnimateIn
-                ? () => {
-                    setAnimatedItemKeys((previous) => {
-                      if (!previous.has(itemKey)) return previous
-                      const next = new Set(previous)
-                      next.delete(itemKey)
-                      return next
-                    })
-                  }
-                : undefined
-
-              if (item.type === "opened" || item.type === "merged" || item.type === "closed") {
-                return (
-                  <motion.div
-                    key={itemKey}
-                    className={styles.timelineItemMotion}
-                    initial={shouldAnimateIn ? ENTER_INITIAL : false}
-                    animate={ENTER_ANIMATE}
-                    transition={ENTER_TRANSITION}
-                    onAnimationComplete={handleAnimationComplete}
-                  >
-                    <TimelinePrEventItem
-                      event={item.data}
-                      type={item.type}
-                      timestamp={item.timestamp}
-                    />
-                  </motion.div>
-                )
-              }
-              if (item.type === "commit") {
-                return (
-                  <motion.div
-                    key={itemKey}
-                    className={styles.timelineItemMotion}
-                    initial={shouldAnimateIn ? ENTER_INITIAL : false}
-                    animate={ENTER_ANIMATE}
-                    transition={ENTER_TRANSITION}
-                    onAnimationComplete={handleAnimationComplete}
-                  >
-                    <TimelineCommitItem
-                      commit={item.data}
-                      checkRuns={CHECK_RUNS}
-                      headSha={item.data.sha}
-                    />
-                  </motion.div>
-                )
-              }
-              if (item.type === "review") {
-                return (
-                  <motion.div
-                    key={itemKey}
-                    className={styles.timelineItemMotion}
-                    initial={shouldAnimateIn ? ENTER_INITIAL : false}
-                    animate={ENTER_ANIMATE}
-                    transition={ENTER_TRANSITION}
-                    onAnimationComplete={handleAnimationComplete}
-                  >
-                    <TimelineReviewItem review={item.data} />
-                  </motion.div>
-                )
-              }
-              if (item.type === "issue_comment") {
-                return (
-                  <motion.div
-                    key={itemKey}
-                    className={styles.timelineItemMotion}
-                    initial={shouldAnimateIn ? ENTER_INITIAL : false}
-                    animate={ENTER_ANIMATE}
-                    transition={ENTER_TRANSITION}
-                    onAnimationComplete={handleAnimationComplete}
-                  >
-                    <TimelineIssueCommentItem comment={item.data} />
-                  </motion.div>
-                )
-              }
-              if (item.type === "review_comment") {
-                return (
-                  <motion.div
-                    key={itemKey}
-                    className={styles.timelineItemMotion}
-                    initial={shouldAnimateIn ? ENTER_INITIAL : false}
-                    animate={ENTER_ANIMATE}
-                    transition={ENTER_TRANSITION}
-                    onAnimationComplete={handleAnimationComplete}
-                  >
-                    <TimelineReviewCommentItem thread={item.data} />
-                  </motion.div>
-                )
-              }
-              return (
-                <motion.div
-                  key={itemKey}
-                  className={styles.timelineItemMotion}
-                  initial={shouldAnimateIn ? ENTER_INITIAL : false}
-                  animate={ENTER_ANIMATE}
-                  transition={ENTER_TRANSITION}
-                  onAnimationComplete={handleAnimationComplete}
-                >
-                  <TimelinePrActionItem event={item.data} />
-                </motion.div>
-              )
-            })}
-          </div>
+          <Timeline
+            items={timelineItems}
+            className={styles.timeline}
+            itemMotionClassName={styles.timelineItemMotion}
+            checkRuns={CHECK_RUNS}
+            getHeadShaForCommit={(commit) => commit.sha}
+            animatedItemKeys={animatedItemKeys}
+            onItemAnimationComplete={(itemKey) => {
+              setAnimatedItemKeys((previous) => {
+                if (!previous.has(itemKey)) return previous
+                const next = new Set(previous)
+                next.delete(itemKey)
+                return next
+              })
+            }}
+          />
         ) : (
           <p className={styles.emptyState}>
             No items yet. Click &quot;Seed timeline&quot; to start.

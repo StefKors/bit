@@ -33,9 +33,6 @@
 }
 
 .timelineSection {
-  border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
-  border-radius: var(--bit-radius-lg);
-  background: rgba(var(--bit-rgb-surface-2), 0.32);
   padding: var(--bit-space-5);
 }
 

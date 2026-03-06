@@ -15,17 +15,17 @@
   color: var(--bit-color-text-muted);
 }
 
-.opened > div:first-child {
+.opened > div > div:first-child {
   color: var(--bit-color-accent-green);
   background: rgba(var(--bit-rgb-accent-green), 0.12);
 }
 
-.merged > div:first-child {
+.merged > div > div:first-child {
   color: var(--bit-color-accent-purple);
   background: rgba(var(--bit-rgb-accent-purple), 0.12);
 }
 
-.closed > div:first-child {
+.closed > div > div:first-child {
   color: var(--bit-color-accent-red);
   background: rgba(var(--bit-rgb-accent-red), 0.12);
 }

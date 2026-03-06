@@ -1,9 +1,30 @@
+.timelineList {
+  position: relative;
+}
+
+.timelineLine {
+  position: absolute;
+  left: 10px;
+  top: 22px;
+  bottom: 0;
+  width: 1px;
+  background: var(--bit-color-border);
+}
+
 .timelineItem {
   display: grid;
   grid-template-columns: 22px 1fr;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto;
   column-gap: var(--bit-space-6);
   row-gap: var(--bit-space-3);
+}
+
+.timelineIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bit-color-bg);
+  padding: 4px 0;
 }
 
 .timelineIcon {
@@ -12,7 +33,7 @@
   justify-content: center;
   width: 22px;
   height: 22px;
-  padding: 8px;
+  padding: 0px;
   box-sizing: border-box;
   border-radius: 50%;
   background: var(--bit-color-surface-2);
@@ -20,21 +41,8 @@
   flex-shrink: 0;
 }
 
-.timelineLine {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.timelineLine::before {
-  content: "";
-  width: 2px;
-  background: rgba(var(--bit-rgb-fg), 0.1);
-  align-self: stretch;
-  min-height: 1em;
-}
-
 .timelineBody {
+  grid-column: 2;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -43,17 +51,6 @@
 
 .timelineBodyWide {
   grid-column: 1 / -1;
-  position: relative;
-}
-
-.timelineBodyWide::after {
-  content: "";
-  position: absolute;
-  left: 10px;
-  top: 100%;
-  width: 2px;
-  height: var(--bit-space-4);
-  background: rgba(var(--bit-rgb-fg), 0.1);
 }
 
 .timelineHeader {
@@ -75,7 +72,7 @@
   padding: var(--bit-space-4) var(--bit-space-6);
   border-radius: var(--bit-radius-md);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
-  background: rgba(var(--bit-rgb-surface-2), 0.34);
+  background: rgba(var(--bit-rgb-surface-1), 1);
 }
 
 .timelineContent :global(p) {

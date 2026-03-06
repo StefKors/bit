@@ -8,7 +8,6 @@ import type { PullRequestReviewWithComments, ReviewCommentThread } from "./Types
 import {
   TimelineItem,
   TimelineItemBody,
-  TimelineItemConnector,
   TimelineItemHeader,
   TimelineItemIcon,
 } from "./TimelineItemBase"
@@ -104,7 +103,6 @@ export const TimelineReviewItem = ({ review }: TimelineReviewItemProps) => {
           </time>
         </>
       </TimelineItemHeader>
-      {!hasContent && <TimelineItemConnector />}
       {hasContent && (
         <TimelineItemBody wide>
           <>

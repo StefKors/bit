@@ -1,38 +1,18 @@
 import { useRef, useState } from "react"
-import { motion } from "motion/react"
 import { Markdown } from "@/components/Markdown"
 import { CiDot } from "@/components/CiDot"
 import { Button } from "@/components/Button"
 import { useAuth } from "@/lib/hooks/UseAuth"
 import { buildTimeline } from "./Utils"
-import { TimelineCommitItem } from "./TimelineCommitItem"
-import { TimelineReviewItem } from "./TimelineReviewItem"
-import { TimelineIssueCommentItem } from "./TimelineIssueCommentItem"
-import { TimelineReviewCommentItem } from "./TimelineReviewCommentItem"
-import { TimelinePrEventItem } from "./TimelinePrEventItem"
-import { TimelinePrActionItem } from "./TimelinePrActionItem"
-import type { PullRequestCard, TimelineItem } from "./Types"
+import { Timeline } from "./Timeline"
+import { getTimelineItemKey } from "./TimelineUtils"
+import type { PullRequestCard } from "./Types"
 import styles from "./PrDetailContent.module.css"
 
 interface PrDetailContentProps {
   pr: PullRequestCard
   owner: string
   repo: string
-}
-
-const TIMELINE_ENTER_INITIAL = { opacity: 0, y: 14 }
-const TIMELINE_ENTER_ANIMATE = { opacity: 1, y: 0 }
-const TIMELINE_ENTER_TRANSITION = { duration: 0.42, ease: [0.22, 1, 0.36, 1] as const }
-
-const getTimelineItemKey = (item: TimelineItem): string => {
-  if (item.type === "opened" || item.type === "merged" || item.type === "closed") {
-    return `${item.type}-${item.timestamp}`
-  }
-  if (item.type === "pr_event") return `pe-${item.data.id}`
-  if (item.type === "commit") return `c-${item.data.id}`
-  if (item.type === "review") return `r-${item.data.id}`
-  if (item.type === "issue_comment") return `ic-${item.data.id}`
-  return `rc-${item.data.root.id}`
 }
 
 export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
@@ -94,97 +74,14 @@ export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
       <div className={styles.detailSection}>
         <h3 className={styles.detailSectionTitle}>Activity</h3>
         {timeline.length > 0 ? (
-          <div className={styles.timeline}>
-            {timeline.map((item: TimelineItem) => {
-              const itemKey = getTimelineItemKey(item)
-              const shouldAnimateIn = newTimelineItemIds.has(itemKey)
-
-              if (item.type === "opened" || item.type === "merged" || item.type === "closed") {
-                return (
-                  <motion.div
-                    key={itemKey}
-                    className={styles.timelineItemMotion}
-                    initial={shouldAnimateIn ? TIMELINE_ENTER_INITIAL : false}
-                    animate={TIMELINE_ENTER_ANIMATE}
-                    transition={TIMELINE_ENTER_TRANSITION}
-                  >
-                    <TimelinePrEventItem
-                      type={item.type}
-                      event={item.data}
-                      timestamp={item.timestamp}
-                    />
-                  </motion.div>
-                )
-              }
-              if (item.type === "pr_event") {
-                return (
-                  <motion.div
-                    key={itemKey}
-                    className={styles.timelineItemMotion}
-                    initial={shouldAnimateIn ? TIMELINE_ENTER_INITIAL : false}
-                    animate={TIMELINE_ENTER_ANIMATE}
-                    transition={TIMELINE_ENTER_TRANSITION}
-                  >
-                    <TimelinePrActionItem event={item.data} />
-                  </motion.div>
-                )
-              }
-              if (item.type === "commit") {
-                return (
-                  <motion.div
-                    key={itemKey}
-                    className={styles.timelineItemMotion}
-                    initial={shouldAnimateIn ? TIMELINE_ENTER_INITIAL : false}
-                    animate={TIMELINE_ENTER_ANIMATE}
-                    transition={TIMELINE_ENTER_TRANSITION}
-                  >
-                    <TimelineCommitItem
-                      commit={item.data}
-                      checkRuns={pr.checkRuns}
-                      headSha={pr.headSha}
-                    />
-                  </motion.div>
-                )
-              }
-              if (item.type === "review") {
-                return (
-                  <motion.div
-                    key={itemKey}
-                    className={styles.timelineItemMotion}
-                    initial={shouldAnimateIn ? TIMELINE_ENTER_INITIAL : false}
-                    animate={TIMELINE_ENTER_ANIMATE}
-                    transition={TIMELINE_ENTER_TRANSITION}
-                  >
-                    <TimelineReviewItem review={item.data} />
-                  </motion.div>
-                )
-              }
-              if (item.type === "issue_comment") {
-                return (
-                  <motion.div
-                    key={itemKey}
-                    className={styles.timelineItemMotion}
-                    initial={shouldAnimateIn ? TIMELINE_ENTER_INITIAL : false}
-                    animate={TIMELINE_ENTER_ANIMATE}
-                    transition={TIMELINE_ENTER_TRANSITION}
-                  >
-                    <TimelineIssueCommentItem comment={item.data} />
-                  </motion.div>
-                )
-              }
-              return (
-                <motion.div
-                  key={itemKey}
-                  className={styles.timelineItemMotion}
-                  initial={shouldAnimateIn ? TIMELINE_ENTER_INITIAL : false}
-                  animate={TIMELINE_ENTER_ANIMATE}
-                  transition={TIMELINE_ENTER_TRANSITION}
-                >
-                  <TimelineReviewCommentItem thread={item.data} />
-                </motion.div>
-              )
-            })}
-          </div>
+          <Timeline
+            items={timeline}
+            className={styles.timeline}
+            itemMotionClassName={styles.timelineItemMotion}
+            checkRuns={pr.checkRuns}
+            headSha={pr.headSha}
+            animatedItemKeys={newTimelineItemIds}
+          />
         ) : (
           <p className={styles.detailEmpty}>No activity yet.</p>
         )}

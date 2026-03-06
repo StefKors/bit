@@ -7,9 +7,10 @@ import type { ReviewCommentThread, PullRequestReviewComment } from "./Types"
 import {
   TimelineItem,
   TimelineItemBody,
-  TimelineItemConnector,
+  TimelineItemContent,
   TimelineItemHeader,
   TimelineItemIcon,
+  TimelineItemTime,
 } from "./TimelineItemBase"
 import styles from "./TimelineReviewCommentItem.module.css"
 
@@ -32,16 +33,14 @@ const ReplyItem = ({
         size={13}
         lineHeight="default"
       />
-      <time className={styles.replyTime}>
+      <TimelineItemTime>
         {formatRelativeTime(comment.createdAt || comment.updatedAt)}
-      </time>
+      </TimelineItemTime>
     </div>
     {comment.body && (
-      <Markdown
-        content={comment.body}
-        className={styles.replyBody}
-        defaultLanguage={defaultLanguage}
-      />
+      <TimelineItemContent>
+        <Markdown content={comment.body} defaultLanguage={defaultLanguage} />
+      </TimelineItemContent>
     )}
   </div>
 )
@@ -54,7 +53,7 @@ export const TimelineReviewCommentItem = ({ thread }: TimelineReviewCommentItemP
   return (
     <TimelineItem>
       <TimelineItemIcon>
-        <CodeIcon size={10} />
+        <CodeIcon size={12} />
       </TimelineItemIcon>
       <TimelineItemHeader>
         <>
@@ -72,20 +71,17 @@ export const TimelineReviewCommentItem = ({ thread }: TimelineReviewCommentItemP
               </code>
             )}
           </span>
-          <time className={styles.timelineTime}>
+          <TimelineItemTime>
             {formatRelativeTime(root.createdAt || root.updatedAt)}
-          </time>
+          </TimelineItemTime>
         </>
       </TimelineItemHeader>
-      {!hasReplies && <TimelineItemConnector />}
       <TimelineItemBody wide={hasReplies}>
         <div className={styles.threadBody}>
           {root.body && (
-            <Markdown
-              content={root.body}
-              className={styles.timelineContent}
-              defaultLanguage={defaultLanguage}
-            />
+            <TimelineItemContent>
+              <Markdown content={root.body} defaultLanguage={defaultLanguage} />
+            </TimelineItemContent>
           )}
           {replies.length > 0 && (
             <div className={styles.replies}>

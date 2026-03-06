@@ -2,12 +2,7 @@ import { GitMergeIcon, GitPullRequestIcon, GitPullRequestClosedIcon } from "@pri
 import { formatRelativeTime } from "@/lib/Format"
 import { AuthorLabel } from "@/components/AuthorLabel"
 import type { PrEventData } from "./Types"
-import {
-  TimelineItem,
-  TimelineItemConnector,
-  TimelineItemHeader,
-  TimelineItemIcon,
-} from "./TimelineItemBase"
+import { TimelineItem, TimelineItemHeader, TimelineItemIcon } from "./TimelineItemBase"
 import styles from "./TimelinePrEventItem.module.css"
 
 interface TimelinePrEventItemProps {
@@ -18,17 +13,17 @@ interface TimelinePrEventItemProps {
 
 const config = {
   opened: {
-    icon: <GitPullRequestIcon size={10} />,
+    icon: <GitPullRequestIcon size={12} />,
     verb: "opened this pull request",
     className: styles.opened,
   },
   merged: {
-    icon: <GitMergeIcon size={10} />,
+    icon: <GitMergeIcon size={12} />,
     verb: "merged this pull request",
     className: styles.merged,
   },
   closed: {
-    icon: <GitPullRequestClosedIcon size={10} />,
+    icon: <GitPullRequestClosedIcon size={12} />,
     verb: "closed this pull request",
     className: styles.closed,
   },
@@ -52,7 +47,6 @@ export const TimelinePrEventItem = ({ event, type, timestamp }: TimelinePrEventI
         </span>
         <time className={styles.timelineTime}>{formatRelativeTime(timestamp)}</time>
       </TimelineItemHeader>
-      <TimelineItemConnector />
     </TimelineItem>
   )
 }

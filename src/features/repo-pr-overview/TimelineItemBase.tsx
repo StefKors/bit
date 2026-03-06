@@ -6,6 +6,11 @@ interface TimelineItemProps {
   children: ReactNode
 }
 
+interface TimelineListProps {
+  className?: string
+  children: ReactNode
+}
+
 interface TimelineItemBodyProps {
   children: ReactNode
   wide?: boolean
@@ -19,6 +24,15 @@ interface TimelineItemHeaderProps {
   children: ReactNode
 }
 
+interface TimelineItemTimeProps {
+  children: ReactNode
+}
+
+interface TimelineItemContentProps {
+  children: ReactNode
+  className?: string
+}
+
 export const TimelineItem = ({ children, className }: TimelineItemProps) => {
   return (
     <div className={className ? `${styles.timelineItem} ${className}` : styles.timelineItem}>
@@ -27,18 +41,34 @@ export const TimelineItem = ({ children, className }: TimelineItemProps) => {
   )
 }
 
+export const TimelineList = ({ className, children }: TimelineListProps) => (
+  <div className={className ? `${styles.timelineList} ${className}` : styles.timelineList}>
+    {children}
+  </div>
+)
+
 export const TimelineItemIcon = ({ children }: TimelineItemIconProps) => (
-  <div className={styles.timelineIcon}>{children}</div>
+  <div className={styles.timelineIconWrapper}>
+    <div className={styles.timelineIcon}>{children}</div>
+  </div>
 )
 
 export const TimelineItemHeader = ({ children }: TimelineItemHeaderProps) => (
   <div className={styles.timelineHeader}>{children}</div>
 )
 
-export const TimelineItemConnector = () => <div className={styles.timelineLine} aria-hidden />
-
 export const TimelineItemBody = ({ children, wide }: TimelineItemBodyProps) => (
   <div className={wide ? `${styles.timelineBody} ${styles.timelineBodyWide}` : styles.timelineBody}>
+    {children}
+  </div>
+)
+
+export const TimelineItemTime = ({ children }: TimelineItemTimeProps) => (
+  <time className={styles.timelineTime}>{children}</time>
+)
+
+export const TimelineItemContent = ({ children, className }: TimelineItemContentProps) => (
+  <div className={className ? `${styles.timelineContent} ${className}` : styles.timelineContent}>
     {children}
   </div>
 )

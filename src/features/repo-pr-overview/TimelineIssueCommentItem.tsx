@@ -6,7 +6,6 @@ import type { PullRequestComment } from "./Types"
 import {
   TimelineItem,
   TimelineItemBody,
-  TimelineItemConnector,
   TimelineItemHeader,
   TimelineItemIcon,
 } from "./TimelineItemBase"
@@ -19,7 +18,7 @@ interface TimelineIssueCommentItemProps {
 export const TimelineIssueCommentItem = ({ comment }: TimelineIssueCommentItemProps) => (
   <TimelineItem>
     <TimelineItemIcon>
-      <CommentDiscussionIcon size={10} />
+      <CommentDiscussionIcon size={12} />
     </TimelineItemIcon>
     <TimelineItemHeader>
       <>
@@ -34,7 +33,6 @@ export const TimelineIssueCommentItem = ({ comment }: TimelineIssueCommentItemPr
         </time>
       </>
     </TimelineItemHeader>
-    <TimelineItemConnector />
     {comment.body && (
       <TimelineItemBody>
         <Markdown content={comment.body} className={styles.timelineContent} />

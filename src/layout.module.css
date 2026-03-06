@@ -10,4 +10,6 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
 }

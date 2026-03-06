@@ -1,22 +1,24 @@
 .avatarContainer {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  vertical-align: middle;
+  border-radius: 100%;
+  user-select: none;
+  line-height: 1;
+  overflow: hidden;
   position: relative;
 }
 
-.avatarRoot {
-  display: block;
-  overflow: hidden;
-  border-radius: 50%;
-}
-
 .avatar {
-  border-radius: 50%;
-  aspect-ratio: 1 / 1;
+  user-select: none;
   object-fit: cover;
-  box-shadow: var(--bit-shadow-md);
-  color: transparent;
+  height: 100%;
+  width: 100%;
 }
 
 .avatarPlaceholder {
+  user-select: none;
   border-radius: 50%;
   aspect-ratio: 1 / 1;
   background: var(--bit-color-panel-bg);
@@ -27,9 +29,18 @@
   line-height: 1;
   font-weight: var(--bit-font-weight-bold);
   color: var(--bit-color-paper);
-  border: var(--avatar-border-width, 2px) solid var(--bit-color-avatar-placeholder-border);
 }
 
+.avatarOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+  box-shadow: inset 0 0 0 1px var(--bit-color-border);
+  user-select: none;
+}
 .onlineIndicator {
   position: absolute;
   bottom: 0;

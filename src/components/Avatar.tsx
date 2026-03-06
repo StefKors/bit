@@ -39,21 +39,21 @@ export const Avatar = ({ size, src, name, isOnline, isOrganization }: AvatarProp
   } as React.CSSProperties
 
   return (
-    <div className={styles.avatarContainer} style={sizeStyle}>
-      <BaseAvatar.Root className={styles.avatarRoot} style={sizeStyle}>
-        {src ? (
-          <BaseAvatar.Image
-            src={src}
-            alt={name ?? undefined}
-            className={styles.avatar}
-            style={sizeStyle}
-          />
-        ) : null}
-        <BaseAvatar.Fallback className={styles.avatarPlaceholder} style={sizeStyle}>
-          <AvatarFallbackContent initials={initial} isOrganization={isOrganization} />
-        </BaseAvatar.Fallback>
-      </BaseAvatar.Root>
+    <BaseAvatar.Root className={styles.avatarContainer} style={sizeStyle}>
+      {src ? (
+        <BaseAvatar.Image
+          src={src}
+          alt={name ?? undefined}
+          className={styles.avatar}
+          width={size}
+          height={size}
+        />
+      ) : null}
+      <BaseAvatar.Fallback className={styles.avatarPlaceholder}>
+        <AvatarFallbackContent initials={initial} isOrganization={isOrganization} />
+      </BaseAvatar.Fallback>
+      <div className={styles.avatarOverlay} />
       {Boolean(isOnline) && <div className={styles.onlineIndicator} />}
-    </div>
+    </BaseAvatar.Root>
   )
 }

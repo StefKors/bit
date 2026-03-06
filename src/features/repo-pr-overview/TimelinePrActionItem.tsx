@@ -2,12 +2,7 @@ import { TagIcon, PersonIcon, EyeIcon } from "@primer/octicons-react"
 import { formatRelativeTime } from "@/lib/Format"
 import { AuthorLabel } from "@/components/AuthorLabel"
 import type { PullRequestEvent } from "./Types"
-import {
-  TimelineItem,
-  TimelineItemConnector,
-  TimelineItemHeader,
-  TimelineItemIcon,
-} from "./TimelineItemBase"
+import { TimelineItem, TimelineItemHeader, TimelineItemIcon } from "./TimelineItemBase"
 import styles from "./TimelinePrActionItem.module.css"
 
 interface TimelinePrActionItemProps {
@@ -15,12 +10,12 @@ interface TimelinePrActionItemProps {
 }
 
 const eventConfig: Record<string, { icon: React.ReactNode; verb: string }> = {
-  labeled: { icon: <TagIcon size={10} />, verb: "added" },
-  unlabeled: { icon: <TagIcon size={10} />, verb: "removed" },
-  assigned: { icon: <PersonIcon size={10} />, verb: "assigned" },
-  unassigned: { icon: <PersonIcon size={10} />, verb: "unassigned" },
-  review_requested: { icon: <EyeIcon size={10} />, verb: "requested review from" },
-  review_request_removed: { icon: <EyeIcon size={10} />, verb: "removed review request for" },
+  labeled: { icon: <TagIcon size={12} />, verb: "added" },
+  unlabeled: { icon: <TagIcon size={12} />, verb: "removed" },
+  assigned: { icon: <PersonIcon size={12} />, verb: "assigned" },
+  unassigned: { icon: <PersonIcon size={12} />, verb: "unassigned" },
+  review_requested: { icon: <EyeIcon size={12} />, verb: "requested review from" },
+  review_request_removed: { icon: <EyeIcon size={12} />, verb: "removed review request for" },
 }
 
 export const TimelinePrActionItem = ({ event }: TimelinePrActionItemProps) => {
@@ -57,7 +52,6 @@ export const TimelinePrActionItem = ({ event }: TimelinePrActionItemProps) => {
           <time className={styles.timelineTime}>{formatRelativeTime(event.githubCreatedAt)}</time>
         </>
       </TimelineItemHeader>
-      <TimelineItemConnector />
     </TimelineItem>
   )
 }
