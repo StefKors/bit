@@ -26,9 +26,7 @@ interface PullRequestCandidate {
   headSha?: string | null
 }
 
-const isPullRequestBackfillTarget = (
-  pr: PullRequestCandidate,
-): pr is PullRequestBackfillTarget =>
+const isPullRequestBackfillTarget = (pr: PullRequestCandidate): pr is PullRequestBackfillTarget =>
   typeof pr.baseSha === "string" && typeof pr.headSha === "string"
 
 const backfillOpenPullRequestFiles = async (
@@ -55,7 +53,14 @@ const backfillOpenPullRequestFiles = async (
         const results = await Promise.all(
           eligiblePullRequests.map(async (pr): Promise<boolean> => {
             try {
-              await syncPRFiles(pr.id, installationId, repo.owner, repo.name, pr.baseSha, pr.headSha)
+              await syncPRFiles(
+                pr.id,
+                installationId,
+                repo.owner,
+                repo.name,
+                pr.baseSha,
+                pr.headSha,
+              )
               return true
             } catch (error) {
               log.error("Failed to backfill PR files on repo enable", error, {
