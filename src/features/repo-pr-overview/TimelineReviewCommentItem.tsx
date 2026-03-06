@@ -43,10 +43,13 @@ const ReplyItem = ({
 export const TimelineReviewCommentItem = ({ thread }: TimelineReviewCommentItemProps) => {
   const { root, replies } = thread
   const defaultLanguage = getLanguageFromFilePath(root.path) ?? undefined
+  const hasReplies = replies.length > 0
 
   return (
     <TimelineItemBase
       icon={<CodeIcon size={10} />}
+      hideConnector={hasReplies}
+      bodyWide={hasReplies}
       header={
         <>
           <span className={styles.timelineReviewCommentInfo}>
