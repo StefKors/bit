@@ -3,6 +3,7 @@ import { motion } from "motion/react"
 import { useAuth } from "@/lib/hooks/UseAuth"
 import { db } from "@/lib/InstantDb"
 import { Tabs } from "@/components/Tabs"
+import { ErrorPage } from "@/components/ErrorPage"
 import { PrAuthorFilter } from "./PrAuthorFilter"
 import { PrSelectionList } from "./PrSelectionList"
 import { SelectedPrHeader } from "./SelectedPrHeader"
@@ -139,7 +140,11 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
         animate={{ opacity: 1 }}
         transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className={styles.loading}>Repository not found</div>
+        <ErrorPage
+          title="Repository not found"
+          message="This repository is not available in Bit yet. Enable access to start syncing pull requests."
+          showHomeAction={false}
+        />
       </motion.div>
     )
   }

@@ -1,6 +1,7 @@
 import { Outlet } from "@tanstack/react-router"
 import { Layout } from "@/layout"
 import { LoadingCube } from "@/components/LoadingCube"
+import { ErrorPage } from "@/components/ErrorPage"
 import LoginPage from "@/pages/LoginPage"
 import { useAuth } from "@/lib/hooks/UseAuth"
 
@@ -18,9 +19,14 @@ export function AppContent() {
   if (error) {
     return (
       <Layout>
-        <div style={{ padding: "2rem", color: "#f85149" }}>
-          Authentication error: {error.message}
-        </div>
+        <ErrorPage
+          title="Authentication error"
+          message="We could not verify your session. Please try again."
+          details={error.message}
+          onRetry={() => {
+            window.location.reload()
+          }}
+        />
       </Layout>
     )
   }

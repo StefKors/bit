@@ -1,0 +1,101 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: min(68vh, 560px);
+  width: 100%;
+  padding: var(--bit-space-8);
+}
+
+.card {
+  width: min(100%, 680px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--bit-space-6);
+  padding: var(--bit-space-8);
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.12);
+  border-radius: var(--bit-radius-xl);
+  background: linear-gradient(
+    180deg,
+    rgba(var(--bit-rgb-surface-3), 0.42) 0%,
+    rgba(var(--bit-rgb-surface-2), 0.64) 100%
+  );
+  box-shadow:
+    0 16px 28px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.icon {
+  width: 30px;
+  height: 30px;
+  color: var(--bit-color-accent-red);
+  flex-shrink: 0;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bit-space-3);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(22px, 3vw, 30px);
+  line-height: 1.2;
+  font-weight: var(--bit-font-weight-bold);
+  color: var(--bit-color-text);
+}
+
+.message {
+  margin: 0;
+  font-size: var(--bit-font-size-body);
+  line-height: var(--bit-line-height-body);
+  color: var(--bit-color-text-muted);
+  word-break: break-word;
+}
+
+.details {
+  border: 1px solid rgba(var(--bit-rgb-fg), 0.14);
+  border-radius: var(--bit-radius-md);
+  background: rgba(var(--bit-rgb-bg), 0.24);
+}
+
+.detailsSummary {
+  cursor: pointer;
+  user-select: none;
+  padding: var(--bit-space-4) var(--bit-space-5);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  font-weight: var(--bit-font-weight-bold);
+  color: var(--bit-color-text-muted);
+}
+
+.detailsBody {
+  margin: 0;
+  padding: 0 var(--bit-space-5) var(--bit-space-5);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--bit-color-text-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--bit-font-mono);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bit-space-3);
+}
+
+@media (max-width: 720px) {
+  .container {
+    padding: var(--bit-space-6);
+    min-height: min(58vh, 460px);
+  }
+
+  .card {
+    padding: var(--bit-space-7);
+    gap: var(--bit-space-5);
+  }
+}

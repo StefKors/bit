@@ -1,41 +1,72 @@
 import type { ErrorComponentProps } from "@tanstack/react-router"
-import styles from "./ErrorFallback.module.css"
+import { ErrorPage } from "./ErrorPage"
+
+interface ErrorPresentation {
+  title: string
+  message: string
+}
+
+type RouteErrorValue =
+  | Error
+  | string
+  | {
+      statusCode?: number
+      message?: string
+    }
+  | null
+  | undefined
+
+const getErrorMessage = (error: RouteErrorValue): string => {
+  if (error instanceof Error) return error.message
+  if (typeof error === "string") return error
+  if (typeof error === "object" && error?.message) return error.message
+  return "An unexpected error occurred"
+}
+
+const hasStatusCode = (
+  error: RouteErrorValue,
+): error is {
+  statusCode: number
+  message?: string
+} => typeof error === "object" && error !== null && "statusCode" in error
+
+const getStatusCode = (error: RouteErrorValue): number | null =>
+  hasStatusCode(error) ? error.statusCode : null
+
+const getErrorPresentation = (message: string, statusCode: number | null): ErrorPresentation => {
+  if (statusCode === 404) {
+    return {
+      title: "Page not found",
+      message: "The page you requested does not exist or was moved.",
+    }
+  }
+
+  if (message.includes("FileDiff: Provided patch must contain exactly 1 file diff")) {
+    return {
+      title: "Could not render this diff",
+      message:
+        "The patch format is invalid for this view. Provide exactly one file diff in the patch content.",
+    }
+  }
+
+  return {
+    title: "Something went wrong",
+    message: "An unexpected error occurred while loading this page.",
+  }
+}
 
 export const ErrorFallback = ({ error, reset }: ErrorComponentProps) => {
-  const message = error instanceof Error ? error.message : "An unexpected error occurred"
+  const routeError = error as RouteErrorValue
+  const message = getErrorMessage(routeError)
+  const statusCode = getStatusCode(routeError)
+  const presentation = getErrorPresentation(message, statusCode)
 
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <svg
-          className={styles.icon}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
-          />
-        </svg>
-        <h2 className={styles.title}>Something went wrong</h2>
-        <p className={styles.message}>{message}</p>
-        <div className={styles.actions}>
-          <button className={styles.retryButton} onClick={reset}>
-            Try again
-          </button>
-          <button
-            className={styles.homeButton}
-            onClick={() => {
-              window.location.assign("/")
-            }}
-          >
-            Go home
-          </button>
-        </div>
-      </div>
-    </div>
+    <ErrorPage
+      title={presentation.title}
+      message={presentation.message}
+      details={message}
+      onRetry={reset}
+    />
   )
 }

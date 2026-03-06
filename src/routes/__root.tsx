@@ -3,6 +3,7 @@ import { createRootRoute } from "@tanstack/react-router"
 import { RootDocument } from "@/features/root/RootDocument"
 import { AppContent } from "@/features/root/AppContent"
 import { ErrorFallback } from "@/components/ErrorFallback"
+import { NotFoundPage } from "@/components/NotFoundPage"
 import { isDev } from "@/lib/utils/IsDevelopment"
 import { isLight } from "@/lib/utils/CurrentColorScheme"
 import "@/theme.css"
@@ -25,6 +26,7 @@ export const Route = createRootRoute({
   }),
   component: RootComponent,
   errorComponent: ErrorFallback,
+  notFoundComponent: NotFoundPage,
 })
 
 function RootComponent() {
