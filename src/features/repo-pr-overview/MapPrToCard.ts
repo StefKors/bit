@@ -130,6 +130,45 @@ interface RepoPullRequest {
     name?: string | null
     status?: string | null
     conclusion?: string | null
+    detailsUrl?: string | null
+    htmlUrl?: string | null
+    updatedAt?: string | number | null
+  }> | null
+  checkSuites?: Array<{
+    id: string
+    status?: string | null
+    conclusion?: string | null
+    appName?: string | null
+    headSha?: string | null
+    updatedAt?: string | number | null
+  }> | null
+  commitStatuses?: Array<{
+    id: string
+    context?: string | null
+    state?: string | null
+    description?: string | null
+    targetUrl?: string | null
+    updatedAt?: string | number | null
+  }> | null
+  workflowRuns?: Array<{
+    id: string
+    githubId?: number | null
+    name?: string | null
+    status?: string | null
+    conclusion?: string | null
+    htmlUrl?: string | null
+    runNumber?: number | null
+    runAttempt?: number | null
+    updatedAt?: string | number | null
+  }> | null
+  workflowJobs?: Array<{
+    id: string
+    runId?: number | null
+    name?: string | null
+    status?: string | null
+    conclusion?: string | null
+    htmlUrl?: string | null
+    runUrl?: string | null
     updatedAt?: string | number | null
   }> | null
   pullRequestEvents?: Array<{
@@ -256,7 +295,50 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
       name: check.name ?? "Check",
       status: check.status ?? "unknown",
       conclusion: check.conclusion ?? null,
+      detailsUrl: check.detailsUrl ?? null,
+      htmlUrl: check.htmlUrl ?? null,
       updatedAt: check.updatedAt ?? null,
+    })) ?? [],
+  checkSuites:
+    pr.checkSuites?.map((suite) => ({
+      id: suite.id,
+      status: suite.status ?? "unknown",
+      conclusion: suite.conclusion ?? null,
+      appName: suite.appName ?? null,
+      headSha: suite.headSha ?? null,
+      updatedAt: suite.updatedAt ?? null,
+    })) ?? [],
+  commitStatuses:
+    pr.commitStatuses?.map((status) => ({
+      id: status.id,
+      context: status.context ?? "Status",
+      state: status.state ?? "unknown",
+      description: status.description ?? null,
+      targetUrl: status.targetUrl ?? null,
+      updatedAt: status.updatedAt ?? null,
+    })) ?? [],
+  workflowRuns:
+    pr.workflowRuns?.map((run) => ({
+      id: run.id,
+      githubId: run.githubId ?? 0,
+      name: run.name ?? "Workflow run",
+      status: run.status ?? "unknown",
+      conclusion: run.conclusion ?? null,
+      htmlUrl: run.htmlUrl ?? null,
+      runNumber: run.runNumber ?? null,
+      runAttempt: run.runAttempt ?? null,
+      updatedAt: run.updatedAt ?? null,
+    })) ?? [],
+  workflowJobs:
+    pr.workflowJobs?.map((job) => ({
+      id: job.id,
+      runId: job.runId ?? null,
+      name: job.name ?? "Workflow job",
+      status: job.status ?? "unknown",
+      conclusion: job.conclusion ?? null,
+      htmlUrl: job.htmlUrl ?? null,
+      runUrl: job.runUrl ?? null,
+      updatedAt: job.updatedAt ?? null,
     })) ?? [],
   pullRequestEvents:
     pr.pullRequestEvents?.map((evt) => ({

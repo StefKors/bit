@@ -8,6 +8,7 @@ import { PrDiffStat } from "./PrDiffStat"
 import { PrDetailContent } from "./PrDetailContent"
 import { PrFilesChanged } from "./PrFilesChanged"
 import { PrCommits } from "./PrCommits"
+import { PrReviewTab } from "./PrReviewTab"
 import { mapPrToCard } from "./MapPrToCard"
 import styles from "./RepoPrOverviewPage.module.css"
 
@@ -19,6 +20,7 @@ interface PrDetailPanelProps {
 
 const PR_TABS = [
   { value: "conversation", label: "Conversation" },
+  { value: "review", label: "Review" },
   { value: "commits", label: "Commits" },
   { value: "files", label: "Files Changed" },
 ]
@@ -73,7 +75,44 @@ export const PrDetailPanel = ({ owner, repo, prNumber }: PrDetailPanelProps) => 
           $: {
             order: { updatedAt: "desc" },
             limit: 10,
-            fields: ["name", "status", "conclusion", "updatedAt"],
+            fields: ["name", "status", "conclusion", "detailsUrl", "htmlUrl", "updatedAt"],
+          },
+        },
+        checkSuites: {
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 10,
+            fields: ["status", "conclusion", "appName", "headSha", "updatedAt"],
+          },
+        },
+        commitStatuses: {
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 10,
+            fields: ["context", "state", "description", "targetUrl", "updatedAt"],
+          },
+        },
+        workflowRuns: {
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 10,
+            fields: [
+              "githubId",
+              "name",
+              "status",
+              "conclusion",
+              "htmlUrl",
+              "runNumber",
+              "runAttempt",
+              "updatedAt",
+            ],
+          },
+        },
+        workflowJobs: {
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 20,
+            fields: ["runId", "name", "status", "conclusion", "htmlUrl", "runUrl", "updatedAt"],
           },
         },
       },
@@ -106,6 +145,8 @@ export const PrDetailPanel = ({ owner, repo, prNumber }: PrDetailPanelProps) => 
       <div className={styles.column2Scroll}>
         {prTab === "conversation" ? (
           <PrDetailContent owner={owner} repo={repo} prNumber={prNumber} />
+        ) : prTab === "review" ? (
+          <PrReviewTab pr={pr} />
         ) : prTab === "commits" ? (
           <PrCommits owner={owner} repo={repo} prNumber={prNumber} />
         ) : (

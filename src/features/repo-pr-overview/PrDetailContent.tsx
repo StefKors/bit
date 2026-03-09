@@ -1,7 +1,6 @@
 import { useRef, useState } from "react"
 import { db } from "@/lib/InstantDb"
 import { Markdown } from "@/components/Markdown"
-import { CiDot } from "@/components/CiDot"
 import { Button } from "@/components/Button"
 import { useAuth } from "@/lib/hooks/UseAuth"
 import { buildTimeline } from "./Utils"
@@ -177,31 +176,6 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
   return (
     <div className={styles.detailContent}>
       {pr.body && <Markdown content={pr.body} />}
-
-      {pr.checkRuns.length > 0 && (
-        <div className={styles.detailSection}>
-          <h3 className={styles.detailSectionTitle}>Checks</h3>
-          <ul className={styles.detailList}>
-            {pr.checkRuns.map((check) => (
-              <li key={check.id} className={styles.detailListItem}>
-                <CiDot
-                  variant={
-                    check.conclusion === "success"
-                      ? "ready"
-                      : check.conclusion === "failure"
-                        ? "blocked"
-                        : "checking"
-                  }
-                />
-                <span className={styles.detailListItemText}>{check.name}</span>
-                <span className={styles.detailListItemMeta}>
-                  {check.conclusion ?? check.status}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       <div className={styles.detailSection}>
         <h3 className={styles.detailSectionTitle}>Activity</h3>

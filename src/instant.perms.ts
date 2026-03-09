@@ -75,6 +75,30 @@ export default {
       delete: "false",
     },
   },
+  commitStatuses: {
+    allow: {
+      view: "auth.id in data.ref('pullRequest.repo.users.id')",
+      create: "false",
+      update: "false",
+      delete: "false",
+    },
+  },
+  workflowRuns: {
+    allow: {
+      view: "auth.id in data.ref('pullRequest.repo.users.id')",
+      create: "false",
+      update: "false",
+      delete: "false",
+    },
+  },
+  workflowJobs: {
+    allow: {
+      view: "auth.id in data.ref('pullRequest.repo.users.id')",
+      create: "false",
+      update: "false",
+      delete: "false",
+    },
+  },
   pushEvents: {
     allow: {
       view: "auth.id in data.ref('repo.users.id')",

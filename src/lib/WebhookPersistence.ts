@@ -44,7 +44,7 @@ const getPullRequestNumber = (payload: JsonObject): number | undefined => {
   return numbers[0]
 }
 
-const getPullRequestNumbers = (payload: JsonObject): number[] => {
+export const getPullRequestNumbers = (payload: JsonObject): number[] => {
   const numbers: number[] = []
   const seen = new Set<number>()
   const push = (value: number | undefined) => {
@@ -78,7 +78,7 @@ const getPullRequestNumbers = (payload: JsonObject): number[] => {
   return numbers
 }
 
-const getHeadShaFromPayload = (payload: JsonObject): string | undefined => {
+export const getHeadShaFromPayload = (payload: JsonObject): string | undefined => {
   const checkRun = asObject(payload.check_run)
   const checkSuite = asObject(payload.check_suite)
   const checkRunSuite = asObject(checkRun?.check_suite)
@@ -95,7 +95,7 @@ const getHeadShaFromPayload = (payload: JsonObject): string | undefined => {
   )
 }
 
-const getWorkflowRunIdFromPayload = (payload: JsonObject): number | undefined => {
+export const getWorkflowRunIdFromPayload = (payload: JsonObject): number | undefined => {
   const workflowRun = asObject(payload.workflow_run)
   if (workflowRun) {
     const runId = asNumber(workflowRun.id)
@@ -105,6 +105,8 @@ const getWorkflowRunIdFromPayload = (payload: JsonObject): number | undefined =>
   const workflowJob = asObject(payload.workflow_job)
   return asNumber(workflowJob?.run_id)
 }
+
+export const buildCommitStatusKey = (sha: string, context: string): string => `${sha}:${context}`
 
 const findRepoByFullName = async (
   fullName: string,
@@ -513,7 +515,7 @@ const upsertCommitStatus = async (
   const context = asString(payload.context) ?? "default"
   if (!sha) return
 
-  const statusKey = `${sha}:${context}`
+  const statusKey = buildCommitStatusKey(sha, context)
 
   const { commitStatuses } = await adminDb.query({
     commitStatuses: {

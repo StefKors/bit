@@ -88,6 +88,49 @@ export interface PullRequestCheckRun {
   name: string
   status: string
   conclusion: string | null
+  detailsUrl: string | null
+  htmlUrl: string | null
+  updatedAt: string | number | null
+}
+
+export interface PullRequestCheckSuite {
+  id: string
+  status: string
+  conclusion: string | null
+  appName: string | null
+  headSha: string | null
+  updatedAt: string | number | null
+}
+
+export interface PullRequestCommitStatus {
+  id: string
+  context: string
+  state: string
+  description: string | null
+  targetUrl: string | null
+  updatedAt: string | number | null
+}
+
+export interface PullRequestWorkflowRun {
+  id: string
+  githubId: number
+  name: string
+  status: string
+  conclusion: string | null
+  htmlUrl: string | null
+  runNumber: number | null
+  runAttempt: number | null
+  updatedAt: string | number | null
+}
+
+export interface PullRequestWorkflowJob {
+  id: string
+  runId: number | null
+  name: string
+  status: string
+  conclusion: string | null
+  htmlUrl: string | null
+  runUrl: string | null
   updatedAt: string | number | null
 }
 
@@ -151,6 +194,10 @@ export interface PullRequestCard {
   pullRequestReviewThreads: PullRequestReviewThread[]
   pullRequestCommits: PullRequestCommit[]
   checkRuns: PullRequestCheckRun[]
+  checkSuites: PullRequestCheckSuite[]
+  commitStatuses: PullRequestCommitStatus[]
+  workflowRuns: PullRequestWorkflowRun[]
+  workflowJobs: PullRequestWorkflowJob[]
   pullRequestEvents: PullRequestEvent[]
   pullRequestFiles: PullRequestFileEntry[]
 }
