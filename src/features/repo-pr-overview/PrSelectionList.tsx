@@ -1,4 +1,3 @@
-import { Fragment } from "react"
 import { Link } from "@tanstack/react-router"
 import { motion } from "motion/react"
 import type { PullRequestCard } from "./Types"
@@ -50,48 +49,50 @@ export function PrSelectionList({
 
         const sampleStatus = getPrStatusVariant(firstPr)
         return (
-          <Fragment key={variant}>
-            <li className={styles.prCellSection}>
+          <li key={variant} className={styles.prSection}>
+            <div className={styles.prCellSection}>
               <span className={styles.prCellRow1}>
                 <span className={styles.prTitle}>
                   <span className={styles.prSectionLabel}>{sampleStatus.label}</span>
                   <span className={styles.prSectionCount}>{sectionPrs.length}</span>
                 </span>
               </span>
-            </li>
-            {sectionPrs.map((pr) => {
-              const isSelected = selectedPrNumber === pr.number
-              const isNew = newPrIds.has(pr.id)
-              const status = getPrStatusVariant(pr)
-              return (
-                <motion.li
-                  key={pr.id}
-                  initial={isNew ? { opacity: 0, y: 8 } : false}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <Link
-                    to="/$owner/$repo/$prNumber"
-                    params={{ owner, repo, prNumber: String(pr.number) }}
-                    preload="intent"
-                    className={`${styles.prCell} ${isSelected ? styles.prCellSelected : ""}`}
-                    aria-current={isSelected ? "true" : undefined}
+            </div>
+            <ul className={styles.prSectionItems}>
+              {sectionPrs.map((pr) => {
+                const isSelected = selectedPrNumber === pr.number
+                const isNew = newPrIds.has(pr.id)
+                const status = getPrStatusVariant(pr)
+                return (
+                  <motion.li
+                    key={pr.id}
+                    initial={isNew ? { opacity: 0, y: 8 } : false}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
                   >
-                    <span className={styles.prCellRow1}>
-                      <span
-                        className={`${styles.prStatusIcon} ${styles[`prStatusIcon${status.variant === "needsReview" ? "NeedsReview" : status.variant.charAt(0).toUpperCase() + status.variant.slice(1)}`]}`}
-                        aria-hidden
-                      >
-                        {status.icon}
+                    <Link
+                      to="/$owner/$repo/$prNumber"
+                      params={{ owner, repo, prNumber: String(pr.number) }}
+                      preload="intent"
+                      className={`${styles.prCell} ${isSelected ? styles.prCellSelected : ""}`}
+                      aria-current={isSelected ? "true" : undefined}
+                    >
+                      <span className={styles.prCellRow1}>
+                        <span
+                          className={`${styles.prStatusIcon} ${styles[`prStatusIcon${status.variant === "needsReview" ? "NeedsReview" : status.variant.charAt(0).toUpperCase() + status.variant.slice(1)}`]}`}
+                          aria-hidden
+                        >
+                          {status.icon}
+                        </span>
+                        <span className={styles.prNumber}>#{pr.number}</span>
+                        <span className={styles.prTitle}>{pr.title}</span>
                       </span>
-                      <span className={styles.prNumber}>#{pr.number}</span>
-                      <span className={styles.prTitle}>{pr.title}</span>
-                    </span>
-                  </Link>
-                </motion.li>
-              )
-            })}
-          </Fragment>
+                    </Link>
+                  </motion.li>
+                )
+              })}
+            </ul>
+          </li>
         )
       })}
     </ul>

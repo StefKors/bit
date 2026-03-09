@@ -61,7 +61,21 @@
   min-width: 0;
 }
 
+.prSection {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+}
+
+.prSection:first-child .prCellSection {
+  margin-top: 0;
+}
+
 .prCellSection {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   width: 100%;
   min-width: 0;
@@ -76,16 +90,19 @@
   line-height: var(--bit-line-height-default);
   color: var(--bit-color-text-muted);
   text-align: left;
-  background: transparent;
+  background: var(--bit-color-bg);
+  margin-top: var(--bit-space-8);
   max-height: 32px;
 }
 
-.prCellSection:first-of-type {
-  margin-top: 0;
-}
-
-.prCellSection {
-  margin-top: var(--bit-space-8);
+.prSectionItems {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
 }
 
 .prStatusIcon {
