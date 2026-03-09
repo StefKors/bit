@@ -14,10 +14,12 @@ export const PrDiffStat = ({ owner, repo, prNumber }: PrDiffStatProps) => {
 
   const { data } = db.useQuery({
     repos: {
-      $: { where: { fullName }, limit: 1 },
+      $: { where: { fullName }, limit: 1, fields: ["fullName"] },
       pullRequests: {
-        $: { where: { number: prNumber }, limit: 1 },
-        pullRequestFiles: {},
+        $: { where: { number: prNumber }, limit: 1, fields: ["number"] },
+        pullRequestFiles: {
+          $: { fields: ["additions", "deletions"] },
+        },
       },
     },
   })

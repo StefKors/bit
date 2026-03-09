@@ -16,12 +16,20 @@ export function PrFilesChanged({ owner, repo, prNumber }: PrFilesChangedProps) {
 
   const { data } = db.useQuery({
     repos: {
-      $: { where: { fullName }, limit: 1 },
+      $: { where: { fullName }, limit: 1, fields: ["fullName"] },
       pullRequests: {
-        $: { where: { number: prNumber }, limit: 1 },
-        pullRequestFiles: {},
+        $: { where: { number: prNumber }, limit: 1, fields: ["headSha"] },
+        pullRequestFiles: {
+          $: {
+            fields: ["filename", "previousFilename", "status", "additions", "deletions", "patch"],
+          },
+        },
         pullRequestCommits: {
-          $: { order: { updatedAt: "desc" }, limit: 50 },
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 50,
+            fields: ["sha", "messageShort"],
+          },
         },
       },
     },

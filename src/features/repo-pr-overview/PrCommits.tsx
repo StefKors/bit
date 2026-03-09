@@ -50,11 +50,24 @@ export function PrCommits({ owner, repo, prNumber }: PrCommitsProps) {
 
   const { data } = db.useQuery({
     repos: {
-      $: { where: { fullName }, limit: 1 },
+      $: { where: { fullName }, limit: 1, fields: ["fullName"] },
       pullRequests: {
-        $: { where: { number: prNumber }, limit: 1 },
+        $: { where: { number: prNumber }, limit: 1, fields: ["number"] },
         pullRequestCommits: {
-          $: { order: { updatedAt: "desc" }, limit: 50 },
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 50,
+            fields: [
+              "sha",
+              "message",
+              "messageShort",
+              "authorLogin",
+              "authorAvatarUrl",
+              "authoredAt",
+              "createdAt",
+              "htmlUrl",
+            ],
+          },
         },
       },
     },

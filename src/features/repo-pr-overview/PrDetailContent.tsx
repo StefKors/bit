@@ -25,29 +25,123 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
 
   const { data } = db.useQuery({
     repos: {
-      $: { where: { fullName }, limit: 1 },
+      $: { where: { fullName }, limit: 1, fields: ["fullName"] },
       pullRequests: {
-        $: { where: { number: prNumber }, limit: 1 },
+        $: {
+          where: { number: prNumber },
+          limit: 1,
+          fields: [
+            "body",
+            "state",
+            "merged",
+            "headSha",
+            "authorLogin",
+            "authorAvatarUrl",
+            "githubCreatedAt",
+            "githubClosedAt",
+            "githubMergedAt",
+            "mergedByLogin",
+            "mergedByAvatarUrl",
+            "closedByLogin",
+            "closedByAvatarUrl",
+          ],
+        },
         issueComments: {
-          $: { order: { updatedAt: "desc" }, limit: 20 },
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 20,
+            fields: [
+              "githubId",
+              "authorLogin",
+              "authorAvatarUrl",
+              "body",
+              "htmlUrl",
+              "createdAt",
+              "updatedAt",
+            ],
+          },
         },
         pullRequestReviews: {
-          $: { order: { updatedAt: "desc" }, limit: 10 },
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 10,
+            fields: [
+              "githubId",
+              "authorLogin",
+              "authorAvatarUrl",
+              "state",
+              "body",
+              "htmlUrl",
+              "submittedAt",
+              "updatedAt",
+            ],
+          },
         },
         pullRequestReviewComments: {
-          $: { order: { updatedAt: "desc" }, limit: 20 },
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 20,
+            fields: [
+              "githubId",
+              "nodeId",
+              "inReplyToId",
+              "pullRequestReviewId",
+              "payload",
+              "authorLogin",
+              "authorAvatarUrl",
+              "body",
+              "path",
+              "line",
+              "htmlUrl",
+              "createdAt",
+              "updatedAt",
+            ],
+          },
         },
         pullRequestReviewThreads: {
-          $: { order: { updatedAt: "desc" }, limit: 50 },
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 50,
+            fields: ["threadId", "resolved", "payload", "createdAt", "updatedAt"],
+          },
         },
         pullRequestCommits: {
-          $: { order: { updatedAt: "desc" }, limit: 50 },
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 50,
+            fields: [
+              "sha",
+              "message",
+              "messageShort",
+              "authorLogin",
+              "authorAvatarUrl",
+              "authoredAt",
+              "createdAt",
+              "htmlUrl",
+            ],
+          },
         },
         checkRuns: {
-          $: { order: { updatedAt: "desc" }, limit: 10 },
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 10,
+            fields: ["name", "status", "conclusion", "updatedAt"],
+          },
         },
         pullRequestEvents: {
-          $: { order: { updatedAt: "desc" }, limit: 50 },
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 50,
+            fields: [
+              "eventType",
+              "actorLogin",
+              "actorAvatarUrl",
+              "targetLogin",
+              "targetAvatarUrl",
+              "label",
+              "githubCreatedAt",
+            ],
+          },
         },
       },
     },

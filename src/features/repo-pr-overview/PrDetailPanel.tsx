@@ -30,14 +30,52 @@ export const PrDetailPanel = ({ owner, repo, prNumber }: PrDetailPanelProps) => 
 
   const { data } = db.useQuery({
     repos: {
-      $: { where: { fullName }, limit: 1 },
+      $: { where: { fullName }, limit: 1, fields: ["fullName"] },
       pullRequests: {
-        $: { where: { number: prNumber }, limit: 1 },
+        $: {
+          where: { number: prNumber },
+          limit: 1,
+          fields: [
+            "number",
+            "title",
+            "body",
+            "state",
+            "merged",
+            "draft",
+            "mergeableState",
+            "authorLogin",
+            "authorAvatarUrl",
+            "headRef",
+            "baseRef",
+            "headSha",
+            "updatedAt",
+            "commentsCount",
+            "reviewCommentsCount",
+            "labels",
+            "assignees",
+            "requestedReviewers",
+            "githubCreatedAt",
+            "githubClosedAt",
+            "githubMergedAt",
+            "mergedByLogin",
+            "mergedByAvatarUrl",
+            "closedByLogin",
+            "closedByAvatarUrl",
+          ],
+        },
         pullRequestReviews: {
-          $: { order: { updatedAt: "desc" }, limit: 10 },
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 10,
+            fields: ["githubId", "state", "authorLogin", "authorAvatarUrl", "updatedAt"],
+          },
         },
         checkRuns: {
-          $: { order: { updatedAt: "desc" }, limit: 10 },
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 10,
+            fields: ["name", "status", "conclusion", "updatedAt"],
+          },
         },
       },
     },

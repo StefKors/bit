@@ -29,9 +29,21 @@ export const PrListPanel = ({ owner, repo, selectedPrNumber }: PrListPanelProps)
 
   const { data } = db.useQuery({
     repos: {
-      $: { where: { fullName }, limit: 1 },
+      $: { where: { fullName }, limit: 1, fields: ["fullName"] },
       pullRequests: {
-        $: { order: { updatedAt: "desc" } },
+        $: {
+          order: { updatedAt: "desc" },
+          fields: [
+            "number",
+            "title",
+            "state",
+            "merged",
+            "draft",
+            "mergeableState",
+            "authorLogin",
+            "updatedAt",
+          ],
+        },
       },
     },
   })
