@@ -16,3 +16,7 @@
 .checking {
   background: var(--bit-color-accent-orange);
 }
+
+.skipped {
+  background: rgba(var(--bit-rgb-fg), 0.35);
+}

@@ -5,6 +5,10 @@
   padding: 16px;
 }
 
+.reviewTabCompact {
+  padding: 0;
+}
+
 .summary {
   display: flex;
   align-items: baseline;
@@ -13,11 +17,14 @@
   padding: 12px 14px;
   border: 1px solid var(--bit-color-border);
   border-radius: 8px;
-  background: var(--bit-color-bg-raised);
+  background: var(--bit-color-paper-2);
 }
 
 .summaryTitle {
-  color: var(--bit-color-fg-default);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--bit-color-text);
   font-size: 15px;
   font-weight: 600;
 }
@@ -33,11 +40,63 @@
   gap: 8px;
 }
 
+.groupTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.groupTriggerTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .groupTitle {
   margin: 0;
-  color: var(--bit-color-fg-default);
+  color: var(--bit-color-text);
   font-size: 13px;
   font-weight: 600;
+}
+
+.groupCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--bit-color-fg-muted);
+  background: rgba(var(--bit-rgb-fg), 0.08);
+}
+
+.groupChevron {
+  color: var(--bit-color-fg-muted);
+  font-size: 12px;
+  line-height: 1;
+  transition: transform 140ms ease;
+}
+
+.groupTrigger[data-panel-open] .groupChevron {
+  transform: rotate(0deg);
+}
+
+.groupTrigger:not([data-panel-open]) .groupChevron {
+  transform: rotate(-90deg);
+}
+
+.groupPanel {
+  display: block;
 }
 
 .list {
@@ -55,9 +114,30 @@
   gap: 10px;
   min-height: 34px;
   padding: 6px 10px;
-  border: 1px solid var(--bit-color-border-subtle);
+  border: 1px solid var(--bit-color-border);
   border-radius: 8px;
   background: var(--bit-color-bg);
+}
+
+.indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.iconSuccess {
+  color: rgba(var(--bit-rgb-accent-green-bright), 0.94);
+}
+
+.iconFailed {
+  color: rgba(var(--bit-rgb-accent-red), 0.94);
+}
+
+.iconSkipped {
+  color: rgba(var(--bit-rgb-fg), 0.58);
 }
 
 .link {
@@ -75,7 +155,7 @@ a.link:hover .label {
 }
 
 .label {
-  color: var(--bit-color-fg-default);
+  color: var(--bit-color-text);
   font-size: 13px;
   font-weight: 500;
   overflow: hidden;

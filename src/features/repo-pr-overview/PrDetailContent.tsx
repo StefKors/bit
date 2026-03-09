@@ -7,6 +7,7 @@ import { buildTimeline } from "./Utils"
 import { Timeline } from "./Timeline"
 import { getTimelineItemKey } from "./TimelineUtils"
 import { mapPrToCard } from "./MapPrToCard"
+import { PrReviewTab } from "./PrReviewTab"
 import styles from "./PrDetailContent.module.css"
 
 interface PrDetailContentProps {
@@ -133,7 +134,37 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
           $: {
             order: { updatedAt: "desc" },
             limit: 10,
-            fields: ["name", "status", "conclusion", "updatedAt"],
+            fields: ["name", "status", "conclusion", "detailsUrl", "htmlUrl", "updatedAt"],
+          },
+        },
+        commitStatuses: {
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 20,
+            fields: ["context", "state", "description", "targetUrl", "updatedAt"],
+          },
+        },
+        workflowRuns: {
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 20,
+            fields: [
+              "githubId",
+              "name",
+              "status",
+              "conclusion",
+              "htmlUrl",
+              "runNumber",
+              "runAttempt",
+              "updatedAt",
+            ],
+          },
+        },
+        workflowJobs: {
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 40,
+            fields: ["runId", "name", "status", "conclusion", "htmlUrl", "runUrl", "updatedAt"],
           },
         },
         pullRequestEvents: {
@@ -204,6 +235,10 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
         ) : (
           <p className={styles.detailEmpty}>No activity yet.</p>
         )}
+
+        <div className={styles.ciScrollBox}>
+          <PrReviewTab pr={pr} compact />
+        </div>
 
         {user && (user as { refresh_token?: string }).refresh_token && (
           <form

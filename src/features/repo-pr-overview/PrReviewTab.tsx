@@ -1,10 +1,14 @@
+import { CheckIcon, SkipIcon, XCircleFillIcon } from "@primer/octicons-react"
+import { Collapsible } from "@base-ui/react/collapsible"
+import { AnimatePresence, motion } from "motion/react"
 import { CiDot } from "@/components/CiDot"
+import { CiSegmentedCircle } from "@/components/CiSegmentedCircle"
 import type { PullRequestCard } from "./Types"
 import styles from "./PrReviewTab.module.css"
 
-type CiGroup = "running" | "passed" | "failed" | "skipped"
+type CiGroup = "pending" | "inProgress" | "failed" | "skipped" | "successful"
 
-type CiReviewItem = {
+interface CiReviewItem {
   id: string
   label: string
   statusText: string
@@ -12,8 +16,9 @@ type CiReviewItem = {
   url: string | null
 }
 
-type PrReviewTabProps = {
+interface PrReviewTabProps {
   pr: PullRequestCard
+  compact?: boolean
 }
 
 const normalize = (value: string | null | undefined): string => (value ?? "").toLowerCase()
@@ -25,17 +30,10 @@ const classifyCiGroup = (
   const normalizedConclusion = normalize(conclusion)
   const normalizedStatus = normalize(status)
 
-  if (
-    normalizedStatus === "queued" ||
-    normalizedStatus === "in_progress" ||
-    normalizedStatus === "pending"
-  ) {
-    return "running"
-  }
+  if (normalizedStatus === "queued" || normalizedStatus === "pending") return "pending"
+  if (normalizedStatus === "in_progress") return "inProgress"
 
-  if (normalizedConclusion === "success" || normalizedStatus === "success") {
-    return "passed"
-  }
+  if (normalizedConclusion === "success" || normalizedStatus === "success") return "successful"
 
   if (
     normalizedConclusion === "failure" ||
@@ -49,20 +47,45 @@ const classifyCiGroup = (
     return "failed"
   }
 
+  if (
+    normalizedConclusion === "skipped" ||
+    normalizedConclusion === "neutral" ||
+    normalizedConclusion === "stale"
+  ) {
+    return "skipped"
+  }
+
   return "skipped"
 }
 
-const ciDotVariantByGroup = (group: CiGroup): "ready" | "blocked" | "checking" => {
-  if (group === "passed") return "ready"
+const ciDotVariantByGroup = (group: CiGroup): "ready" | "blocked" | "checking" | "skipped" => {
+  if (group === "successful") return "ready"
   if (group === "failed") return "blocked"
+  if (group === "skipped") return "skipped"
   return "checking"
 }
 
 const groupTitle: Record<CiGroup, string> = {
-  running: "Running",
-  passed: "Passed",
+  pending: "Pending",
+  inProgress: "In progress",
   failed: "Failed",
   skipped: "Skipped",
+  successful: "Successful",
+}
+
+const GROUP_ORDER: CiGroup[] = ["pending", "inProgress", "failed", "skipped", "successful"]
+
+const getItemIndicator = (group: CiGroup) => {
+  if (group === "successful") {
+    return <CheckIcon size={14} className={styles.iconSuccess} />
+  }
+  if (group === "failed") {
+    return <XCircleFillIcon size={14} className={styles.iconFailed} />
+  }
+  if (group === "skipped") {
+    return <SkipIcon size={14} className={styles.iconSkipped} />
+  }
+  return <CiDot variant={ciDotVariantByGroup(group)} />
 }
 
 const buildCiReviewItems = (pr: PullRequestCard): CiReviewItem[] => {
@@ -78,7 +101,7 @@ const buildCiReviewItems = (pr: PullRequestCard): CiReviewItem[] => {
     id: `status-${status.id}`,
     label: status.context,
     statusText: status.description ?? status.state,
-    group: classifyCiGroup(status.state, status.state),
+    group: classifyCiGroup(status.state, null),
     url: status.targetUrl,
   }))
 
@@ -101,75 +124,119 @@ const buildCiReviewItems = (pr: PullRequestCard): CiReviewItem[] => {
     url: job.htmlUrl ?? job.runUrl,
   }))
 
-  return [...checkRunItems, ...workflowRunItems, ...workflowJobItems, ...commitStatusItems]
+  return [
+    ...checkRunItems,
+    ...workflowRunItems,
+    ...workflowJobItems,
+    ...commitStatusItems,
+  ].toSorted((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }))
 }
 
-export const PrReviewTab = ({ pr }: PrReviewTabProps) => {
+export const PrReviewTab = ({ pr, compact = false }: PrReviewTabProps) => {
   const items = buildCiReviewItems(pr)
   const grouped: Record<CiGroup, CiReviewItem[]> = {
-    running: [],
-    passed: [],
+    pending: [],
+    inProgress: [],
     failed: [],
     skipped: [],
+    successful: [],
   }
 
   for (const item of items) {
     grouped[item.group].push(item)
   }
 
-  const runningCount = grouped.running.length
+  const runningCount = grouped.pending.length + grouped.inProgress.length
 
   if (items.length === 0) {
     return (
-      <section className={styles.reviewTab}>
+      <section className={`${styles.reviewTab} ${compact ? styles.reviewTabCompact : ""}`}>
         <p className={styles.emptyState}>No checks or workflow runs yet.</p>
       </section>
     )
   }
 
   return (
-    <section className={styles.reviewTab}>
+    <section className={`${styles.reviewTab} ${compact ? styles.reviewTabCompact : ""}`}>
       <header className={styles.summary}>
         <span className={styles.summaryTitle}>
+          <CiSegmentedCircle
+            pendingCount={grouped.pending.length}
+            inProgressCount={grouped.inProgress.length}
+            failedCount={grouped.failed.length}
+            skippedCount={grouped.skipped.length}
+            successfulCount={grouped.successful.length}
+          />
           {runningCount > 0 ? `${runningCount} checks running` : "All checks finished"}
         </span>
         <span className={styles.summaryMeta}>
-          {grouped.passed.length} passed, {grouped.failed.length} failed, {grouped.skipped.length}{" "}
-          skipped
+          {grouped.successful.length} successful, {grouped.failed.length} failed,{" "}
+          {grouped.skipped.length} skipped
         </span>
       </header>
 
-      {(["running", "failed", "passed", "skipped"] as CiGroup[]).map((group) =>
-        grouped[group].length > 0 ? (
-          <section key={group} className={styles.group}>
-            <h3 className={styles.groupTitle}>{groupTitle[group]}</h3>
-            <ul className={styles.list}>
-              {grouped[group].map((item) => (
-                <li key={item.id} className={styles.row}>
-                  <CiDot variant={ciDotVariantByGroup(item.group)} />
-                  {item.url ? (
-                    <a
-                      className={styles.link}
-                      href={item.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      title="Open in GitHub"
-                    >
-                      <span className={styles.label}>{item.label}</span>
-                      <span className={styles.statusText}>{item.statusText}</span>
-                    </a>
-                  ) : (
-                    <div className={styles.link}>
-                      <span className={styles.label}>{item.label}</span>
-                      <span className={styles.statusText}>{item.statusText}</span>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null,
-      )}
+      <AnimatePresence initial={false}>
+        {GROUP_ORDER.map((group) =>
+          grouped[group].length > 0 ? (
+            <motion.section
+              key={group}
+              layout
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <Collapsible.Root className={styles.group} defaultOpen>
+                <Collapsible.Trigger className={styles.groupTrigger}>
+                  <span className={styles.groupTriggerTitle}>
+                    <h3 className={styles.groupTitle}>{groupTitle[group]}</h3>
+                    <span className={styles.groupCount}>{grouped[group].length}</span>
+                  </span>
+                  <span className={styles.groupChevron} aria-hidden>
+                    ▾
+                  </span>
+                </Collapsible.Trigger>
+                <Collapsible.Panel className={styles.groupPanel}>
+                  <motion.ul layout className={styles.list}>
+                    <AnimatePresence initial={false}>
+                      {grouped[group].map((item) => (
+                        <motion.li
+                          key={item.id}
+                          layout
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -6 }}
+                          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                          className={styles.row}
+                        >
+                          <span className={styles.indicator}>{getItemIndicator(item.group)}</span>
+                          {item.url ? (
+                            <a
+                              className={styles.link}
+                              href={item.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Open in GitHub"
+                            >
+                              <span className={styles.label}>{item.label}</span>
+                              <span className={styles.statusText}>{item.statusText}</span>
+                            </a>
+                          ) : (
+                            <div className={styles.link}>
+                              <span className={styles.label}>{item.label}</span>
+                              <span className={styles.statusText}>{item.statusText}</span>
+                            </div>
+                          )}
+                        </motion.li>
+                      ))}
+                    </AnimatePresence>
+                  </motion.ul>
+                </Collapsible.Panel>
+              </Collapsible.Root>
+            </motion.section>
+          ) : null,
+        )}
+      </AnimatePresence>
     </section>
   )
 }

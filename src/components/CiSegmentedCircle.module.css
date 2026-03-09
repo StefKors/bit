@@ -1,0 +1,41 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.svg {
+  display: block;
+  transform: rotate(-90deg);
+}
+
+.track {
+  fill: none;
+  stroke: rgba(var(--bit-rgb-fg), 0.12);
+}
+
+.segment {
+  fill: none;
+  stroke-linecap: butt;
+}
+
+.pending {
+  stroke: rgba(var(--bit-rgb-accent-yellow), 0.94);
+}
+
+.inProgress {
+  stroke: var(--bit-color-accent-orange);
+}
+
+.failed {
+  stroke: rgba(var(--bit-rgb-accent-red), 0.94);
+}
+
+.skipped {
+  stroke: rgba(var(--bit-rgb-fg), 0.5);
+}
+
+.successful {
+  stroke: rgba(var(--bit-rgb-accent-green-bright), 0.94);
+}

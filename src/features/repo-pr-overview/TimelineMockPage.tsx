@@ -16,6 +16,8 @@ const CHECK_RUNS = [
     name: "CI / build-and-test",
     status: "completed",
     conclusion: "success",
+    detailsUrl: null,
+    htmlUrl: null,
     updatedAt: Date.now(),
   },
 ]
