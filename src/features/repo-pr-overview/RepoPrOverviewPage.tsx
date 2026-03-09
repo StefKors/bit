@@ -14,6 +14,7 @@ import { PrDetailContent } from "./PrDetailContent"
 import { PrFilesChanged } from "./PrFilesChanged"
 import { PrCommits } from "./PrCommits"
 import { PrSidebar } from "./PrSidebar"
+import { PrDiffStat } from "./PrDiffStat"
 import { mapPrToCard } from "./MapPrToCard"
 import type { PullRequestCard } from "./Types"
 import styles from "./RepoPrOverviewPage.module.css"
@@ -181,9 +182,14 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
         )}
 
         {selectedPR && (
-          <div className={styles.prTabs}>
-            <Tabs items={buildPrTabs(selectedPR)} value={prTab} onValueChange={setPrTab} />
-          </div>
+          <PrListToolbar className={styles.prTabs}>
+            <Tabs
+              items={buildPrTabs(selectedPR)}
+              value={prTab}
+              onValueChange={setPrTab}
+              trailing={<PrDiffStat pr={selectedPR} />}
+            />
+          </PrListToolbar>
         )}
 
         {selectedPR && <hr className={styles.prTabsSeparator} />}

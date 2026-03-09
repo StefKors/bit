@@ -1,0 +1,18 @@
+.diffStat {
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-2);
+  padding: 0 var(--bit-space-3);
+  font-size: var(--bit-font-size-small);
+  color: rgba(var(--bit-rgb-fg), 0.58);
+}
+
+.additions {
+  color: rgba(var(--bit-rgb-accent-green-bright), 0.9);
+  font-weight: var(--bit-font-weight-bold);
+}
+
+.deletions {
+  color: rgba(var(--bit-rgb-accent-red), 0.9);
+  font-weight: var(--bit-font-weight-bold);
+}
