@@ -20,8 +20,8 @@
   --bit-color-paper: #fff0dc;
   --bit-color-ink: #1c0c08;
   --bit-color-ink-muted: #2c1810;
-  --bit-color-paper-hover: #e4ccb0;
-  --bit-color-paper-2: #f0dcc4;
+  --bit-color-paper-hover: var(--repo-hover, rgba(var(--bit-rgb-fg), 0.05));
+  --bit-color-paper-2: var(--repo-surface, rgba(var(--bit-rgb-surface-2), 0.5));
 
   --bit-color-accent-blue: #5090d0;
   --bit-color-accent-blue-strong: #3c78b8;

@@ -1,0 +1,42 @@
+---
+description: Keep theme.css and color theme files in sync when updating theme variables
+globs: src/theme.css,src/lib/themes/css/**/*.css
+alwaysApply: false
+---
+
+# Theme Variable Sync
+
+When updating `src/theme.css` or any theme-related color variables, **also update all color theme files** in `src/lib/themes/css/` with their palette-appropriate equivalents.
+
+## Scope
+
+- **Base theme**: `src/theme.css` (defines `:root` defaults and `prefers-color-scheme: light` overrides)
+- **Color themes**: `src/lib/themes/css/*.css` (15 files: bit-classic, dracula, github-classic, macos, linear, etc.)
+
+## Theme File Structure
+
+Each theme file has two blocks:
+
+| Block | Selector | Purpose |
+|-------|----------|---------|
+| Dark | `[data-theme="name"][data-color-mode="dark"]` | Dark mode overrides |
+| Light | `[data-theme="name"][data-color-mode="light"]` | Light mode overrides |
+
+## Variables to Keep in Sync
+
+When you add, remove, or change any of these in `theme.css`, update all theme files:
+
+- `--bit-rgb-*` (RGB primitives)
+- `--bit-color-paper`, `--bit-color-paper-hover`, `--bit-color-paper-2`
+- `--bit-color-accent-*`, `--bit-color-muted`
+- `--bit-color-ink`, `--bit-color-ink-muted`
+- `--bit-color-heading`, `--bit-color-avatar-outline`
+- `--bit-color-inverse-*`, `--bit-color-diff-*`
+- `--bit-gradient-surface`, `--bit-color-panel-bg`, `--bit-color-code-bg`
+
+## Checklist
+
+- [ ] Change applied to `src/theme.css` (base or `prefers-color-scheme: light`)
+- [ ] All 15 theme files updated with their palette-appropriate values
+- [ ] Dark mode: use theme-appropriate dark colors (e.g. `rgba(var(--bit-rgb-fg), 0.05)` for overlay hovers)
+- [ ] Light mode: use theme-appropriate light colors (e.g. `#f0f0f0` for paper-hover)

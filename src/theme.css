@@ -95,8 +95,8 @@
   --bit-color-muted: #808a94;
   --bit-color-accent-orange: #ff8a70;
 
-  --bit-color-paper-hover: #f0f0f0;
-  --bit-color-paper-2: #f8f8f8;
+  --bit-color-paper-hover: var(--repo-hover, rgba(var(--bit-rgb-fg), 0.05));
+  --bit-color-paper-2: var(--repo-surface, rgba(var(--bit-rgb-surface-2), 0.5));
 
   /* Vite default-ish UI tokens (used in src/index.css) */
   --bit-color-button-bg: #f5f5f5;
