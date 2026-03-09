@@ -7,9 +7,10 @@ import { RepoSelect } from "./RepoSelect"
 import { AuthorSelect } from "./AuthorSelect"
 import { StateSelect } from "./StateSelect"
 import { PrSelectionList } from "./PrSelectionList"
-import { mapPrToCard } from "./MapPrToCard"
-import type { PullRequestCard } from "./Types"
+import { getPrStatusVariant } from "./Utils"
 import styles from "./RepoPrOverviewPage.module.css"
+
+type StateFilter = "all" | "open" | "draft" | "needsReview" | "readyToMerge" | "merged"
 
 interface PrListPanelProps {
   owner: string
@@ -20,77 +21,73 @@ interface PrListPanelProps {
 export const PrListPanel = ({ owner, repo, selectedPrNumber }: PrListPanelProps) => {
   const { user } = useAuth()
   const [authorFilter, setAuthorFilter] = useState<string | null>(null)
-  const [stateFilter, setStateFilter] = useState<
-    "all" | "open" | "draft" | "needsReview" | "readyToMerge" | "merged"
-  >("all")
-  const fullName = `${owner}/${repo}`
+  const [stateFilter, setStateFilter] = useState<StateFilter>("all")
+  const prevPrIdsRef = useRef<Set<string>>(new Set())
+  const hasInitiallyLoadedRef = useRef(false)
+  const ownerRepoRef = useRef(`${owner}/${repo}`)
 
+  const fullName = `${owner}/${repo}`
   const effectiveAuthorFilter = authorFilter ?? (user?.login ? "me" : "all")
 
   const { data } = db.useQuery({
-    repos: {
-      $: { where: { fullName }, limit: 1, fields: ["fullName"] },
-      pullRequests: {
-        $: {
-          order: { updatedAt: "desc" },
-          fields: [
-            "number",
-            "title",
-            "state",
-            "merged",
-            "draft",
-            "mergeableState",
-            "authorLogin",
-            "updatedAt",
-          ],
+    pullRequests: {
+      $: {
+        where: {
+          "repo.fullName": fullName,
         },
+        order: { updatedAt: "desc" },
+        fields: [
+          "number",
+          "title",
+          "state",
+          "merged",
+          "draft",
+          "mergeableState",
+          "authorLogin",
+          "updatedAt",
+        ],
       },
     },
   })
 
-  const repoData = data?.repos?.[0] ?? null
-
-  const allPRs = repoData?.pullRequests.filter((pr) => pr.state === "open").map(mapPrToCard) ?? []
-  const mergedPRs = repoData?.pullRequests.filter((pr) => pr.merged === true).map(mapPrToCard) ?? []
+  const allPRs = (data?.pullRequests ?? []).map((pr) => ({
+    id: pr.id,
+    number: pr.number,
+    title: pr.title ?? "Untitled PR",
+    state: pr.state ?? "open",
+    merged: Boolean(pr.merged),
+    draft: Boolean(pr.draft),
+    mergeableState: pr.mergeableState ?? "unknown",
+    authorLogin: pr.authorLogin ?? "unknown",
+  }))
 
   const uniqueAuthors = [
-    ...new Set(
-      [...allPRs, ...mergedPRs]
-        .map((pr) => pr.authorLogin)
-        .filter((login): login is string => login !== "unknown"),
-    ),
+    ...new Set(allPRs.map((pr) => pr.authorLogin).filter((login) => login !== "unknown")),
   ].toSorted((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
 
-  const authorLoginFilter =
-    effectiveAuthorFilter === "me" && user?.login
-      ? user.login
-      : effectiveAuthorFilter !== "all" && effectiveAuthorFilter !== "me"
-        ? effectiveAuthorFilter
-        : null
+  const authorFiltered =
+    effectiveAuthorFilter === "all"
+      ? allPRs
+      : effectiveAuthorFilter === "me"
+        ? allPRs.filter((pr) => pr.authorLogin === user?.login)
+        : allPRs.filter((pr) => pr.authorLogin === effectiveAuthorFilter)
 
-  const filterByAuthor = (prs: PullRequestCard[]) =>
-    authorLoginFilter ? prs.filter((pr) => pr.authorLogin === authorLoginFilter) : prs
-
-  const getPrBucket = (
-    pr: PullRequestCard,
-  ): "draft" | "needsReview" | "readyToMerge" | "merged" => {
-    if (pr.merged) return "merged"
-    if (pr.draft) return "draft"
-    if (pr.mergeableState === "blocked" || pr.mergeableState === "unknown") return "needsReview"
-    return "readyToMerge"
+  const stateFilterToVariant: Record<string, string> = {
+    draft: "draft",
+    needsReview: "needsReview",
+    readyToMerge: "open",
+    merged: "merged",
   }
 
-  const filteredPRsByAuthor = filterByAuthor([...allPRs, ...mergedPRs])
   const filteredPRs =
     stateFilter === "all"
-      ? filteredPRsByAuthor
+      ? authorFiltered
       : stateFilter === "open"
-        ? filteredPRsByAuthor.filter((pr) => !pr.merged)
-        : filteredPRsByAuthor.filter((pr) => getPrBucket(pr) === stateFilter)
+        ? authorFiltered.filter((pr) => !pr.merged)
+        : authorFiltered.filter(
+            (pr) => getPrStatusVariant(pr).variant === stateFilterToVariant[stateFilter],
+          )
 
-  const prevPrIdsRef = useRef<Set<string>>(new Set())
-  const hasInitiallyLoadedRef = useRef(false)
-  const ownerRepoRef = useRef(fullName)
   if (ownerRepoRef.current !== fullName) {
     ownerRepoRef.current = fullName
     hasInitiallyLoadedRef.current = false

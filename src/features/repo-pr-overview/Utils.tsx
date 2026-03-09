@@ -40,7 +40,7 @@ export const getCheckRunsCiVariant = (
 }
 
 export const getPrStatusVariant = (
-  pr: PullRequestCard,
+  pr: Pick<PullRequestCard, "merged" | "state" | "draft" | "mergeableState">,
 ): {
   variant: "open" | "merged" | "closed" | "needsReview" | "draft"
   label: string

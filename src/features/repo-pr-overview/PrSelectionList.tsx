@@ -7,13 +7,18 @@ import styles from "./PrSelectionList.module.css"
 
 type PrStatusVariant = "open" | "merged" | "closed" | "needsReview" | "draft"
 
+type PrListItem = Pick<
+  PullRequestCard,
+  "id" | "number" | "title" | "merged" | "state" | "draft" | "mergeableState"
+>
+
 const SECTION_ORDER: PrStatusVariant[] = ["draft", "needsReview", "open", "merged", "closed"]
 
 interface PrSelectionListProps {
   owner: string
   repo: string
   selectedPrNumber: number | null
-  prs: PullRequestCard[]
+  prs: PrListItem[]
   newPrIds: Set<string>
 }
 
@@ -28,7 +33,7 @@ export function PrSelectionList({
     return <p className={styles.empty}>No pull requests match the current filters.</p>
   }
 
-  const prsByVariant = new Map<PrStatusVariant, PullRequestCard[]>()
+  const prsByVariant = new Map<PrStatusVariant, PrListItem[]>()
   for (const pr of prs) {
     const { variant } = getPrStatusVariant(pr)
     const list = prsByVariant.get(variant) ?? []
