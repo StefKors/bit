@@ -40,6 +40,28 @@ const parseThreadMetaFromPayload = (
   }
 }
 
+const getLatestSeenAt = (
+  pullRequestViews:
+    | Array<{
+        id: string
+        lastSeenAt?: number | null
+        updatedAt?: number | null
+      }>
+    | null
+    | undefined,
+): number | null => {
+  if (!pullRequestViews || pullRequestViews.length === 0) return null
+
+  let latestSeenAt: number | null = null
+  for (const view of pullRequestViews) {
+    if (typeof view.lastSeenAt !== "number") continue
+    latestSeenAt =
+      latestSeenAt === null || view.lastSeenAt > latestSeenAt ? view.lastSeenAt : latestSeenAt
+  }
+
+  return latestSeenAt
+}
+
 interface RepoPullRequest {
   id: string
   number?: number | null
@@ -218,11 +240,7 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
   githubClosedAt: pr.githubClosedAt ?? null,
   githubMergedAt: pr.githubMergedAt ?? null,
   activityUpdatedAt: pr.activityUpdatedAt ?? null,
-  lastSeenAt:
-    pr.pullRequestViews?.reduce((latest, view) => {
-      const seenAt = view.lastSeenAt ?? 0
-      return seenAt > latest ? seenAt : latest
-    }, 0) ?? null,
+  lastSeenAt: getLatestSeenAt(pr.pullRequestViews),
   mergedByLogin: pr.mergedByLogin ?? null,
   mergedByAvatarUrl: pr.mergedByAvatarUrl ?? null,
   closedByLogin: pr.closedByLogin ?? null,
