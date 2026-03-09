@@ -4,16 +4,21 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--bit-space-2);
+  gap: 0;
+  min-width: 0;
+  width: 100%;
 }
 
 .prList li {
   margin: 0;
+  min-width: 0;
 }
 
 .prCell {
   display: flex;
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
   flex-direction: column;
   align-items: flex-start;
   gap: 0;
@@ -37,6 +42,10 @@
   background: var(--bit-color-paper-2);
 }
 
+.prCellSelected:hover {
+  background: var(--bit-color-paper-2);
+}
+
 .prCell:focus-visible {
   outline: none;
   box-shadow:
@@ -48,18 +57,26 @@
   display: flex;
   width: 100%;
   align-items: center;
-  gap: var(--bit-space-3);
+  gap: var(--bit-space-2);
   min-width: 0;
+}
+
+.prNumber {
+  flex-shrink: 0;
+  font-size: var(--bit-font-size-default);
+  line-height: var(--bit-line-height-meta);
+  color: var(--repo-muted, var(--bit-color-text-muted));
+  font-variant-numeric: tabular-nums;
 }
 
 .prTitle {
   flex: 1;
   font-weight: var(--bit-font-weight-bold);
-  font-size: var(--bit-font-size-default);
   line-height: var(--bit-line-height-default);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .prUpdatedAt {

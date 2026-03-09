@@ -1,10 +1,5 @@
 import { Link } from "@tanstack/react-router"
 import { motion } from "motion/react"
-import { formatRelativeTime } from "@/lib/Format"
-import { AuthorLabel } from "@/components/AuthorLabel"
-import { CiDot } from "@/components/CiDot"
-import { formatMergeableState } from "@/lib/Format"
-import { getCiDotVariant } from "./Utils"
 import type { PullRequestCard } from "./Types"
 import styles from "./PrSelectionList.module.css"
 
@@ -47,11 +42,10 @@ export function PrSelectionList({
               aria-current={isSelected ? "true" : undefined}
             >
               <span className={styles.prCellRow1}>
-                <span className={styles.prTitle}>
-                  #{pr.number} {pr.title}
-                </span>
+                <span className={styles.prNumber}>#{pr.number}</span>
+                <span className={styles.prTitle}>{pr.title}</span>
               </span>
-              <span className={styles.prCellRow2}>
+              {/* <span className={styles.prCellRow2}>
                 <AuthorLabel
                   login={pr.authorLogin}
                   avatarUrl={pr.authorAvatarUrl}
@@ -65,7 +59,7 @@ export function PrSelectionList({
                     title={pr.merged ? "Merged" : formatMergeableState(pr.mergeableState)}
                   />
                 </span>
-              </span>
+              </span> */}
             </Link>
           </motion.li>
         )

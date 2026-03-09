@@ -144,21 +144,23 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
         <ScrollArea.Root className={styles.column1}>
           <ScrollArea.Viewport className={styles.column1Viewport}>
             <ScrollArea.Content className={styles.column1Content}>
-              <PrAuthorFilter
-                authorFilter={effectiveAuthorFilter}
-                stateFilter={stateFilter}
-                userLogin={user?.login ?? null}
-                uniqueAuthors={uniqueAuthors}
-                onFilterChange={setAuthorFilter}
-                onStateFilterChange={setStateFilter}
-              />
-              <PrSelectionList
-                owner={owner}
-                repo={repo}
-                selectedPrNumber={selectedPR?.number ?? null}
-                prs={filteredPRs}
-                newPrIds={newPrIds}
-              />
+              <div className={styles.column1ContentInner}>
+                <PrAuthorFilter
+                  authorFilter={effectiveAuthorFilter}
+                  stateFilter={stateFilter}
+                  userLogin={user?.login ?? null}
+                  uniqueAuthors={uniqueAuthors}
+                  onFilterChange={setAuthorFilter}
+                  onStateFilterChange={setStateFilter}
+                />
+                <PrSelectionList
+                  owner={owner}
+                  repo={repo}
+                  selectedPrNumber={selectedPR?.number ?? null}
+                  prs={filteredPRs}
+                  newPrIds={newPrIds}
+                />
+              </div>
             </ScrollArea.Content>
           </ScrollArea.Viewport>
           <ScrollArea.Scrollbar className={styles.column1Scrollbar}>

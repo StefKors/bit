@@ -57,6 +57,7 @@
   color: var(--repo-muted, var(--bit-color-text-muted));
   font-weight: var(--bit-font-weight-bold);
   margin-right: var(--bit-space-3);
+  font-variant-numeric: tabular-nums;
 }
 
 .selectedPrHeaderBottom {
