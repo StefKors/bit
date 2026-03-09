@@ -1,57 +1,40 @@
-.authorFilter {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--bit-space-3);
-}
-
-.filtersRow {
+.group {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--bit-space-3);
   min-width: 0;
 }
 
-.authorPill {
+.trigger {
   display: inline-flex;
   align-items: center;
   gap: var(--bit-space-2);
   padding: 4px 8px;
   border: none;
   border-radius: var(--bit-radius-sm);
-  background: transparent;
+  background: var(--bit-color-paper-3);
   color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
   font-size: var(--bit-font-size-small);
   font-weight: var(--bit-font-weight-bold);
   cursor: pointer;
   white-space: nowrap;
+  height: 30px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.authorPill:hover {
+.trigger:hover {
   color: var(--bit-color-text);
   background: var(--bit-color-paper-hover);
 }
 
-.authorPillActive {
-  color: var(--bit-color-text);
-  background: var(--bit-color-paper-2);
+.triggerValue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.authorDropdownWrap {
-  position: relative;
-  min-width: 0;
-}
-
-.stateDropdownWrap {
-  position: relative;
-}
-
-.authorDropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  z-index: 50;
+.popup {
   min-width: 180px;
   max-height: 240px;
   overflow-y: auto;
@@ -60,11 +43,11 @@
   padding: 2px;
   border-radius: var(--bit-radius-md);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
-  background: var(--bit-color-paper);
+  background: var(--bit-color-surface-1);
   box-shadow: var(--bit-shadow-lg);
 }
 
-.authorDropdownItem {
+.item {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -72,21 +55,27 @@
   border: none;
   border-radius: var(--bit-radius-sm);
   background: transparent;
-  color: var(--bit-color-ink);
   font-size: var(--bit-font-size-default);
   cursor: pointer;
   text-align: left;
+  white-space: nowrap;
+  color: var(--bit-color-text);
 }
 
-.authorDropdownItem:hover {
+.itemText {
+  color: var(--bit-color-text);
+}
+
+.item:hover,
+.item[data-highlighted] {
   background: var(--bit-color-paper-hover);
 }
 
-.authorDropdownItemActive {
+.item[data-selected] {
   background: var(--bit-color-paper-2);
 }
 
-.authorDropdownEmpty {
+.empty {
   padding: 6px;
   font-size: var(--bit-font-size-small);
   color: var(--bit-color-ink-muted);

@@ -4,7 +4,10 @@ import { ScrollArea } from "@base-ui/react/scroll-area"
 import { useAuth } from "@/lib/hooks/UseAuth"
 import { db } from "@/lib/InstantDb"
 import { Tabs } from "@/components/Tabs"
-import { PrAuthorFilter } from "./PrAuthorFilter"
+import { PrListToolbar } from "./PrListToolbar"
+import { RepoSelect } from "./RepoSelect"
+import { AuthorSelect } from "./AuthorSelect"
+import { StateSelect } from "./StateSelect"
 import { PrSelectionList } from "./PrSelectionList"
 import { SelectedPrHeader } from "./SelectedPrHeader"
 import { PrDetailContent } from "./PrDetailContent"
@@ -37,7 +40,7 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
   const [authorFilter, setAuthorFilter] = useState<string | null>(null)
   const [stateFilter, setStateFilter] = useState<
     "all" | "open" | "draft" | "needsReview" | "readyToMerge" | "merged"
-  >("open")
+  >("all")
   const fullName = `${owner}/${repo}`
 
   const effectiveAuthorFilter = authorFilter ?? (user?.login ? "me" : "all")
@@ -145,14 +148,16 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
           <ScrollArea.Viewport className={styles.column1Viewport}>
             <ScrollArea.Content className={styles.column1Content}>
               <div className={styles.column1ContentInner}>
-                <PrAuthorFilter
-                  authorFilter={effectiveAuthorFilter}
-                  stateFilter={stateFilter}
-                  userLogin={user?.login ?? null}
-                  uniqueAuthors={uniqueAuthors}
-                  onFilterChange={setAuthorFilter}
-                  onStateFilterChange={setStateFilter}
-                />
+                <PrListToolbar>
+                  <RepoSelect owner={owner} repo={repo} />
+                  <AuthorSelect
+                    authorFilter={effectiveAuthorFilter}
+                    userLogin={user?.login ?? null}
+                    uniqueAuthors={uniqueAuthors}
+                    onFilterChange={setAuthorFilter}
+                  />
+                  <StateSelect stateFilter={stateFilter} onStateFilterChange={setStateFilter} />
+                </PrListToolbar>
                 <PrSelectionList
                   owner={owner}
                   repo={repo}

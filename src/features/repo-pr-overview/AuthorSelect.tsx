@@ -1,0 +1,45 @@
+import { AuthorLabel } from "@/components/AuthorLabel"
+import { ToolbarSelect } from "@/components/ToolbarSelect"
+
+interface AuthorSelectProps {
+  authorFilter: string
+  userLogin: string | null
+  uniqueAuthors: string[]
+  onFilterChange: (value: string) => void
+}
+
+export const AuthorSelect = ({
+  authorFilter,
+  userLogin,
+  uniqueAuthors,
+  onFilterChange,
+}: AuthorSelectProps) => {
+  const items: { value: string; label: React.ReactNode }[] = []
+  if (userLogin) {
+    items.push({ value: "me", label: <AuthorLabel login={userLogin} size={14} /> })
+  }
+  items.push({ value: "all", label: "All authors" })
+  for (const login of uniqueAuthors) {
+    items.push({ value: login, label: <AuthorLabel login={login} size={14} /> })
+  }
+
+  return (
+    <ToolbarSelect
+      value={authorFilter}
+      onValueChange={onFilterChange}
+      items={items}
+      defaultValue="all"
+      placeholder="All authors"
+      emptyLabel="No authors"
+      renderValue={(value) =>
+        value === "me" && userLogin ? (
+          <AuthorLabel login={userLogin} size={12} />
+        ) : value === "all" || value == null ? (
+          "All authors"
+        ) : (
+          <AuthorLabel login={value} size={12} />
+        )
+      }
+    />
+  )
+}
