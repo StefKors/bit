@@ -186,6 +186,8 @@ export function RepoPrOverviewPage({ owner, repo, selectedPrNumber }: RepoPrOver
           </div>
         )}
 
+        {selectedPR && <hr className={styles.prTabsSeparator} />}
+
         <ScrollArea.Root className={styles.column2}>
           <ScrollArea.Viewport className={styles.column2Viewport}>
             <ScrollArea.Content className={styles.column2Content}>

@@ -7,7 +7,7 @@ import styles from "./PrSelectionList.module.css"
 
 type PrStatusVariant = "open" | "merged" | "closed" | "needsReview" | "draft"
 
-const SECTION_ORDER: PrStatusVariant[] = ["open", "needsReview", "draft", "merged", "closed"]
+const SECTION_ORDER: PrStatusVariant[] = ["draft", "needsReview", "open", "merged", "closed"]
 
 interface PrSelectionListProps {
   owner: string
@@ -48,7 +48,10 @@ export function PrSelectionList({
           <Fragment key={variant}>
             <li className={styles.prCellSection}>
               <span className={styles.prCellRow1}>
-                <span className={styles.prTitle}>{sampleStatus.label}</span>
+                <span className={styles.prTitle}>
+                  <span className={styles.prSectionLabel}>{sampleStatus.label}</span>
+                  <span className={styles.prSectionCount}>{sectionPrs.length}</span>
+                </span>
               </span>
             </li>
             {sectionPrs.map((pr) => {

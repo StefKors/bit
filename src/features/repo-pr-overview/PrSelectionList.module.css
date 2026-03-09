@@ -77,6 +77,7 @@
   color: var(--bit-color-text-muted);
   text-align: left;
   background: transparent;
+  max-height: 32px;
 }
 
 .prCellSection:first-of-type {
@@ -137,6 +138,19 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--bit-space-2);
+}
+
+.prSectionCount {
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: rgba(var(--bit-rgb-fg), 0.5);
+  background: rgba(var(--bit-rgb-fg), 0.07);
+  padding: var(--bit-space-1) var(--bit-space-2);
+  border-radius: var(--bit-radius-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 .prUpdatedAt {

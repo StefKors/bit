@@ -28,13 +28,14 @@
   flex: 1;
   display: grid;
   grid-template-columns: minmax(0, 332px) minmax(0, 1fr);
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: min-content min-content min-content 1fr;
   grid-template-areas:
     "sidebar header"
     "sidebar tabs"
+    "sidebar tabs-separator"
     "sidebar content";
   column-gap: var(--bit-space-4);
-  row-gap: 0;
+  row-gap: var(--bit-space-4);
   min-height: 0;
   min-width: 0;
   overflow: hidden;
@@ -130,11 +131,17 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--bit-space-6);
-  margin-bottom: var(--bit-space-12);
 }
 
 .prTabs {
   grid-area: tabs;
+}
+
+.prTabsSeparator {
+  grid-area: tabs-separator;
+  border: none;
+  border-top: 1px solid var(--bit-color-border);
+  width: 100%;
 }
 
 .column2 {
