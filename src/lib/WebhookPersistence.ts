@@ -40,15 +40,70 @@ const getRepoFullName = (payload: JsonObject): string | undefined => {
 }
 
 const getPullRequestNumber = (payload: JsonObject): number | undefined => {
-  const rootNumber = asNumber(payload.number)
-  if (rootNumber !== undefined) return rootNumber
+  const numbers = getPullRequestNumbers(payload)
+  return numbers[0]
+}
+
+const getPullRequestNumbers = (payload: JsonObject): number[] => {
+  const numbers: number[] = []
+  const seen = new Set<number>()
+  const push = (value: number | undefined) => {
+    if (value === undefined) return
+    if (!Number.isInteger(value) || value <= 0) return
+    if (seen.has(value)) return
+    seen.add(value)
+    numbers.push(value)
+  }
+
+  push(asNumber(payload.number))
 
   const pullRequest = asObject(payload.pull_request)
-  const prNumber = asNumber(pullRequest?.number)
-  if (prNumber !== undefined) return prNumber
+  push(asNumber(pullRequest?.number))
 
   const issue = asObject(payload.issue)
-  return asNumber(issue?.number)
+  push(asNumber(issue?.number))
+
+  const collectFromCiPayload = (key: string) => {
+    const ciObject = asObject(payload[key])
+    const pullRequests = asArray(ciObject?.pull_requests)
+    for (const pullRequestRef of pullRequests) {
+      push(asNumber(asObject(pullRequestRef)?.number))
+    }
+  }
+
+  collectFromCiPayload("check_run")
+  collectFromCiPayload("check_suite")
+  collectFromCiPayload("workflow_run")
+
+  return numbers
+}
+
+const getHeadShaFromPayload = (payload: JsonObject): string | undefined => {
+  const checkRun = asObject(payload.check_run)
+  const checkSuite = asObject(payload.check_suite)
+  const checkRunSuite = asObject(checkRun?.check_suite)
+  const workflowRun = asObject(payload.workflow_run)
+  const workflowJob = asObject(payload.workflow_job)
+
+  return (
+    asString(payload.sha) ??
+    asString(checkRun?.head_sha) ??
+    asString(checkRunSuite?.head_sha) ??
+    asString(checkSuite?.head_sha) ??
+    asString(workflowRun?.head_sha) ??
+    asString(workflowJob?.head_sha)
+  )
+}
+
+const getWorkflowRunIdFromPayload = (payload: JsonObject): number | undefined => {
+  const workflowRun = asObject(payload.workflow_run)
+  if (workflowRun) {
+    const runId = asNumber(workflowRun.id)
+    if (runId !== undefined) return runId
+  }
+
+  const workflowJob = asObject(payload.workflow_job)
+  return asNumber(workflowJob?.run_id)
 }
 
 const findRepoByFullName = async (
@@ -62,6 +117,55 @@ const findRepoByFullName = async (
   const repo = repos?.[0]
   if (!repo) return null
   return { id: repo.id, fullName: repo.fullName }
+}
+
+const findPullRequestIdByNumber = async (
+  repoFullName: string,
+  prNumber: number,
+): Promise<string | null> => {
+  const { repos } = await adminDb.query({
+    repos: {
+      $: { where: { fullName: repoFullName }, limit: 1 },
+      pullRequests: {
+        $: { where: { number: prNumber }, limit: 1, fields: ["number"] },
+      },
+    },
+  })
+
+  const pullRequest = repos?.[0]?.pullRequests?.[0]
+  return pullRequest?.id ?? null
+}
+
+const findOpenPullRequestIdByHeadSha = async (
+  repoFullName: string,
+  headSha: string,
+): Promise<string | null> => {
+  const { repos } = await adminDb.query({
+    repos: {
+      $: { where: { fullName: repoFullName }, limit: 1 },
+      pullRequests: {
+        $: { where: { state: "open", headSha }, limit: 1, fields: ["headSha"] },
+      },
+    },
+  })
+
+  const pullRequest = repos?.[0]?.pullRequests?.[0]
+  return pullRequest?.id ?? null
+}
+
+const findPullRequestIdByWorkflowRunId = async (workflowRunId: number): Promise<string | null> => {
+  const { pullRequests } = await adminDb.query({
+    pullRequests: {
+      $: {
+        where: {
+          "workflowRuns.githubId": workflowRunId,
+        },
+        limit: 1,
+      },
+    },
+  })
+
+  return pullRequests?.[0]?.id ?? null
 }
 
 const upsertPullRequestFromPayload = async (
@@ -400,6 +504,194 @@ const upsertCheckSuite = async (
   )
 }
 
+const upsertCommitStatus = async (
+  pullRequestId: string,
+  payload: JsonObject,
+  now: number,
+): Promise<void> => {
+  const sha = asString(payload.sha)
+  const context = asString(payload.context) ?? "default"
+  if (!sha) return
+
+  const statusKey = `${sha}:${context}`
+
+  const { commitStatuses } = await adminDb.query({
+    commitStatuses: {
+      $: { where: { statusKey }, limit: 1 },
+    },
+  })
+  const existing = commitStatuses?.[0]
+
+  const creator = asObject(payload.creator)
+  const branch = asArray(payload.branches)[0]
+  const update = {
+    statusKey,
+    githubId: asNumber(payload.id),
+    nodeId: asString(payload.node_id),
+    sha,
+    context,
+    state: asString(payload.state),
+    description: asString(payload.description),
+    targetUrl: asString(payload.target_url),
+    url: asString(payload.url),
+    creatorLogin: asString(creator?.login),
+    creatorAvatarUrl: asString(creator?.avatar_url),
+    branch: asString(asObject(branch)?.name),
+    payload: toJson(payload),
+    createdAt: existing?.createdAt ?? now,
+    updatedAt: now,
+  }
+
+  if (existing) {
+    await adminDb.transact(adminDb.tx.commitStatuses[existing.id].update(update))
+    return
+  }
+
+  const statusId = id()
+  await adminDb.transact(
+    adminDb.tx.commitStatuses[statusId].update(update).link({ pullRequest: pullRequestId }),
+  )
+}
+
+const upsertWorkflowRun = async (
+  pullRequestId: string,
+  payload: JsonObject,
+  now: number,
+): Promise<void> => {
+  const workflowRun = asObject(payload.workflow_run)
+  const githubId = asNumber(workflowRun?.id)
+  if (githubId === undefined) return
+
+  const { workflowRuns } = await adminDb.query({
+    workflowRuns: {
+      $: { where: { githubId }, limit: 1 },
+    },
+  })
+  const existing = workflowRuns?.[0]
+
+  const update = {
+    githubId,
+    nodeId: asString(workflowRun?.node_id),
+    workflowId: asNumber(workflowRun?.workflow_id),
+    name: asString(workflowRun?.name),
+    event: asString(workflowRun?.event),
+    status: asString(workflowRun?.status),
+    conclusion: asString(workflowRun?.conclusion),
+    htmlUrl: asString(workflowRun?.html_url),
+    runNumber: asNumber(workflowRun?.run_number),
+    runAttempt: asNumber(workflowRun?.run_attempt),
+    headSha: asString(workflowRun?.head_sha),
+    headBranch: asString(workflowRun?.head_branch),
+    runStartedAt: parseTimestamp(workflowRun?.run_started_at),
+    githubCreatedAt: parseTimestamp(workflowRun?.created_at),
+    githubUpdatedAt: parseTimestamp(workflowRun?.updated_at),
+    completedAt: parseTimestamp(workflowRun?.updated_at),
+    payload: toJson(payload),
+    createdAt: existing?.createdAt ?? now,
+    updatedAt: now,
+  }
+
+  if (existing) {
+    await adminDb.transact(adminDb.tx.workflowRuns[existing.id].update(update))
+    return
+  }
+
+  const workflowRunId = id()
+  await adminDb.transact(
+    adminDb.tx.workflowRuns[workflowRunId].update(update).link({ pullRequest: pullRequestId }),
+  )
+}
+
+const upsertWorkflowJob = async (
+  pullRequestId: string,
+  payload: JsonObject,
+  now: number,
+): Promise<void> => {
+  const workflowJob = asObject(payload.workflow_job)
+  const githubId = asNumber(workflowJob?.id)
+  if (githubId === undefined) return
+
+  const { workflowJobs } = await adminDb.query({
+    workflowJobs: {
+      $: { where: { githubId }, limit: 1 },
+    },
+  })
+  const existing = workflowJobs?.[0]
+
+  const steps = asArray(workflowJob?.steps)
+  const update = {
+    githubId,
+    runId: asNumber(workflowJob?.run_id),
+    nodeId: asString(workflowJob?.node_id),
+    name: asString(workflowJob?.name),
+    status: asString(workflowJob?.status),
+    conclusion: asString(workflowJob?.conclusion),
+    htmlUrl: asString(workflowJob?.html_url),
+    runUrl: asString(workflowJob?.run_url),
+    headSha: asString(workflowJob?.head_sha),
+    startedAt: parseTimestamp(workflowJob?.started_at),
+    completedAt: parseTimestamp(workflowJob?.completed_at),
+    stepCount: steps.length,
+    payload: toJson(payload),
+    createdAt: existing?.createdAt ?? now,
+    updatedAt: now,
+  }
+
+  if (existing) {
+    await adminDb.transact(adminDb.tx.workflowJobs[existing.id].update(update))
+    return
+  }
+
+  const workflowJobId = id()
+  await adminDb.transact(
+    adminDb.tx.workflowJobs[workflowJobId].update(update).link({ pullRequest: pullRequestId }),
+  )
+}
+
+const resolvePullRequestIdForCiPayload = async (params: {
+  repoId: string
+  repoFullName: string
+  payload: JsonObject
+  now: number
+  event: string
+}): Promise<string | null> => {
+  const { repoId, repoFullName, payload, now, event } = params
+
+  const prNumbers = getPullRequestNumbers(payload)
+  if (prNumbers.length > 1) {
+    log.info("CI webhook references multiple pull requests; selecting first", {
+      event,
+      repoFullName,
+      prNumbers,
+    })
+  }
+
+  const primaryPrNumber = prNumbers[0]
+  if (primaryPrNumber !== undefined) {
+    const byNumberId = await findPullRequestIdByNumber(repoFullName, primaryPrNumber)
+    if (byNumberId) return byNumberId
+
+    if (asObject(payload.pull_request)) {
+      const upsertedId = await upsertPullRequestFromPayload(repoId, repoFullName, payload, now)
+      if (upsertedId) return upsertedId
+    }
+  }
+
+  const workflowRunId = getWorkflowRunIdFromPayload(payload)
+  if (workflowRunId !== undefined) {
+    const byWorkflowRunId = await findPullRequestIdByWorkflowRunId(workflowRunId)
+    if (byWorkflowRunId) return byWorkflowRunId
+  }
+
+  const headSha = getHeadShaFromPayload(payload)
+  if (headSha) {
+    const byHeadShaId = await findOpenPullRequestIdByHeadSha(repoFullName, headSha)
+    if (byHeadShaId) return byHeadShaId
+  }
+
+  return null
+}
+
 const PR_EVENT_ACTIONS = new Set([
   "labeled",
   "unlabeled",
@@ -542,12 +834,31 @@ export const persistWebhookPayload = async (params: {
     return
   }
 
-  const pullRequestId = await upsertPullRequestFromPayload(
-    repo.id,
-    repo.fullName,
-    payloadRecord,
-    now,
-  )
+  let pullRequestId: string | null = null
+  if (
+    event === "pull_request" ||
+    event === "pull_request_review" ||
+    event === "pull_request_review_comment" ||
+    event === "issue_comment" ||
+    event === "pull_request_review_thread"
+  ) {
+    pullRequestId = await upsertPullRequestFromPayload(repo.id, repo.fullName, payloadRecord, now)
+  } else if (
+    event === "check_run" ||
+    event === "check_suite" ||
+    event === "status" ||
+    event === "workflow_run" ||
+    event === "workflow_job"
+  ) {
+    pullRequestId = await resolvePullRequestIdForCiPayload({
+      repoId: repo.id,
+      repoFullName: repo.fullName,
+      payload: payloadRecord,
+      now,
+      event,
+    })
+  }
+
   if (!pullRequestId) return
 
   if (event === "pull_request") {
@@ -601,6 +912,21 @@ export const persistWebhookPayload = async (params: {
 
   if (event === "check_suite") {
     await upsertCheckSuite(pullRequestId, payloadRecord, now)
+    return
+  }
+
+  if (event === "status") {
+    await upsertCommitStatus(pullRequestId, payloadRecord, now)
+    return
+  }
+
+  if (event === "workflow_run") {
+    await upsertWorkflowRun(pullRequestId, payloadRecord, now)
+    return
+  }
+
+  if (event === "workflow_job") {
+    await upsertWorkflowJob(pullRequestId, payloadRecord, now)
   }
 }
 

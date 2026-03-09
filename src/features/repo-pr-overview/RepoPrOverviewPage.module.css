@@ -59,6 +59,10 @@
   overflow: hidden;
 }
 
+.column1Toolbar {
+  justify-content: space-between;
+}
+
 .column1ListScroll {
   flex: 1;
   min-height: 0;

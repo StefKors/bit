@@ -106,7 +106,7 @@ export const PrListPanel = ({ owner, repo, selectedPrNumber }: PrListPanelProps)
   return (
     <div className={styles.column1}>
       <div className={styles.column1Scroll}>
-        <PrListToolbar>
+        <PrListToolbar className={styles.column1Toolbar}>
           <RepoSelect owner={owner} repo={repo} />
           <AuthorSelect
             authorFilter={effectiveAuthorFilter}
