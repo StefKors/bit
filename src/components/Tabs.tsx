@@ -46,11 +46,9 @@ export function Tabs({
       className={`${styles.root} ${className ?? ""}`}
     >
       <BaseTabs.List className={styles.list}>
-        <div className={styles.tabsGroup}>
-          {items.map((item) => (
-            <TabTrigger key={item.value} item={item} />
-          ))}
-        </div>
+        {items.map((item) => (
+          <TabTrigger key={item.value} item={item} />
+        ))}
         {trailing && <div className={styles.trailing}>{trailing}</div>}
         <BaseTabs.Indicator className={styles.indicator} />
       </BaseTabs.List>

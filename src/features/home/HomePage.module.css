@@ -66,19 +66,16 @@
 }
 
 .settingRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name actions"
+    "status actions";
   gap: 0.75rem;
 }
 
-.settingInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
 .settingName {
+  grid-area: name;
   margin: 0;
   font-size: var(--bit-font-size-default);
   font-weight: var(--bit-font-weight-bold);
@@ -86,12 +83,14 @@
 }
 
 .settingStatus {
+  grid-area: status;
   margin: 0;
   font-size: var(--bit-font-size-default);
   color: var(--bit-color-text-muted);
 }
 
 .settingActions {
+  grid-area: actions;
   display: flex;
   align-items: center;
   gap: 0.5rem;

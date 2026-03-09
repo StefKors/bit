@@ -14,20 +14,11 @@
 .headerInner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   width: 100%;
   max-width: var(--bit-max-width);
   margin: 0 auto;
   gap: 0.75rem;
-}
-
-/* Left Section */
-.left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   min-width: 0;
-  flex: 1;
 }
 
 .headerBreadcrumb {
@@ -69,49 +60,6 @@
   color: var(--bit-color-muted);
 }
 
-/* Right Section */
-.right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-/* Search Button */
-.searchButton {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 24px;
-  padding: 0 8px;
-  background: rgba(var(--bit-rgb-fg), 0.04);
-  border: 1px solid rgba(var(--bit-rgb-fg), 0.08);
-  border-radius: var(--bit-radius-md);
-  color: rgba(var(--bit-rgb-fg), 0.5);
-  font-size: var(--bit-font-size-small);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.searchButton:hover {
-  background: rgba(var(--bit-rgb-fg), 0.08);
-  border-color: rgba(var(--bit-rgb-fg), 0.12);
-  color: var(--bit-color-text);
-}
-
-.searchText {
-  color: rgba(var(--bit-rgb-fg), 0.5);
-}
-
-.searchKbd {
-  font-family: var(--bit-font-mono);
-  font-size: 10px; /* kbd shortcut label, intentionally smaller */
-  padding: 1px 4px;
-  background: rgba(var(--bit-rgb-fg), 0.06);
-  border-radius: 3px;
-  color: rgba(var(--bit-rgb-fg), 0.4);
-}
-
 /* Avatar Button */
 .avatarButton {
   display: flex;
@@ -131,6 +79,7 @@
 /* User Menu Container */
 .userMenuContainer {
   position: relative;
+  margin-left: auto;
 }
 
 /* Backdrop */
@@ -247,24 +196,8 @@
     padding-bottom: 0.35rem;
   }
 
-  .left {
-    gap: 0.5rem;
-  }
-
   .logoImage {
     height: 16px;
-  }
-
-  .searchButton {
-    width: 30px;
-    padding: 0;
-    gap: 0;
-    justify-content: center;
-  }
-
-  .searchText,
-  .searchKbd {
-    display: none;
   }
 }
 

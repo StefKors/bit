@@ -26,107 +26,46 @@
 
 .columns {
   flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 332px) minmax(0, 1fr);
-  grid-template-rows: min-content min-content min-content 1fr;
-  grid-template-areas:
-    "sidebar header"
-    "sidebar tabs"
-    "sidebar tabs-separator"
-    "sidebar content";
-  column-gap: var(--bit-space-4);
-  row-gap: var(--bit-space-4);
+  display: flex;
+  gap: var(--bit-space-4);
   min-height: 0;
   min-width: 0;
   overflow: hidden;
 }
 
 .column1 {
-  grid-area: sidebar;
-  grid-row: 1 / -1;
+  flex: 0 0 332px;
   display: flex;
   flex-direction: column;
   min-height: 0;
   min-width: 0;
-  width: 100%;
+  width: 332px;
+  max-width: 332px;
 }
 
-.column1Viewport {
+.column1Scroll,
+.column2Scroll {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
-  min-width: 0;
-  overflow-x: hidden;
   position: relative;
-  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding-right: var(--bit-space-6);
-
-  &::before,
-  &::after {
-    content: "";
-    display: block;
-    left: 0;
-    width: 100%;
-    position: absolute;
-    pointer-events: none;
-    border-radius: var(--bit-radius-lg);
-    transition: height 0.1s ease-out;
-  }
-
-  &::before {
-    --scroll-area-overflow-y-start: inherit;
-    top: 0;
-    height: min(40px, var(--scroll-area-overflow-y-start));
-    background: linear-gradient(to bottom, var(--bit-color-bg), transparent);
-  }
-
-  &::after {
-    --scroll-area-overflow-y-end: inherit;
-    bottom: 0;
-    height: min(40px, var(--scroll-area-overflow-y-end, 40px));
-    background: linear-gradient(to top, var(--bit-color-bg), transparent);
-  }
-}
-
-.column1Content {
-  display: block;
-  width: 100%;
-  min-width: 0 !important;
-  max-width: 100%;
-}
-
-.column1ContentInner {
-  display: flex;
-  flex-direction: column;
-  gap: var(--bit-space-4);
-  width: 100%;
   min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
+  width: 100%;
 }
 
-.column1Scrollbar {
-  width: 8px;
-  border-radius: var(--bit-radius-pill);
-  background: rgba(var(--bit-rgb-fg), 0.06);
+.column1Scroll {
+  gap: var(--bit-space-4);
 }
 
-.column1Scrollbar[data-state="hidden"] {
-  opacity: 0;
-  transition: opacity 0.15s ease-out;
-}
-
-.column1Thumb {
-  flex: 1;
-  border-radius: var(--bit-radius-pill);
-  background: rgba(var(--bit-rgb-fg), 0.2);
-}
-
-.column1Thumb:hover {
-  background: rgba(var(--bit-rgb-fg), 0.3);
+.column2Scroll {
+  gap: var(--bit-space-7);
 }
 
 .prHeader {
-  grid-area: header;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -134,90 +73,31 @@
 }
 
 .prTabs {
-  grid-area: tabs;
-}
-
-.prTabsSeparator {
-  grid-area: tabs-separator;
-  border: none;
-  border-top: 1px solid var(--bit-color-border);
   width: 100%;
 }
 
+.prTabsSeparator {
+  border: none;
+  border-top: 1px solid var(--bit-color-border);
+  width: 100%;
+  margin: 0;
+}
+
 .column2 {
-  grid-area: content;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  gap: var(--bit-space-4);
   min-height: 0;
   min-width: 0;
 }
 
-.column2Viewport {
-  flex: 1;
-  min-height: 0;
-  position: relative;
-  padding-right: var(--bit-space-6);
-
-  &::before,
-  &::after {
-    content: "";
-    display: block;
-    left: 0;
-    width: 100%;
-    position: absolute;
-    pointer-events: none;
-    border-radius: var(--bit-radius-lg);
-    transition: height 0.1s ease-out;
-  }
-
-  &::before {
-    --scroll-area-overflow-y-start: inherit;
-    top: 0;
-    height: min(40px, var(--scroll-area-overflow-y-start));
-    background: linear-gradient(to bottom, var(--bit-color-bg), transparent);
-  }
-
-  &::after {
-    --scroll-area-overflow-y-end: inherit;
-    bottom: 0;
-    height: min(40px, var(--scroll-area-overflow-y-end, 40px));
-    background: linear-gradient(to top, var(--bit-color-bg), transparent);
-  }
-}
-
-.column2Content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--bit-space-7);
-}
-
-.column2Scrollbar {
-  width: 8px;
-  border-radius: var(--bit-radius-pill);
-  background: rgba(var(--bit-rgb-fg), 0.06);
-}
-
-.column2Scrollbar[data-state="hidden"] {
-  opacity: 0;
-  transition: opacity 0.15s ease-out;
-}
-
-.column2Thumb {
-  flex: 1;
-  border-radius: var(--bit-radius-pill);
-  background: rgba(var(--bit-rgb-fg), 0.2);
-}
-
-.column2Thumb:hover {
-  background: rgba(var(--bit-rgb-fg), 0.3);
-}
-
 .placeholder {
-  grid-area: header / header / content / content;
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 220px;
+  min-height: 0;
   color: var(--repo-muted);
   font-size: var(--bit-font-size-default);
   padding: var(--bit-space-6);
@@ -229,21 +109,12 @@
 
 @media (max-width: 1100px) {
   .columns {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto 1fr;
-    grid-template-areas:
-      "sidebar"
-      "header"
-      "tabs"
-      "content";
+    flex-direction: column;
   }
 
   .column1 {
-    grid-row: auto;
-  }
-
-  .column1,
-  .column2 {
-    max-height: none;
+    flex: none;
+    width: 100%;
+    max-width: none;
   }
 }

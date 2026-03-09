@@ -68,7 +68,7 @@
   width: 100%;
 }
 
-.prSection:first-child .prCellSection {
+.prSectionFirst .prCellSection {
   margin-top: 0;
 }
 
@@ -103,6 +103,20 @@
   flex-direction: column;
   min-width: 0;
   width: 100%;
+}
+
+.prSectionHeading {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--bit-space-2);
+}
+
+.prSectionLabel {
+  font-size: var(--bit-font-size-default);
+  line-height: var(--bit-line-height-default);
+  color: inherit;
 }
 
 .prStatusIcon {

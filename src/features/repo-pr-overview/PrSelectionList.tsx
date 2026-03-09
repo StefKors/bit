@@ -42,21 +42,22 @@ export function PrSelectionList({
 
   return (
     <ul className={styles.prList}>
-      {SECTION_ORDER.map((variant) => {
+      {SECTION_ORDER.map((variant, index) => {
         const sectionPrs = prsByVariant.get(variant) ?? []
         const firstPr = sectionPrs.at(0)
         if (!firstPr) return null
 
         const sampleStatus = getPrStatusVariant(firstPr)
         return (
-          <li key={variant} className={styles.prSection}>
+          <li
+            key={variant}
+            className={`${styles.prSection} ${index === 0 ? styles.prSectionFirst : ""}`}
+          >
             <div className={styles.prCellSection}>
-              <span className={styles.prCellRow1}>
-                <span className={styles.prTitle}>
-                  <span className={styles.prSectionLabel}>{sampleStatus.label}</span>
-                  <span className={styles.prSectionCount}>{sectionPrs.length}</span>
-                </span>
-              </span>
+              <div className={styles.prSectionHeading}>
+                <span className={styles.prSectionLabel}>{sampleStatus.label}</span>
+                <span className={styles.prSectionCount}>{sectionPrs.length}</span>
+              </div>
             </div>
             <ul className={styles.prSectionItems}>
               {sectionPrs.map((pr) => {

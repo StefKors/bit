@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { useAuth } from "@/lib/hooks/UseAuth"
 import { Button } from "@/components/Button"
 import type { InstallationRepo } from "@/lib/GithubInstallationRepos"
@@ -89,50 +89,38 @@ export function EnableReposPage() {
     }
   }
 
+  let content: ReactNode
+
   if (!user.login) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.card}>
-          <p className={styles.sectionText}>
-            Connect your GitHub account first to enable Bit on repositories.
-          </p>
-          <Button variant="primary" onClick={() => (window.location.href = "/")}>
-            Go to Home
-          </Button>
-        </div>
-      </div>
+    content = (
+      <>
+        <p className={styles.sectionText}>
+          Connect your GitHub account first to enable Bit on repositories.
+        </p>
+        <Button variant="primary" onClick={() => (window.location.href = "/")}>
+          Go to Home
+        </Button>
+      </>
     )
-  }
-
-  if (!hasToken) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.card}>
-          <p className={styles.error}>Unable to authenticate. Please sign out and sign back in.</p>
-        </div>
-      </div>
+  } else if (!hasToken) {
+    content = (
+      <p className={styles.error}>Unable to authenticate. Please sign out and sign back in.</p>
     )
-  }
-
-  if (!hasFetched && !loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.card}>
-          <h1 className={styles.title}>Enable Bit on repositories</h1>
-          <p className={styles.subtitle}>
-            Load your repositories from GitHub to select which ones to enable.
-          </p>
-          <Button variant="primary" size="large" onClick={() => void fetchRepos()}>
-            Load repositories
-          </Button>
-        </div>
-      </div>
+  } else if (!hasFetched && !loading) {
+    content = (
+      <>
+        <h1 className={styles.title}>Enable Bit on repositories</h1>
+        <p className={styles.subtitle}>
+          Load your repositories from GitHub to select which ones to enable.
+        </p>
+        <Button variant="primary" size="large" onClick={() => void fetchRepos()}>
+          Load repositories
+        </Button>
+      </>
     )
-  }
-
-  return (
-    <div className={styles.container}>
-      <div className={styles.card}>
+  } else {
+    content = (
+      <>
         <h1 className={styles.title}>Enable Bit on repositories</h1>
         <p className={styles.subtitle}>
           Select one or more repositories to enable Bit. Repos are sorted by recent activity.
@@ -143,54 +131,49 @@ export function EnableReposPage() {
 
         {loading ? (
           <div className={styles.loading}>Loading repositories...</div>
+        ) : repos.length === 0 ? (
+          <p className={styles.empty}>
+            No repositories found. Install the Bit GitHub App on your account or organizations to
+            see repos here.
+          </p>
         ) : (
           <>
-            {repos.length === 0 ? (
-              <p className={styles.empty}>
-                No repositories found. Install the Bit GitHub App on your account or organizations
-                to see repos here.
-              </p>
-            ) : (
-              <>
-                <div className={styles.toolbar}>
-                  <button type="button" className={styles.selectAll} onClick={toggleAll}>
-                    {selected.size === repos.length ? "Deselect all" : "Select all"}
-                  </button>
-                  <span className={styles.count}>
-                    {selected.size} of {repos.length} selected
-                    {enabledNodeIds.size > 0 && ` (${enabledNodeIds.size} already enabled)`}
-                  </span>
-                </div>
-                <div className={styles.grid}>
-                  {repos.map((repo) => (
-                    <RepoCard
-                      key={repo.nodeId}
-                      repo={repo}
-                      selected={selected.has(repo.nodeId)}
-                      enabled={enabledNodeIds.has(repo.nodeId)}
-                      onToggle={() => {
-                        toggleRepo(repo.nodeId)
-                      }}
-                    />
-                  ))}
-                </div>
-                <div className={styles.actions}>
-                  <Button
-                    variant="primary"
-                    size="large"
-                    disabled={
-                      enabling || [...selected].filter((id) => !enabledNodeIds.has(id)).length === 0
-                    }
-                    loading={enabling}
-                    onClick={() => void handleEnable()}
-                  >
-                    Enable Bit on {[...selected].filter((id) => !enabledNodeIds.has(id)).length}{" "}
-                    repo
-                    {[...selected].filter((id) => !enabledNodeIds.has(id)).length !== 1 ? "s" : ""}
-                  </Button>
-                </div>
-              </>
-            )}
+            <div className={styles.toolbar}>
+              <button type="button" className={styles.selectAll} onClick={toggleAll}>
+                {selected.size === repos.length ? "Deselect all" : "Select all"}
+              </button>
+              <span className={styles.count}>
+                {selected.size} of {repos.length} selected
+                {enabledNodeIds.size > 0 && ` (${enabledNodeIds.size} already enabled)`}
+              </span>
+            </div>
+            <div className={styles.grid}>
+              {repos.map((repo) => (
+                <RepoCard
+                  key={repo.nodeId}
+                  repo={repo}
+                  selected={selected.has(repo.nodeId)}
+                  enabled={enabledNodeIds.has(repo.nodeId)}
+                  onToggle={() => {
+                    toggleRepo(repo.nodeId)
+                  }}
+                />
+              ))}
+            </div>
+            <div className={styles.actions}>
+              <Button
+                variant="primary"
+                size="large"
+                disabled={
+                  enabling || [...selected].filter((id) => !enabledNodeIds.has(id)).length === 0
+                }
+                loading={enabling}
+                onClick={() => void handleEnable()}
+              >
+                Enable Bit on {[...selected].filter((id) => !enabledNodeIds.has(id)).length} repo
+                {[...selected].filter((id) => !enabledNodeIds.has(id)).length !== 1 ? "s" : ""}
+              </Button>
+            </div>
           </>
         )}
 
@@ -204,7 +187,13 @@ export function EnableReposPage() {
             Refresh list
           </button>
         </div>
-      </div>
+      </>
+    )
+  }
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.card}>{content}</div>
     </div>
   )
 }

@@ -15,17 +15,17 @@
   color: var(--bit-color-text-muted);
 }
 
-.opened > div > div:first-child {
+.opened .eventIcon > div {
   color: var(--bit-color-accent-green);
   background: rgba(var(--bit-rgb-accent-green), 0.12);
 }
 
-.merged > div > div:first-child {
+.merged .eventIcon > div {
   color: var(--bit-color-accent-purple);
   background: rgba(var(--bit-rgb-accent-purple), 0.12);
 }
 
-.closed > div > div:first-child {
+.closed .eventIcon > div {
   color: var(--bit-color-accent-red);
   background: rgba(var(--bit-rgb-accent-red), 0.12);
 }

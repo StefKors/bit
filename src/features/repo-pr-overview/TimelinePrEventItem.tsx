@@ -34,7 +34,7 @@ export const TimelinePrEventItem = ({ event, type, timestamp }: TimelinePrEventI
 
   return (
     <TimelineItem className={className}>
-      <TimelineItemIcon>{icon}</TimelineItemIcon>
+      <TimelineItemIcon className={styles.eventIcon}>{icon}</TimelineItemIcon>
       <TimelineItemHeader>
         <span className={styles.eventInfo}>
           <AuthorLabel

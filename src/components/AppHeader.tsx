@@ -53,93 +53,85 @@ export const AppHeader = () => {
     <>
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <div className={styles.left}>
-            <a href="/" className={styles.logo}>
-              <img
-                src={`/bit-cube-small${lightLogo ? "-light" : ""}${isDev ? "-dev" : ""}.png`}
-                alt="Bit"
-                className={styles.logoImage}
-              />
-            </a>
-            {owner && repo && (
-              <nav className={styles.repoContext} aria-label="Repository context">
-                <a
-                  href={`https://github.com/${owner}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.repoContextLink}
-                >
-                  {owner}
-                </a>
-                <span className={styles.repoContextSeparator}>/</span>
-                <Link
-                  to="/$owner/$repo"
-                  params={{ owner, repo }}
-                  className={styles.repoContextLink}
-                >
-                  {repo}
-                </Link>
-              </nav>
-            )}
-          </div>
-
-          <div className={styles.right}>
-            <div className={styles.userMenuContainer} ref={userMenuRef}>
-              <button
-                type="button"
-                className={styles.avatarButton}
-                onClick={() => {
-                  setUserMenuOpen((prev) => !prev)
-                }}
-                aria-label="User menu"
-                aria-expanded={userMenuOpen}
+          <a href="/" className={styles.logo}>
+            <img
+              src={`/bit-cube-small${lightLogo ? "-light" : ""}${isDev ? "-dev" : ""}.png`}
+              alt="Bit"
+              className={styles.logoImage}
+            />
+          </a>
+          {owner && repo && (
+            <nav className={styles.repoContext} aria-label="Repository context">
+              <a
+                href={`https://github.com/${owner}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.repoContextLink}
               >
-                <Avatar src={avatarUrl} name={user.name || user.login} size={24} />
-              </button>
+                {owner}
+              </a>
+              <span className={styles.repoContextSeparator}>/</span>
+              <Link to="/$owner/$repo" params={{ owner, repo }} className={styles.repoContextLink}>
+                {repo}
+              </Link>
+            </nav>
+          )}
 
-              {userMenuOpen && (
-                <>
-                  <div
-                    className={styles.backdrop}
-                    onClick={handleBackdropClick}
-                    onKeyDown={(e) => {
-                      if (e.key === "Escape") setUserMenuOpen(false)
-                    }}
-                    role="presentation"
-                  />
-                  <div className={styles.userMenu} role="menu" aria-label="User menu">
-                    <div className={styles.userMenuHeader}>
-                      <Avatar src={avatarUrl} name={user.name || user.login} size={40} />
-                      <div className={styles.userInfo}>
-                        {user.name && <span className={styles.userName}>{user.name}</span>}
-                        {user.login && <span className={styles.userLogin}>@{user.login}</span>}
-                      </div>
-                    </div>
-                    <div className={styles.userMenuDivider} />
-                    <div className={styles.userMenuItems}>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className={styles.userMenuItem}
-                        onClick={handleOpenThemeSettings}
-                      >
-                        <PaintbrushIcon size={16} />
-                        <span>Appearance</span>
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className={styles.userMenuItem}
-                        onClick={handleSignOut}
-                      >
-                        <SignOutIcon size={16} />
-                        <span>Sign out</span>
-                      </button>
+          <div className={styles.userMenuContainer} ref={userMenuRef}>
+            <button
+              type="button"
+              className={styles.avatarButton}
+              onClick={() => {
+                setUserMenuOpen((prev) => !prev)
+              }}
+              aria-label="User menu"
+              aria-expanded={userMenuOpen}
+            >
+              <Avatar src={avatarUrl} name={user.name || user.login} size={24} />
+            </button>
+
+            {userMenuOpen && (
+              <>
+                <div
+                  className={styles.backdrop}
+                  onClick={handleBackdropClick}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setUserMenuOpen(false)
+                  }}
+                  role="presentation"
+                />
+                <div className={styles.userMenu} role="menu" aria-label="User menu">
+                  <div className={styles.userMenuHeader}>
+                    <Avatar src={avatarUrl} name={user.name || user.login} size={40} />
+                    <div className={styles.userInfo}>
+                      {user.name && <span className={styles.userName}>{user.name}</span>}
+                      {user.login && <span className={styles.userLogin}>@{user.login}</span>}
                     </div>
                   </div>
-                </>
-              )}
-            </div>
+                  <div className={styles.userMenuDivider} />
+                  <div className={styles.userMenuItems}>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.userMenuItem}
+                      onClick={handleOpenThemeSettings}
+                    >
+                      <PaintbrushIcon size={16} />
+                      <span>Appearance</span>
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.userMenuItem}
+                      onClick={handleSignOut}
+                    >
+                      <SignOutIcon size={16} />
+                      <span>Sign out</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </header>

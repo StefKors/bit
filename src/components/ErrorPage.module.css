@@ -29,12 +29,6 @@
   flex-shrink: 0;
 }
 
-.text {
-  display: flex;
-  flex-direction: column;
-  gap: var(--bit-space-3);
-}
-
 .title {
   margin: 0;
   font-size: clamp(22px, 3vw, 30px);
@@ -45,6 +39,7 @@
 
 .message {
   margin: 0;
+  margin-top: calc(var(--bit-space-3) - var(--bit-space-6));
   font-size: var(--bit-font-size-body);
   line-height: var(--bit-line-height-body);
   color: var(--bit-color-text-muted);

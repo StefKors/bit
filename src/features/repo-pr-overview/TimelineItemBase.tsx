@@ -18,6 +18,7 @@ interface TimelineItemBodyProps {
 
 interface TimelineItemIconProps {
   children: ReactNode
+  className?: string
 }
 
 interface TimelineItemHeaderProps {
@@ -47,8 +48,12 @@ export const TimelineList = ({ className, children }: TimelineListProps) => (
   </div>
 )
 
-export const TimelineItemIcon = ({ children }: TimelineItemIconProps) => (
-  <div className={styles.timelineIconWrapper}>
+export const TimelineItemIcon = ({ children, className }: TimelineItemIconProps) => (
+  <div
+    className={
+      className ? `${styles.timelineIconWrapper} ${className}` : styles.timelineIconWrapper
+    }
+  >
     <div className={styles.timelineIcon}>{children}</div>
   </div>
 )

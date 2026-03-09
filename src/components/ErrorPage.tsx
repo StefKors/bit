@@ -39,10 +39,8 @@ export const ErrorPage = ({
         />
       </svg>
 
-      <div className={styles.text}>
-        <h1 className={styles.title}>{title}</h1>
-        <p className={styles.message}>{message}</p>
-      </div>
+      <h1 className={styles.title}>{title}</h1>
+      <p className={styles.message}>{message}</p>
 
       {details && (
         <details className={styles.details}>

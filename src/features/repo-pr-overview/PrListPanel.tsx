@@ -1,5 +1,4 @@
 import { useRef, useState } from "react"
-import { ScrollArea } from "@base-ui/react/scroll-area"
 import { useAuth } from "@/lib/hooks/UseAuth"
 import { db } from "@/lib/InstantDb"
 import { PrListToolbar } from "./PrListToolbar"
@@ -105,33 +104,26 @@ export const PrListPanel = ({ owner, repo, selectedPrNumber }: PrListPanelProps)
     selectedPrNumber ?? (filteredPRs.length > 0 ? filteredPRs[0].number : null)
 
   return (
-    <ScrollArea.Root className={styles.column1}>
-      <ScrollArea.Viewport className={styles.column1Viewport}>
-        <ScrollArea.Content className={styles.column1Content}>
-          <div className={styles.column1ContentInner}>
-            <PrListToolbar>
-              <RepoSelect owner={owner} repo={repo} />
-              <AuthorSelect
-                authorFilter={effectiveAuthorFilter}
-                userLogin={user?.login ?? null}
-                uniqueAuthors={uniqueAuthors}
-                onFilterChange={setAuthorFilter}
-              />
-              <StateSelect stateFilter={stateFilter} onStateFilterChange={setStateFilter} />
-            </PrListToolbar>
-            <PrSelectionList
-              owner={owner}
-              repo={repo}
-              selectedPrNumber={resolvedSelectedNumber}
-              prs={filteredPRs}
-              newPrIds={newPrIds}
-            />
-          </div>
-        </ScrollArea.Content>
-      </ScrollArea.Viewport>
-      <ScrollArea.Scrollbar className={styles.column1Scrollbar}>
-        <ScrollArea.Thumb className={styles.column1Thumb} />
-      </ScrollArea.Scrollbar>
-    </ScrollArea.Root>
+    <div className={styles.column1}>
+      <div className={styles.column1Scroll}>
+        <PrListToolbar>
+          <RepoSelect owner={owner} repo={repo} />
+          <AuthorSelect
+            authorFilter={effectiveAuthorFilter}
+            userLogin={user?.login ?? null}
+            uniqueAuthors={uniqueAuthors}
+            onFilterChange={setAuthorFilter}
+          />
+          <StateSelect stateFilter={stateFilter} onStateFilterChange={setStateFilter} />
+        </PrListToolbar>
+        <PrSelectionList
+          owner={owner}
+          repo={repo}
+          selectedPrNumber={resolvedSelectedNumber}
+          prs={filteredPRs}
+          newPrIds={newPrIds}
+        />
+      </div>
+    </div>
   )
 }

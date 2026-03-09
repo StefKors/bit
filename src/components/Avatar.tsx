@@ -52,7 +52,6 @@ export const Avatar = ({ size, src, name, isOnline, isOrganization }: AvatarProp
       <BaseAvatar.Fallback className={styles.avatarPlaceholder}>
         <AvatarFallbackContent initials={initial} isOrganization={isOrganization} />
       </BaseAvatar.Fallback>
-      <div className={styles.avatarOverlay} />
       {Boolean(isOnline) && <div className={styles.onlineIndicator} />}
     </BaseAvatar.Root>
   )

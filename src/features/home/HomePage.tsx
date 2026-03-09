@@ -71,10 +71,8 @@ export function HomePage() {
             <div className={styles.settingsSection}>
               <h2 className={styles.settingsTitle}>Integrations</h2>
               <div className={styles.settingRow}>
-                <div className={styles.settingInfo}>
-                  <p className={styles.settingName}>GitHub App</p>
-                  <p className={styles.settingStatus}>Connected as @{user.login}</p>
-                </div>
+                <p className={styles.settingName}>GitHub App</p>
+                <p className={styles.settingStatus}>Connected as @{user.login}</p>
                 <div className={styles.settingActions}>
                   <button
                     type="button"

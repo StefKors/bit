@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { ScrollArea } from "@base-ui/react/scroll-area"
 import { db } from "@/lib/InstantDb"
 import { Tabs } from "@/components/Tabs"
 import { PrListToolbar } from "./PrListToolbar"
@@ -87,7 +86,7 @@ export const PrDetailPanel = ({ owner, repo, prNumber }: PrDetailPanelProps) => 
   const pr = mapPrToCard(rawPr)
 
   return (
-    <>
+    <div className={styles.column2}>
       <div className={styles.prHeader}>
         <SelectedPrHeader pr={pr} fullName={fullName} />
         <PrSidebar pr={pr} />
@@ -104,22 +103,15 @@ export const PrDetailPanel = ({ owner, repo, prNumber }: PrDetailPanelProps) => 
 
       <hr className={styles.prTabsSeparator} />
 
-      <ScrollArea.Root className={styles.column2}>
-        <ScrollArea.Viewport className={styles.column2Viewport}>
-          <ScrollArea.Content className={styles.column2Content}>
-            {prTab === "conversation" ? (
-              <PrDetailContent owner={owner} repo={repo} prNumber={prNumber} />
-            ) : prTab === "commits" ? (
-              <PrCommits owner={owner} repo={repo} prNumber={prNumber} />
-            ) : (
-              <PrFilesChanged owner={owner} repo={repo} prNumber={prNumber} />
-            )}
-          </ScrollArea.Content>
-        </ScrollArea.Viewport>
-        <ScrollArea.Scrollbar className={styles.column2Scrollbar}>
-          <ScrollArea.Thumb className={styles.column2Thumb} />
-        </ScrollArea.Scrollbar>
-      </ScrollArea.Root>
-    </>
+      <div className={styles.column2Scroll}>
+        {prTab === "conversation" ? (
+          <PrDetailContent owner={owner} repo={repo} prNumber={prNumber} />
+        ) : prTab === "commits" ? (
+          <PrCommits owner={owner} repo={repo} prNumber={prNumber} />
+        ) : (
+          <PrFilesChanged owner={owner} repo={repo} prNumber={prNumber} />
+        )}
+      </div>
+    </div>
   )
 }

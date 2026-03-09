@@ -11,7 +11,7 @@
   padding: 4px 8px;
   border: none;
   border-radius: var(--bit-radius-sm);
-  background: var(--bit-color-paper-3);
+  background: var(--bit-color-paper-2);
   color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
   font-size: var(--bit-font-size-small);
   font-weight: var(--bit-font-weight-bold);
