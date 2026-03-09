@@ -10,7 +10,6 @@
 }
 
 .prList li {
-  margin: 0;
   min-width: 0;
 }
 
@@ -32,6 +31,7 @@
   text-align: left;
   cursor: pointer;
   background: transparent;
+  margin: 0.5px 0;
 }
 
 .prCell:hover {
@@ -59,6 +59,66 @@
   align-items: center;
   gap: var(--bit-space-2);
   min-width: 0;
+}
+
+.prCellSection {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  min-height: 0;
+  padding: var(--bit-space-3) var(--bit-space-4);
+  border-radius: var(--bit-radius-md);
+  font-size: var(--bit-font-size-default);
+  line-height: var(--bit-line-height-default);
+  color: var(--bit-color-text-muted);
+  text-align: left;
+  background: transparent;
+}
+
+.prCellSection:first-of-type {
+  margin-top: 0;
+}
+
+.prCellSection {
+  margin-top: var(--bit-space-8);
+}
+
+.prStatusIcon {
+  width: var(--bit-icon-size-sm);
+  height: var(--bit-icon-size-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.prStatusIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.prStatusIconOpen {
+  color: rgba(var(--bit-rgb-accent-green-bright), 0.94);
+}
+
+.prStatusIconMerged {
+  color: rgba(var(--bit-rgb-accent-purple), 0.94);
+}
+
+.prStatusIconClosed {
+  color: rgba(var(--bit-rgb-accent-red), 0.94);
+}
+
+.prStatusIconNeedsReview {
+  color: var(--bit-color-accent-yellow);
+}
+
+.prStatusIconDraft {
+  color: rgba(var(--bit-rgb-fg), 0.58);
 }
 
 .prNumber {

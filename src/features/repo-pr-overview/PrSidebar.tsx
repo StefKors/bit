@@ -1,6 +1,5 @@
 import { AuthorLabel } from "@/components/AuthorLabel"
-import { StatusBadge } from "@/components/StatusBadge"
-import { formatReviewState } from "@/lib/Format"
+import { getReviewStatusDisplay } from "./Utils"
 import type { PullRequestCard, PullRequestReview } from "./Types"
 import styles from "./PrSidebar.module.css"
 
@@ -30,21 +29,17 @@ export function PrSidebar({ pr }: PrSidebarProps) {
           <ul className={styles.sidebarList}>
             {reviewerLogins.map((login) => {
               const review = latestReviewByAuthor.get(login)
+              const display = review ? getReviewStatusDisplay(review.state) : null
               return (
                 <li key={login} className={styles.sidebarListItem}>
                   <AuthorLabel login={login} avatarUrl={review?.authorAvatarUrl} />
-                  {review && (
-                    <StatusBadge
-                      variant={
-                        review.state === "APPROVED"
-                          ? "open"
-                          : review.state === "CHANGES_REQUESTED"
-                            ? "closed"
-                            : "draft"
-                      }
+                  {display && (
+                    <span
+                      className={`${styles.reviewStatusIcon} ${styles[`reviewStatusIcon${display.variant === "changesRequested" ? "ChangesRequested" : display.variant === "approved" ? "Approved" : "Commented"}`]}`}
+                      title={display.label}
                     >
-                      {formatReviewState(review.state)}
-                    </StatusBadge>
+                      {display.icon}
+                    </span>
                   )}
                 </li>
               )

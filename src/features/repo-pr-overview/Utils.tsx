@@ -1,11 +1,12 @@
 import type { ReactNode } from "react"
 import {
+  CheckIcon,
   CommentDiscussionIcon,
-  EyeIcon,
   GitMergeIcon,
   GitPullRequestClosedIcon,
   GitPullRequestDraftIcon,
   GitPullRequestIcon,
+  XCircleIcon,
 } from "@primer/octicons-react"
 import type { PullRequestCard, PullRequestCheckRun, TimelineItem } from "./Types"
 
@@ -188,7 +189,31 @@ export const getReviewBadgeVariant = (state: string): "open" | "closed" | "draft
 }
 
 export const getReviewIcon = (state: string): ReactNode => {
-  if (state === "APPROVED") return <EyeIcon size={12} />
-  if (state === "CHANGES_REQUESTED") return <EyeIcon size={12} />
+  if (state === "APPROVED") return <CheckIcon size={12} />
+  if (state === "CHANGES_REQUESTED") return <XCircleIcon size={12} />
   return <CommentDiscussionIcon size={12} />
+}
+
+export type ReviewStatusVariant = "approved" | "changesRequested" | "commented"
+
+export const getReviewStatusDisplay = (
+  state: string,
+): { icon: ReactNode; label: string; variant: ReviewStatusVariant } => {
+  if (state === "APPROVED")
+    return {
+      icon: <CheckIcon size={12} />,
+      label: "Approved",
+      variant: "approved",
+    }
+  if (state === "CHANGES_REQUESTED")
+    return {
+      icon: <XCircleIcon size={12} />,
+      label: "Changes requested",
+      variant: "changesRequested",
+    }
+  return {
+    icon: <CommentDiscussionIcon size={12} />,
+    label: "Commented",
+    variant: "commented",
+  }
 }

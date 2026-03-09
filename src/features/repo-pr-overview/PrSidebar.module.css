@@ -38,6 +38,32 @@
   gap: var(--bit-space-4);
 }
 
+.reviewStatusIcon {
+  width: var(--bit-icon-size-sm);
+  height: var(--bit-icon-size-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reviewStatusIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.reviewStatusIconApproved {
+  color: rgba(var(--bit-rgb-accent-green-bright), 0.94);
+}
+
+.reviewStatusIconChangesRequested {
+  color: rgba(var(--bit-rgb-accent-red), 0.94);
+}
+
+.reviewStatusIconCommented {
+  color: rgba(var(--bit-rgb-fg), 0.58);
+}
+
 .sidebarMuted {
   font-size: var(--bit-font-size-meta);
   line-height: var(--bit-line-height-meta);

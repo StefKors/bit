@@ -72,7 +72,7 @@
   border: none;
   border-radius: var(--bit-radius-sm);
   background: transparent;
-  color: var(--bit-color-text);
+  color: var(--bit-color-ink);
   font-size: var(--bit-font-size-default);
   cursor: pointer;
   text-align: left;
@@ -89,6 +89,6 @@
 .authorDropdownEmpty {
   padding: 6px;
   font-size: var(--bit-font-size-small);
-  color: var(--repo-muted, rgba(var(--bit-rgb-fg), 0.58));
+  color: var(--bit-color-ink-muted);
   text-align: center;
 }
