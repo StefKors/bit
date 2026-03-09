@@ -1,4 +1,5 @@
 import { useRef, useState } from "react"
+import { db } from "@/lib/InstantDb"
 import { Markdown } from "@/components/Markdown"
 import { CiDot } from "@/components/CiDot"
 import { Button } from "@/components/Button"
@@ -6,33 +7,68 @@ import { useAuth } from "@/lib/hooks/UseAuth"
 import { buildTimeline } from "./Utils"
 import { Timeline } from "./Timeline"
 import { getTimelineItemKey } from "./TimelineUtils"
-import type { PullRequestCard } from "./Types"
+import { mapPrToCard } from "./MapPrToCard"
 import styles from "./PrDetailContent.module.css"
 
 interface PrDetailContentProps {
-  pr: PullRequestCard
   owner: string
   repo: string
+  prNumber: number
 }
 
-export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
+export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps) {
   const { user } = useAuth()
   const commentRef = useRef<HTMLTextAreaElement | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const timeline = buildTimeline(pr)
-  const activePrIdRef = useRef(pr.id)
+  const fullName = `${owner}/${repo}`
+
+  const { data } = db.useQuery({
+    repos: {
+      $: { where: { fullName }, limit: 1 },
+      pullRequests: {
+        $: { where: { number: prNumber }, limit: 1 },
+        issueComments: {
+          $: { order: { updatedAt: "desc" }, limit: 20 },
+        },
+        pullRequestReviews: {
+          $: { order: { updatedAt: "desc" }, limit: 10 },
+        },
+        pullRequestReviewComments: {
+          $: { order: { updatedAt: "desc" }, limit: 20 },
+        },
+        pullRequestReviewThreads: {
+          $: { order: { updatedAt: "desc" }, limit: 50 },
+        },
+        pullRequestCommits: {
+          $: { order: { updatedAt: "desc" }, limit: 50 },
+        },
+        checkRuns: {
+          $: { order: { updatedAt: "desc" }, limit: 10 },
+        },
+        pullRequestEvents: {
+          $: { order: { updatedAt: "desc" }, limit: 50 },
+        },
+      },
+    },
+  })
+
+  const rawPr = data?.repos?.[0]?.pullRequests?.[0]
+  const pr = rawPr ? mapPrToCard(rawPr) : null
+
+  const timeline = pr ? buildTimeline(pr) : []
+  const activePrIdRef = useRef(pr?.id)
   const hasInitiallyLoadedTimelineRef = useRef(false)
   const prevTimelineItemIdsRef = useRef(new Set<string>())
 
-  if (activePrIdRef.current !== pr.id) {
+  if (pr && activePrIdRef.current !== pr.id) {
     activePrIdRef.current = pr.id
     hasInitiallyLoadedTimelineRef.current = false
     prevTimelineItemIdsRef.current = new Set<string>()
   }
 
   const currentTimelineItemIds = new Set(timeline.map(getTimelineItemKey))
-  if (!hasInitiallyLoadedTimelineRef.current) {
+  if (!hasInitiallyLoadedTimelineRef.current && pr) {
     hasInitiallyLoadedTimelineRef.current = true
     prevTimelineItemIdsRef.current = new Set(currentTimelineItemIds)
   }
@@ -41,6 +77,8 @@ export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
     [...currentTimelineItemIds].filter((id) => !prevTimelineItemIdsRef.current.has(id)),
   )
   prevTimelineItemIdsRef.current = currentTimelineItemIds
+
+  if (!pr) return null
 
   return (
     <div className={styles.detailContent}>
@@ -106,13 +144,13 @@ export function PrDetailContent({ pr, owner, repo }: PrDetailContentProps) {
                 body: JSON.stringify({
                   owner,
                   repo,
-                  number: pr.number,
+                  number: prNumber,
                   body,
                 }),
               })
                 .then(async (res) => {
-                  const data = (await res.json()) as { htmlUrl?: string; error?: string }
-                  if (!res.ok) throw new Error(data.error ?? "Failed to post comment")
+                  const respData = (await res.json()) as { htmlUrl?: string; error?: string }
+                  if (!res.ok) throw new Error(respData.error ?? "Failed to post comment")
                   if (textarea) textarea.value = ""
                 })
                 .catch((err) => {

@@ -1,15 +1,35 @@
 import { FileIcon } from "@primer/octicons-react"
+import { db } from "@/lib/InstantDb"
 import { CommitSelector } from "./CommitSelector"
 import { FileEntry } from "./FileEntry"
-import type { PullRequestCard } from "./Types"
+import { mapPrToCard } from "./MapPrToCard"
 import styles from "./PrFilesChanged.module.css"
 
 interface PrFilesChangedProps {
-  pr: PullRequestCard
+  owner: string
+  repo: string
+  prNumber: number
 }
 
-export function PrFilesChanged({ pr }: PrFilesChangedProps) {
-  const files = pr.pullRequestFiles
+export function PrFilesChanged({ owner, repo, prNumber }: PrFilesChangedProps) {
+  const fullName = `${owner}/${repo}`
+
+  const { data } = db.useQuery({
+    repos: {
+      $: { where: { fullName }, limit: 1 },
+      pullRequests: {
+        $: { where: { number: prNumber }, limit: 1 },
+        pullRequestFiles: {},
+        pullRequestCommits: {
+          $: { order: { updatedAt: "desc" }, limit: 50 },
+        },
+      },
+    },
+  })
+
+  const rawPr = data?.repos?.[0]?.pullRequests?.[0]
+  const pr = rawPr ? mapPrToCard(rawPr) : null
+  const files = pr?.pullRequestFiles ?? []
   const hasFiles = files.length > 0
 
   const totalAdditions = files.reduce((sum, f) => sum + (f.additions ?? 0), 0)
@@ -30,7 +50,7 @@ export function PrFilesChanged({ pr }: PrFilesChangedProps) {
             <span className={styles.deletionsStat}>-{totalDeletions}</span>
           )}
         </div>
-        <CommitSelector commits={pr.pullRequestCommits} selectedSha={pr.headSha ?? ""} />
+        <CommitSelector commits={pr?.pullRequestCommits ?? []} selectedSha={pr?.headSha ?? ""} />
       </div>
 
       {!hasFiles && <div className={styles.placeholder}>No file changes available yet.</div>}

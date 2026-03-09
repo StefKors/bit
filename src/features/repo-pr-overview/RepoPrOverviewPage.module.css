@@ -213,7 +213,7 @@
 }
 
 .placeholder {
-  flex: 1;
+  grid-area: header / header / content / content;
   display: flex;
   align-items: center;
   justify-content: center;

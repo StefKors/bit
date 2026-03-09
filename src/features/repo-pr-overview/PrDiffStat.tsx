@@ -1,13 +1,29 @@
 import { DiffIcon } from "@primer/octicons-react"
-import type { PullRequestCard } from "./Types"
+import { db } from "@/lib/InstantDb"
+import { mapPrToCard } from "./MapPrToCard"
 import styles from "./PrDiffStat.module.css"
 
 interface PrDiffStatProps {
-  pr: PullRequestCard
+  owner: string
+  repo: string
+  prNumber: number
 }
 
-export const PrDiffStat = ({ pr }: PrDiffStatProps) => {
-  const files = pr.pullRequestFiles
+export const PrDiffStat = ({ owner, repo, prNumber }: PrDiffStatProps) => {
+  const fullName = `${owner}/${repo}`
+
+  const { data } = db.useQuery({
+    repos: {
+      $: { where: { fullName }, limit: 1 },
+      pullRequests: {
+        $: { where: { number: prNumber }, limit: 1 },
+        pullRequestFiles: {},
+      },
+    },
+  })
+
+  const rawPr = data?.repos?.[0]?.pullRequests?.[0]
+  const files = rawPr ? mapPrToCard(rawPr).pullRequestFiles : []
   const totalAdditions = files.reduce((sum, f) => sum + (f.additions ?? 0), 0)
   const totalDeletions = files.reduce((sum, f) => sum + (f.deletions ?? 0), 0)
 

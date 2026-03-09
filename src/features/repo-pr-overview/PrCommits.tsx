@@ -1,11 +1,15 @@
 import { GitCommitIcon } from "@primer/octicons-react"
 import { formatRelativeTime } from "@/lib/Format"
 import { Avatar } from "@/components/Avatar"
+import { db } from "@/lib/InstantDb"
+import { mapPrToCard } from "./MapPrToCard"
 import type { PullRequestCard } from "./Types"
 import styles from "./PrCommits.module.css"
 
 interface PrCommitsProps {
-  pr: PullRequestCard
+  owner: string
+  repo: string
+  prNumber: number
 }
 
 const CommitRow = ({ commit }: { commit: PullRequestCard["pullRequestCommits"][number] }) => {
@@ -41,8 +45,24 @@ const CommitRow = ({ commit }: { commit: PullRequestCard["pullRequestCommits"][n
   )
 }
 
-export function PrCommits({ pr }: PrCommitsProps) {
-  const commits = pr.pullRequestCommits.toSorted(
+export function PrCommits({ owner, repo, prNumber }: PrCommitsProps) {
+  const fullName = `${owner}/${repo}`
+
+  const { data } = db.useQuery({
+    repos: {
+      $: { where: { fullName }, limit: 1 },
+      pullRequests: {
+        $: { where: { number: prNumber }, limit: 1 },
+        pullRequestCommits: {
+          $: { order: { updatedAt: "desc" }, limit: 50 },
+        },
+      },
+    },
+  })
+
+  const rawPr = data?.repos?.[0]?.pullRequests?.[0]
+  const pr = rawPr ? mapPrToCard(rawPr) : null
+  const commits = (pr?.pullRequestCommits ?? []).toSorted(
     (a, b) => (a.authoredAt ?? a.createdAt) - (b.authoredAt ?? b.createdAt),
   )
 
