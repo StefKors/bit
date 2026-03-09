@@ -169,9 +169,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   min-width: 0;
-  display: flex;
-  justify-content: space-between;
-  gap: var(--bit-space-2);
+  display: block;
 }
 
 .prSectionCount {

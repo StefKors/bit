@@ -116,13 +116,15 @@ export const PrListPanel = ({ owner, repo, selectedPrNumber }: PrListPanelProps)
           />
           <StateSelect stateFilter={stateFilter} onStateFilterChange={setStateFilter} />
         </PrListToolbar>
-        <PrSelectionList
-          owner={owner}
-          repo={repo}
-          selectedPrNumber={resolvedSelectedNumber}
-          prs={filteredPRs}
-          newPrIds={newPrIds}
-        />
+        <div className={styles.column1ListScroll}>
+          <PrSelectionList
+            owner={owner}
+            repo={repo}
+            selectedPrNumber={resolvedSelectedNumber}
+            prs={filteredPRs}
+            newPrIds={newPrIds}
+          />
+        </div>
       </div>
     </div>
   )
