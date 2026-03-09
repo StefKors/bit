@@ -27,6 +27,14 @@ export default {
       delete: "false",
     },
   },
+  pullRequestViews: {
+    allow: {
+      view: "auth.id in data.ref('user.id')",
+      create: "auth.id in data.ref('user.id')",
+      update: "auth.id in data.ref('user.id')",
+      delete: "auth.id in data.ref('user.id')",
+    },
+  },
   pullRequestReviews: {
     allow: {
       view: "auth.id in data.ref('pullRequest.repo.users.id')",

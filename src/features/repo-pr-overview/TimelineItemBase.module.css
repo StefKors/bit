@@ -98,3 +98,22 @@
   font-size: inherit;
   line-height: inherit;
 }
+
+.timelineUnreadMarker {
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-3);
+  margin: var(--bit-space-3) 0;
+  margin-left: calc(22px + var(--bit-space-6));
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--bit-color-accent-blue);
+}
+
+.timelineUnreadMarker::before,
+.timelineUnreadMarker::after {
+  content: "";
+  height: 1px;
+  background: rgba(var(--bit-rgb-accent-blue), 0.35);
+  flex: 1;
+}

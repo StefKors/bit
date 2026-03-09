@@ -17,6 +17,7 @@ import { Route as ApiGithubWebhookRouteImport } from './routes/api/github/webhoo
 import { Route as OwnerRepoTimelineMockRouteImport } from './routes/$owner/$repo/timeline-mock'
 import { Route as OwnerRepoPrNumberRouteImport } from './routes/$owner/$repo/$prNumber'
 import { Route as ApiGithubOauthIndexRouteImport } from './routes/api/github/oauth/index'
+import { Route as ApiGithubReposPrSeenRouteImport } from './routes/api/github/repos/pr-seen'
 import { Route as ApiGithubReposEnableRouteImport } from './routes/api/github/repos/enable'
 import { Route as ApiGithubReposCommentRouteImport } from './routes/api/github/repos/comment'
 import { Route as ApiGithubOauthUserCallbackRouteImport } from './routes/api/github/oauth/user-callback'
@@ -63,6 +64,11 @@ const OwnerRepoPrNumberRoute = OwnerRepoPrNumberRouteImport.update({
 const ApiGithubOauthIndexRoute = ApiGithubOauthIndexRouteImport.update({
   id: '/api/github/oauth/',
   path: '/api/github/oauth/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGithubReposPrSeenRoute = ApiGithubReposPrSeenRouteImport.update({
+  id: '/api/github/repos/pr-seen',
+  path: '/api/github/repos/pr-seen',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGithubReposEnableRoute = ApiGithubReposEnableRouteImport.update({
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/api/github/oauth/user-callback': typeof ApiGithubOauthUserCallbackRoute
   '/api/github/repos/comment': typeof ApiGithubReposCommentRoute
   '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
+  '/api/github/repos/pr-seen': typeof ApiGithubReposPrSeenRoute
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
 }
 export interface FileRoutesByTo {
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/api/github/oauth/user-callback': typeof ApiGithubOauthUserCallbackRoute
   '/api/github/repos/comment': typeof ApiGithubReposCommentRoute
   '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
+  '/api/github/repos/pr-seen': typeof ApiGithubReposPrSeenRoute
   '/api/github/oauth': typeof ApiGithubOauthIndexRoute
 }
 export interface FileRoutesById {
@@ -153,6 +161,7 @@ export interface FileRoutesById {
   '/api/github/oauth/user-callback': typeof ApiGithubOauthUserCallbackRoute
   '/api/github/repos/comment': typeof ApiGithubReposCommentRoute
   '/api/github/repos/enable': typeof ApiGithubReposEnableRoute
+  '/api/github/repos/pr-seen': typeof ApiGithubReposPrSeenRoute
   '/api/github/oauth/': typeof ApiGithubOauthIndexRoute
 }
 export interface FileRouteTypes {
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/api/github/oauth/user-callback'
     | '/api/github/repos/comment'
     | '/api/github/repos/enable'
+    | '/api/github/repos/pr-seen'
     | '/api/github/oauth/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/api/github/oauth/user-callback'
     | '/api/github/repos/comment'
     | '/api/github/repos/enable'
+    | '/api/github/repos/pr-seen'
     | '/api/github/oauth'
   id:
     | '__root__'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/api/github/oauth/user-callback'
     | '/api/github/repos/comment'
     | '/api/github/repos/enable'
+    | '/api/github/repos/pr-seen'
     | '/api/github/oauth/'
   fileRoutesById: FileRoutesById
 }
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   ApiGithubOauthUserCallbackRoute: typeof ApiGithubOauthUserCallbackRoute
   ApiGithubReposCommentRoute: typeof ApiGithubReposCommentRoute
   ApiGithubReposEnableRoute: typeof ApiGithubReposEnableRoute
+  ApiGithubReposPrSeenRoute: typeof ApiGithubReposPrSeenRoute
   ApiGithubOauthIndexRoute: typeof ApiGithubOauthIndexRoute
 }
 
@@ -283,6 +296,13 @@ declare module '@tanstack/react-router' {
       path: '/api/github/oauth'
       fullPath: '/api/github/oauth/'
       preLoaderRoute: typeof ApiGithubOauthIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/github/repos/pr-seen': {
+      id: '/api/github/repos/pr-seen'
+      path: '/api/github/repos/pr-seen'
+      fullPath: '/api/github/repos/pr-seen'
+      preLoaderRoute: typeof ApiGithubReposPrSeenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/github/repos/enable': {
@@ -352,6 +372,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGithubOauthUserCallbackRoute: ApiGithubOauthUserCallbackRoute,
   ApiGithubReposCommentRoute: ApiGithubReposCommentRoute,
   ApiGithubReposEnableRoute: ApiGithubReposEnableRoute,
+  ApiGithubReposPrSeenRoute: ApiGithubReposPrSeenRoute,
   ApiGithubOauthIndexRoute: ApiGithubOauthIndexRoute,
 }
 export const routeTree = rootRouteImport

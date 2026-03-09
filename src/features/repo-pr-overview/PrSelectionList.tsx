@@ -9,7 +9,9 @@ type PrStatusVariant = "open" | "merged" | "closed" | "needsReview" | "draft"
 type PrListItem = Pick<
   PullRequestCard,
   "id" | "number" | "title" | "merged" | "state" | "draft" | "mergeableState"
->
+> & {
+  isUnread: boolean
+}
 
 const SECTION_ORDER: PrStatusVariant[] = ["draft", "needsReview", "open", "merged", "closed"]
 
@@ -79,6 +81,7 @@ export function PrSelectionList({
                       aria-current={isSelected ? "true" : undefined}
                     >
                       <span className={styles.prCellRow1}>
+                        {pr.isUnread ? <span className={styles.prUnreadDot} aria-hidden /> : null}
                         <span
                           className={`${styles.prStatusIcon} ${styles[`prStatusIcon${status.variant === "needsReview" ? "NeedsReview" : status.variant.charAt(0).toUpperCase() + status.variant.slice(1)}`]}`}
                           aria-hidden
@@ -86,7 +89,11 @@ export function PrSelectionList({
                           {status.icon}
                         </span>
                         <span className={styles.prNumber}>#{pr.number}</span>
-                        <span className={styles.prTitle}>{pr.title}</span>
+                        <span
+                          className={`${styles.prTitle} ${pr.isUnread ? styles.prTitleUnread : ""}`}
+                        >
+                          {pr.title}
+                        </span>
                       </span>
                     </Link>
                   </motion.li>

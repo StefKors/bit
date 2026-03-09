@@ -29,6 +29,7 @@ import {
   getHeadShaFromPayload,
   getPullRequestNumbers,
   getWorkflowRunIdFromPayload,
+  shouldBumpPullRequestActivityForEvent,
 } from "./WebhookPersistence"
 
 describe("WebhookPersistence helpers", () => {
@@ -96,5 +97,20 @@ describe("WebhookPersistence helpers", () => {
     expect(keyA).toBe("abc123:web-app / check")
     expect(keyB).toBe(keyA)
     expect(keyC).not.toBe(keyA)
+  })
+
+  it("marks PR and connected events as activity updates", () => {
+    expect(shouldBumpPullRequestActivityForEvent("pull_request")).toBe(true)
+    expect(shouldBumpPullRequestActivityForEvent("pull_request_review")).toBe(true)
+    expect(shouldBumpPullRequestActivityForEvent("pull_request_review_comment")).toBe(true)
+    expect(shouldBumpPullRequestActivityForEvent("issue_comment")).toBe(true)
+    expect(shouldBumpPullRequestActivityForEvent("pull_request_review_thread")).toBe(true)
+    expect(shouldBumpPullRequestActivityForEvent("check_run")).toBe(true)
+    expect(shouldBumpPullRequestActivityForEvent("check_suite")).toBe(true)
+    expect(shouldBumpPullRequestActivityForEvent("status")).toBe(true)
+    expect(shouldBumpPullRequestActivityForEvent("workflow_run")).toBe(true)
+    expect(shouldBumpPullRequestActivityForEvent("workflow_job")).toBe(true)
+    expect(shouldBumpPullRequestActivityForEvent("push")).toBe(false)
+    expect(shouldBumpPullRequestActivityForEvent("repository")).toBe(false)
   })
 })

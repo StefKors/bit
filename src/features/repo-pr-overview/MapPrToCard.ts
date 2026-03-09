@@ -59,6 +59,7 @@ interface RepoPullRequest {
   githubCreatedAt?: number | null
   githubClosedAt?: number | null
   githubMergedAt?: number | null
+  activityUpdatedAt?: number | null
   mergedByLogin?: string | null
   mergedByAvatarUrl?: string | null
   closedByLogin?: string | null
@@ -190,6 +191,11 @@ interface RepoPullRequest {
     deletions?: number | null
     patch?: string | null
   }> | null
+  pullRequestViews?: Array<{
+    id: string
+    lastSeenAt?: number | null
+    updatedAt?: number | null
+  }> | null
 }
 
 export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
@@ -211,6 +217,12 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
   githubCreatedAt: pr.githubCreatedAt ?? null,
   githubClosedAt: pr.githubClosedAt ?? null,
   githubMergedAt: pr.githubMergedAt ?? null,
+  activityUpdatedAt: pr.activityUpdatedAt ?? null,
+  lastSeenAt:
+    pr.pullRequestViews?.reduce((latest, view) => {
+      const seenAt = view.lastSeenAt ?? 0
+      return seenAt > latest ? seenAt : latest
+    }, 0) ?? null,
   mergedByLogin: pr.mergedByLogin ?? null,
   mergedByAvatarUrl: pr.mergedByAvatarUrl ?? null,
   closedByLogin: pr.closedByLogin ?? null,

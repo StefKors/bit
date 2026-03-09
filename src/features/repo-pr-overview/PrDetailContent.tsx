@@ -21,6 +21,7 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const fullName = `${owner}/${repo}`
+  const viewerUserId = user?.id ?? "__anonymous__"
 
   const { data } = db.useQuery({
     repos: {
@@ -34,6 +35,7 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
             "state",
             "merged",
             "headSha",
+            "activityUpdatedAt",
             "authorLogin",
             "authorAvatarUrl",
             "githubCreatedAt",
@@ -44,6 +46,13 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
             "closedByLogin",
             "closedByAvatarUrl",
           ],
+        },
+        pullRequestViews: {
+          $: {
+            where: { userId: viewerUserId },
+            limit: 1,
+            fields: ["lastSeenAt", "updatedAt"],
+          },
         },
         issueComments: {
           $: {
@@ -151,11 +160,14 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
 
   const timeline = pr ? buildTimeline(pr) : []
   const activePrIdRef = useRef(pr?.id)
+  const latchedTimelineCutoffRef = useRef<number | null>(null)
   const hasInitiallyLoadedTimelineRef = useRef(false)
   const prevTimelineItemIdsRef = useRef(new Set<string>())
 
   if (pr && activePrIdRef.current !== pr.id) {
     activePrIdRef.current = pr.id
+    latchedTimelineCutoffRef.current =
+      typeof pr.lastSeenAt === "number" && pr.lastSeenAt > 0 ? pr.lastSeenAt : null
     hasInitiallyLoadedTimelineRef.current = false
     prevTimelineItemIdsRef.current = new Set<string>()
   }
@@ -187,6 +199,7 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
             checkRuns={pr.checkRuns}
             headSha={pr.headSha}
             animatedItemKeys={newTimelineItemIds}
+            newChangesSinceTimestamp={latchedTimelineCutoffRef.current}
           />
         ) : (
           <p className={styles.detailEmpty}>No activity yet.</p>

@@ -178,6 +178,8 @@ export interface PullRequestCard {
   githubCreatedAt: number | null
   githubClosedAt: number | null
   githubMergedAt: number | null
+  activityUpdatedAt: number | null
+  lastSeenAt: number | null
   mergedByLogin: string | null
   mergedByAvatarUrl: string | null
   closedByLogin: string | null

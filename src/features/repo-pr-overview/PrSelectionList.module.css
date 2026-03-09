@@ -172,6 +172,18 @@
   display: block;
 }
 
+.prTitleUnread {
+  color: var(--bit-color-text);
+}
+
+.prUnreadDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bit-color-accent-blue);
+  flex-shrink: 0;
+}
+
 .prSectionCount {
   font-size: var(--bit-font-size-meta);
   line-height: var(--bit-line-height-meta);

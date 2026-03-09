@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { db } from "@/lib/InstantDb"
 import { Tabs } from "@/components/Tabs"
+import { useAuth } from "@/lib/hooks/UseAuth"
 import { PrListToolbar } from "./PrListToolbar"
 import { SelectedPrHeader } from "./SelectedPrHeader"
 import { PrSidebar } from "./PrSidebar"
@@ -26,8 +27,28 @@ const PR_TABS = [
 ]
 
 export const PrDetailPanel = ({ owner, repo, prNumber }: PrDetailPanelProps) => {
+  const { user } = useAuth()
   const [prTab, setPrTab] = useState("conversation")
+  const lastSeenRequestKeyRef = useRef<string | null>(null)
   const fullName = `${owner}/${repo}`
+  const refreshToken = (user as { refresh_token?: string } | null)?.refresh_token
+
+  useEffect(() => {
+    if (!refreshToken) return
+
+    const requestKey = `${owner}/${repo}#${prNumber}`
+    if (lastSeenRequestKeyRef.current === requestKey) return
+    lastSeenRequestKeyRef.current = requestKey
+
+    fetch("/api/github/repos/pr-seen", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${refreshToken}`,
+      },
+      body: JSON.stringify({ owner, repo, number: prNumber }),
+    }).catch(() => {})
+  }, [owner, prNumber, refreshToken, repo])
 
   const { data } = db.useQuery({
     repos: {

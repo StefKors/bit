@@ -170,6 +170,29 @@ const findPullRequestIdByWorkflowRunId = async (workflowRunId: number): Promise<
   return pullRequests?.[0]?.id ?? null
 }
 
+const bumpPullRequestActivityUpdatedAt = async (
+  pullRequestId: string,
+  now: number,
+): Promise<void> => {
+  await adminDb.transact(
+    adminDb.tx.pullRequests[pullRequestId].update({
+      activityUpdatedAt: now,
+    }),
+  )
+}
+
+export const shouldBumpPullRequestActivityForEvent = (event: string): boolean =>
+  event === "pull_request" ||
+  event === "pull_request_review" ||
+  event === "pull_request_review_comment" ||
+  event === "issue_comment" ||
+  event === "pull_request_review_thread" ||
+  event === "check_run" ||
+  event === "check_suite" ||
+  event === "status" ||
+  event === "workflow_run" ||
+  event === "workflow_job"
+
 const upsertPullRequestFromPayload = async (
   repoId: string,
   repoFullName: string,
@@ -587,7 +610,7 @@ const upsertWorkflowRun = async (
     runStartedAt: parseTimestamp(workflowRun?.run_started_at),
     githubCreatedAt: parseTimestamp(workflowRun?.created_at),
     githubUpdatedAt: parseTimestamp(workflowRun?.updated_at),
-    completedAt: parseTimestamp(workflowRun?.updated_at),
+    completedAt: parseTimestamp(workflowRun?.completed_at),
     payload: toJson(payload),
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
@@ -863,6 +886,10 @@ export const persistWebhookPayload = async (params: {
 
   if (!pullRequestId) return
 
+  if (shouldBumpPullRequestActivityForEvent(event)) {
+    await bumpPullRequestActivityUpdatedAt(pullRequestId, now)
+  }
+
   if (event === "pull_request") {
     const action = asString(payloadRecord.action)
     if (action && SYNC_TRIGGER_ACTIONS.has(action) && installationId) {
@@ -929,6 +956,7 @@ export const persistWebhookPayload = async (params: {
 
   if (event === "workflow_job") {
     await upsertWorkflowJob(pullRequestId, payloadRecord, now)
+    return
   }
 }
 
@@ -988,7 +1016,12 @@ const triggerPushFileSync = async (
     // Push webhooks often arrive before the pull_request synchronize event,
     // so without this the PR's headSha would still point to the previous
     // commit and the file list would appear empty.
-    await adminDb.transact(adminDb.tx.pullRequests[pr.id].update({ headSha: afterSha }))
+    await adminDb.transact(
+      adminDb.tx.pullRequests[pr.id].update({
+        headSha: afterSha,
+        activityUpdatedAt: Date.now(),
+      }),
+    )
 
     await syncPRFiles(pr.id, installationId, owner, repo, baseSha, afterSha)
   }

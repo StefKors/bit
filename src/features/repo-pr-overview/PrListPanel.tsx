@@ -27,6 +27,7 @@ export const PrListPanel = ({ owner, repo, selectedPrNumber }: PrListPanelProps)
 
   const fullName = `${owner}/${repo}`
   const effectiveAuthorFilter = authorFilter ?? (user?.login ? "me" : "all")
+  const viewerUserId = user?.id ?? "__anonymous__"
 
   const { data } = db.useQuery({
     pullRequests: {
@@ -44,21 +45,39 @@ export const PrListPanel = ({ owner, repo, selectedPrNumber }: PrListPanelProps)
           "mergeableState",
           "authorLogin",
           "updatedAt",
+          "activityUpdatedAt",
         ],
+      },
+      pullRequestViews: {
+        $: {
+          where: { userId: viewerUserId },
+          limit: 1,
+          fields: ["lastSeenAt"],
+        },
       },
     },
   })
 
-  const allPRs = (data?.pullRequests ?? []).map((pr) => ({
-    id: pr.id,
-    number: pr.number,
-    title: pr.title ?? "Untitled PR",
-    state: pr.state ?? "open",
-    merged: Boolean(pr.merged),
-    draft: Boolean(pr.draft),
-    mergeableState: pr.mergeableState ?? "unknown",
-    authorLogin: pr.authorLogin ?? "unknown",
-  }))
+  const allPRs = (data?.pullRequests ?? []).map((pr) => {
+    const activityRaw = pr.activityUpdatedAt ?? pr.updatedAt ?? 0
+    const activityAt =
+      typeof activityRaw === "number" ? activityRaw : Number.parseInt(activityRaw, 10) || 0
+    const lastSeenRaw = pr.pullRequestViews?.[0]?.lastSeenAt ?? 0
+    const lastSeenAt =
+      typeof lastSeenRaw === "number" ? lastSeenRaw : Number.parseInt(lastSeenRaw, 10) || 0
+
+    return {
+      id: pr.id,
+      number: pr.number,
+      title: pr.title ?? "Untitled PR",
+      state: pr.state ?? "open",
+      merged: Boolean(pr.merged),
+      draft: Boolean(pr.draft),
+      mergeableState: pr.mergeableState ?? "unknown",
+      authorLogin: pr.authorLogin ?? "unknown",
+      isUnread: activityAt > lastSeenAt,
+    }
+  })
 
   const uniqueAuthors = [
     ...new Set(allPRs.map((pr) => pr.authorLogin).filter((login) => login !== "unknown")),

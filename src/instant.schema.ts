@@ -94,11 +94,20 @@ export const schema = i.schema({
       githubUpdatedAt: i.number().optional().indexed(),
       githubClosedAt: i.number().optional(),
       githubMergedAt: i.number().optional(),
+      activityUpdatedAt: i.number().optional().indexed(),
       mergedByLogin: i.string().optional(),
       mergedByAvatarUrl: i.string().optional(),
       closedByLogin: i.string().optional(),
       closedByAvatarUrl: i.string().optional(),
       payload: i.string().optional(),
+      createdAt: i.number(),
+      updatedAt: i.number().indexed(),
+    }),
+
+    pullRequestViews: i.entity({
+      userId: i.string().indexed(),
+      pullRequestId: i.string().indexed(),
+      lastSeenAt: i.number().indexed(),
       createdAt: i.number(),
       updatedAt: i.number().indexed(),
     }),
@@ -327,6 +336,30 @@ export const schema = i.schema({
         on: "repos",
         has: "many",
         label: "pullRequests",
+      },
+    },
+    pullRequestViewsPullRequest: {
+      forward: {
+        on: "pullRequestViews",
+        has: "one",
+        label: "pullRequest",
+      },
+      reverse: {
+        on: "pullRequests",
+        has: "many",
+        label: "pullRequestViews",
+      },
+    },
+    pullRequestViewsUser: {
+      forward: {
+        on: "pullRequestViews",
+        has: "one",
+        label: "user",
+      },
+      reverse: {
+        on: "$users",
+        has: "many",
+        label: "pullRequestViews",
       },
     },
     pullRequestReviewsLink: {

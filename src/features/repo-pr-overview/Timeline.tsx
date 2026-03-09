@@ -1,3 +1,4 @@
+import { Fragment } from "react"
 import { motion } from "motion/react"
 import { TimelineCommitItem } from "./TimelineCommitItem"
 import { TimelineIssueCommentItem } from "./TimelineIssueCommentItem"
@@ -19,6 +20,8 @@ interface TimelineProps {
   getHeadShaForCommit?: (commit: PullRequestCommit) => string | null | undefined
   animatedItemKeys?: Set<string>
   onItemAnimationComplete?: (itemKey: string) => void
+  newChangesSinceTimestamp?: number | null
+  newChangesLabel?: string
 }
 
 const ENTER_INITIAL = { opacity: 0, y: 14 }
@@ -49,88 +52,89 @@ export const Timeline = ({
   getHeadShaForCommit,
   animatedItemKeys,
   onItemAnimationComplete,
-}: TimelineProps) => (
-  <TimelineList className={className}>
-    <div className={styles.timelineLine} aria-hidden />
-    {items.map((item) => {
-      const itemKey = getTimelineItemKey(item)
-      const shouldAnimateIn = animatedItemKeys?.has(itemKey) ?? false
-      const onComplete =
-        shouldAnimateIn && onItemAnimationComplete
-          ? () => {
-              onItemAnimationComplete(itemKey)
-            }
-          : undefined
+  newChangesSinceTimestamp,
+  newChangesLabel = "New changes since you last viewed",
+}: TimelineProps) => {
+  const firstNewItemIndex =
+    newChangesSinceTimestamp == null
+      ? -1
+      : items.findIndex((timelineItem) => timelineItem.timestamp > newChangesSinceTimestamp)
 
-      if (item.type === "opened" || item.type === "merged" || item.type === "closed") {
+  return (
+    <TimelineList className={className}>
+      <div className={styles.timelineLine} aria-hidden />
+      {items.map((item, index) => {
+        const itemKey = getTimelineItemKey(item)
+        const shouldRenderUnreadMarker = firstNewItemIndex >= 0 && index === firstNewItemIndex
+        const shouldAnimateIn = animatedItemKeys?.has(itemKey) ?? false
+        const onComplete =
+          shouldAnimateIn && onItemAnimationComplete
+            ? () => {
+                onItemAnimationComplete(itemKey)
+              }
+            : undefined
+
         return (
-          <motion.div
-            key={itemKey}
-            className={itemMotionClassName}
-            {...buildItemMotionProps(shouldAnimateIn, onComplete)}
-          >
-            <TimelinePrEventItem type={item.type} event={item.data} timestamp={item.timestamp} />
-          </motion.div>
+          <Fragment key={itemKey}>
+            {shouldRenderUnreadMarker ? (
+              <div className={styles.timelineUnreadMarker} role="status" aria-live="polite">
+                <span>{newChangesLabel}</span>
+              </div>
+            ) : null}
+            {item.type === "opened" || item.type === "merged" || item.type === "closed" ? (
+              <motion.div
+                className={itemMotionClassName}
+                {...buildItemMotionProps(shouldAnimateIn, onComplete)}
+              >
+                <TimelinePrEventItem
+                  type={item.type}
+                  event={item.data}
+                  timestamp={item.timestamp}
+                />
+              </motion.div>
+            ) : item.type === "pr_event" ? (
+              <motion.div
+                className={itemMotionClassName}
+                {...buildItemMotionProps(shouldAnimateIn, onComplete)}
+              >
+                <TimelinePrActionItem event={item.data} />
+              </motion.div>
+            ) : item.type === "commit" ? (
+              <motion.div
+                className={itemMotionClassName}
+                {...buildItemMotionProps(shouldAnimateIn, onComplete)}
+              >
+                <TimelineCommitItem
+                  commit={item.data}
+                  checkRuns={checkRuns}
+                  headSha={getHeadShaForCommit ? getHeadShaForCommit(item.data) : headSha}
+                />
+              </motion.div>
+            ) : item.type === "review" ? (
+              <motion.div
+                className={itemMotionClassName}
+                {...buildItemMotionProps(shouldAnimateIn, onComplete)}
+              >
+                <TimelineReviewItem review={item.data} />
+              </motion.div>
+            ) : item.type === "issue_comment" ? (
+              <motion.div
+                className={itemMotionClassName}
+                {...buildItemMotionProps(shouldAnimateIn, onComplete)}
+              >
+                <TimelineIssueCommentItem comment={item.data} />
+              </motion.div>
+            ) : (
+              <motion.div
+                className={itemMotionClassName}
+                {...buildItemMotionProps(shouldAnimateIn, onComplete)}
+              >
+                <TimelineReviewCommentItem thread={item.data} />
+              </motion.div>
+            )}
+          </Fragment>
         )
-      }
-      if (item.type === "pr_event") {
-        return (
-          <motion.div
-            key={itemKey}
-            className={itemMotionClassName}
-            {...buildItemMotionProps(shouldAnimateIn, onComplete)}
-          >
-            <TimelinePrActionItem event={item.data} />
-          </motion.div>
-        )
-      }
-      if (item.type === "commit") {
-        const effectiveHeadSha = getHeadShaForCommit ? getHeadShaForCommit(item.data) : headSha
-        return (
-          <motion.div
-            key={itemKey}
-            className={itemMotionClassName}
-            {...buildItemMotionProps(shouldAnimateIn, onComplete)}
-          >
-            <TimelineCommitItem
-              commit={item.data}
-              checkRuns={checkRuns}
-              headSha={effectiveHeadSha}
-            />
-          </motion.div>
-        )
-      }
-      if (item.type === "review") {
-        return (
-          <motion.div
-            key={itemKey}
-            className={itemMotionClassName}
-            {...buildItemMotionProps(shouldAnimateIn, onComplete)}
-          >
-            <TimelineReviewItem review={item.data} />
-          </motion.div>
-        )
-      }
-      if (item.type === "issue_comment") {
-        return (
-          <motion.div
-            key={itemKey}
-            className={itemMotionClassName}
-            {...buildItemMotionProps(shouldAnimateIn, onComplete)}
-          >
-            <TimelineIssueCommentItem comment={item.data} />
-          </motion.div>
-        )
-      }
-      return (
-        <motion.div
-          key={itemKey}
-          className={itemMotionClassName}
-          {...buildItemMotionProps(shouldAnimateIn, onComplete)}
-        >
-          <TimelineReviewCommentItem thread={item.data} />
-        </motion.div>
-      )
-    })}
-  </TimelineList>
-)
+      })}
+    </TimelineList>
+  )
+}
