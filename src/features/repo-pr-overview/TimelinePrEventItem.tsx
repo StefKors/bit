@@ -44,6 +44,9 @@ export const TimelinePrEventItem = ({ event, type, timestamp }: TimelinePrEventI
             lineHeight="default"
           />
           <span className={styles.eventVerb}>{verb}</span>
+          {type === "merged" && event.mergeCommitSha && (
+            <code className={styles.mergeSha}>{event.mergeCommitSha.slice(0, 7)}</code>
+          )}
         </span>
         <time className={styles.timelineTime}>{formatRelativeTime(timestamp)}</time>
       </TimelineItemHeader>

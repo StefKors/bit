@@ -5,3 +5,9 @@
 .timelineContent {
   composes: timelineContent from "./TimelineItemBase.module.css";
 }
+
+.editedLabel {
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--bit-color-text-muted);
+}

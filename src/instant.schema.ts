@@ -81,6 +81,7 @@ export const schema = i.schema({
       baseSha: i.string().optional(),
       headRef: i.string().optional(),
       headSha: i.string().optional().indexed(),
+      mergeCommitSha: i.string().optional().indexed(),
       commentsCount: i.number().optional(),
       reviewCommentsCount: i.number().optional(),
       commitsCount: i.number().optional(),
@@ -273,6 +274,15 @@ export const schema = i.schema({
       authorAvatarUrl: i.string().optional(),
       authoredAt: i.number().optional().indexed(),
       htmlUrl: i.string().optional(),
+      createdAt: i.number(),
+      updatedAt: i.number().indexed(),
+    }),
+    reactions: i.entity({
+      reactionKey: i.string().unique().indexed(),
+      targetType: i.string().indexed(),
+      targetGithubId: i.number().indexed(),
+      content: i.string().indexed(),
+      count: i.number(),
       createdAt: i.number(),
       updatedAt: i.number().indexed(),
     }),
@@ -493,6 +503,30 @@ export const schema = i.schema({
         on: "pullRequests",
         has: "many",
         label: "pullRequestCommits",
+      },
+    },
+    commitPushEventLink: {
+      forward: {
+        on: "pullRequestCommits",
+        has: "one",
+        label: "pushEvent",
+      },
+      reverse: {
+        on: "pushEvents",
+        has: "many",
+        label: "commits",
+      },
+    },
+    pullRequestReactionsLink: {
+      forward: {
+        on: "reactions",
+        has: "one",
+        label: "pullRequest",
+      },
+      reverse: {
+        on: "pullRequests",
+        has: "many",
+        label: "reactions",
       },
     },
     pullRequestEventsLink: {

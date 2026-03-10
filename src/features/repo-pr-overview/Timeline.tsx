@@ -1,6 +1,7 @@
 import { Fragment } from "react"
 import { motion } from "motion/react"
 import { TimelineCommitItem } from "./TimelineCommitItem"
+import { TimelineCommitGroupItem } from "./TimelineCommitGroupItem"
 import { TimelineIssueCommentItem } from "./TimelineIssueCommentItem"
 import { TimelineList } from "./TimelineItemBase"
 import { TimelinePrActionItem } from "./TimelinePrActionItem"
@@ -8,7 +9,7 @@ import { TimelinePrEventItem } from "./TimelinePrEventItem"
 import { TimelineReviewCommentItem } from "./TimelineReviewCommentItem"
 import { TimelineReviewItem } from "./TimelineReviewItem"
 import { getTimelineItemKey } from "./TimelineUtils"
-import type { PullRequestCheckRun, PullRequestCommit, TimelineItem } from "./Types"
+import type { PullRequestCheckRun, PullRequestReaction, TimelineItem } from "./Types"
 import styles from "./TimelineItemBase.module.css"
 
 interface TimelineProps {
@@ -16,8 +17,7 @@ interface TimelineProps {
   className?: string
   itemMotionClassName?: string
   checkRuns?: PullRequestCheckRun[]
-  headSha?: string | null
-  getHeadShaForCommit?: (commit: PullRequestCommit) => string | null | undefined
+  reactions?: PullRequestReaction[]
   animatedItemKeys?: Set<string>
   onItemAnimationComplete?: (itemKey: string) => void
   newChangesSinceTimestamp?: number | null
@@ -48,8 +48,7 @@ export const Timeline = ({
   className,
   itemMotionClassName,
   checkRuns = [],
-  headSha,
-  getHeadShaForCommit,
+  reactions = [],
   animatedItemKeys,
   onItemAnimationComplete,
   newChangesSinceTimestamp,
@@ -104,10 +103,19 @@ export const Timeline = ({
                 className={itemMotionClassName}
                 {...buildItemMotionProps(shouldAnimateIn, onComplete)}
               >
-                <TimelineCommitItem
-                  commit={item.data}
+                <TimelineCommitItem commit={item.data} checkRuns={checkRuns} />
+              </motion.div>
+            ) : item.type === "commit_group" ? (
+              <motion.div
+                className={itemMotionClassName}
+                {...buildItemMotionProps(shouldAnimateIn, onComplete)}
+              >
+                <TimelineCommitGroupItem
+                  pushAuthorLogin={item.data.pushAuthorLogin}
+                  pushAuthorAvatarUrl={item.data.pushAuthorAvatarUrl}
+                  commits={item.data.commits}
                   checkRuns={checkRuns}
-                  headSha={getHeadShaForCommit ? getHeadShaForCommit(item.data) : headSha}
+                  timestamp={item.timestamp}
                 />
               </motion.div>
             ) : item.type === "review" ? (
@@ -115,21 +123,29 @@ export const Timeline = ({
                 className={itemMotionClassName}
                 {...buildItemMotionProps(shouldAnimateIn, onComplete)}
               >
-                <TimelineReviewItem review={item.data} />
+                <TimelineReviewItem review={item.data} reactions={reactions} />
               </motion.div>
             ) : item.type === "issue_comment" ? (
               <motion.div
                 className={itemMotionClassName}
                 {...buildItemMotionProps(shouldAnimateIn, onComplete)}
               >
-                <TimelineIssueCommentItem comment={item.data} />
+                <TimelineIssueCommentItem
+                  comment={item.data}
+                  reactions={reactions.filter(
+                    (reaction) =>
+                      reaction.targetType === "issue_comment" &&
+                      reaction.targetGithubId === item.data.githubId &&
+                      reaction.count > 0,
+                  )}
+                />
               </motion.div>
             ) : (
               <motion.div
                 className={itemMotionClassName}
                 {...buildItemMotionProps(shouldAnimateIn, onComplete)}
               >
-                <TimelineReviewCommentItem thread={item.data} />
+                <TimelineReviewCommentItem thread={item.data} reactions={reactions} />
               </motion.div>
             )}
           </Fragment>

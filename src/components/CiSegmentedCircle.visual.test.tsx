@@ -4,7 +4,12 @@ import { createRoot } from "react-dom/client"
 import { page } from "vitest/browser"
 import { CiSegmentedCircle } from "./CiSegmentedCircle"
 
-const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+const nextFrame = () =>
+  new Promise<void>((resolve) =>
+    requestAnimationFrame(() => {
+      resolve()
+    }),
+  )
 
 const mountIcon = (props: ComponentProps<typeof CiSegmentedCircle>) => {
   document.body.innerHTML = ""
@@ -21,7 +26,7 @@ const mountIcon = (props: ComponentProps<typeof CiSegmentedCircle>) => {
 }
 
 test("renders all successful segments", async () => {
-  const { host, root } = mountIcon({
+  const { root } = mountIcon({
     pendingCount: 0,
     inProgressCount: 0,
     failedCount: 0,
@@ -41,7 +46,7 @@ test("renders all successful segments", async () => {
 })
 
 test("renders all two equal segments", async () => {
-  const { host, root } = mountIcon({
+  const { root } = mountIcon({
     pendingCount: 0,
     inProgressCount: 1,
     failedCount: 0,
@@ -61,7 +66,7 @@ test("renders all two equal segments", async () => {
 })
 
 test("renders all three equal segments", async () => {
-  const { host, root } = mountIcon({
+  const { root } = mountIcon({
     pendingCount: 0,
     inProgressCount: 1,
     failedCount: 1,
@@ -81,7 +86,7 @@ test("renders all three equal segments", async () => {
 })
 
 test("renders all four equal segments", async () => {
-  const { host, root } = mountIcon({
+  const { root } = mountIcon({
     pendingCount: 0,
     inProgressCount: 1,
     failedCount: 1,
@@ -101,7 +106,7 @@ test("renders all four equal segments", async () => {
 })
 
 test("renders all five equal segments", async () => {
-  const { host, root } = mountIcon({
+  const { root } = mountIcon({
     pendingCount: 1,
     inProgressCount: 1,
     failedCount: 1,
@@ -121,7 +126,7 @@ test("renders all five equal segments", async () => {
 })
 
 test("renders minimum size segments correctly", async () => {
-  const { host, root } = mountIcon({
+  const { root } = mountIcon({
     pendingCount: 0,
     inProgressCount: 0,
     failedCount: 1,
@@ -141,7 +146,7 @@ test("renders minimum size segments correctly", async () => {
 })
 
 test("renders zero minimum size segments correctly", async () => {
-  const { host, root } = mountIcon({
+  const { root } = mountIcon({
     pendingCount: 0,
     inProgressCount: 0,
     failedCount: 1,
@@ -161,7 +166,7 @@ test("renders zero minimum size segments correctly", async () => {
 })
 
 test("renders segmented circle without overlap", async () => {
-  const { host, root } = mountIcon({
+  const { root } = mountIcon({
     pendingCount: 1,
     inProgressCount: 2,
     failedCount: 1,
@@ -181,7 +186,7 @@ test("renders segmented circle without overlap", async () => {
 })
 
 test("keeps tiny segment visible with minimum width", async () => {
-  const { host, root } = mountIcon({
+  const { root } = mountIcon({
     pendingCount: 0,
     inProgressCount: 0,
     failedCount: 1,

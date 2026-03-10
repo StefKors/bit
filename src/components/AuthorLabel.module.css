@@ -38,3 +38,18 @@
   background: rgba(var(--bit-rgb-fg), 0.07);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.1);
 }
+
+.aiBadge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--bit-line-height-tight);
+  padding: 0 var(--bit-space-3);
+  border-radius: var(--bit-radius-pill);
+  font-size: var(--bit-icon-size-xs);
+  font-weight: var(--bit-font-weight-bold);
+  line-height: var(--bit-line-height-meta);
+  color: rgba(var(--bit-rgb-accent-purple), 0.95);
+  background: rgba(var(--bit-rgb-accent-purple), 0.12);
+  border: 1px solid rgba(var(--bit-rgb-accent-purple), 0.28);
+}

@@ -36,6 +36,41 @@
   line-height: var(--bit-line-height-meta);
 }
 
+.collapsedNoticeButton {
+  border: 0;
+  width: fit-content;
+  text-align: left;
+  cursor: pointer;
+  padding: var(--bit-space-3) var(--bit-space-5);
+  border-radius: var(--bit-radius-md);
+  border: 1px dashed rgba(var(--bit-rgb-fg), 0.14);
+  background: rgba(var(--bit-rgb-surface-1), 0.7);
+  color: var(--bit-color-text-muted);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+}
+
+.collapsedNoticeAction {
+  margin-left: var(--bit-space-3);
+  color: var(--bit-color-accent-blue);
+}
+
+.collapsedNoticeActionInline {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--bit-color-accent-blue);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  cursor: pointer;
+}
+
+.editedLabel {
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--bit-color-text-muted);
+}
+
 .replies {
   display: flex;
   flex-direction: column;

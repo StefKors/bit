@@ -77,6 +77,7 @@ interface RepoPullRequest {
   baseRef?: string | null
   baseSha?: string | null
   headSha?: string | null
+  mergeCommitSha?: string | null
   updatedAt?: string | number | null
   githubCreatedAt?: number | null
   githubClosedAt?: number | null
@@ -147,6 +148,14 @@ interface RepoPullRequest {
     authoredAt?: number | null
     createdAt?: number | null
     htmlUrl?: string | null
+    pushEvent?:
+      | {
+          id: string
+        }
+      | Array<{
+          id: string
+        }>
+      | null
   }> | null
   checkRuns?: Array<{
     id: string
@@ -208,6 +217,13 @@ interface RepoPullRequest {
     label?: string | null
     githubCreatedAt?: number | null
   }> | null
+  reactions?: Array<{
+    id: string
+    targetType?: string | null
+    targetGithubId?: number | null
+    content?: string | null
+    count?: number | null
+  }> | null
   pullRequestFiles?: Array<{
     id: string
     filename: string
@@ -239,6 +255,7 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
   baseRef: pr.baseRef ?? "base",
   baseSha: pr.baseSha ?? null,
   headSha: pr.headSha ?? null,
+  mergeCommitSha: pr.mergeCommitSha ?? null,
   updatedAt: pr.updatedAt ?? null,
   githubCreatedAt: pr.githubCreatedAt ?? null,
   githubClosedAt: pr.githubClosedAt ?? null,
@@ -319,6 +336,9 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
       messageShort: commit.messageShort ?? null,
       authorLogin: commit.authorLogin ?? null,
       authorAvatarUrl: commit.authorAvatarUrl ?? null,
+      pushEventId: Array.isArray(commit.pushEvent)
+        ? (commit.pushEvent[0]?.id ?? null)
+        : (commit.pushEvent?.id ?? null),
       authoredAt: commit.authoredAt ?? null,
       createdAt: commit.createdAt ?? 0,
       htmlUrl: commit.htmlUrl ?? null,
@@ -388,6 +408,14 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
       targetAvatarUrl: evt.targetAvatarUrl ?? null,
       label: evt.label ?? null,
       githubCreatedAt: evt.githubCreatedAt ?? 0,
+    })) ?? [],
+  reactions:
+    pr.reactions?.map((reaction) => ({
+      id: reaction.id,
+      targetType: reaction.targetType ?? "",
+      targetGithubId: reaction.targetGithubId ?? 0,
+      content: reaction.content ?? "",
+      count: reaction.count ?? 0,
     })) ?? [],
   pullRequestFiles:
     pr.pullRequestFiles?.map((file) => ({

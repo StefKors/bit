@@ -29,3 +29,21 @@
   color: var(--bit-color-text);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.12);
 }
+
+.titleChange {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bit-space-3);
+  min-width: 0;
+  font-size: var(--bit-font-size-default);
+  line-height: var(--bit-line-height-default);
+  color: rgba(var(--bit-rgb-fg), 0.7);
+}
+
+.newTitle {
+  color: var(--bit-color-text);
+}
+
+.titleChange del {
+  color: var(--bit-color-text-muted);
+}

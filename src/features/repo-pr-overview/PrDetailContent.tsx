@@ -36,6 +36,7 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
             "state",
             "merged",
             "headSha",
+            "mergeCommitSha",
             "activityUpdatedAt",
             "authorLogin",
             "authorAvatarUrl",
@@ -129,6 +130,11 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
               "htmlUrl",
             ],
           },
+          pushEvent: {
+            $: {
+              fields: ["id"],
+            },
+          },
         },
         checkRuns: {
           $: {
@@ -200,6 +206,13 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
             ],
           },
         },
+        reactions: {
+          $: {
+            order: { updatedAt: "desc" },
+            limit: 500,
+            fields: ["targetType", "targetGithubId", "content", "count"],
+          },
+        },
       },
     },
   })
@@ -246,7 +259,7 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
             className={styles.timeline}
             itemMotionClassName={styles.timelineItemMotion}
             checkRuns={pr.checkRuns}
-            headSha={pr.headSha}
+            reactions={pr.reactions}
             animatedItemKeys={newTimelineItemIds}
             newChangesSinceTimestamp={latchedTimelineCutoffRef.current}
           />

@@ -22,6 +22,42 @@
   color: rgba(var(--bit-rgb-fg), 0.85);
 }
 
+.timelineCommitTitleExpanded {
+  white-space: pre-wrap;
+  text-overflow: initial;
+}
+
+.expandButton {
+  margin-left: var(--bit-space-3);
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--bit-color-accent-blue);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  cursor: pointer;
+}
+
+.expandButton:hover {
+  text-decoration: underline;
+}
+
+.condensedLine {
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-3);
+}
+
+.condensedTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(var(--bit-rgb-fg), 0.85);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+}
+
 .timelineCommitSha {
   flex-shrink: 0;
   font-family: var(--bit-font-mono, monospace);

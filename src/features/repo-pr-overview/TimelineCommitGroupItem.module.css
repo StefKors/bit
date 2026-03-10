@@ -1,0 +1,24 @@
+.timelineTime {
+  composes: timelineTime from "./TimelineItemBase.module.css";
+}
+
+.headerLine {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bit-space-3);
+  min-width: 0;
+}
+
+.verb {
+  font-size: var(--bit-font-size-default);
+  line-height: var(--bit-line-height-default);
+  color: var(--bit-color-text-muted);
+}
+
+.commits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bit-space-3);
+  margin-left: calc(var(--bit-space-5) + 22px);
+  margin-top: var(--bit-space-4);
+}

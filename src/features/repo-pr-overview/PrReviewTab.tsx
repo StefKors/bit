@@ -323,9 +323,19 @@ const ReviewContent = ({ grouped, openExternalUrl, handleRowKeyDown }: ReviewCon
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}
                         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                        onClick={item.url ? () => openExternalUrl(item.url) : undefined}
+                        onClick={
+                          item.url
+                            ? () => {
+                                openExternalUrl(item.url)
+                              }
+                            : undefined
+                        }
                         onKeyDown={
-                          item.url ? (event) => handleRowKeyDown(event, item.url) : undefined
+                          item.url
+                            ? (event) => {
+                                handleRowKeyDown(event, item.url)
+                              }
+                            : undefined
                         }
                         role={item.url ? "link" : undefined}
                         tabIndex={item.url ? 0 : undefined}

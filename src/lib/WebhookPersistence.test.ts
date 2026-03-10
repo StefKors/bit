@@ -116,6 +116,7 @@ describe("WebhookPersistence helpers", () => {
     expect(shouldBumpPullRequestActivityForEvent("status")).toBe(true)
     expect(shouldBumpPullRequestActivityForEvent("workflow_run")).toBe(true)
     expect(shouldBumpPullRequestActivityForEvent("workflow_job")).toBe(true)
+    expect(shouldBumpPullRequestActivityForEvent("reaction")).toBe(true)
     expect(shouldBumpPullRequestActivityForEvent("push")).toBe(false)
     expect(shouldBumpPullRequestActivityForEvent("repository")).toBe(false)
   })

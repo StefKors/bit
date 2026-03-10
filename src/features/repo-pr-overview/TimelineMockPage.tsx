@@ -48,6 +48,7 @@ const buildMockTimelineItem = (index: number, timestamp: number): TimelineItem =
         messageShort: "Tweak timeline animation timing",
         authorLogin: "stefkors",
         authorAvatarUrl: "https://avatars.githubusercontent.com/u/1133416?v=4",
+        pushEventId: null,
         authoredAt: timestamp,
         createdAt: timestamp,
         htmlUrl: "https://github.com/octocat/Hello-World/commit/abcdef1",
@@ -224,7 +225,6 @@ export const TimelineMockPage = ({ owner, repo }: TimelineMockPageProps) => {
             className={styles.timeline}
             itemMotionClassName={styles.timelineItemMotion}
             checkRuns={CHECK_RUNS}
-            getHeadShaForCommit={(commit) => commit.sha}
             animatedItemKeys={animatedItemKeys}
             onItemAnimationComplete={(itemKey) => {
               setAnimatedItemKeys((previous) => {

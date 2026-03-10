@@ -15,6 +15,17 @@
   color: var(--bit-color-text-muted);
 }
 
+.mergeSha {
+  font-family: var(--bit-font-mono, monospace);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  min-height: var(--bit-line-height-tight);
+  padding: 0 var(--bit-space-3);
+  border-radius: var(--bit-radius-sm);
+  background: rgba(var(--bit-rgb-accent-purple), 0.12);
+  color: rgba(var(--bit-rgb-accent-purple), 0.95);
+}
+
 .opened .eventIcon > div {
   color: var(--bit-color-accent-green);
   background: rgba(var(--bit-rgb-accent-green), 0.12);

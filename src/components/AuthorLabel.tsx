@@ -8,6 +8,7 @@ interface AuthorLabelProps {
   size?: number
   weight?: "regular" | "bold"
   lineHeight?: "meta" | "default"
+  actorType?: "bot" | "ai"
 }
 
 export const AuthorLabel = ({
@@ -16,8 +17,17 @@ export const AuthorLabel = ({
   size = 13,
   weight = "bold",
   lineHeight = "meta",
+  actorType,
 }: AuthorLabelProps) => {
-  const isBot = login.endsWith("[bot]")
+  const normalizedLogin = login.toLowerCase()
+  const isAiByLogin =
+    normalizedLogin === "copilot-pull-request-reviewer[bot]" ||
+    normalizedLogin.includes("copilot") ||
+    normalizedLogin.includes("ai-reviewer")
+  const resolvedActorType =
+    actorType ?? (isAiByLogin ? "ai" : login.endsWith("[bot]") ? "bot" : null)
+  const isAi = resolvedActorType === "ai"
+  const isBot = resolvedActorType === "bot"
   const displayName = isBot ? login.slice(0, -5) : login
   const resolvedUrl = resolveOwnerAvatarUrl(login, avatarUrl)
   const avatarSize = Math.round(size + size * 0.4)
@@ -41,7 +51,11 @@ export const AuthorLabel = ({
       >
         {displayName}
       </span>
-      {isBot && <span className={styles.botBadge}>bot</span>}
+      {isAi ? (
+        <span className={styles.aiBadge}>AI</span>
+      ) : isBot ? (
+        <span className={styles.botBadge}>bot</span>
+      ) : null}
     </span>
   )
 }

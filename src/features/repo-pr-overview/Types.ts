@@ -67,6 +67,7 @@ export interface PullRequestCommit {
   messageShort: string | null
   authorLogin: string | null
   authorAvatarUrl: string | null
+  pushEventId: string | null
   authoredAt: number | null
   createdAt: number
   htmlUrl: string | null
@@ -138,13 +139,31 @@ export interface PullRequestWorkflowJob {
   updatedAt: string | number | null
 }
 
+export interface PullRequestReaction {
+  id: string
+  targetType: string
+  targetGithubId: number
+  content: string
+  count: number
+}
+
 export interface PrEventData {
   authorLogin: string
   authorAvatarUrl: string | null
+  mergeCommitSha?: string | null
 }
 
 export type TimelineItem =
   | { type: "commit"; timestamp: number; data: PullRequestCommit }
+  | {
+      type: "commit_group"
+      timestamp: number
+      data: {
+        pushAuthorLogin: string
+        pushAuthorAvatarUrl: string | null
+        commits: PullRequestCommit[]
+      }
+    }
   | { type: "review"; timestamp: number; data: PullRequestReviewWithComments }
   | { type: "issue_comment"; timestamp: number; data: PullRequestComment }
   | { type: "review_comment"; timestamp: number; data: ReviewCommentThread }
@@ -178,6 +197,7 @@ export interface PullRequestCard {
   baseRef: string
   baseSha: string | null
   headSha: string | null
+  mergeCommitSha: string | null
   updatedAt: string | number | null
   githubCreatedAt: number | null
   githubClosedAt: number | null
@@ -205,5 +225,6 @@ export interface PullRequestCard {
   workflowRuns: PullRequestWorkflowRun[]
   workflowJobs: PullRequestWorkflowJob[]
   pullRequestEvents: PullRequestEvent[]
+  reactions: PullRequestReaction[]
   pullRequestFiles: PullRequestFileEntry[]
 }

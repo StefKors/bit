@@ -191,7 +191,8 @@ export const shouldBumpPullRequestActivityForEvent = (event: string): boolean =>
   event === "check_suite" ||
   event === "status" ||
   event === "workflow_run" ||
-  event === "workflow_job"
+  event === "workflow_job" ||
+  event === "reaction"
 
 const upsertPullRequestFromPayload = async (
   repoId: string,
@@ -249,6 +250,7 @@ const upsertPullRequestFromPayload = async (
     baseSha: asString(base?.sha),
     headRef: asString(head?.ref),
     headSha: asString(head?.sha),
+    mergeCommitSha: asString(pullRequest?.merge_commit_sha),
     commentsCount: asNumber(pullRequest?.comments),
     reviewCommentsCount: asNumber(pullRequest?.review_comments),
     commitsCount: asNumber(pullRequest?.commits),
@@ -719,6 +721,29 @@ const resolvePullRequestIdForCiPayload = async (params: {
   return null
 }
 
+const resolvePullRequestIdForReactionPayload = async (
+  repoFullName: string,
+  payload: JsonObject,
+): Promise<string | null> => {
+  const issue = asObject(payload.issue)
+  if (asObject(issue?.pull_request)) {
+    const issueNumber = asNumber(issue?.number)
+    if (issueNumber !== undefined) {
+      const pullRequestId = await findPullRequestIdByNumber(repoFullName, issueNumber)
+      if (pullRequestId) return pullRequestId
+    }
+  }
+
+  const pullRequest = asObject(payload.pull_request)
+  const pullRequestNumber = asNumber(pullRequest?.number)
+  if (pullRequestNumber !== undefined) {
+    const pullRequestId = await findPullRequestIdByNumber(repoFullName, pullRequestNumber)
+    if (pullRequestId) return pullRequestId
+  }
+
+  return null
+}
+
 const PR_EVENT_ACTIONS = new Set([
   "labeled",
   "unlabeled",
@@ -726,6 +751,9 @@ const PR_EVENT_ACTIONS = new Set([
   "unassigned",
   "review_requested",
   "review_request_removed",
+  "renamed",
+  "ready_for_review",
+  "converted_to_draft",
 ])
 
 const insertPullRequestEvent = async (
@@ -746,6 +774,14 @@ const insertPullRequestEvent = async (
   if (action === "labeled" || action === "unlabeled") {
     const labelObj = asObject(payload.label)
     label = asString(labelObj?.name)
+  } else if (action === "renamed") {
+    const changes = asObject(payload.changes)
+    const titleChange = asObject(changes?.title)
+    const pullRequest = asObject(payload.pull_request)
+    label = toJson({
+      from: asString(titleChange?.from),
+      to: asString(pullRequest?.title),
+    })
   } else if (action === "assigned" || action === "unassigned") {
     const assignee = asObject(payload.assignee)
     targetLogin = asString(assignee?.login)
@@ -775,6 +811,67 @@ const insertPullRequestEvent = async (
         updatedAt: now,
       })
       .link({ pullRequest: pullRequestId }),
+  )
+}
+
+const upsertReaction = async (
+  pullRequestId: string,
+  payload: JsonObject,
+  now: number,
+): Promise<void> => {
+  const action = asString(payload.action)
+  if (!action || (action !== "created" && action !== "deleted")) return
+
+  const reaction = asObject(payload.reaction)
+  const content = asString(reaction?.content)
+  if (!content) return
+
+  const comment = asObject(payload.comment)
+  const review = asObject(payload.review)
+  const issue = asObject(payload.issue)
+
+  const targetType = comment
+    ? issue && asObject(issue.pull_request)
+      ? "issue_comment"
+      : "pull_request_review_comment"
+    : review
+      ? "pull_request_review"
+      : "issue"
+
+  const targetGithubId = asNumber(comment?.id) ?? asNumber(review?.id) ?? asNumber(issue?.id)
+  if (targetGithubId === undefined) return
+
+  const reactionKey = `${targetType}:${targetGithubId}:${content}`
+  const { reactions } = await adminDb.query({
+    reactions: {
+      $: { where: { reactionKey }, limit: 1 },
+    },
+  })
+  const existing = reactions?.[0]
+
+  const previousCount = existing?.count ?? 0
+  const nextCount = action === "created" ? previousCount + 1 : Math.max(0, previousCount - 1)
+
+  const update = {
+    reactionKey,
+    targetType,
+    targetGithubId,
+    content,
+    count: nextCount,
+    createdAt: existing?.createdAt ?? now,
+    updatedAt: now,
+  }
+
+  if (existing) {
+    await adminDb.transact(
+      adminDb.tx.reactions[existing.id].update(update).link({ pullRequest: pullRequestId }),
+    )
+    return
+  }
+
+  const reactionId = id()
+  await adminDb.transact(
+    adminDb.tx.reactions[reactionId].update(update).link({ pullRequest: pullRequestId }),
   )
 }
 
@@ -823,17 +920,24 @@ export const persistWebhookPayload = async (params: {
       updatedAt: now,
     }
 
+    let pushEventId = existingPush?.id
     if (existingPush) {
       await adminDb.transact(adminDb.tx.pushEvents[existingPush.id].update(pushUpdate))
-      return
+    } else {
+      pushEventId = id()
+      await adminDb.transact(
+        adminDb.tx.pushEvents[pushEventId].update(pushUpdate).link({ repo: repo.id }),
+      )
     }
-
-    const pushId = id()
-    await adminDb.transact(adminDb.tx.pushEvents[pushId].update(pushUpdate).link({ repo: repo.id }))
 
     if (installationId) {
       const pushRef = asString(payloadRecord.ref)
       const branchName = pushRef?.replace("refs/heads/", "")
+      const pushCommitShas = new Set(
+        asArray(payloadRecord.commits)
+          .map((commit) => asString(asObject(commit)?.id))
+          .filter((sha): sha is string => Boolean(sha)),
+      )
       if (branchName) {
         const { repos: reposWithPRs } = await adminDb.query({
           repos: {
@@ -850,6 +954,8 @@ export const persistWebhookPayload = async (params: {
             repoFullName: repo.fullName,
             installationId,
             prNumber: pr.number,
+            pushEventId,
+            pushCommitShas,
           })
         }
       }
@@ -870,6 +976,8 @@ export const persistWebhookPayload = async (params: {
     event === "pull_request_review_thread"
   ) {
     pullRequestId = await upsertPullRequestFromPayload(repo.id, repo.fullName, payloadRecord, now)
+  } else if (event === "reaction") {
+    pullRequestId = await resolvePullRequestIdForReactionPayload(repo.fullName, payloadRecord)
   } else if (
     event === "check_run" ||
     event === "check_suite" ||
@@ -958,6 +1066,11 @@ export const persistWebhookPayload = async (params: {
 
   if (event === "workflow_job") {
     await upsertWorkflowJob(pullRequestId, payloadRecord, now)
+    return
+  }
+
+  if (event === "reaction") {
+    await upsertReaction(pullRequestId, payloadRecord, now)
     return
   }
 }

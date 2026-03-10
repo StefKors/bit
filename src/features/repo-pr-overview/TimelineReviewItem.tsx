@@ -3,7 +3,7 @@ import { AuthorLabel } from "@/components/AuthorLabel"
 import { Markdown } from "@/components/Markdown"
 import { StatusBadge } from "@/components/StatusBadge"
 import { getReviewBadgeVariant, getReviewIcon } from "./Utils"
-import type { PullRequestReviewWithComments } from "./Types"
+import type { PullRequestReaction, PullRequestReviewWithComments } from "./Types"
 import {
   TimelineItem,
   TimelineItemBody,
@@ -15,9 +15,10 @@ import { TimelineReviewNestedCommentThread } from "./TimelineReviewNestedComment
 
 interface TimelineReviewItemProps {
   review: PullRequestReviewWithComments
+  reactions?: PullRequestReaction[]
 }
 
-export const TimelineReviewItem = ({ review }: TimelineReviewItemProps) => {
+export const TimelineReviewItem = ({ review, reactions = [] }: TimelineReviewItemProps) => {
   const stateLabel = formatReviewState(review.state)
   const hasBody = Boolean(review.body)
   const hasNested = review.nestedCommentThreads.length > 0
@@ -54,7 +55,11 @@ export const TimelineReviewItem = ({ review }: TimelineReviewItemProps) => {
             {hasNested && (
               <div className={styles.nestedThreads}>
                 {review.nestedCommentThreads.map((thread) => (
-                  <TimelineReviewNestedCommentThread key={thread.root.id} thread={thread} />
+                  <TimelineReviewNestedCommentThread
+                    key={thread.root.id}
+                    thread={thread}
+                    reactions={reactions}
+                  />
                 ))}
               </div>
             )}

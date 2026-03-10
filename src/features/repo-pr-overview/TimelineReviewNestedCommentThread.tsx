@@ -1,21 +1,26 @@
+import { useState } from "react"
 import { formatRelativeTime } from "@/lib/Format"
 import { AuthorLabel } from "@/components/AuthorLabel"
 import { Markdown } from "@/components/Markdown"
 import { getLanguageFromFilePath } from "@/lib/Markdown"
-import type { ReviewCommentThread } from "./Types"
+import type { PullRequestReaction, ReviewCommentThread } from "./Types"
 import { TimelineItemBody, TimelineItemContent } from "./TimelineItemBase"
+import { TimelineReactions } from "./TimelineReactions"
 import styles from "./TimelineReviewNestedCommentThread.module.css"
 
 interface TimelineReviewNestedCommentThreadProps {
   thread: ReviewCommentThread
+  reactions?: PullRequestReaction[]
 }
 
 export const TimelineReviewNestedCommentThread = ({
   thread,
+  reactions = [],
 }: TimelineReviewNestedCommentThreadProps) => {
   const { root, replies, isResolved, isCollapsed } = thread
+  const [isOpen, setIsOpen] = useState(!(isResolved || isCollapsed))
   const defaultLanguage = getLanguageFromFilePath(root.path) ?? undefined
-  const shouldCollapse = isResolved || isCollapsed
+  const shouldCollapse = !isOpen
 
   return (
     <div className={styles.nestedThread}>
@@ -26,6 +31,7 @@ export const TimelineReviewNestedCommentThread = ({
           size={13}
           lineHeight="default"
         />
+        {root.updatedAt > root.createdAt && <span className={styles.editedLabel}>edited</span>}
         {root.path && (
           <code className={styles.nestedFilePath}>
             {root.path}
@@ -38,12 +44,19 @@ export const TimelineReviewNestedCommentThread = ({
       </div>
       <TimelineItemBody wide={false}>
         {shouldCollapse ? (
-          <div className={styles.collapsedNotice}>
+          <button
+            type="button"
+            className={styles.collapsedNoticeButton}
+            onClick={() => {
+              setIsOpen(true)
+            }}
+          >
             {isResolved ? "Resolved thread" : "Collapsed thread"}
             {replies.length > 0
               ? ` (${replies.length} repl${replies.length === 1 ? "y" : "ies"})`
               : ""}
-          </div>
+            <span className={styles.collapsedNoticeAction}>Show</span>
+          </button>
         ) : (
           <>
             {root.body && (
@@ -52,6 +65,14 @@ export const TimelineReviewNestedCommentThread = ({
                   content={root.body}
                   className={styles.nestedContent}
                   defaultLanguage={defaultLanguage}
+                />
+                <TimelineReactions
+                  reactions={reactions.filter(
+                    (reaction) =>
+                      reaction.targetType === "pull_request_review_comment" &&
+                      reaction.targetGithubId === root.githubId &&
+                      reaction.count > 0,
+                  )}
                 />
               </TimelineItemContent>
             )}
@@ -64,6 +85,9 @@ export const TimelineReviewNestedCommentThread = ({
                     size={13}
                     lineHeight="default"
                   />
+                  {reply.updatedAt > reply.createdAt && (
+                    <span className={styles.editedLabel}>edited</span>
+                  )}
                   <time className={styles.nestedTime}>
                     {formatRelativeTime(reply.createdAt || reply.updatedAt)}
                   </time>
@@ -75,10 +99,29 @@ export const TimelineReviewNestedCommentThread = ({
                       className={styles.nestedReplyBody}
                       defaultLanguage={defaultLanguage}
                     />
+                    <TimelineReactions
+                      reactions={reactions.filter(
+                        (reaction) =>
+                          reaction.targetType === "pull_request_review_comment" &&
+                          reaction.targetGithubId === reply.githubId &&
+                          reaction.count > 0,
+                      )}
+                    />
                   </TimelineItemContent>
                 )}
               </div>
             ))}
+            {(isResolved || isCollapsed) && (
+              <button
+                type="button"
+                className={styles.collapsedNoticeActionInline}
+                onClick={() => {
+                  setIsOpen(false)
+                }}
+              >
+                Hide thread
+              </button>
+            )}
           </>
         )}
       </TimelineItemBody>

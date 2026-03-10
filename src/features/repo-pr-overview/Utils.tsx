@@ -82,11 +82,54 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
     items.push({ type: "opened", timestamp: pr.githubCreatedAt, data: prAuthor })
   }
 
-  for (const commit of pr.pullRequestCommits) {
-    const ts = commit.authoredAt ?? commit.createdAt ?? 0
-    if (ts > 0) {
-      items.push({ type: "commit", timestamp: ts, data: commit })
+  const commitItems = pr.pullRequestCommits
+    .map((commit) => ({
+      commit,
+      timestamp: commit.authoredAt ?? commit.createdAt ?? 0,
+    }))
+    .filter((entry) => entry.timestamp > 0)
+    .toSorted((a, b) => a.timestamp - b.timestamp)
+
+  for (let index = 0; index < commitItems.length; index++) {
+    const current = commitItems[index]
+    if (!current) continue
+
+    const pushEventId = current.commit.pushEventId
+    if (!pushEventId) {
+      items.push({ type: "commit", timestamp: current.timestamp, data: current.commit })
+      continue
     }
+
+    const groupedCommits = [current]
+    let nextIndex = index + 1
+    while (
+      nextIndex < commitItems.length &&
+      commitItems[nextIndex]?.commit.pushEventId === pushEventId
+    ) {
+      const nextCommit = commitItems[nextIndex]
+      if (nextCommit) groupedCommits.push(nextCommit)
+      nextIndex += 1
+    }
+
+    if (groupedCommits.length <= 1) {
+      items.push({ type: "commit", timestamp: current.timestamp, data: current.commit })
+      continue
+    }
+
+    const newestCommit = groupedCommits[groupedCommits.length - 1]
+    const firstCommit = groupedCommits[0]?.commit
+    if (firstCommit && newestCommit) {
+      items.push({
+        type: "commit_group",
+        timestamp: newestCommit.timestamp,
+        data: {
+          pushAuthorLogin: firstCommit.authorLogin ?? "unknown",
+          pushAuthorAvatarUrl: firstCommit.authorAvatarUrl ?? null,
+          commits: groupedCommits.map((groupedCommit) => groupedCommit.commit),
+        },
+      })
+    }
+    index = nextIndex - 1
   }
 
   const repliesByParent = new Map<number, typeof pr.pullRequestReviewComments>()
@@ -171,7 +214,14 @@ export const buildTimeline = (pr: PullRequestCard): TimelineItem[] => {
     const mergedActor = pr.mergedByLogin
       ? { authorLogin: pr.mergedByLogin, authorAvatarUrl: pr.mergedByAvatarUrl }
       : prAuthor
-    items.push({ type: "merged", timestamp: pr.githubMergedAt, data: mergedActor })
+    items.push({
+      type: "merged",
+      timestamp: pr.githubMergedAt,
+      data: {
+        ...mergedActor,
+        mergeCommitSha: pr.mergeCommitSha,
+      },
+    })
   } else if (pr.state === "closed" && pr.githubClosedAt) {
     const closedActor = pr.closedByLogin
       ? { authorLogin: pr.closedByLogin, authorAvatarUrl: pr.closedByAvatarUrl }

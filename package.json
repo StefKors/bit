@@ -19,8 +19,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:visual": "vitest run --config vitest.visual.config.ts",
-    "test:visual:update": "vitest run --config vitest.visual.config.ts --update"
+    "test:visual": "vitest run --config VitestVisualConfig.ts",
+    "test:visual:update": "vitest run --config VitestVisualConfig.ts --update"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",

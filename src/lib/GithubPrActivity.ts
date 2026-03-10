@@ -143,7 +143,13 @@ function parseTimestamp(iso: string | null | undefined): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined
 }
 
-async function upsertCommits(pullRequestId: string, commits: GitHubCommit[]): Promise<void> {
+async function upsertCommits(params: {
+  pullRequestId: string
+  commits: GitHubCommit[]
+  pushEventId?: string
+  pushCommitShas?: Set<string>
+}): Promise<void> {
+  const { pullRequestId, commits, pushEventId, pushCommitShas } = params
   if (commits.length === 0) return
   const now = Date.now()
   const shas = commits.map((c) => c.sha)
@@ -176,12 +182,19 @@ async function upsertCommits(pullRequestId: string, commits: GitHubCommit[]): Pr
       updatedAt: now,
     }
 
+    const shouldLinkPushEvent = Boolean(pushEventId) && Boolean(pushCommitShas?.has(commit.sha))
+
     if (found) {
-      return adminDb.tx.pullRequestCommits[found.id]
+      const tx = adminDb.tx.pullRequestCommits[found.id]
         .update(update)
         .link({ pullRequest: pullRequestId })
+      return shouldLinkPushEvent && pushEventId ? tx.link({ pushEvent: pushEventId }) : tx
     }
-    return adminDb.tx.pullRequestCommits[id()].update(update).link({ pullRequest: pullRequestId })
+
+    const tx = adminDb.tx.pullRequestCommits[id()]
+      .update(update)
+      .link({ pullRequest: pullRequestId })
+    return shouldLinkPushEvent && pushEventId ? tx.link({ pushEvent: pushEventId }) : tx
   })
 
   await adminDb.transact(txs)
@@ -321,8 +334,11 @@ export async function syncPRActivity(params: {
   repoFullName: string
   installationId: number
   prNumber: number
+  pushEventId?: string
+  pushCommitShas?: Set<string>
 }): Promise<void> {
-  const { pullRequestId, repoFullName, installationId, prNumber } = params
+  const { pullRequestId, repoFullName, installationId, prNumber, pushEventId, pushCommitShas } =
+    params
   const [owner, repo] = repoFullName.split("/")
   if (!owner || !repo) {
     log.warn("syncPRActivity: invalid repoFullName", { repoFullName })
@@ -343,7 +359,12 @@ export async function syncPRActivity(params: {
   ])
 
   await Promise.all([
-    upsertCommits(pullRequestId, commits),
+    upsertCommits({
+      pullRequestId,
+      commits,
+      pushEventId,
+      pushCommitShas,
+    }),
     upsertIssueCommentsFromApi(pullRequestId, issueComments),
     upsertReviewsFromApi(pullRequestId, reviews),
     upsertReviewCommentsFromApi(pullRequestId, reviewComments),
@@ -364,6 +385,8 @@ export async function syncPRActivitySafely(params: {
   repoFullName: string
   installationId: number
   prNumber: number
+  pushEventId?: string
+  pushCommitShas?: Set<string>
 }): Promise<void> {
   try {
     await syncPRActivity(params)
