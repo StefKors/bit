@@ -41,3 +41,6 @@ node_modules
 .netlify
 .tanstack
 .vitest-attachments/
+
+# Cursor local hook state
+.cursor/hooks/state/
