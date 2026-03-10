@@ -1,6 +1,7 @@
 import { CheckIcon, ChevronDownIcon, SkipIcon, XIcon } from "@primer/octicons-react"
 import { Collapsible } from "@base-ui/react/collapsible"
 import { AnimatePresence, motion } from "motion/react"
+import type { KeyboardEvent } from "react"
 import { CiDot } from "@/components/CiDot"
 import { CiSegmentedCircle } from "@/components/CiSegmentedCircle"
 import type { PullRequestCard } from "./Types"
@@ -78,13 +79,13 @@ const GROUP_ORDER: CiGroup[] = ["pending", "inProgress", "failed", "skipped", "s
 
 const getItemIndicator = (group: CiGroup) => {
   if (group === "successful") {
-    return <CheckIcon size={14} className={styles.iconSuccess} />
+    return <CheckIcon size={13} className={styles.iconSuccess} />
   }
   if (group === "failed") {
-    return <XIcon size={14} className={styles.iconFailed} />
+    return <XIcon size={13} className={styles.iconFailed} />
   }
   if (group === "skipped") {
-    return <SkipIcon size={14} className={styles.iconSkipped} />
+    return <SkipIcon size={13} className={styles.iconSkipped} />
   }
   return <CiDot variant={ciDotVariantByGroup(group)} />
 }
@@ -148,6 +149,17 @@ export const PrReviewTab = ({ pr, compact = false }: PrReviewTabProps) => {
   }
 
   const runningCount = grouped.pending.length + grouped.inProgress.length
+  const openExternalUrl = (url: string | null) => {
+    if (!url) return
+    window.open(url, "_blank", "noopener,noreferrer")
+  }
+  const handleRowKeyDown = (event: KeyboardEvent<HTMLLIElement>, url: string | null) => {
+    if (!url) return
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault()
+      openExternalUrl(url)
+    }
+  }
 
   if (items.length === 0) {
     return (
@@ -160,15 +172,16 @@ export const PrReviewTab = ({ pr, compact = false }: PrReviewTabProps) => {
   return (
     <section className={`${styles.reviewTab} ${compact ? styles.reviewTabCompact : ""}`}>
       <header className={styles.summary}>
-        <CiSegmentedCircle
-          pendingCount={grouped.pending.length}
-          inProgressCount={grouped.inProgress.length}
-          failedCount={grouped.failed.length}
-          skippedCount={grouped.skipped.length}
-          successfulCount={grouped.successful.length}
-          size={15}
-          // minSegmentWidth={2.2}
-        />
+        <span className={styles.summaryIndicator}>
+          <CiSegmentedCircle
+            pendingCount={grouped.pending.length}
+            inProgressCount={grouped.inProgress.length}
+            failedCount={grouped.failed.length}
+            skippedCount={grouped.skipped.length}
+            successfulCount={grouped.successful.length}
+            size={15}
+          />
+        </span>
         <span className={styles.summaryTitle}>
           {runningCount > 0 ? `${runningCount} checks running` : "All checks finished"}
         </span>
@@ -213,31 +226,22 @@ export const PrReviewTab = ({ pr, compact = false }: PrReviewTabProps) => {
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -6 }}
                               transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                              className={styles.row}
+                              onClick={item.url ? () => openExternalUrl(item.url) : undefined}
+                              onKeyDown={
+                                item.url ? (event) => handleRowKeyDown(event, item.url) : undefined
+                              }
+                              role={item.url ? "link" : undefined}
+                              tabIndex={item.url ? 0 : undefined}
+                              title={item.url ? "Open in GitHub" : undefined}
+                              className={`${styles.row} ${item.url ? styles.rowInteractive : ""}`}
                             >
-                              {item.url ? (
-                                <a
-                                  className={styles.link}
-                                  href={item.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  title="Open in GitHub"
-                                >
-                                  <span className={styles.indicator}>
-                                    {getItemIndicator(item.group)}
-                                  </span>
-                                  <span className={styles.label}>{item.label}</span>
-                                  <span className={styles.statusText}>{item.statusText}</span>
-                                </a>
-                              ) : (
-                                <div className={styles.link}>
-                                  <span className={styles.indicator}>
-                                    {getItemIndicator(item.group)}
-                                  </span>
-                                  <span className={styles.label}>{item.label}</span>
-                                  <span className={styles.statusText}>{item.statusText}</span>
-                                </div>
-                              )}
+                              <div className={styles.link}>
+                                <span className={styles.indicator}>
+                                  {getItemIndicator(item.group)}
+                                </span>
+                                <span className={styles.label}>{item.label}</span>
+                                <span className={styles.statusText}>{item.statusText}</span>
+                              </div>
                             </motion.li>
                           ))}
                         </AnimatePresence>

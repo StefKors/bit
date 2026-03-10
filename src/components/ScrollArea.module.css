@@ -4,7 +4,8 @@
 }
 
 .Viewport {
-  height: 100%;
+  height: inherit;
+  max-height: inherit;
 }
 
 .Viewport::before,
