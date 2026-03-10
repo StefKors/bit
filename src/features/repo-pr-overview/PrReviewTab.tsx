@@ -5,6 +5,7 @@ import { CiDot } from "@/components/CiDot"
 import { CiSegmentedCircle } from "@/components/CiSegmentedCircle"
 import type { PullRequestCard } from "./Types"
 import styles from "./PrReviewTab.module.css"
+import ScrollArea from "@/components/ScrollArea"
 
 type CiGroup = "pending" | "inProgress" | "failed" | "skipped" | "successful"
 
@@ -159,15 +160,16 @@ export const PrReviewTab = ({ pr, compact = false }: PrReviewTabProps) => {
   return (
     <section className={`${styles.reviewTab} ${compact ? styles.reviewTabCompact : ""}`}>
       <header className={styles.summary}>
+        <CiSegmentedCircle
+          pendingCount={grouped.pending.length}
+          inProgressCount={grouped.inProgress.length}
+          failedCount={grouped.failed.length}
+          skippedCount={grouped.skipped.length}
+          successfulCount={grouped.successful.length}
+          size={15}
+          // minSegmentWidth={2.2}
+        />
         <span className={styles.summaryTitle}>
-          <CiSegmentedCircle
-            pendingCount={grouped.pending.length}
-            inProgressCount={grouped.inProgress.length}
-            failedCount={grouped.failed.length}
-            skippedCount={grouped.skipped.length}
-            successfulCount={grouped.successful.length}
-            // minSegmentWidth={2.2}
-          />
           {runningCount > 0 ? `${runningCount} checks running` : "All checks finished"}
         </span>
         <span className={styles.summaryMeta}>
@@ -176,68 +178,75 @@ export const PrReviewTab = ({ pr, compact = false }: PrReviewTabProps) => {
         </span>
       </header>
 
-      <AnimatePresence initial={false}>
-        {GROUP_ORDER.map((group) =>
-          grouped[group].length > 0 ? (
-            <motion.section
-              key={group}
-              layout
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <Collapsible.Root className={styles.group} defaultOpen>
-                <Collapsible.Trigger className={styles.groupTrigger}>
-                  <span className={styles.groupTriggerTitle}>
-                    <h3 className={styles.groupTitle}>{groupTitle[group]}</h3>
-                    <span className={styles.groupCount}>{grouped[group].length}</span>
-                  </span>
-                  <span className={styles.groupChevron} aria-hidden>
-                    <ChevronDownIcon size={12} />
-                  </span>
-                </Collapsible.Trigger>
-                <Collapsible.Panel className={styles.groupPanel}>
-                  <motion.ul layout className={styles.list}>
-                    <AnimatePresence initial={false}>
-                      {grouped[group].map((item) => (
-                        <motion.li
-                          key={item.id}
-                          layout
-                          initial={{ opacity: 0, y: 6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -6 }}
-                          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                          className={styles.row}
-                        >
-                          <span className={styles.indicator}>{getItemIndicator(item.group)}</span>
-                          {item.url ? (
-                            <a
-                              className={styles.link}
-                              href={item.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              title="Open in GitHub"
+      <ScrollArea className={styles.scrollArea}>
+        <div className={styles.scrollAreaContent}>
+          <AnimatePresence initial={false}>
+            {GROUP_ORDER.map((group) =>
+              grouped[group].length > 0 ? (
+                <motion.section
+                  key={group}
+                  layout
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <Collapsible.Root className={styles.group} defaultOpen>
+                    <Collapsible.Trigger className={styles.groupTrigger}>
+                      <span className={styles.groupTriggerTitle}>
+                        <h3 className={styles.groupTitle}>
+                          {grouped[group].length} {groupTitle[group]}
+                        </h3>
+                      </span>
+                      <span className={styles.groupChevron} aria-hidden>
+                        <ChevronDownIcon size={12} />
+                      </span>
+                    </Collapsible.Trigger>
+                    <Collapsible.Panel className={styles.groupPanel}>
+                      <motion.ul layout className={styles.list}>
+                        <AnimatePresence initial={false}>
+                          {grouped[group].map((item) => (
+                            <motion.li
+                              key={item.id}
+                              layout
+                              initial={{ opacity: 0, y: 6 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -6 }}
+                              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                              className={styles.row}
                             >
-                              <span className={styles.label}>{item.label}</span>
-                              <span className={styles.statusText}>{item.statusText}</span>
-                            </a>
-                          ) : (
-                            <div className={styles.link}>
-                              <span className={styles.label}>{item.label}</span>
-                              <span className={styles.statusText}>{item.statusText}</span>
-                            </div>
-                          )}
-                        </motion.li>
-                      ))}
-                    </AnimatePresence>
-                  </motion.ul>
-                </Collapsible.Panel>
-              </Collapsible.Root>
-            </motion.section>
-          ) : null,
-        )}
-      </AnimatePresence>
+                              <span className={styles.indicator}>
+                                {getItemIndicator(item.group)}
+                              </span>
+                              {item.url ? (
+                                <a
+                                  className={styles.link}
+                                  href={item.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  title="Open in GitHub"
+                                >
+                                  <span className={styles.label}>{item.label}</span>
+                                  <span className={styles.statusText}>{item.statusText}</span>
+                                </a>
+                              ) : (
+                                <div className={styles.link}>
+                                  <span className={styles.label}>{item.label}</span>
+                                  <span className={styles.statusText}>{item.statusText}</span>
+                                </div>
+                              )}
+                            </motion.li>
+                          ))}
+                        </AnimatePresence>
+                      </motion.ul>
+                    </Collapsible.Panel>
+                  </Collapsible.Root>
+                </motion.section>
+              ) : null,
+            )}
+          </AnimatePresence>
+        </div>
+      </ScrollArea>
     </section>
   )
 }

@@ -236,9 +236,7 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
           <p className={styles.detailEmpty}>No activity yet.</p>
         )}
 
-        <div className={styles.ciScrollBox}>
-          <PrReviewTab pr={pr} compact />
-        </div>
+        <PrReviewTab pr={pr} compact />
 
         {user && (user as { refresh_token?: string }).refresh_token && (
           <form
