@@ -91,6 +91,7 @@ const getItemIndicator = (group: CiGroup) => {
 }
 
 const buildCiReviewItems = (pr: PullRequestCard): CiReviewItem[] => {
+  console.log(pr)
   const checkRunItems: CiReviewItem[] = pr.checkRuns.map((check) => ({
     id: `check-run-${check.id}`,
     label: `Check run · ${check.name}`,
@@ -133,6 +134,74 @@ const buildCiReviewItems = (pr: PullRequestCard): CiReviewItem[] => {
     ...commitStatusItems,
   ].toSorted((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }))
 }
+
+interface ReviewContentProps {
+  grouped: Record<CiGroup, CiReviewItem[]>
+  openExternalUrl: (url: string | null) => void
+  handleRowKeyDown: (event: KeyboardEvent<HTMLLIElement>, url: string | null) => void
+}
+
+const ReviewContent = ({ grouped, openExternalUrl, handleRowKeyDown }: ReviewContentProps) => (
+  <div className={styles.scrollAreaContent}>
+    <AnimatePresence initial={false}>
+      {GROUP_ORDER.map((group) =>
+        grouped[group].length > 0 ? (
+          <motion.section
+            key={group}
+            layout
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Collapsible.Root className={styles.group} defaultOpen>
+              <Collapsible.Trigger className={styles.groupTrigger}>
+                <span className={styles.groupTriggerTitle}>
+                  <h3 className={styles.groupTitle}>
+                    {grouped[group].length} {groupTitle[group]}
+                  </h3>
+                </span>
+                <span className={styles.groupChevron} aria-hidden>
+                  <ChevronDownIcon size={12} />
+                </span>
+              </Collapsible.Trigger>
+              <Collapsible.Panel className={styles.groupPanel}>
+                <motion.ul layout className={styles.list}>
+                  <AnimatePresence initial={false}>
+                    {grouped[group].map((item) => (
+                      <motion.li
+                        key={item.id}
+                        layout
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                        onClick={item.url ? () => openExternalUrl(item.url) : undefined}
+                        onKeyDown={
+                          item.url ? (event) => handleRowKeyDown(event, item.url) : undefined
+                        }
+                        role={item.url ? "link" : undefined}
+                        tabIndex={item.url ? 0 : undefined}
+                        title={item.url ? "Open in GitHub" : undefined}
+                        className={`${styles.row} ${item.url ? styles.rowInteractive : ""}`}
+                      >
+                        <div className={styles.link}>
+                          <span className={styles.indicator}>{getItemIndicator(item.group)}</span>
+                          <span className={styles.label}>{item.label}</span>
+                          <span className={styles.statusText}>{item.statusText}</span>
+                        </div>
+                      </motion.li>
+                    ))}
+                  </AnimatePresence>
+                </motion.ul>
+              </Collapsible.Panel>
+            </Collapsible.Root>
+          </motion.section>
+        ) : null,
+      )}
+    </AnimatePresence>
+  </div>
+)
 
 export const PrReviewTab = ({ pr, compact = false }: PrReviewTabProps) => {
   const items = buildCiReviewItems(pr)
@@ -191,69 +260,21 @@ export const PrReviewTab = ({ pr, compact = false }: PrReviewTabProps) => {
         </span>
       </header>
 
-      <ScrollArea className={styles.scrollArea}>
-        <div className={styles.scrollAreaContent}>
-          <AnimatePresence initial={false}>
-            {GROUP_ORDER.map((group) =>
-              grouped[group].length > 0 ? (
-                <motion.section
-                  key={group}
-                  layout
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <Collapsible.Root className={styles.group} defaultOpen>
-                    <Collapsible.Trigger className={styles.groupTrigger}>
-                      <span className={styles.groupTriggerTitle}>
-                        <h3 className={styles.groupTitle}>
-                          {grouped[group].length} {groupTitle[group]}
-                        </h3>
-                      </span>
-                      <span className={styles.groupChevron} aria-hidden>
-                        <ChevronDownIcon size={12} />
-                      </span>
-                    </Collapsible.Trigger>
-                    <Collapsible.Panel className={styles.groupPanel}>
-                      <motion.ul layout className={styles.list}>
-                        <AnimatePresence initial={false}>
-                          {grouped[group].map((item) => (
-                            <motion.li
-                              key={item.id}
-                              layout
-                              initial={{ opacity: 0, y: 6 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -6 }}
-                              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                              onClick={item.url ? () => openExternalUrl(item.url) : undefined}
-                              onKeyDown={
-                                item.url ? (event) => handleRowKeyDown(event, item.url) : undefined
-                              }
-                              role={item.url ? "link" : undefined}
-                              tabIndex={item.url ? 0 : undefined}
-                              title={item.url ? "Open in GitHub" : undefined}
-                              className={`${styles.row} ${item.url ? styles.rowInteractive : ""}`}
-                            >
-                              <div className={styles.link}>
-                                <span className={styles.indicator}>
-                                  {getItemIndicator(item.group)}
-                                </span>
-                                <span className={styles.label}>{item.label}</span>
-                                <span className={styles.statusText}>{item.statusText}</span>
-                              </div>
-                            </motion.li>
-                          ))}
-                        </AnimatePresence>
-                      </motion.ul>
-                    </Collapsible.Panel>
-                  </Collapsible.Root>
-                </motion.section>
-              ) : null,
-            )}
-          </AnimatePresence>
-        </div>
-      </ScrollArea>
+      {compact ? (
+        <ScrollArea className={styles.scrollArea}>
+          <ReviewContent
+            grouped={grouped}
+            openExternalUrl={openExternalUrl}
+            handleRowKeyDown={handleRowKeyDown}
+          />
+        </ScrollArea>
+      ) : (
+        <ReviewContent
+          grouped={grouped}
+          openExternalUrl={openExternalUrl}
+          handleRowKeyDown={handleRowKeyDown}
+        />
+      )}
     </section>
   )
 }

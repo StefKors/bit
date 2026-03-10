@@ -4,11 +4,12 @@
   border: 1px solid var(--bit-color-border);
   border-radius: var(--bit-radius-md);
   background: var(--bit-color-bg);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .reviewTabCompact {
   padding: 0;
+  overflow: hidden;
 }
 
 .summary {
@@ -50,6 +51,10 @@
   display: block;
   width: 100%;
   height: auto;
+  max-height: none;
+}
+
+.reviewTabCompact .scrollArea {
   max-height: 280px;
 }
 
