@@ -1,5 +1,6 @@
 .ScrollArea {
   box-sizing: border-box;
+  position: relative;
 }
 
 .Viewport {
@@ -54,12 +55,13 @@
   opacity: 0;
   transition: opacity 150ms;
   pointer-events: none;
+  z-index: 9;
 
   &[data-scrolling] {
     transition-duration: 0ms;
   }
 
-  &[data-hovering],
+  &:hover,
   &[data-scrolling] {
     opacity: 1;
     pointer-events: auto;

@@ -1,5 +1,5 @@
 [data-theme="synthwave"][data-color-mode="dark"] {
-  --bit-rgb-fg: 240, 230, 255;
+  --bit-rgb-fg: 215, 206, 228;
   --bit-rgb-bg: 26, 16, 37;
   --bit-rgb-shadow: 14, 8, 24;
   --bit-rgb-paper: 240, 230, 255;
@@ -54,7 +54,7 @@
 }
 
 [data-theme="synthwave"][data-color-mode="light"] {
-  --bit-rgb-fg: 42, 24, 64;
+  --bit-rgb-fg: 28, 16, 42;
   --bit-rgb-bg: 250, 245, 255;
   --bit-rgb-shadow: 42, 24, 64;
   --bit-rgb-paper: 255, 255, 255;

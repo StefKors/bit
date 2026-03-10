@@ -215,9 +215,6 @@ export const PrReviewTab = ({ pr, compact = false }: PrReviewTabProps) => {
                               transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                               className={styles.row}
                             >
-                              <span className={styles.indicator}>
-                                {getItemIndicator(item.group)}
-                              </span>
                               {item.url ? (
                                 <a
                                   className={styles.link}
@@ -226,11 +223,17 @@ export const PrReviewTab = ({ pr, compact = false }: PrReviewTabProps) => {
                                   rel="noreferrer"
                                   title="Open in GitHub"
                                 >
+                                  <span className={styles.indicator}>
+                                    {getItemIndicator(item.group)}
+                                  </span>
                                   <span className={styles.label}>{item.label}</span>
                                   <span className={styles.statusText}>{item.statusText}</span>
                                 </a>
                               ) : (
                                 <div className={styles.link}>
+                                  <span className={styles.indicator}>
+                                    {getItemIndicator(item.group)}
+                                  </span>
                                   <span className={styles.label}>{item.label}</span>
                                   <span className={styles.statusText}>{item.statusText}</span>
                                 </div>

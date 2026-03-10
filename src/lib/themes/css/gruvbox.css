@@ -1,5 +1,5 @@
 [data-theme="gruvbox"][data-color-mode="dark"] {
-  --bit-rgb-fg: 235, 219, 178;
+  --bit-rgb-fg: 210, 196, 159;
   --bit-rgb-bg: 40, 40, 40;
   --bit-rgb-shadow: 29, 32, 33;
   --bit-rgb-paper: 235, 219, 178;
@@ -54,7 +54,7 @@
 }
 
 [data-theme="gruvbox"][data-color-mode="light"] {
-  --bit-rgb-fg: 60, 56, 54;
+  --bit-rgb-fg: 38, 36, 34;
   --bit-rgb-bg: 251, 241, 199;
   --bit-rgb-shadow: 40, 40, 40;
   --bit-rgb-paper: 255, 255, 255;

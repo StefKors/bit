@@ -1,5 +1,5 @@
 [data-theme="ayu"][data-color-mode="dark"] {
-  --bit-rgb-fg: 230, 225, 207;
+  --bit-rgb-fg: 206, 201, 185;
   --bit-rgb-bg: 15, 20, 25;
   --bit-rgb-shadow: 8, 12, 16;
   --bit-rgb-paper: 230, 225, 207;
@@ -54,7 +54,7 @@
 }
 
 [data-theme="ayu"][data-color-mode="light"] {
-  --bit-rgb-fg: 87, 95, 102;
+  --bit-rgb-fg: 55, 60, 64;
   --bit-rgb-bg: 250, 250, 250;
   --bit-rgb-shadow: 0, 0, 0;
   --bit-rgb-paper: 255, 255, 255;

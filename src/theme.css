@@ -58,7 +58,7 @@
   */
 
   /* Base RGB primitives */
-  --bit-rgb-fg: 255, 255, 255;
+  --bit-rgb-fg: 228, 228, 228;
   --bit-rgb-bg: 10, 10, 10;
   --bit-rgb-shadow: 0, 0, 0;
 
@@ -104,7 +104,7 @@
 
   /* Semantic */
   --bit-color-bg: rgb(var(--bit-rgb-bg));
-  --bit-color-text: rgba(var(--bit-rgb-fg), 0.87);
+  --bit-color-text: color-mix(in oklab, rgb(var(--bit-rgb-fg)) 94%, transparent);
   --bit-color-text-muted: rgba(var(--bit-rgb-fg), 0.58);
   --bit-color-link: var(--bit-color-accent-blue);
   --bit-color-heading: var(--bit-color-paper);
@@ -204,7 +204,7 @@
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    --bit-rgb-fg: 0, 0, 0;
+    --bit-rgb-fg: 20, 20, 20;
     --bit-rgb-bg: 255, 255, 255;
 
     --bit-color-heading: var(--bit-color-ink);

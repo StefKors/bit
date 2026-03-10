@@ -1,5 +1,5 @@
 [data-theme="pastels"][data-color-mode="dark"] {
-  --bit-rgb-fg: 240, 235, 242;
+  --bit-rgb-fg: 215, 210, 216;
   --bit-rgb-bg: 30, 26, 34;
   --bit-rgb-shadow: 18, 14, 22;
   --bit-rgb-paper: 240, 235, 242;
@@ -54,7 +54,7 @@
 }
 
 [data-theme="pastels"][data-color-mode="light"] {
-  --bit-rgb-fg: 74, 58, 82;
+  --bit-rgb-fg: 47, 37, 52;
   --bit-rgb-bg: 255, 245, 248;
   --bit-rgb-shadow: 74, 58, 82;
   --bit-rgb-paper: 255, 255, 255;

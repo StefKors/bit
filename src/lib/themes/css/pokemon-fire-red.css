@@ -1,5 +1,5 @@
 [data-theme="pokemon-fire-red"][data-color-mode="dark"] {
-  --bit-rgb-fg: 255, 240, 220;
+  --bit-rgb-fg: 228, 215, 197;
   --bit-rgb-bg: 28, 12, 8;
   --bit-rgb-shadow: 16, 6, 4;
   --bit-rgb-paper: 255, 240, 220;
@@ -54,7 +54,7 @@
 }
 
 [data-theme="pokemon-fire-red"][data-color-mode="light"] {
-  --bit-rgb-fg: 60, 24, 16;
+  --bit-rgb-fg: 42, 18, 12;
   --bit-rgb-bg: 255, 248, 240;
   --bit-rgb-shadow: 60, 24, 16;
   --bit-rgb-paper: 255, 255, 255;

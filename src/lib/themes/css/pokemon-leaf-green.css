@@ -1,5 +1,5 @@
 [data-theme="pokemon-leaf-green"][data-color-mode="dark"] {
-  --bit-rgb-fg: 220, 245, 225;
+  --bit-rgb-fg: 197, 219, 201;
   --bit-rgb-bg: 10, 24, 16;
   --bit-rgb-shadow: 6, 14, 10;
   --bit-rgb-paper: 220, 245, 225;
@@ -54,7 +54,7 @@
 }
 
 [data-theme="pokemon-leaf-green"][data-color-mode="light"] {
-  --bit-rgb-fg: 26, 56, 32;
+  --bit-rgb-fg: 18, 40, 23;
   --bit-rgb-bg: 240, 255, 240;
   --bit-rgb-shadow: 26, 56, 32;
   --bit-rgb-paper: 255, 255, 255;

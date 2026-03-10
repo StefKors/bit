@@ -1,5 +1,5 @@
 [data-theme="ocean"][data-color-mode="dark"] {
-  --bit-rgb-fg: 220, 235, 248;
+  --bit-rgb-fg: 197, 210, 222;
   --bit-rgb-bg: 10, 22, 40;
   --bit-rgb-shadow: 6, 14, 28;
   --bit-rgb-paper: 220, 235, 248;
@@ -54,7 +54,7 @@
 }
 
 [data-theme="ocean"][data-color-mode="light"] {
-  --bit-rgb-fg: 10, 40, 64;
+  --bit-rgb-fg: 12, 28, 42;
   --bit-rgb-bg: 240, 248, 255;
   --bit-rgb-shadow: 10, 40, 64;
   --bit-rgb-paper: 255, 255, 255;

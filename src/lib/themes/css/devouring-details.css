@@ -1,5 +1,5 @@
 [data-theme="devouring-details"][data-color-mode="dark"] {
-  --bit-rgb-fg: 255, 255, 255;
+  --bit-rgb-fg: 228, 228, 228;
   --bit-rgb-bg: 8, 8, 8;
   --bit-rgb-shadow: 0, 0, 0;
   --bit-rgb-paper: 255, 255, 255;
@@ -54,7 +54,7 @@
 }
 
 [data-theme="devouring-details"][data-color-mode="light"] {
-  --bit-rgb-fg: 8, 8, 8;
+  --bit-rgb-fg: 20, 20, 20;
   --bit-rgb-bg: 255, 255, 255;
   --bit-rgb-shadow: 8, 8, 8;
   --bit-rgb-paper: 255, 255, 255;

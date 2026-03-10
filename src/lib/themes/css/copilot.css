@@ -1,5 +1,5 @@
 [data-theme="copilot"][data-color-mode="dark"] {
-  --bit-rgb-fg: 230, 237, 243;
+  --bit-rgb-fg: 206, 212, 217;
   --bit-rgb-bg: 13, 17, 23;
   --bit-rgb-shadow: 1, 4, 9;
   --bit-rgb-paper: 255, 255, 255;
@@ -54,7 +54,7 @@
 }
 
 [data-theme="copilot"][data-color-mode="light"] {
-  --bit-rgb-fg: 31, 35, 40;
+  --bit-rgb-fg: 20, 23, 26;
   --bit-rgb-bg: 255, 255, 255;
   --bit-rgb-shadow: 31, 35, 40;
   --bit-rgb-paper: 255, 255, 255;

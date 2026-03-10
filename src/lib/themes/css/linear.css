@@ -1,5 +1,5 @@
 [data-theme="linear"][data-color-mode="dark"] {
-  --bit-rgb-fg: 255, 255, 255;
+  --bit-rgb-fg: 228, 228, 228;
   --bit-rgb-bg: 17, 18, 20;
   --bit-rgb-shadow: 0, 0, 0;
   --bit-rgb-paper: 255, 255, 255;
@@ -54,7 +54,7 @@
 }
 
 [data-theme="linear"][data-color-mode="light"] {
-  --bit-rgb-fg: 0, 0, 0;
+  --bit-rgb-fg: 20, 20, 20;
   --bit-rgb-bg: 255, 255, 255;
   --bit-rgb-shadow: 0, 0, 0;
   --bit-rgb-paper: 255, 255, 255;
