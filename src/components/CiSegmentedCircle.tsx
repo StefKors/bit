@@ -1,4 +1,5 @@
 import styles from "./CiSegmentedCircle.module.css"
+import { buildSegmentGeometry } from "./CiSegmentedCircleMath"
 
 interface CiSegmentedCircleProps {
   pendingCount: number
@@ -8,6 +9,8 @@ interface CiSegmentedCircleProps {
   successfulCount: number
   size?: number
   strokeWidth?: number
+  segmentGap?: number
+  minSegmentWidth?: number
 }
 
 interface Segment {
@@ -22,12 +25,13 @@ export const CiSegmentedCircle = ({
   failedCount,
   skippedCount,
   successfulCount,
-  size = 16,
-  strokeWidth = 3,
+  size = 14,
+  strokeWidth = 2,
+  segmentGap = 2.0,
+  minSegmentWidth = 0,
 }: CiSegmentedCircleProps) => {
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
-  const total = pendingCount + inProgressCount + failedCount + skippedCount + successfulCount
   const segments: Segment[] = [
     { key: "pending", count: pendingCount, className: styles.pending },
     { key: "inProgress", count: inProgressCount, className: styles.inProgress },
@@ -35,8 +39,13 @@ export const CiSegmentedCircle = ({
     { key: "skipped", count: skippedCount, className: styles.skipped },
     { key: "successful", count: successfulCount, className: styles.successful },
   ]
-
-  let offset = 0
+  const segmentGeometry = buildSegmentGeometry({
+    segments,
+    circumference,
+    segmentGap,
+    strokeWidth,
+    minSegmentWidth,
+  })
   const title = `CI jobs: ${pendingCount} pending, ${inProgressCount} in progress, ${failedCount} failed, ${skippedCount} skipped, ${successfulCount} successful`
 
   return (
@@ -44,7 +53,7 @@ export const CiSegmentedCircle = ({
       <svg
         width={size}
         height={size}
-        viewBox={`0 0 ${size} ${size}`}
+        viewBox={`0 0 ${size + strokeWidth} ${size + strokeWidth}`}
         className={styles.svg}
         aria-hidden="true"
       >
@@ -55,23 +64,22 @@ export const CiSegmentedCircle = ({
           className={styles.track}
           strokeWidth={strokeWidth}
         />
-        {total > 0
-          ? segments.map((segment) => {
-              if (segment.count <= 0) return null
-              const segmentLength = (segment.count / total) * circumference
+        {segmentGeometry.length > 0
+          ? segmentGeometry.map((geometry) => {
+              const segment = segments.find((entry) => entry.key === geometry.key)
+              if (!segment) return null
               const circle = (
                 <circle
-                  key={segment.key}
+                  key={geometry.key}
                   cx={size / 2}
                   cy={size / 2}
-                  r={radius}
+                  r={size / 2 - strokeWidth / 2}
                   className={`${styles.segment} ${segment.className}`}
                   strokeWidth={strokeWidth}
-                  strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
-                  strokeDashoffset={-offset}
+                  strokeDasharray={`${geometry.visibleLength} ${circumference - geometry.visibleLength}`}
+                  strokeDashoffset={-geometry.offset}
                 />
               )
-              offset += segmentLength
               return circle
             })
           : null}

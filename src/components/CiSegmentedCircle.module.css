@@ -12,30 +12,30 @@
 
 .track {
   fill: none;
-  stroke: rgba(var(--bit-rgb-fg), 0.12);
+  stroke: rgba(var(--bit-rgb-fg, 255, 255, 255), 0.12);
 }
 
 .segment {
   fill: none;
-  stroke-linecap: butt;
+  stroke-linecap: round;
 }
 
 .pending {
-  stroke: rgba(var(--bit-rgb-accent-yellow), 0.94);
+  stroke: rgba(var(--bit-rgb-accent-yellow, 232, 186, 56), 0.94);
 }
 
 .inProgress {
-  stroke: var(--bit-color-accent-orange);
+  stroke: var(--bit-color-accent-orange, #ff8a70);
 }
 
 .failed {
-  stroke: rgba(var(--bit-rgb-accent-red), 0.94);
+  stroke: rgba(var(--bit-rgb-accent-red, 255, 92, 82), 0.94);
 }
 
 .skipped {
-  stroke: rgba(var(--bit-rgb-fg), 0.5);
+  stroke: rgba(var(--bit-rgb-fg, 255, 255, 255), 0.5);
 }
 
 .successful {
-  stroke: rgba(var(--bit-rgb-accent-green-bright), 0.94);
+  stroke: rgba(var(--bit-rgb-accent-green-bright, 72, 192, 92), 0.94);
 }

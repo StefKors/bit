@@ -40,3 +40,4 @@ node_modules
 # Local Netlify folder
 .netlify
 .tanstack
+.vitest-attachments/

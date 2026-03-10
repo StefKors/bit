@@ -1,4 +1,4 @@
-import { CheckIcon, SkipIcon, XCircleFillIcon } from "@primer/octicons-react"
+import { CheckIcon, ChevronDownIcon, SkipIcon, XIcon } from "@primer/octicons-react"
 import { Collapsible } from "@base-ui/react/collapsible"
 import { AnimatePresence, motion } from "motion/react"
 import { CiDot } from "@/components/CiDot"
@@ -80,7 +80,7 @@ const getItemIndicator = (group: CiGroup) => {
     return <CheckIcon size={14} className={styles.iconSuccess} />
   }
   if (group === "failed") {
-    return <XCircleFillIcon size={14} className={styles.iconFailed} />
+    return <XIcon size={14} className={styles.iconFailed} />
   }
   if (group === "skipped") {
     return <SkipIcon size={14} className={styles.iconSkipped} />
@@ -91,7 +91,7 @@ const getItemIndicator = (group: CiGroup) => {
 const buildCiReviewItems = (pr: PullRequestCard): CiReviewItem[] => {
   const checkRunItems: CiReviewItem[] = pr.checkRuns.map((check) => ({
     id: `check-run-${check.id}`,
-    label: check.name,
+    label: `Check run · ${check.name}`,
     statusText: check.conclusion ?? check.status,
     group: classifyCiGroup(check.status, check.conclusion),
     url: check.detailsUrl ?? check.htmlUrl ?? null,
@@ -99,7 +99,7 @@ const buildCiReviewItems = (pr: PullRequestCard): CiReviewItem[] => {
 
   const commitStatusItems: CiReviewItem[] = pr.commitStatuses.map((status) => ({
     id: `status-${status.id}`,
-    label: status.context,
+    label: `Commit status · ${status.context}`,
     statusText: status.description ?? status.state,
     group: classifyCiGroup(status.state, null),
     url: status.targetUrl,
@@ -109,8 +109,8 @@ const buildCiReviewItems = (pr: PullRequestCard): CiReviewItem[] => {
     id: `workflow-run-${run.id}`,
     label:
       run.runNumber !== null
-        ? `${run.name} #${run.runNumber}${run.runAttempt && run.runAttempt > 1 ? ` (attempt ${run.runAttempt})` : ""}`
-        : run.name,
+        ? `Workflow run · ${run.name} #${run.runNumber}${run.runAttempt && run.runAttempt > 1 ? ` (attempt ${run.runAttempt})` : ""}`
+        : `Workflow run · ${run.name}`,
     statusText: run.conclusion ?? run.status,
     group: classifyCiGroup(run.status, run.conclusion),
     url: run.htmlUrl,
@@ -118,7 +118,7 @@ const buildCiReviewItems = (pr: PullRequestCard): CiReviewItem[] => {
 
   const workflowJobItems: CiReviewItem[] = pr.workflowJobs.map((job) => ({
     id: `workflow-job-${job.id}`,
-    label: job.name,
+    label: `Workflow job · ${job.name}`,
     statusText: job.conclusion ?? job.status,
     group: classifyCiGroup(job.status, job.conclusion),
     url: job.htmlUrl ?? job.runUrl,
@@ -166,6 +166,7 @@ export const PrReviewTab = ({ pr, compact = false }: PrReviewTabProps) => {
             failedCount={grouped.failed.length}
             skippedCount={grouped.skipped.length}
             successfulCount={grouped.successful.length}
+            // minSegmentWidth={2.2}
           />
           {runningCount > 0 ? `${runningCount} checks running` : "All checks finished"}
         </span>
@@ -193,7 +194,7 @@ export const PrReviewTab = ({ pr, compact = false }: PrReviewTabProps) => {
                     <span className={styles.groupCount}>{grouped[group].length}</span>
                   </span>
                   <span className={styles.groupChevron} aria-hidden>
-                    ▾
+                    <ChevronDownIcon size={12} />
                   </span>
                 </Collapsible.Trigger>
                 <Collapsible.Panel className={styles.groupPanel}>
