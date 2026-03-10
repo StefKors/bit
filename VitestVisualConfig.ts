@@ -10,7 +10,7 @@ export default defineConfig({
   },
   test: {
     include: ["src/**/*.visual.test.tsx"],
-    setupFiles: ["./src/test/visual.setup.ts"],
+    setupFiles: ["./src/test/VisualSetup.ts"],
     browser: {
       enabled: true,
       provider: playwright(),
