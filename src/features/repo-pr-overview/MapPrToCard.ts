@@ -155,6 +155,7 @@ interface RepoPullRequest {
     conclusion?: string | null
     detailsUrl?: string | null
     htmlUrl?: string | null
+    headSha?: string | null
     updatedAt?: string | number | null
   }> | null
   checkSuites?: Array<{
@@ -167,6 +168,7 @@ interface RepoPullRequest {
   }> | null
   commitStatuses?: Array<{
     id: string
+    sha?: string | null
     context?: string | null
     state?: string | null
     description?: string | null
@@ -182,6 +184,7 @@ interface RepoPullRequest {
     htmlUrl?: string | null
     runNumber?: number | null
     runAttempt?: number | null
+    headSha?: string | null
     updatedAt?: string | number | null
   }> | null
   workflowJobs?: Array<{
@@ -192,6 +195,7 @@ interface RepoPullRequest {
     conclusion?: string | null
     htmlUrl?: string | null
     runUrl?: string | null
+    headSha?: string | null
     updatedAt?: string | number | null
   }> | null
   pullRequestEvents?: Array<{
@@ -327,6 +331,7 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
       conclusion: check.conclusion ?? null,
       detailsUrl: check.detailsUrl ?? null,
       htmlUrl: check.htmlUrl ?? null,
+      headSha: check.headSha ?? null,
       updatedAt: check.updatedAt ?? null,
     })) ?? [],
   checkSuites:
@@ -341,6 +346,7 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
   commitStatuses:
     pr.commitStatuses?.map((status) => ({
       id: status.id,
+      sha: status.sha ?? null,
       context: status.context ?? "Status",
       state: status.state ?? "unknown",
       description: status.description ?? null,
@@ -357,6 +363,7 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
       htmlUrl: run.htmlUrl ?? null,
       runNumber: run.runNumber ?? null,
       runAttempt: run.runAttempt ?? null,
+      headSha: run.headSha ?? null,
       updatedAt: run.updatedAt ?? null,
     })) ?? [],
   workflowJobs:
@@ -368,6 +375,7 @@ export const mapPrToCard = (pr: RepoPullRequest): PullRequestCard => ({
       conclusion: job.conclusion ?? null,
       htmlUrl: job.htmlUrl ?? null,
       runUrl: job.runUrl ?? null,
+      headSha: job.headSha ?? null,
       updatedAt: job.updatedAt ?? null,
     })) ?? [],
   pullRequestEvents:

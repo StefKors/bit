@@ -96,7 +96,15 @@ export const PrDetailPanel = ({ owner, repo, prNumber }: PrDetailPanelProps) => 
           $: {
             order: { updatedAt: "desc" },
             limit: 10,
-            fields: ["name", "status", "conclusion", "detailsUrl", "htmlUrl", "updatedAt"],
+            fields: [
+              "name",
+              "status",
+              "conclusion",
+              "detailsUrl",
+              "htmlUrl",
+              "headSha",
+              "updatedAt",
+            ],
           },
         },
         checkSuites: {
@@ -110,7 +118,7 @@ export const PrDetailPanel = ({ owner, repo, prNumber }: PrDetailPanelProps) => 
           $: {
             order: { updatedAt: "desc" },
             limit: 10,
-            fields: ["context", "state", "description", "targetUrl", "updatedAt"],
+            fields: ["sha", "context", "state", "description", "targetUrl", "updatedAt"],
           },
         },
         workflowRuns: {
@@ -125,6 +133,7 @@ export const PrDetailPanel = ({ owner, repo, prNumber }: PrDetailPanelProps) => 
               "htmlUrl",
               "runNumber",
               "runAttempt",
+              "headSha",
               "updatedAt",
             ],
           },
@@ -133,7 +142,16 @@ export const PrDetailPanel = ({ owner, repo, prNumber }: PrDetailPanelProps) => 
           $: {
             order: { updatedAt: "desc" },
             limit: 20,
-            fields: ["runId", "name", "status", "conclusion", "htmlUrl", "runUrl", "updatedAt"],
+            fields: [
+              "runId",
+              "name",
+              "status",
+              "conclusion",
+              "htmlUrl",
+              "runUrl",
+              "headSha",
+              "updatedAt",
+            ],
           },
         },
       },

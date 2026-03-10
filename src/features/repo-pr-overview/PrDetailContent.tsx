@@ -134,14 +134,22 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
           $: {
             order: { updatedAt: "desc" },
             limit: 10,
-            fields: ["name", "status", "conclusion", "detailsUrl", "htmlUrl", "updatedAt"],
+            fields: [
+              "name",
+              "status",
+              "conclusion",
+              "detailsUrl",
+              "htmlUrl",
+              "headSha",
+              "updatedAt",
+            ],
           },
         },
         commitStatuses: {
           $: {
             order: { updatedAt: "desc" },
             limit: 20,
-            fields: ["context", "state", "description", "targetUrl", "updatedAt"],
+            fields: ["sha", "context", "state", "description", "targetUrl", "updatedAt"],
           },
         },
         workflowRuns: {
@@ -156,6 +164,7 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
               "htmlUrl",
               "runNumber",
               "runAttempt",
+              "headSha",
               "updatedAt",
             ],
           },
@@ -164,7 +173,16 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
           $: {
             order: { updatedAt: "desc" },
             limit: 40,
-            fields: ["runId", "name", "status", "conclusion", "htmlUrl", "runUrl", "updatedAt"],
+            fields: [
+              "runId",
+              "name",
+              "status",
+              "conclusion",
+              "htmlUrl",
+              "runUrl",
+              "headSha",
+              "updatedAt",
+            ],
           },
         },
         pullRequestEvents: {

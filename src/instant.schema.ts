@@ -171,6 +171,7 @@ export const schema = i.schema({
       conclusion: i.string().optional().indexed(),
       detailsUrl: i.string().optional(),
       htmlUrl: i.string().optional(),
+      headSha: i.string().optional().indexed(),
       startedAt: i.number().optional(),
       completedAt: i.number().optional(),
       payload: i.string().optional(),

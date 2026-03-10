@@ -18,6 +18,7 @@ const CHECK_RUNS = [
     conclusion: "success",
     detailsUrl: null,
     htmlUrl: null,
+    headSha: null,
     updatedAt: Date.now(),
   },
 ]

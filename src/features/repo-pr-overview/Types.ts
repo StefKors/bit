@@ -90,6 +90,7 @@ export interface PullRequestCheckRun {
   conclusion: string | null
   detailsUrl: string | null
   htmlUrl: string | null
+  headSha: string | null
   updatedAt: string | number | null
 }
 
@@ -104,6 +105,7 @@ export interface PullRequestCheckSuite {
 
 export interface PullRequestCommitStatus {
   id: string
+  sha: string | null
   context: string
   state: string
   description: string | null
@@ -120,6 +122,7 @@ export interface PullRequestWorkflowRun {
   htmlUrl: string | null
   runNumber: number | null
   runAttempt: number | null
+  headSha: string | null
   updatedAt: string | number | null
 }
 
@@ -131,6 +134,7 @@ export interface PullRequestWorkflowJob {
   conclusion: string | null
   htmlUrl: string | null
   runUrl: string | null
+  headSha: string | null
   updatedAt: string | number | null
 }
 

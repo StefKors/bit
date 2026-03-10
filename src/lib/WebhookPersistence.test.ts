@@ -72,6 +72,12 @@ describe("WebhookPersistence helpers", () => {
 
     expect(
       getHeadShaFromPayload({
+        check_run: { head_sha: "check-run-sha" },
+      }),
+    ).toBe("check-run-sha")
+
+    expect(
+      getHeadShaFromPayload({
         check_run: { check_suite: { head_sha: "suite-sha" } },
       }),
     ).toBe("suite-sha")

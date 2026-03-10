@@ -463,6 +463,7 @@ const upsertCheckRun = async (
     },
   })
   const existing = checkRuns?.[0]
+  const checkSuite = asObject(checkRun?.check_suite)
   const update = {
     githubId,
     nodeId: asString(checkRun?.node_id),
@@ -471,6 +472,7 @@ const upsertCheckRun = async (
     conclusion: asString(checkRun?.conclusion),
     detailsUrl: asString(checkRun?.details_url),
     htmlUrl: asString(checkRun?.html_url),
+    headSha: asString(checkRun?.head_sha) ?? asString(checkSuite?.head_sha),
     startedAt: parseTimestamp(checkRun?.started_at),
     completedAt: parseTimestamp(checkRun?.completed_at),
     payload: toJson(payload),
