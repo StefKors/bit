@@ -46,6 +46,13 @@ export function PullDetailPage() {
   })
   const repoData = data?.repos?.[0]
   const pr = repoData?.pullRequests?.[0]
+  const latestReviewDecision = pr?.pullRequestReviews
+    ?.filter((review) => review.state === "APPROVED" || review.state === "CHANGES_REQUESTED")
+    .toSorted((a, b) => {
+      const aTimestamp = a.submittedAt ?? a.updatedAt ?? 0
+      const bTimestamp = b.submittedAt ?? b.updatedAt ?? 0
+      return bTimestamp - aTimestamp
+    })[0]?.state
 
   if (!pr) {
     return (
@@ -100,7 +107,15 @@ export function PullDetailPage() {
         >
           {formatMergeableState(pr.mergeableState)}
         </span>
-        <span className={styles.metaPill}>{pr.draft ? "Draft" : "Ready for Review"}</span>
+        <span className={styles.metaPill}>
+          {pr.draft
+            ? "Draft"
+            : latestReviewDecision === "APPROVED"
+              ? "Approved"
+              : latestReviewDecision === "CHANGES_REQUESTED"
+                ? "Needs review"
+                : "Open"}
+        </span>
       </p>
 
       {pr.body && <p className={styles.body}>{pr.body}</p>}

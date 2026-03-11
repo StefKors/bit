@@ -1,14 +1,14 @@
 import { ToolbarSelect } from "@/components/ToolbarSelect"
 import { FilterIcon } from "@primer/octicons-react"
 
-type PrStateFilter = "all" | "open" | "draft" | "needsReview" | "readyToMerge" | "merged"
+type PrStateFilter = "all" | "open" | "draft" | "needsReview" | "approved" | "merged"
 
 const STATE_LABELS: Record<PrStateFilter, string> = {
   all: "All states",
   open: "Open",
   draft: "Draft",
   needsReview: "Needs review",
-  readyToMerge: "Ready",
+  approved: "Approved",
   merged: "Merged",
 }
 

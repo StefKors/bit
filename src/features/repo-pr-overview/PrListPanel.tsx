@@ -9,7 +9,7 @@ import { PrSelectionList } from "./PrSelectionList"
 import { getPrStatusVariant } from "./Utils"
 import styles from "./RepoPrOverviewPage.module.css"
 
-type StateFilter = "all" | "open" | "draft" | "needsReview" | "readyToMerge" | "merged"
+type StateFilter = "all" | "open" | "draft" | "needsReview" | "approved" | "merged"
 
 interface PrListPanelProps {
   owner: string
@@ -48,6 +48,11 @@ export const PrListPanel = ({ owner, repo, selectedPrNumber }: PrListPanelProps)
           "activityUpdatedAt",
         ],
       },
+      pullRequestReviews: {
+        $: {
+          fields: ["state", "updatedAt", "submittedAt"],
+        },
+      },
       pullRequestViews: {
         $: {
           where: { userId: viewerUserId },
@@ -75,6 +80,12 @@ export const PrListPanel = ({ owner, repo, selectedPrNumber }: PrListPanelProps)
       draft: Boolean(pr.draft),
       mergeableState: pr.mergeableState ?? "unknown",
       authorLogin: pr.authorLogin ?? "unknown",
+      pullRequestReviews:
+        pr.pullRequestReviews?.map((review) => ({
+          state: review.state ?? "COMMENTED",
+          updatedAt: review.updatedAt ?? 0,
+          submittedAt: review.submittedAt ?? null,
+        })) ?? [],
       isUnread: activityAt > lastSeenAt,
     }
   })
@@ -93,7 +104,7 @@ export const PrListPanel = ({ owner, repo, selectedPrNumber }: PrListPanelProps)
   const stateFilterToVariant: Record<string, string> = {
     draft: "draft",
     needsReview: "needsReview",
-    readyToMerge: "open",
+    approved: "approved",
     merged: "merged",
   }
 

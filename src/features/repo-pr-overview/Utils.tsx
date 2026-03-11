@@ -39,21 +39,44 @@ export const getCheckRunsCiVariant = (
   return "ready"
 }
 
-export const getPrStatusVariant = (
-  pr: Pick<PullRequestCard, "merged" | "state" | "draft" | "mergeableState">,
-): {
-  variant: "open" | "merged" | "closed" | "needsReview" | "draft"
+type StatusReview = Pick<
+  PullRequestCard["pullRequestReviews"][number],
+  "state" | "submittedAt" | "updatedAt"
+>
+
+export const getPrStatusVariant = (pr: {
+  merged: boolean
+  state: string
+  draft: boolean
+  mergeableState: string
+  pullRequestReviews: StatusReview[]
+}): {
+  variant: "open" | "merged" | "closed" | "needsReview" | "draft" | "approved"
   label: string
   icon: React.ReactNode
 } => {
+  const latestDecision = pr.pullRequestReviews
+    .filter((review) => review.state === "APPROVED" || review.state === "CHANGES_REQUESTED")
+    .toSorted((a, b) => {
+      const aTimestamp = a.submittedAt ?? a.updatedAt
+      const bTimestamp = b.submittedAt ?? b.updatedAt
+      return bTimestamp - aTimestamp
+    })[0]?.state
+
   if (pr.merged) return { variant: "merged", label: "Merged", icon: <GitMergeIcon size={12} /> }
   if (pr.state === "closed")
     return { variant: "closed", label: "Closed", icon: <GitPullRequestClosedIcon size={12} /> }
   if (pr.draft)
     return { variant: "draft", label: "Draft", icon: <GitPullRequestDraftIcon size={12} /> }
-  if (pr.mergeableState === "blocked" || pr.mergeableState === "unknown")
+  if (
+    latestDecision === "CHANGES_REQUESTED" ||
+    pr.mergeableState === "blocked" ||
+    pr.mergeableState === "unknown"
+  )
     return { variant: "needsReview", label: "Needs Review", icon: <GitPullRequestIcon size={12} /> }
-  return { variant: "open", label: "Ready", icon: <GitPullRequestIcon size={12} /> }
+  if (latestDecision === "APPROVED")
+    return { variant: "approved", label: "Approved", icon: <CheckIcon size={12} /> }
+  return { variant: "open", label: "Open", icon: <GitPullRequestIcon size={12} /> }
 }
 
 export const getCiDotVariant = (pr: PullRequestCard): "ready" | "blocked" | "checking" => {

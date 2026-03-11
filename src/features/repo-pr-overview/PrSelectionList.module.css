@@ -153,6 +153,10 @@
   color: rgba(var(--bit-rgb-fg), 0.58);
 }
 
+.prStatusIconApproved {
+  color: rgba(var(--bit-rgb-accent-green-bright), 0.94);
+}
+
 .prNumber {
   flex-shrink: 0;
   font-size: var(--bit-font-size-default);

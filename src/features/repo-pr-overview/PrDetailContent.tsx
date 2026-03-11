@@ -249,7 +249,7 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
 
   return (
     <div className={styles.detailContent}>
-      {pr.body && <Markdown content={pr.body} />}
+      {pr.body && <Markdown content={pr.body} className={styles.description} />}
 
       <div className={styles.detailSection}>
         <h3 className={styles.detailSectionTitle}>Activity</h3>

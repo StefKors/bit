@@ -51,13 +51,14 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   min-width: 0;
+  padding: var(--bit-space-3) var(--bit-space-6);
+  border-bottom: 1px solid var(--bit-color-border);
 }
 
 .selectedPrHeaderNumber {
   color: var(--repo-muted, var(--bit-color-text-muted));
   font-weight: var(--bit-font-weight-bold);
   margin-right: var(--bit-space-3);
-  font-variant-numeric: tabular-nums;
 }
 
 .selectedPrHeaderBottom {
@@ -68,6 +69,7 @@
   line-height: var(--bit-line-height-meta);
   color: var(--repo-muted, var(--bit-color-text-muted));
   overflow: hidden;
+  padding: var(--bit-space-3) var(--bit-space-6);
 }
 
 .selectedPrHeaderSep {

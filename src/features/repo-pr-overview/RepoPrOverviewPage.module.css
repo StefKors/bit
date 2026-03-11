@@ -17,7 +17,7 @@
   width: 100%;
   min-height: 0;
   min-width: 0;
-  padding: var(--bit-space-7) 0;
+  padding-top: var(--bit-space-7);
   gap: var(--bit-space-7);
   overflow: hidden;
 }
@@ -117,6 +117,10 @@
   gap: var(--bit-space-4);
   min-height: 0;
   min-width: 0;
+  border: 1px solid var(--bit-color-border);
+  border-radius: var(--bit-radius-md);
+  background: var(--bit-color-paper-1);
+  box-shadow: var(--bit-shadow-lg);
 }
 
 .placeholder {

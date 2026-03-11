@@ -1,6 +1,6 @@
 import styles from "./StatusBadge.module.css"
 
-type StatusBadgeVariant = "open" | "merged" | "closed" | "needsReview" | "draft"
+type StatusBadgeVariant = "open" | "merged" | "closed" | "needsReview" | "draft" | "approved"
 
 const variantClassMap: Record<StatusBadgeVariant, string> = {
   open: styles.open,
@@ -8,6 +8,7 @@ const variantClassMap: Record<StatusBadgeVariant, string> = {
   closed: styles.closed,
   needsReview: styles.needsReview,
   draft: styles.draft,
+  approved: styles.approved,
 }
 
 export const StatusBadge = ({

@@ -4,16 +4,37 @@ import type { PullRequestCard } from "./Types"
 import { getPrStatusVariant } from "./Utils"
 import styles from "./PrSelectionList.module.css"
 
-type PrStatusVariant = "open" | "merged" | "closed" | "needsReview" | "draft"
+type PrStatusVariant = "open" | "merged" | "closed" | "needsReview" | "draft" | "approved"
 
 type PrListItem = Pick<
   PullRequestCard,
   "id" | "number" | "title" | "merged" | "state" | "draft" | "mergeableState"
 > & {
+  pullRequestReviews: Array<{
+    state: string
+    submittedAt: number | null
+    updatedAt: number
+  }>
   isUnread: boolean
 }
 
-const SECTION_ORDER: PrStatusVariant[] = ["draft", "needsReview", "open", "merged", "closed"]
+const SECTION_ORDER: PrStatusVariant[] = [
+  "draft",
+  "needsReview",
+  "approved",
+  "open",
+  "merged",
+  "closed",
+]
+
+const statusIconClassMap: Record<PrStatusVariant, string> = {
+  draft: styles.prStatusIconDraft,
+  needsReview: styles.prStatusIconNeedsReview,
+  approved: styles.prStatusIconApproved,
+  open: styles.prStatusIconOpen,
+  merged: styles.prStatusIconMerged,
+  closed: styles.prStatusIconClosed,
+}
 
 interface PrSelectionListProps {
   owner: string
@@ -83,7 +104,7 @@ export function PrSelectionList({
                       <span className={styles.prCellRow1}>
                         {pr.isUnread ? <span className={styles.prUnreadDot} aria-hidden /> : null}
                         <span
-                          className={`${styles.prStatusIcon} ${styles[`prStatusIcon${status.variant === "needsReview" ? "NeedsReview" : status.variant.charAt(0).toUpperCase() + status.variant.slice(1)}`]}`}
+                          className={`${styles.prStatusIcon} ${statusIconClassMap[status.variant]}`}
                           aria-hidden
                         >
                           {status.icon}
