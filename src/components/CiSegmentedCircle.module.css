@@ -20,6 +20,34 @@
   stroke-linecap: round;
 }
 
+.sequential .segment {
+  animation: segmentCycle 1s ease-in-out infinite;
+}
+
+.monochrome .segment {
+  stroke: rgba(var(--bit-rgb-fg, 255, 255, 255), 0.85);
+}
+
+.sequential .segment:nth-of-type(2) {
+  animation-delay: 0ms;
+}
+
+.sequential .segment:nth-of-type(3) {
+  animation-delay: 180ms;
+}
+
+.sequential .segment:nth-of-type(4) {
+  animation-delay: 360ms;
+}
+
+.sequential .segment:nth-of-type(5) {
+  animation-delay: 540ms;
+}
+
+.sequential .segment:nth-of-type(6) {
+  animation-delay: 720ms;
+}
+
 .pending {
   stroke: rgba(var(--bit-rgb-accent-yellow, 232, 186, 56), 0.94);
 }
@@ -38,4 +66,15 @@
 
 .successful {
   stroke: rgba(var(--bit-rgb-accent-green-bright, 72, 192, 92), 0.94);
+}
+
+@keyframes segmentCycle {
+  0%,
+  100% {
+    opacity: 0.26;
+  }
+
+  45% {
+    opacity: 1;
+  }
 }

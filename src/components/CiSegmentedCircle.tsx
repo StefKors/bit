@@ -11,6 +11,8 @@ interface CiSegmentedCircleProps {
   strokeWidth?: number
   segmentGap?: number
   minSegmentWidth?: number
+  animateSequential?: boolean
+  monochrome?: boolean
 }
 
 interface Segment {
@@ -29,6 +31,8 @@ export const CiSegmentedCircle = ({
   strokeWidth = 2,
   segmentGap = 2.0,
   minSegmentWidth = 2,
+  animateSequential = false,
+  monochrome = false,
 }: CiSegmentedCircleProps) => {
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
@@ -49,11 +53,16 @@ export const CiSegmentedCircle = ({
   const title = `CI jobs: ${pendingCount} pending, ${inProgressCount} in progress, ${failedCount} failed, ${skippedCount} skipped, ${successfulCount} successful`
 
   return (
-    <span className={styles.root} title={title} aria-label={title} role="img">
+    <span
+      className={`${styles.root} ${animateSequential ? styles.sequential : ""} ${monochrome ? styles.monochrome : ""}`}
+      title={title}
+      aria-label={title}
+      role="img"
+    >
       <svg
         width={size}
         height={size}
-        viewBox={`0 0 ${size + strokeWidth} ${size + strokeWidth}`}
+        viewBox={`0 0 ${size} ${size}`}
         className={styles.svg}
         aria-hidden="true"
       >
