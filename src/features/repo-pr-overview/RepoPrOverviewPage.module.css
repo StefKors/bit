@@ -15,10 +15,8 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: var(--bit-max-width);
   min-height: 0;
   min-width: 0;
-  margin: 0 auto;
   padding: var(--bit-space-7) 0;
   gap: var(--bit-space-7);
   overflow: hidden;
