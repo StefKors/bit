@@ -15,8 +15,6 @@
   display: flex;
   align-items: center;
   width: 100%;
-  max-width: var(--bit-max-width);
-  margin: 0 auto;
   gap: 0.75rem;
   min-width: 0;
 }

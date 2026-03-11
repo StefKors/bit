@@ -126,14 +126,18 @@ export const PrListPanel = ({ owner, repo, selectedPrNumber }: PrListPanelProps)
     <div className={styles.column1}>
       <div className={styles.column1Scroll}>
         <PrListToolbar className={styles.column1Toolbar}>
-          <RepoSelect owner={owner} repo={repo} />
-          <AuthorSelect
-            authorFilter={effectiveAuthorFilter}
-            userLogin={user?.login ?? null}
-            uniqueAuthors={uniqueAuthors}
-            onFilterChange={setAuthorFilter}
-          />
-          <StateSelect stateFilter={stateFilter} onStateFilterChange={setStateFilter} />
+          <div className={styles.column1ToolbarLeading}>
+            <RepoSelect owner={owner} repo={repo} />
+            <AuthorSelect
+              authorFilter={effectiveAuthorFilter}
+              userLogin={user?.login ?? null}
+              uniqueAuthors={uniqueAuthors}
+              onFilterChange={setAuthorFilter}
+            />
+          </div>
+          <div className={styles.column1ToolbarTrailing}>
+            <StateSelect stateFilter={stateFilter} onStateFilterChange={setStateFilter} />
+          </div>
         </PrListToolbar>
         <div className={styles.column1ListScroll}>
           <PrSelectionList

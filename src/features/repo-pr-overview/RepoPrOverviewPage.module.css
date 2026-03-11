@@ -59,6 +59,20 @@
 
 .column1Toolbar {
   justify-content: space-between;
+  gap: var(--bit-space-3);
+}
+
+.column1ToolbarLeading {
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-2);
+  min-width: 0;
+}
+
+.column1ToolbarTrailing {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
 }
 
 .column1ListScroll {
@@ -129,5 +143,13 @@
     flex: none;
     width: 100%;
     max-width: none;
+  }
+
+  .column1Toolbar {
+    flex-wrap: wrap;
+  }
+
+  .column1ToolbarTrailing {
+    margin-left: 0;
   }
 }
