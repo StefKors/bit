@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { adminDb } from "@/lib/InstantAdmin"
 import { getInstallationIdForRepo } from "@/lib/GithubApp"
-import { createIssueComment } from "@/lib/GithubIssueComment"
+import { createIssueComment, resolveIssueCommentAuth } from "@/lib/GithubIssueComment"
 import { syncPRActivitySafely } from "@/lib/GithubPrActivity"
 
 const jsonResponse = <T>(data: T, status = 200) =>
@@ -13,6 +13,38 @@ const jsonResponse = <T>(data: T, status = 200) =>
 export const Route = createFileRoute("/api/github/repos/comment")({
   server: {
     handlers: {
+      GET: async ({ request }) => {
+        const authHeader = request.headers.get("Authorization")
+        const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
+
+        if (!token) {
+          return jsonResponse({ error: "Missing or invalid Authorization header" }, 401)
+        }
+
+        let user: { id?: string } | null = null
+        try {
+          user = await adminDb.auth.verifyToken(token)
+        } catch {
+          return jsonResponse({ error: "Invalid token" }, 401)
+        }
+
+        if (!user?.id) {
+          return jsonResponse({ error: "User not found" }, 401)
+        }
+
+        const url = new URL(request.url)
+        const owner = url.searchParams.get("owner")?.trim()
+        if (!owner) {
+          return jsonResponse({ error: "owner is required" }, 400)
+        }
+
+        const auth = await resolveIssueCommentAuth(user.id, owner)
+        if (!auth) {
+          return jsonResponse({ error: "No available GitHub auth source for commenting" }, 400)
+        }
+
+        return jsonResponse({ source: auth.source })
+      },
       POST: async ({ request }) => {
         const authHeader = request.headers.get("Authorization")
         const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
@@ -21,7 +53,7 @@ export const Route = createFileRoute("/api/github/repos/comment")({
           return jsonResponse({ error: "Missing or invalid Authorization header" }, 401)
         }
 
-        let user
+        let user: { id?: string } | null = null
         try {
           user = await adminDb.auth.verifyToken(token)
         } catch {

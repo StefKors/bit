@@ -1,7 +1,8 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { db } from "@/lib/InstantDb"
 import { Markdown } from "@/components/Markdown"
 import { Button } from "@/components/Button"
+import { Avatar } from "@/components/Avatar"
 import { useAuth } from "@/lib/hooks/UseAuth"
 import { buildTimeline } from "./Utils"
 import { Timeline } from "./Timeline"
@@ -21,6 +22,41 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
   const commentRef = useRef<HTMLTextAreaElement | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [commentAuthSource, setCommentAuthSource] = useState<"user" | "installation">(
+    "installation",
+  )
+  const refreshToken = (user as { refresh_token?: string } | null)?.refresh_token
+
+  useEffect(() => {
+    if (!refreshToken) {
+      setCommentAuthSource("installation")
+      return
+    }
+
+    const controller = new AbortController()
+    const searchParams = new URLSearchParams({ owner })
+
+    fetch(`/api/github/repos/comment?${searchParams.toString()}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${refreshToken}`,
+      },
+      signal: controller.signal,
+    })
+      .then(async (res) => {
+        if (!res.ok) return
+        const payload = (await res.json()) as { source?: "user" | "installation" }
+        if (payload.source) {
+          setCommentAuthSource(payload.source)
+        }
+      })
+      .catch(() => {})
+
+    return () => {
+      controller.abort()
+    }
+  }, [owner, refreshToken])
+
   const fullName = `${owner}/${repo}`
   const viewerUserId = user?.id ?? "__anonymous__"
 
@@ -317,6 +353,20 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
               autoComplete="off"
             />
             <div className={styles.commentActions}>
+              <div
+                className={styles.commentAvatar}
+                title={
+                  commentAuthSource === "user"
+                    ? "Comment will be posted via your GitHub account"
+                    : "Comment will be posted via Bit app"
+                }
+              >
+                <Avatar
+                  src={commentAuthSource === "user" ? user?.avatarUrl : undefined}
+                  name={commentAuthSource === "user" ? (user?.login ?? user?.name) : "Bit"}
+                  size={24}
+                />
+              </div>
               <Button type="submit" variant="primary" size="small" loading={submitting}>
                 Comment
               </Button>

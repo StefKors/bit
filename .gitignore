@@ -44,3 +44,6 @@ node_modules
 
 # Cursor local hook state
 .cursor/hooks/state/
+
+# InstantDB local export (for offline work)
+instant-local/

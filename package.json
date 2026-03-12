@@ -16,6 +16,8 @@
     "instant:push:schema": "INSTANT_SCHEMA_FILE_PATH=src/instant.schema.ts bunx instant-cli push schema --yes",
     "instant:push:perms": "cp src/instant.perms.ts instant.perms.ts && bunx instant-cli push perms --yes && rm instant.perms.ts",
     "instant:push": "bun run instant:push:schema && bun run instant:push:perms",
+    "instant:export": "bun run scripts/instant-export.ts",
+    "instant:update-local": "bun run scripts/instant-export.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

@@ -132,7 +132,11 @@
 .commentActions {
   display: flex;
   align-items: center;
-  gap: var(--bit-space-6);
+  gap: var(--bit-space-3);
+}
+
+.commentAvatar {
+  flex-shrink: 0;
 }
 
 .commentError {

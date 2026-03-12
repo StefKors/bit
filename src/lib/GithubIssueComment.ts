@@ -1,4 +1,4 @@
-import { getInstallationToken, getInstallationIdForRepo, getUserGitHubToken } from "@/lib/GithubApp"
+import { getInstallationIdForRepo, getInstallationToken, getUserGitHubToken } from "@/lib/GithubApp"
 import { log } from "@/lib/Logger"
 
 const GITHUB_API = "https://api.github.com"
@@ -7,10 +7,12 @@ const GITHUB_HEADERS = {
   "X-GitHub-Api-Version": "2022-11-28",
 }
 
-async function resolveToken(
+export type IssueCommentAuthSource = "user" | "installation"
+
+export async function resolveIssueCommentAuth(
   userId: string,
   owner: string,
-): Promise<{ token: string; source: "user" | "installation" } | null> {
+): Promise<{ token: string; source: IssueCommentAuthSource } | null> {
   const userToken = await getUserGitHubToken(userId)
   if (userToken) return { token: userToken, source: "user" }
 
@@ -38,7 +40,7 @@ export async function createIssueComment(params: {
 }): Promise<{ htmlUrl: string } | null> {
   const { userId, owner, repo, issueNumber, body } = params
 
-  const auth = await resolveToken(userId, owner)
+  const auth = await resolveIssueCommentAuth(userId, owner)
   if (!auth) return null
 
   log.info("createIssueComment: posting as", { source: auth.source, userId })

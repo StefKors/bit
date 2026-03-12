@@ -5,6 +5,7 @@ import { schema } from "@/instant.schema"
 export const db = init({
   appId: "82589b71-875c-4d6b-bf1a-78e0ad02b8ca",
   schema,
+  queryCacheLimit: 500,
 })
 
 // Re-export types for convenience
