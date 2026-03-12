@@ -354,7 +354,11 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
             />
             <div className={styles.commentActions}>
               <div
-                className={styles.commentAvatar}
+                className={
+                  commentAuthSource === "installation"
+                    ? `${styles.commentAvatar} ${styles.commentAvatarBit}`
+                    : styles.commentAvatar
+                }
                 title={
                   commentAuthSource === "user"
                     ? "Comment will be posted via your GitHub account"
@@ -362,7 +366,7 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
                 }
               >
                 <Avatar
-                  src={commentAuthSource === "user" ? user?.avatarUrl : undefined}
+                  src={commentAuthSource === "user" ? user?.avatarUrl : "/bit-cube-small.png"}
                   name={commentAuthSource === "user" ? (user?.login ?? user?.name) : "Bit"}
                   size={24}
                 />

@@ -139,6 +139,11 @@
   flex-shrink: 0;
 }
 
+.commentAvatarBit {
+  background: #000;
+  border-radius: var(--bit-radius-sm);
+}
+
 .commentError {
   font-size: var(--bit-font-size-meta);
   line-height: var(--bit-line-height-meta);

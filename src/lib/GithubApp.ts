@@ -93,7 +93,6 @@ export async function getInstallationToken(installationId: number): Promise<stri
 
     tokenCache.set(installationId, { token: data.token, expiresAt })
 
-    log.info("GitHub App: installation token obtained", { installationId })
     return data.token
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)

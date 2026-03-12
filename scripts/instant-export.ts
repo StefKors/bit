@@ -52,7 +52,11 @@ async function exportDb() {
   writeFileSync(path, JSON.stringify(payload, null, 2), "utf-8")
 
   const reposCount = data.repos?.length ?? 0
-  const prsCount = data.repos?.reduce((n, r) => n + (r.pullRequests?.length ?? 0), 0) ?? 0
+  const prsCount =
+    data.repos?.reduce(
+      (n: number, r: { pullRequests?: Array<object> }) => n + (r.pullRequests?.length ?? 0),
+      0,
+    ) ?? 0
   const usersCount = data.$users?.length ?? 0
 
   console.log(`Exported to ${path}`)

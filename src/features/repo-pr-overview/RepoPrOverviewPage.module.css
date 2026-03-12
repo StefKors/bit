@@ -119,7 +119,7 @@
   min-width: 0;
   border: 1px solid var(--bit-color-border);
   border-radius: var(--bit-radius-md);
-  background: var(--bit-color-paper-1);
+  background: var(--bit-color-surface-1);
   box-shadow: var(--bit-shadow-lg);
 }
 
