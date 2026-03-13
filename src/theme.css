@@ -1,10 +1,12 @@
 :root {
   --bit-font:
-    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial,
-    sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  --bit-font-mono: "JetBrains Mono", "SF Mono", monospace;
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
+    "Open Sans", "Helvetica Neue", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Twemoji Mozilla", "Noto Color Emoji";
+  --bit-font-mono: "SF Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
   --bit-font-weight-regular: 450;
-  --bit-font-weight-bold: 500;
+  --bit-font-weight-medium: 500;
+  --bit-font-weight-bold: 600;
 
   --bit-font-size-default: 13px;
   --bit-font-size-body: 15px;
@@ -14,6 +16,15 @@
   --bit-font-size-heading-sm: 18px;
   --bit-font-size-heading-md: 22px;
   --bit-font-size-heading-lg: 26px;
+
+  --editor-font-size: var(--bit-font-size-body);
+  --editor-line-height: 1.6;
+  --editor-list-inset: 1.5em;
+  --editor-list-indent: 2em;
+  --editor-checkbox-size: 1em;
+  --editor-checkbox-offset: 0.2em;
+  /*--editor-letter-spacing: 0.00625em;*/
+  --editor-letter-spacing: -0.1px;
 
   --bit-line-height-default: 20px;
   --bit-line-height-body: 22px;
@@ -183,6 +194,21 @@
   --bit-radius-xl: 12px;
   --bit-radius-2xl: 20px;
   --bit-radius-pill: 9999px;
+
+  /* Inline code / quaternary surface */
+  --bit-color-bg-quaternary: var(--bit-color-code-bg);
+
+  /* Focus ring */
+  --bit-focus-ring-outline: 2px solid var(--bit-color-accent-blue);
+
+  /* Timing */
+  --bit-speed-quick: 0.1s;
+  --bit-speed-regular: 0.25s;
+  --bit-speed-slow: 0.35s;
+
+  /* Easing */
+  --bit-ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --bit-ease-in-out: cubic-bezier(0.455, 0.03, 0.515, 0.955);
 
   /* Compatibility aliases for legacy modules */
   --bit-color-fg: var(--bit-color-text);

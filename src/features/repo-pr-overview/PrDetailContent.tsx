@@ -285,7 +285,7 @@ export function PrDetailContent({ owner, repo, prNumber }: PrDetailContentProps)
 
   return (
     <div className={styles.detailContent}>
-      {pr.body && <Markdown content={pr.body} className={styles.description} />}
+      {pr.body && <Markdown content={`This change should cause no visual regressions and changes in behavior. Unsupported features can be cleanly implemented into the \`hh-ui/button\``} className={styles.description} />}
 
       <div className={styles.detailSection}>
         <h3 className={styles.detailSectionTitle}>Activity</h3>

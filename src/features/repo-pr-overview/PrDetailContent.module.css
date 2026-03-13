@@ -98,9 +98,9 @@
 .commentTextarea {
   width: 100%;
   padding: var(--bit-space-5) var(--bit-space-6);
-  font-size: var(--bit-font-size-body);
+  font-size: var(--editor-font-size);
   font-family: inherit;
-  line-height: var(--bit-line-height-body);
+  line-height: var(--editor-line-height);
   color: var(--bit-color-text);
   background: rgba(var(--bit-rgb-surface-2), 0.28);
   border: 1px solid rgba(var(--bit-rgb-fg), 0.12);

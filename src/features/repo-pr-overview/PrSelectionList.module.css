@@ -167,7 +167,6 @@
 
 .prTitle {
   flex: 1;
-  font-weight: var(--bit-font-weight-bold);
   line-height: var(--bit-line-height-default);
   overflow: hidden;
   white-space: nowrap;
