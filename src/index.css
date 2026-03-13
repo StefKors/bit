@@ -2,6 +2,10 @@
 
 :root {
   font-family: var(--bit-font);
+  font-feature-settings: "calt";
+  font-variation-settings: "opsz" 32;
+  font-size-adjust: none;
+
   line-height: var(--bit-line-height-default);
   font-weight: var(--bit-font-weight-regular);
   font-size: var(--bit-font-size-default);
@@ -12,8 +16,12 @@
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizelegibility;
+  -moz-text-size-adjust: none;
+  -ms-text-size-adjust: none;
+  -o-text-size-adjust: none;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -33,6 +41,7 @@ html {
 
 * {
   box-sizing: border-box;
+  touch-action: pan-x pan-y;
 }
 
 body {

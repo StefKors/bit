@@ -2,7 +2,6 @@ import { defineConfig } from "vite"
 import path from "path"
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
 import viteReact from "@vitejs/plugin-react"
-import viteTsConfigPaths from "vite-tsconfig-paths"
 import { bundleStats } from "rollup-plugin-bundle-stats"
 
 export default defineConfig(({ mode }) => {
@@ -19,6 +18,7 @@ export default defineConfig(({ mode }) => {
     },
     optimizeDeps: {},
     resolve: {
+      tsconfigPaths: true,
       alias: {
         "@": path.resolve(__dirname, "./src"),
         "@/components": path.resolve(__dirname, "./src/components"),
@@ -28,9 +28,6 @@ export default defineConfig(({ mode }) => {
       },
     },
     plugins: [
-      viteTsConfigPaths({
-        projects: ["./tsconfig.json"],
-      }),
       tanstackStart({
         router: {
           routeFileIgnorePattern: "\\.(test|spec)\\.(ts|tsx)$",

@@ -121,3 +121,16 @@ bun run format
 # Run tests
 bun run test
 ```
+
+```
+  "overrides": {
+    "@shikijs/core": "^4.0.1",
+    "@shikijs/engine-javascript": "^4.0.1",
+    "@shikijs/engine-oniguruma": "^4.0.1",
+    "@shikijs/langs": "^4.0.1",
+    "@shikijs/themes": "^4.0.1",
+    "@shikijs/transformers": "^4.0.1",
+    "@shikijs/types": "^4.0.1",
+    "shiki": "^4.0.1"
+  }
+```

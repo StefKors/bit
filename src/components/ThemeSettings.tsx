@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { DrawerPreview as Drawer } from "@base-ui/react/drawer"
+import { Drawer } from "@base-ui/react/drawer"
 import { XIcon, SunIcon, MoonIcon, DeviceDesktopIcon } from "@primer/octicons-react"
 import { type ColorMode, themes, type ThemeDefinition } from "@/lib/themes/ThemeDefinitions"
 import {
