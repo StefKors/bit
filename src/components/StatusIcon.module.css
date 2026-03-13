@@ -1,0 +1,48 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--bit-line-height-body);
+  letter-spacing: 0.02em;
+  font-size: var(--bit-font-size-title);
+  line-height: var(--bit-line-height-body);
+  white-space: nowrap;
+}
+
+.icon {
+  width: var(--bit-icon-size-md);
+  height: var(--bit-icon-size-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon > svg {
+  width: 100%;
+  height: 100%;
+}
+
+.open {
+  color: rgba(var(--bit-rgb-accent-green-bright), 0.94);
+}
+
+.merged {
+  color: rgba(var(--bit-rgb-accent-purple), 0.94);
+}
+
+.closed {
+  color: rgba(var(--bit-rgb-accent-red), 0.94);
+}
+
+.needsReview {
+  color: var(--bit-color-accent-yellow);
+}
+
+.draft {
+  color: rgba(var(--bit-rgb-fg), 0.58);
+}
+
+.approved {
+  color: rgba(var(--bit-rgb-accent-green-bright), 0.94);
+}

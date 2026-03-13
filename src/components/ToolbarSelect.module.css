@@ -17,7 +17,7 @@
   font-weight: var(--bit-font-weight-bold);
   cursor: pointer;
   white-space: nowrap;
-  height: 30px;
+  height: 28px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -32,6 +32,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .popup {

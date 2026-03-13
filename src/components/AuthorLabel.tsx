@@ -30,7 +30,7 @@ export const AuthorLabel = ({
   const isBot = resolvedActorType === "bot"
   const displayName = isBot ? login.slice(0, -5) : login
   const resolvedUrl = resolveOwnerAvatarUrl(login, avatarUrl)
-  const avatarSize = Math.round(size + size * 0.4)
+  const avatarSize = Math.round(size + size * 0.3)
 
   return (
     <span

@@ -1,23 +1,30 @@
 .branchLabel {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--bit-space-2);
-  min-width: 0;
-  overflow: hidden;
   font-size: var(--bit-font-size-meta);
   line-height: var(--bit-line-height-meta);
-  font-weight: var(--bit-font-weight-bold);
   user-select: text;
+  height: 28px;
 }
 
 .name {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--bit-color-text);
-  background: var(--bit-color-paper-2);
-  padding: var(--bit-space-1) var(--bit-space-3);
+
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.base {
   border-radius: var(--bit-radius-sm);
+  color: var(--bit-color-text-muted);
+  background: var(--bit-color-surface-2);
+  padding: var(--bit-space-1) var(--bit-space-6);
 }
 
 .sep {
@@ -25,23 +32,33 @@
   color: var(--bit-color-muted);
 }
 
+.group {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  flex: 1;
+  height: 28px;
+  justify-content: center;
+  align-items: center;
+}
+
 .copyButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 0;
+  border: none;
+  color: var(--bit-color-text-muted);
+  cursor: pointer;
+  background: var(--bit-color-surface-2);
+  padding: var(--bit-space-3) var(--bit-space-4);
+  border-radius: var(--bit-radius-sm);
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  margin-left: var(--bit-space-1);
-  border: none;
-  border-radius: var(--bit-radius-sm);
-  background: transparent;
-  color: rgba(var(--bit-rgb-fg), 0.4);
-  cursor: pointer;
-  transition:
-    color 110ms ease,
-    background 110ms ease;
+  gap: var(--bit-space-4);
 }
 
 .copyButton > svg {

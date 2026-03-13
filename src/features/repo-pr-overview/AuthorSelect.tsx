@@ -16,11 +16,14 @@ export const AuthorSelect = ({
 }: AuthorSelectProps) => {
   const items: { value: string; label: React.ReactNode }[] = []
   if (userLogin) {
-    items.push({ value: "me", label: <AuthorLabel login={userLogin} size={14} /> })
+    items.push({
+      value: "me",
+      label: <AuthorLabel weight={"regular"} login={userLogin} size={12} />,
+    })
   }
   items.push({ value: "all", label: "All authors" })
   for (const login of uniqueAuthors) {
-    items.push({ value: login, label: <AuthorLabel login={login} size={14} /> })
+    items.push({ value: login, label: <AuthorLabel weight={"regular"} login={login} size={12} /> })
   }
 
   return (
@@ -33,11 +36,11 @@ export const AuthorSelect = ({
       emptyLabel="No authors"
       renderValue={(value) =>
         value === "me" && userLogin ? (
-          <AuthorLabel login={userLogin} size={12} />
+          <AuthorLabel weight={"regular"} login={userLogin} size={12} />
         ) : value === "all" || value == null ? (
           "All authors"
         ) : (
-          <AuthorLabel login={value} size={12} />
+          <AuthorLabel weight={"regular"} login={value} size={12} />
         )
       }
     />

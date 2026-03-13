@@ -89,18 +89,15 @@
   gap: var(--bit-space-7);
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: var(--bit-space-6);
 }
 
-.prHeader {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--bit-space-6);
+.prDescription {
+  padding: var(--bit-space-12) var(--bit-space-6);
 }
 
 .prTabs {
   width: 100%;
+  padding: var(--bit-space-3) var(--bit-space-6);
 }
 
 .prTabsSeparator {
@@ -121,6 +118,7 @@
   border-radius: var(--bit-radius-md);
   background: var(--bit-color-surface-1);
   box-shadow: var(--bit-shadow-lg);
+  overflow: hidden;
 }
 
 .placeholder {
@@ -156,4 +154,20 @@
   .column1ToolbarTrailing {
     margin-left: 0;
   }
+}
+
+.selectedPrHeaderBottom {
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-2);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  color: var(--repo-muted, var(--bit-color-text-muted));
+  overflow: hidden;
+  padding: var(--bit-space-3) var(--bit-space-6);
+}
+
+.bodyContent {
+  max-width: 860px;
+  margin: auto;
 }

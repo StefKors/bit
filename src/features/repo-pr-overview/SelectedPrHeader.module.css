@@ -3,13 +3,22 @@
   flex-direction: column;
   gap: var(--bit-space-4);
   width: 100%;
+  background: var(--bit-color-surface-1);
+  z-index: 1;
+}
+
+.group {
+  display: flex;
+  gap: var(--bit-space-1);
 }
 
 .selectedPrHeaderTop {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--bit-space-4);
   min-width: 0;
+  padding: var(--bit-space-1) var(--bit-space-1) var(--bit-space-1) var(--bit-space-6);
+  border-bottom: 1px solid var(--bit-color-border);
 }
 
 .selectedPrHeaderDate {
@@ -20,30 +29,29 @@
   color: var(--repo-muted, var(--bit-color-text-muted));
 }
 
-.selectedPrHeaderGitHubLink {
+.actionButton {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  margin-left: var(--bit-space-2);
+  padding: var(--bit-space-2) var(--bit-space-4);
+  gap: var(--bit-space-2);
+  font-size: var(--bit-font-size-meta);
+  line-height: var(--bit-line-height-meta);
+  box-shadow: var(--bit-shadow-md);
   color: var(--repo-muted, var(--bit-color-text-muted));
   border-radius: var(--bit-radius-sm);
-  transition:
-    color 0.15s,
-    background-color 0.15s;
+  border: 1px solid var(--bit-color-border);
+  background: var(--bit-color-bg);
 }
 
-.selectedPrHeaderGitHubLink:hover {
+.actionButton:hover {
   color: var(--bit-color-text);
-  background-color: rgba(var(--bit-rgb-fg), 0.08);
+  background: var(--bit-color-paper-hover);
 }
 
 .selectedPrHeaderTitle {
   flex: 1;
-  font-weight: var(--bit-font-weight-bold);
   font-size: var(--bit-font-size-title);
   line-height: var(--bit-line-height-body);
   color: var(--bit-color-text);
@@ -51,25 +59,11 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   min-width: 0;
-  padding: var(--bit-space-3) var(--bit-space-6);
-  border-bottom: 1px solid var(--bit-color-border);
 }
 
 .selectedPrHeaderNumber {
   color: var(--repo-muted, var(--bit-color-text-muted));
-  font-weight: var(--bit-font-weight-bold);
   margin-right: var(--bit-space-3);
-}
-
-.selectedPrHeaderBottom {
-  display: flex;
-  align-items: center;
-  gap: var(--bit-space-2);
-  font-size: var(--bit-font-size-meta);
-  line-height: var(--bit-line-height-meta);
-  color: var(--repo-muted, var(--bit-color-text-muted));
-  overflow: hidden;
-  padding: var(--bit-space-3) var(--bit-space-6);
 }
 
 .selectedPrHeaderSep {

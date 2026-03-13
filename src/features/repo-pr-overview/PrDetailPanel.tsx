@@ -12,6 +12,8 @@ import { PrCommits } from "./PrCommits"
 import { PrReviewTab } from "./PrReviewTab"
 import { mapPrToCard } from "./MapPrToCard"
 import styles from "./RepoPrOverviewPage.module.css"
+import { Markdown } from "@/components/Markdown"
+import { BranchLabel } from "@/components/BranchLabel"
 
 interface PrDetailPanelProps {
   owner: string
@@ -165,32 +167,32 @@ export const PrDetailPanel = ({ owner, repo, prNumber }: PrDetailPanelProps) => 
 
   return (
     <div className={styles.column2}>
-      <div className={styles.prHeader}>
-        <SelectedPrHeader pr={pr} fullName={fullName} />
-        <PrSidebar pr={pr} />
-      </div>
-
-      <PrListToolbar className={styles.prTabs}>
-        <Tabs
-          items={PR_TABS}
-          value={prTab}
-          onValueChange={setPrTab}
-          trailing={<PrDiffStat owner={owner} repo={repo} prNumber={prNumber} />}
-        />
-      </PrListToolbar>
-
-      <hr className={styles.prTabsSeparator} />
-
+      <SelectedPrHeader pr={pr} fullName={fullName} />
       <div className={styles.column2Scroll}>
-        {prTab === "conversation" ? (
-          <PrDetailContent owner={owner} repo={repo} prNumber={prNumber} />
-        ) : prTab === "review" ? (
-          <PrReviewTab pr={pr} />
-        ) : prTab === "commits" ? (
-          <PrCommits owner={owner} repo={repo} prNumber={prNumber} />
-        ) : (
-          <PrFilesChanged owner={owner} repo={repo} prNumber={prNumber} />
-        )}
+        <div className={styles.bodyContent}>
+          {pr.body && <Markdown content={pr.body} className={styles.prDescription} />}
+
+          <div className={styles.prTabs}>
+            <Tabs
+              items={PR_TABS}
+              value={prTab}
+              onValueChange={setPrTab}
+              trailing={<PrDiffStat owner={owner} repo={repo} prNumber={prNumber} />}
+            />
+          </div>
+
+          <hr className={styles.prTabsSeparator} />
+
+          {prTab === "conversation" ? (
+            <PrDetailContent owner={owner} repo={repo} prNumber={prNumber} />
+          ) : prTab === "review" ? (
+            <PrReviewTab pr={pr} />
+          ) : prTab === "commits" ? (
+            <PrCommits owner={owner} repo={repo} prNumber={prNumber} />
+          ) : (
+            <PrFilesChanged owner={owner} repo={repo} prNumber={prNumber} />
+          )}
+        </div>
       </div>
     </div>
   )

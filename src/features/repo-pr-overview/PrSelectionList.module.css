@@ -32,10 +32,12 @@
   cursor: pointer;
   background: transparent;
   margin: 0.5px 0;
+  opacity: 0.6;
 }
 
 .prCell:hover {
   background: var(--bit-color-paper-hover);
+  opacity: 1;
 }
 
 .prCellSelected {
@@ -44,6 +46,10 @@
 
 .prCellSelected:hover {
   background: var(--bit-color-paper-2);
+}
+
+.prCellUnread {
+  opacity: 1;
 }
 
 .prCell:focus-visible {
@@ -177,14 +183,6 @@
 
 .prTitleUnread {
   color: var(--bit-color-text);
-}
-
-.prUnreadDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--bit-color-accent-blue);
-  flex-shrink: 0;
 }
 
 .prSectionCount {

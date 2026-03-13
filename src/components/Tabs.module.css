@@ -29,7 +29,6 @@
   background: transparent;
   border: none;
   font-size: var(--bit-font-size-default);
-  font-weight: var(--bit-font-weight-bold);
   cursor: pointer;
   position: relative;
   z-index: 1;
@@ -46,7 +45,7 @@
 
 .tab[data-active] {
   color: var(--bit-color-heading);
-  background: var(--bit-color-paper-2);
+  background: var(--bit-color-surface-2);
 }
 
 .icon {

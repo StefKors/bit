@@ -98,11 +98,10 @@ export function PrSelectionList({
                       to="/$owner/$repo/$prNumber"
                       params={{ owner, repo, prNumber: String(pr.number) }}
                       preload="intent"
-                      className={`${styles.prCell} ${isSelected ? styles.prCellSelected : ""}`}
+                      className={`${styles.prCell} ${isSelected ? styles.prCellSelected : ""} ${pr.isUnread ? styles.prCellUnread : ""}`}
                       aria-current={isSelected ? "true" : undefined}
                     >
                       <span className={styles.prCellRow1}>
-                        {pr.isUnread ? <span className={styles.prUnreadDot} aria-hidden /> : null}
                         <span
                           className={`${styles.prStatusIcon} ${statusIconClassMap[status.variant]}`}
                           aria-hidden

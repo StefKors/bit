@@ -6,7 +6,6 @@
   padding: var(--bit-space-1) var(--bit-space-3);
   border-radius: var(--bit-radius-sm);
   font-size: var(--bit-font-size-meta);
-  font-weight: var(--bit-font-weight-bold);
   letter-spacing: 0.02em;
   line-height: var(--bit-line-height-meta);
   white-space: nowrap;

@@ -16,19 +16,21 @@ export const BranchLabel = ({ head, base }: { head: string; base: string }) => {
   }
 
   return (
-    <span className={styles.branchLabel}>
-      <span className={styles.name}>{base}</span>
+    <div className={styles.branchLabel}>
+      <span className={`${styles.name} ${styles.base}`}>{base}</span>
       <span className={styles.sep}>←</span>
-      <span className={styles.name}>{head}</span>
-      <button
-        type="button"
-        className={styles.copyButton}
-        onClick={handleCopy}
-        aria-label="Copy branch name"
-        title="Copy branch name"
-      >
-        {copied ? <CheckIcon size={12} /> : <CopyIcon size={12} />}
-      </button>
-    </span>
+      <div className={styles.group}>
+        <button
+          type="button"
+          className={styles.copyButton}
+          onClick={handleCopy}
+          aria-label="Copy branch name"
+          title="Copy branch name"
+        >
+          <span className={`${styles.head}`}>{head}</span>
+          {copied ? <CheckIcon size={12} /> : <CopyIcon size={12} />}
+        </button>
+      </div>
+    </div>
   )
 }
