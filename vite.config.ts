@@ -17,11 +17,7 @@ export default defineConfig(({ mode }) => {
     css: {
       devSourcemap: isDevelopment,
     },
-    optimizeDeps: {
-      esbuildOptions: {
-        sourcemap: isDevelopment,
-      },
-    },
+    optimizeDeps: {},
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
