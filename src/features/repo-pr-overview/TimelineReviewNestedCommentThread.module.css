@@ -100,7 +100,7 @@
   margin-left: var(--bit-space-6);
   padding: var(--bit-space-4) var(--bit-space-6) var(--bit-space-4) var(--bit-space-5);
   border-top: 1px solid rgba(var(--bit-rgb-fg), 0.08);
-  background: rgba(var(--bit-rgb-surface-1), 1);
+  background: var(--bit-color-bg);
 }
 
 .nestedReplyHeader {
